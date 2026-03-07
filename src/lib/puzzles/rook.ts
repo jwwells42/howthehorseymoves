@@ -57,7 +57,7 @@ export const rookPuzzles: Puzzle[] = [
     id: "rook-05",
     piece: "R",
     title: "Capture!",
-    instruction: "Capture the enemy piece on the star!",
+    instruction: "Capture the enemy knight!",
     setup: [
       { piece: "R", color: "w", square: "e1" },
       { piece: "N", color: "b", square: "e7" },
@@ -180,7 +180,7 @@ export const rookPuzzles: Puzzle[] = [
     id: "rook-13",
     piece: "R",
     title: "Cleanup Crew",
-    instruction: "Capture all enemy pieces!",
+    instruction: "Capture both enemy pawns!",
     setup: [
       { piece: "R", color: "w", square: "d1" },
       { piece: "P", color: "b", square: "d5" },
@@ -214,7 +214,7 @@ export const rookPuzzles: Puzzle[] = [
     id: "rook-15",
     piece: "R",
     title: "Rook Master",
-    instruction: "Capture all enemies and land on the star!",
+    instruction: "Capture both enemy pieces!",
     setup: [
       { piece: "R", color: "w", square: "a1" },
       { piece: "N", color: "b", square: "a6" },

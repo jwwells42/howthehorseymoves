@@ -121,8 +121,10 @@ export default function Board({
           const isSelected = sq === selectedSquare || (drag && sq === drag.from);
           const isTarget = targets.includes(sq) && !reachedTargets.includes(sq);
           const isReached = reachedTargets.includes(sq);
+          const hasOccupant = board.pieces.has(sq);
 
           let fill = isLight ? LIGHT : DARK;
+          if (isTarget && hasOccupant) fill = "#ffd70066";
           if (isSelected) fill = SELECTED_COLOR;
 
           return (
@@ -163,7 +165,7 @@ export default function Board({
                   {rank}
                 </text>
               )}
-              {isTarget && (
+              {isTarget && !hasOccupant && (
                 <text
                   x={fi * SQUARE_SIZE + SQUARE_SIZE / 2}
                   y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 8}
