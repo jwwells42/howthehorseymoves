@@ -220,7 +220,7 @@ export const rookPuzzles: Puzzle[] = [
       { piece: "N", color: "b", square: "a6" },
       { piece: "B", color: "b", square: "f6" },
     ],
-    targets: ["f6"],
+    targets: ["a6", "f6"],
     solution: ["a6", "f6"],
     maxMoves: 3,
     hints: ["Capture the knight first.", "Then slide over to capture the bishop on the star."],
