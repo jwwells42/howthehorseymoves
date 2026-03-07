@@ -1,11 +1,14 @@
 "use client";
 
+import { useState, useCallback, useMemo } from "react";
 import Board from "@/components/board/Board";
 import PuzzleControls from "./PuzzleControls";
 import StarRating from "./StarRating";
 import SuccessOverlay from "./SuccessOverlay";
 import { usePuzzle } from "@/lib/state/use-puzzle";
 import { Puzzle } from "@/lib/puzzles/types";
+import { SquareId } from "@/lib/logic/types";
+import { getValidMoves } from "@/lib/logic/moves";
 
 interface PuzzleShellProps {
   puzzle: Puzzle;
@@ -23,9 +26,27 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
     stars,
     currentHintIndex,
     handleSquareClick,
+    handleDrop,
     reset,
     showHint,
   } = usePuzzle(puzzle);
+
+  const [dragFrom, setDragFrom] = useState<SquareId | null>(null);
+
+  const dragValidMoves = useMemo(() => {
+    if (!dragFrom) return [];
+    const p = board.pieces.get(dragFrom);
+    if (!p || p.color !== "w" || p.piece !== puzzle.piece) return [];
+    return getValidMoves(p.piece, dragFrom, board, "w");
+  }, [dragFrom, board, puzzle.piece]);
+
+  const onDragStart = useCallback((sq: SquareId) => {
+    setDragFrom(sq);
+  }, []);
+
+  const onDragEnd = useCallback(() => {
+    setDragFrom(null);
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-4 p-4 max-w-2xl mx-auto">
@@ -49,7 +70,11 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           validMoves={validMoves}
           targets={puzzle.targets}
           reachedTargets={reachedTargets}
+          dragValidMoves={dragValidMoves}
           onSquareClick={handleSquareClick}
+          onDrop={handleDrop}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
         />
         {isComplete && (
           <SuccessOverlay stars={stars} onNext={onNext} onRetry={reset} />

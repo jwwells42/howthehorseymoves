@@ -1,7 +1,7 @@
 "use client";
 
-import { BoardState, FILES, RANKS, SquareId, squareToCoords } from "@/lib/logic/types";
-import Image from "next/image";
+import { useRef, useState, useCallback } from "react";
+import { BoardState, FILES, RANKS, SquareId, PieceKind, PieceColor, squareToCoords } from "@/lib/logic/types";
 
 const SQUARE_SIZE = 100;
 const BOARD_SIZE = SQUARE_SIZE * 8;
@@ -12,13 +12,25 @@ const SELECTED_COLOR = "#ffff00";
 const VALID_MOVE_COLOR = "#00000033";
 const TARGET_COLOR = "#ffd700";
 
+interface DragState {
+  from: SquareId;
+  piece: PieceKind;
+  color: PieceColor;
+  x: number; // SVG coordinates
+  y: number;
+}
+
 interface BoardProps {
   board: BoardState;
   selectedSquare: SquareId | null;
   validMoves: SquareId[];
   targets: SquareId[];
   reachedTargets: SquareId[];
+  dragValidMoves: SquareId[];
   onSquareClick: (sq: SquareId) => void;
+  onDrop: (from: SquareId, to: SquareId) => void;
+  onDragStart: (sq: SquareId) => void;
+  onDragEnd: () => void;
 }
 
 export default function Board({
@@ -27,19 +39,84 @@ export default function Board({
   validMoves,
   targets,
   reachedTargets,
+  dragValidMoves,
   onSquareClick,
+  onDrop,
+  onDragStart,
+  onDragEnd,
 }: BoardProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [drag, setDrag] = useState<DragState | null>(null);
+
+  // Convert a pointer event to SVG coordinates
+  const pointerToSvg = useCallback((e: React.PointerEvent): { x: number; y: number } | null => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+    return { x: svgPt.x, y: svgPt.y };
+  }, []);
+
+  const svgToSquare = useCallback((x: number, y: number): SquareId | null => {
+    const file = Math.floor(x / SQUARE_SIZE);
+    const rank = Math.floor(y / SQUARE_SIZE);
+    if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
+    return `${FILES[file]}${RANKS[rank]}` as SquareId;
+  }, []);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent, sq: SquareId) => {
+    const p = board.pieces.get(sq);
+    if (!p || p.color !== "w") return; // only drag player pieces
+    const svgPt = pointerToSvg(e);
+    if (!svgPt) return;
+
+    (e.target as Element).setPointerCapture(e.pointerId);
+    setDrag({ from: sq, piece: p.piece, color: p.color, x: svgPt.x, y: svgPt.y });
+    onDragStart(sq);
+  }, [board, pointerToSvg, onDragStart]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!drag) return;
+    const svgPt = pointerToSvg(e);
+    if (!svgPt) return;
+    setDrag((prev) => prev ? { ...prev, x: svgPt.x, y: svgPt.y } : null);
+  }, [drag, pointerToSvg]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (!drag) return;
+    const svgPt = pointerToSvg(e);
+    if (svgPt) {
+      const dropSq = svgToSquare(svgPt.x, svgPt.y);
+      if (dropSq && dropSq !== drag.from) {
+        onDrop(drag.from, dropSq);
+      } else {
+        // Dropped on same square or off-board — treat as click
+        onSquareClick(drag.from);
+      }
+    }
+    setDrag(null);
+    onDragEnd();
+  }, [drag, pointerToSvg, svgToSquare, onDrop, onSquareClick, onDragEnd]);
+
+  // Merge click-selected valid moves with drag valid moves
+  const allHighlightedMoves = drag ? dragValidMoves : validMoves;
+
   return (
     <svg
+      ref={svgRef}
       viewBox={`0 0 ${BOARD_SIZE} ${BOARD_SIZE}`}
-      className="w-full max-w-[min(90vw,90vh-8rem)] aspect-square"
+      className="w-full max-w-[min(90vw,90vh-8rem)] aspect-square touch-none"
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
     >
       {/* Squares */}
       {RANKS.map((rank, ri) =>
         FILES.map((file, fi) => {
           const sq = `${file}${rank}` as SquareId;
           const isLight = (fi + ri) % 2 === 0;
-          const isSelected = sq === selectedSquare;
+          const isSelected = sq === selectedSquare || (drag && sq === drag.from);
           const isTarget = targets.includes(sq) && !reachedTargets.includes(sq);
           const isReached = reachedTargets.includes(sq);
 
@@ -47,7 +124,12 @@ export default function Board({
           if (isSelected) fill = SELECTED_COLOR;
 
           return (
-            <g key={sq} onClick={() => onSquareClick(sq)} className="cursor-pointer">
+            <g
+              key={sq}
+              onClick={() => { if (!drag) onSquareClick(sq); }}
+              onPointerDown={(e) => handlePointerDown(e, sq)}
+              className="cursor-pointer"
+            >
               <rect
                 x={fi * SQUARE_SIZE}
                 y={ri * SQUARE_SIZE}
@@ -55,7 +137,6 @@ export default function Board({
                 height={SQUARE_SIZE}
                 fill={fill}
               />
-              {/* Coordinate labels */}
               {ri === 7 && (
                 <text
                   x={fi * SQUARE_SIZE + 5}
@@ -63,6 +144,7 @@ export default function Board({
                   fontSize="14"
                   fill={isLight ? DARK : LIGHT}
                   fontWeight="bold"
+                  className="pointer-events-none select-none"
                 >
                   {file}
                 </text>
@@ -74,11 +156,11 @@ export default function Board({
                   fontSize="14"
                   fill={isLight ? DARK : LIGHT}
                   fontWeight="bold"
+                  className="pointer-events-none select-none"
                 >
                   {rank}
                 </text>
               )}
-              {/* Target star */}
               {isTarget && (
                 <text
                   x={fi * SQUARE_SIZE + SQUARE_SIZE / 2}
@@ -92,7 +174,6 @@ export default function Board({
                   &#9733;
                 </text>
               )}
-              {/* Reached target (green check) */}
               {isReached && (
                 <text
                   x={fi * SQUARE_SIZE + SQUARE_SIZE / 2}
@@ -111,12 +192,11 @@ export default function Board({
       )}
 
       {/* Valid move indicators */}
-      {validMoves.map((sq) => {
+      {allHighlightedMoves.map((sq) => {
         const [fx, fy] = squareToCoords(sq);
         const occupant = board.pieces.get(sq);
         const isTarget = targets.includes(sq);
         if (occupant) {
-          // Capture ring
           return (
             <circle
               key={`move-${sq}`}
@@ -142,8 +222,9 @@ export default function Board({
         );
       })}
 
-      {/* Pieces */}
+      {/* Pieces (skip the dragged piece from its original position) */}
       {Array.from(board.pieces.entries()).map(([sq, { piece, color }]) => {
+        if (drag && sq === drag.from) return null;
         const [fx, fy] = squareToCoords(sq);
         return (
           <image
@@ -157,6 +238,19 @@ export default function Board({
           />
         );
       })}
+
+      {/* Dragged piece following cursor */}
+      {drag && (
+        <image
+          href={`/pieces/${drag.color}${drag.piece}.svg`}
+          x={drag.x - SQUARE_SIZE / 2}
+          y={drag.y - SQUARE_SIZE / 2}
+          width={SQUARE_SIZE}
+          height={SQUARE_SIZE}
+          className="pointer-events-none"
+          opacity={0.9}
+        />
+      )}
     </svg>
   );
 }

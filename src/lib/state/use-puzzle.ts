@@ -43,53 +43,20 @@ export function usePuzzle(puzzle: Puzzle) {
 
   const stars = useMemo(() => calculateStars(moveCount), [calculateStars, moveCount]);
 
-  const handleSquareClick = useCallback(
-    (sq: SquareId) => {
-      if (isComplete) return;
-
-      // If no piece selected, try to select the player piece
-      if (!selectedSquare) {
-        const p = board.pieces.get(sq);
-        if (p && p.color === "w" && p.piece === puzzle.piece) {
-          setSelectedSquare(sq);
-        }
-        return;
-      }
-
-      // Clicking the same square deselects
-      if (sq === selectedSquare) {
-        setSelectedSquare(null);
-        return;
-      }
-
-      // Check if it's a valid move
-      const p = board.pieces.get(selectedSquare);
-      if (!p) return;
-      const moves = getValidMoves(p.piece, selectedSquare, board, "w");
-      if (!moves.includes(sq)) {
-        // Try selecting a different player piece
-        const target = board.pieces.get(sq);
-        if (target && target.color === "w" && target.piece === puzzle.piece) {
-          setSelectedSquare(sq);
-        } else {
-          setSelectedSquare(null);
-        }
-        return;
-      }
-
-      // Execute the move
+  // Execute a validated move from `from` to `to`
+  const executeMove = useCallback(
+    (from: SquareId, to: SquareId) => {
       const newPieces = new Map(board.pieces);
-      const piece = newPieces.get(selectedSquare)!;
-      newPieces.delete(selectedSquare);
-      newPieces.set(sq, piece);
+      const piece = newPieces.get(from)!;
+      newPieces.delete(from);
+      newPieces.set(to, piece);
       setBoard({ pieces: newPieces });
       setSelectedSquare(null);
       const newMoveCount = moveCount + 1;
       setMoveCount(newMoveCount);
 
-      // Check if target reached
-      if (puzzle.targets.includes(sq) && !reachedTargets.includes(sq)) {
-        const newReached = [...reachedTargets, sq];
+      if (puzzle.targets.includes(to) && !reachedTargets.includes(to)) {
+        const newReached = [...reachedTargets, to];
         setReachedTargets(newReached);
 
         if (newReached.length === puzzle.targets.length) {
@@ -99,7 +66,55 @@ export function usePuzzle(puzzle: Puzzle) {
         }
       }
     },
-    [board, selectedSquare, isComplete, moveCount, reachedTargets, puzzle, calculateStars, completePuzzle]
+    [board, moveCount, reachedTargets, puzzle, calculateStars, completePuzzle]
+  );
+
+  const handleSquareClick = useCallback(
+    (sq: SquareId) => {
+      if (isComplete) return;
+
+      if (!selectedSquare) {
+        const p = board.pieces.get(sq);
+        if (p && p.color === "w" && p.piece === puzzle.piece) {
+          setSelectedSquare(sq);
+        }
+        return;
+      }
+
+      if (sq === selectedSquare) {
+        setSelectedSquare(null);
+        return;
+      }
+
+      const p = board.pieces.get(selectedSquare);
+      if (!p) return;
+      const moves = getValidMoves(p.piece, selectedSquare, board, "w");
+      if (!moves.includes(sq)) {
+        const target = board.pieces.get(sq);
+        if (target && target.color === "w" && target.piece === puzzle.piece) {
+          setSelectedSquare(sq);
+        } else {
+          setSelectedSquare(null);
+        }
+        return;
+      }
+
+      executeMove(selectedSquare, sq);
+    },
+    [board, selectedSquare, isComplete, puzzle, executeMove]
+  );
+
+  // Drag-and-drop: validate and execute a move from `from` to `to`
+  const handleDrop = useCallback(
+    (from: SquareId, to: SquareId) => {
+      if (isComplete || from === to) return;
+      const p = board.pieces.get(from);
+      if (!p || p.color !== "w" || p.piece !== puzzle.piece) return;
+      const moves = getValidMoves(p.piece, from, board, "w");
+      if (!moves.includes(to)) return;
+      executeMove(from, to);
+    },
+    [board, isComplete, puzzle, executeMove]
   );
 
   const reset = useCallback(() => {
@@ -132,6 +147,7 @@ export function usePuzzle(puzzle: Puzzle) {
     stars,
     currentHintIndex,
     handleSquareClick,
+    handleDrop,
     reset,
     showHint,
   };
