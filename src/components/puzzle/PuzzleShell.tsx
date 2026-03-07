@@ -71,6 +71,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           targets={puzzle.targets}
           reachedTargets={reachedTargets}
           dragValidMoves={dragValidMoves}
+          draggablePiece={puzzle.piece}
           onSquareClick={handleSquareClick}
           onDrop={handleDrop}
           onDragStart={onDragStart}
