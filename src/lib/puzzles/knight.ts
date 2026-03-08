@@ -11,7 +11,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["f5"],
     maxMoves: 1,
     hints: ["The knight moves in an L-shape: 2 squares one way, then 1 square perpendicular.", "Try 2 right + 1 up."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "knight-02",
@@ -23,7 +23,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["e6"],
     maxMoves: 1,
     hints: ["The L can go in any direction.", "Try 1 right + 2 up."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "knight-03",
@@ -35,7 +35,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["c4"],
     maxMoves: 1,
     hints: ["The knight can also move in L-shapes going left and down."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "knight-04",
@@ -54,7 +54,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["f5"],
     maxMoves: 1,
     hints: ["The knight is the only piece that can jump over others!", "The pawns don't block the knight."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "knight-05",
@@ -66,7 +66,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["c3", "e4"],
     maxMoves: 3,
     hints: ["Plan two L-shaped jumps.", "Where can you land after one jump that reaches e4 next?"],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "knight-06",
@@ -81,7 +81,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["f5"],
     maxMoves: 1,
     hints: ["The knight captures by landing on the enemy's square."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "knight-07",
@@ -93,7 +93,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["b3"],
     maxMoves: 1,
     hints: ["a1 is a dark square, b3 is a light square.", "The knight always lands on the opposite color!"],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "knight-08",
@@ -105,7 +105,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["b3", "d4"],
     maxMoves: 3,
     hints: ["From the corner, the knight only has 2 possible moves.", "Jump to b3 or c2 first."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "knight-09",
@@ -117,7 +117,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["f5", "g3"],
     maxMoves: 3,
     hints: ["Visit one star, then jump to the other.", "f5 to g3 is a valid L-shape!"],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "knight-10",
@@ -139,7 +139,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["f2", "g4", "e5"],
     maxMoves: 4,
     hints: ["The knight can jump over the entire wall!", "Move sideways first, then leap over."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "knight-11",
@@ -151,7 +151,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["b3", "d4", "f5", "g7"],
     maxMoves: 5,
     hints: ["The knight zigzags across the board.", "Each jump covers ground diagonally."],
-    starThresholds: { three: 4, two: 4, one: 5 },
+    starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
     id: "knight-12",
@@ -166,7 +166,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["c3", "e4"],
     maxMoves: 3,
     hints: ["Capture the rook first.", "Then one more jump to the star."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "knight-13",
@@ -178,7 +178,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["f5", "e3", "c2"],
     maxMoves: 4,
     hints: ["Each star is one L-shaped jump from the previous!", "Chain your jumps together."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "knight-14",
@@ -195,7 +195,7 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["f5", "e3", "c1"],
     maxMoves: 4,
     hints: ["Capture them in the right order.", "Each capture should set up the next jump."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "knight-15",
@@ -213,6 +213,6 @@ export const knightPuzzles: Puzzle[] = [
     solution: ["b3", "d4"],
     maxMoves: 3,
     hints: ["The friendly pawns don't block the knight's jumps.", "Capture b3 first, then jump to d4."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
 ];

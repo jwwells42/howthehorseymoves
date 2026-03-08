@@ -11,7 +11,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e3"],
     maxMoves: 1,
     hints: ["Pawns move forward one square.", "White pawns move up the board."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "pawn-02",
@@ -23,7 +23,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e4"],
     maxMoves: 1,
     hints: ["From its starting position, a pawn can move two squares forward!", "This only works on the pawn's first move."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "pawn-03",
@@ -35,7 +35,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["d5", "d6"],
     maxMoves: 3,
     hints: ["The pawn has already moved, so it can only go one square at a time.", "The double-step only works from the starting rank."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "pawn-04",
@@ -50,7 +50,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e5"],
     maxMoves: 1,
     hints: ["Pawns capture diagonally, not straight ahead!", "Move one square diagonally forward."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "pawn-05",
@@ -66,7 +66,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e5"],
     maxMoves: 1,
     hints: ["Pawns can't move forward if a piece is in the way.", "But they CAN capture diagonally!"],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "pawn-06",
@@ -81,7 +81,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["c5"],
     maxMoves: 1,
     hints: ["Pawns can capture diagonally to the left too!"],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "pawn-07",
@@ -93,7 +93,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e4", "e5", "e6", "e7", "e8"],
     maxMoves: 6,
     hints: ["Use the double-step on the first move!", "Then one square at a time to the top."],
-    starThresholds: { three: 5, two: 5, one: 6 },
+    starThresholds: { three: 5, two: 6, one: 7 },
   },
   {
     id: "pawn-08",
@@ -109,7 +109,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e5", "d6"],
     maxMoves: 3,
     hints: ["Capture one diagonally, then capture the other.", "Zigzag through the enemies!"],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "pawn-09",
@@ -126,7 +126,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e5", "f6"],
     maxMoves: 3,
     hints: ["You can't go forward, but you can capture diagonally.", "Chain two diagonal captures together."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "pawn-10",
@@ -142,7 +142,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["c5"],
     maxMoves: 1,
     hints: ["The pawn can capture left or right.", "Which capture lands on the star?"],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "pawn-11",
@@ -160,7 +160,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e3", "d4", "e5"],
     maxMoves: 4,
     hints: ["Capture diagonally each time.", "Left, right, left — zigzag up the board!"],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "pawn-12",
@@ -177,7 +177,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e6", "d7"],
     maxMoves: 3,
     hints: ["The forward path is blocked.", "Capture diagonally to get around, then capture again."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "pawn-13",
@@ -192,7 +192,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["d4", "e5"],
     maxMoves: 3,
     hints: ["Start with a double-step to d4.", "Then capture diagonally to e5."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "pawn-14",
@@ -210,7 +210,7 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["f3", "e4", "f5", "e6"],
     maxMoves: 5,
     hints: ["Zigzag diagonally through all four.", "Right, left, right, left!"],
-    starThresholds: { three: 4, two: 4, one: 5 },
+    starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
     id: "pawn-15",
@@ -230,6 +230,6 @@ export const pawnPuzzles: Puzzle[] = [
     solution: ["e3", "d4", "e5", "d6", "e7", "d8"],
     maxMoves: 7,
     hints: ["Zigzag all the way to the top!", "Capture every enemy on the way."],
-    starThresholds: { three: 6, two: 6, one: 7 },
+    starThresholds: { three: 6, two: 7, one: 8 },
   },
 ];

@@ -11,7 +11,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["d8"],
     maxMoves: 1,
     hints: ["The rook moves in straight lines.", "Move up the file to row 8."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "rook-02",
@@ -23,7 +23,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["h4"],
     maxMoves: 1,
     hints: ["The rook can also move along ranks (sideways)."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "rook-03",
@@ -35,7 +35,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["a8", "h8"],
     maxMoves: 3,
     hints: ["The rook can't move diagonally.", "Go up first, then across (or across then up)."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "rook-04",
@@ -51,7 +51,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["a3", "b3", "b8", "a8"],
     maxMoves: 5,
     hints: ["The rook is blocked by pieces.", "Move up, then go around the pawn."],
-    starThresholds: { three: 4, two: 4, one: 5 },
+    starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
     id: "rook-05",
@@ -66,7 +66,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["e7"],
     maxMoves: 1,
     hints: ["The rook captures by moving to a square with an enemy piece."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "rook-06",
@@ -82,7 +82,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["d5", "h5", "h8"],
     maxMoves: 4,
     hints: ["You need to go around the obstacles.", "Try moving up first."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "rook-07",
@@ -94,7 +94,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["a8", "h8", "h1"],
     maxMoves: 4,
     hints: ["Visit one star, then navigate to the other.", "Try the top one first."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "rook-08",
@@ -112,7 +112,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["b1", "b4", "e4"],
     maxMoves: 4,
     hints: ["Find the gaps between the pawns.", "The b-file has a clear path upward."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "rook-09",
@@ -127,7 +127,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["h5", "a5"],
     maxMoves: 3,
     hints: ["Capture the bishop first — it's on your way!", "Then slide across the rank."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "rook-10",
@@ -146,7 +146,7 @@ export const rookPuzzles: Puzzle[] = [
       "You can't go straight up — there's a pawn blocking a5.",
       "Go right first, then up, then back over to the a-file."
     ],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "rook-11",
@@ -162,7 +162,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["d4", "g4", "g8"],
     maxMoves: 4,
     hints: ["Go up, then over, then up again.", "Stop before the pawn on d5."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "rook-12",
@@ -190,7 +190,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["d5", "h5"],
     maxMoves: 3,
     hints: ["Capture them one at a time.", "The first one is directly above you."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "rook-14",
@@ -208,7 +208,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["a3", "b3", "b6", "c6", "c8"],
     maxMoves: 6,
     hints: ["Move up, then right, then up, then right...", "Use the gaps in the pawn wall."],
-    starThresholds: { three: 5, two: 5, one: 6 },
+    starThresholds: { three: 5, two: 6, one: 7 },
   },
   {
     id: "rook-15",
@@ -224,6 +224,6 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["a6", "f6"],
     maxMoves: 3,
     hints: ["Capture the knight first.", "Then slide over to capture the bishop on the star."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
 ];

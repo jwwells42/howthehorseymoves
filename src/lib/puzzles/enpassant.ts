@@ -18,7 +18,7 @@ export const enPassantPuzzles: Puzzle[] = [
       "When a pawn advances two squares and lands beside your pawn, you can capture it 'in passing'.",
       "Your pawn moves diagonally to d6, capturing the black pawn on d5.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "enpassant-02",
@@ -37,7 +37,7 @@ export const enPassantPuzzles: Puzzle[] = [
       "En passant works from either side.",
       "Capture diagonally to d6 — the black pawn on d5 is removed.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "enpassant-03",
@@ -57,7 +57,7 @@ export const enPassantPuzzles: Puzzle[] = [
       "En passant only works on the pawn that JUST moved two squares.",
       "The en passant square is f6 — the pawn on f5 just arrived.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "enpassant-04",
@@ -76,7 +76,7 @@ export const enPassantPuzzles: Puzzle[] = [
       "En passant must be done immediately — you can't wait!",
       "Capture on a6 now before the chance disappears.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "enpassant-05",
@@ -115,7 +115,7 @@ export const enPassantPuzzles: Puzzle[] = [
       "The black pawn on c5 is blocking your c4 pawn.",
       "Use your d5 pawn to capture en passant on c6, clearing the way.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "enpassant-07",
@@ -153,7 +153,7 @@ export const enPassantPuzzles: Puzzle[] = [
       "En passant works on any file, including the a-file.",
       "Capture diagonally to a6.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "enpassant-09",
@@ -172,7 +172,7 @@ export const enPassantPuzzles: Puzzle[] = [
       "En passant works on the h-file too!",
       "Capture diagonally to h6.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "enpassant-10",

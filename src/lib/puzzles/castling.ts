@@ -15,7 +15,7 @@ export const castlingPuzzles: Puzzle[] = [
     castlingRights: { K: true, Q: false, k: false, q: false },
     maxMoves: 1,
     hints: ["The king moves two squares toward the rook to castle.", "Click the king, then click g1."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "castling-02",
@@ -31,7 +31,7 @@ export const castlingPuzzles: Puzzle[] = [
     castlingRights: { K: false, Q: true, k: false, q: false },
     maxMoves: 1,
     hints: ["Queenside castling moves the king to c1.", "The rook jumps over to d1."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "castling-03",
@@ -48,7 +48,7 @@ export const castlingPuzzles: Puzzle[] = [
     castlingRights: { K: true, Q: true, k: false, q: false },
     maxMoves: 1,
     hints: ["Both sides are open for castling.", "Kingside is g1, queenside is c1."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "castling-04",
@@ -66,7 +66,7 @@ export const castlingPuzzles: Puzzle[] = [
     castlingRights: { K: true, Q: true, k: false, q: false },
     maxMoves: 1,
     hints: ["You can't castle if pieces are between the king and rook.", "The queenside is blocked by the pawn on b1."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "castling-05",
@@ -88,7 +88,7 @@ export const castlingPuzzles: Puzzle[] = [
       "The black rook on f8 attacks f1, blocking kingside castling.",
       "Castle queenside instead!",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "castling-06",
@@ -109,7 +109,7 @@ export const castlingPuzzles: Puzzle[] = [
       "Move the king out of check first — or simply step aside.",
       "Move the king to f1 to escape.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "castling-07",
@@ -132,7 +132,7 @@ export const castlingPuzzles: Puzzle[] = [
       "Castling tucks the king behind pawns for safety.",
       "The pawns on f2, g2, h2 will shield the king after castling.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "castling-08",
@@ -175,7 +175,7 @@ export const castlingPuzzles: Puzzle[] = [
       "Queenside castling passes the king through d1 — that's attacked!",
       "Castle kingside to g1.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "castling-10",
@@ -198,6 +198,6 @@ export const castlingPuzzles: Puzzle[] = [
       "The enemy rook controls the h-file — kingside isn't available anyway.",
       "Castle queenside to tuck behind your a, b, c pawns.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
 ];

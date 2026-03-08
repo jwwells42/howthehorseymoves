@@ -11,7 +11,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["e5"],
     maxMoves: 1,
     hints: ["The king moves one square in any direction."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "king-02",
@@ -23,7 +23,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["e5"],
     maxMoves: 1,
     hints: ["The king can also move diagonally — but only one square!"],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "king-03",
@@ -35,7 +35,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["c3"],
     maxMoves: 1,
     hints: ["The king can move to any adjacent square — including backwards and sideways."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "king-04",
@@ -47,7 +47,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["a2", "a3", "a4"],
     maxMoves: 4,
     hints: ["The king can only move one square at a time.", "Be patient — walk straight up!"],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "king-05",
@@ -59,7 +59,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["f2", "g3", "h4"],
     maxMoves: 4,
     hints: ["Diagonal moves cover both horizontal and vertical distance.", "Each diagonal step gets you closer in both directions."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "king-06",
@@ -74,7 +74,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["f5"],
     maxMoves: 1,
     hints: ["The king captures by moving to the enemy's square."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "king-07",
@@ -91,7 +91,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["e2", "e3", "e4", "e5", "d5"],
     maxMoves: 6,
     hints: ["The king can't jump over pieces.", "Go around the wall of pawns."],
-    starThresholds: { three: 5, two: 5, one: 6 },
+    starThresholds: { three: 5, two: 6, one: 7 },
   },
   {
     id: "king-08",
@@ -103,7 +103,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["b2", "c3", "d4"],
     maxMoves: 4,
     hints: ["Use diagonal moves to cover ground fastest.", "Each diagonal step gains one rank AND one file."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "king-09",
@@ -119,7 +119,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["b2", "c3", "b4", "a5"],
     maxMoves: 5,
     hints: ["The direct path is blocked.", "Go diagonally around the pawns."],
-    starThresholds: { three: 4, two: 4, one: 5 },
+    starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
     id: "king-10",
@@ -131,7 +131,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["e5", "d4", "c3"],
     maxMoves: 4,
     hints: ["The king can reach each star in one step.", "Visit one then walk back toward the other."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "king-11",
@@ -146,7 +146,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["f2", "g3", "h4"],
     maxMoves: 4,
     hints: ["Capture the bishop — it's on your way!", "Then continue diagonally."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "king-12",
@@ -164,7 +164,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["b2", "c3", "c4"],
     maxMoves: 4,
     hints: ["Find the one open path through the pawns.", "b2 is open!"],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "king-13",
@@ -181,7 +181,7 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["e5", "e4", "e3"],
     maxMoves: 4,
     hints: ["The king can capture one per move.", "Capture them top to bottom (or bottom to top)."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "king-14",
@@ -209,6 +209,6 @@ export const kingPuzzles: Puzzle[] = [
     solution: ["b2", "c3", "d4"],
     maxMoves: 4,
     hints: ["Capture the pawn first — it's right next to you.", "Then walk diagonally to the knight."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
 ];

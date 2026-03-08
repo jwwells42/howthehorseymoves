@@ -23,7 +23,7 @@ export const backreakMatePuzzles: Puzzle[] = [
       "The black king is trapped behind its own pawns on the back rank.",
       "Move the rook to the 8th rank!",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-br-02",
@@ -45,7 +45,7 @@ export const backreakMatePuzzles: Puzzle[] = [
       "The king is stuck in the corner with pawns blocking escape.",
       "Put the queen on the back rank — d8!",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-br-03",
@@ -65,7 +65,7 @@ export const backreakMatePuzzles: Puzzle[] = [
       "The white king on c7 controls b7 and b8.",
       "Deliver check on the a-file — the king has no escape.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-br-04",
@@ -88,7 +88,7 @@ export const backreakMatePuzzles: Puzzle[] = [
       "The pawns on a7, b7, c7 block all the king's escape squares.",
       "Move the rook to the 8th rank!",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-br-05",
@@ -109,7 +109,7 @@ export const backreakMatePuzzles: Puzzle[] = [
       "Don't play Qa8 — that could be stalemate!",
       "Qg7 is checkmate — the king is in check with no escape.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
 ];
 
@@ -138,7 +138,7 @@ export const smotheredMatePuzzles: Puzzle[] = [
       "The knight can jump over pieces — find the square that gives check!",
       "Nf7 is checkmate! The king is boxed in by its own rook and pawns.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-sm-02",
@@ -161,7 +161,7 @@ export const smotheredMatePuzzles: Puzzle[] = [
       "Find the knight move that gives check!",
       "Nf7 is checkmate!",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-sm-03",
@@ -187,7 +187,7 @@ export const smotheredMatePuzzles: Puzzle[] = [
       "The knight on d5 can go to several squares — which one gives check?",
       "Ne7 gives check! And every escape square is blocked by black's own pieces.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
 ];
 
@@ -279,7 +279,7 @@ export const queenKingMatePuzzles: Puzzle[] = [
       "Your king on b6 controls b7. The rook covers the b-file.",
       "Qa6 is checkmate!",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-qk-02",
@@ -302,7 +302,7 @@ export const queenKingMatePuzzles: Puzzle[] = [
       "The white king covers f7 and g7.",
       "Qe8 delivers check along the 8th rank — no escape!",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-qk-03",
@@ -323,7 +323,7 @@ export const queenKingMatePuzzles: Puzzle[] = [
       "Be careful — some queen moves leave the king with no legal moves but no check (stalemate)!",
       "Qb7 is checkmate — the queen covers all escape squares and delivers check.",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "checkmate-qk-04",
@@ -348,6 +348,6 @@ export const queenKingMatePuzzles: Puzzle[] = [
       "The queen can attack f7 — and the bishop on c4's diagonal supports!",
       "Qxf7 is checkmate!",
     ],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
 ];

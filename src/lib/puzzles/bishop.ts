@@ -11,7 +11,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["h8"],
     maxMoves: 1,
     hints: ["The bishop moves diagonally.", "Go from corner to corner!"],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "bishop-02",
@@ -23,7 +23,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["a8"],
     maxMoves: 1,
     hints: ["Bishops move diagonally in any direction."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "bishop-03",
@@ -35,7 +35,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["f6"],
     maxMoves: 1,
     hints: ["The bishop can move any number of squares diagonally."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "bishop-04",
@@ -47,7 +47,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["g5"],
     maxMoves: 1,
     hints: ["A bishop always stays on the same color squares.", "c1 is a dark square, and so is g5."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "bishop-05",
@@ -59,7 +59,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["d4", "a7"],
     maxMoves: 3,
     hints: ["The bishop can't move in straight lines.", "Move to an intermediate diagonal, then redirect."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "bishop-06",
@@ -74,7 +74,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["c3", "a5", "e1", "g3", "f4", "g5", "g7"],
     maxMoves: 5,
     hints: ["The pawn blocks the main diagonal.", "Try going to c3, then switch to a different diagonal."],
-    starThresholds: { three: 4, two: 4, one: 5 },
+    starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
     id: "bishop-07",
@@ -89,7 +89,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["f6"],
     maxMoves: 1,
     hints: ["The bishop captures by landing on the enemy's square."],
-    starThresholds: { three: 1, two: 1, one: 2 },
+    starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
     id: "bishop-08",
@@ -105,7 +105,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["b2", "a3", "f8", "g7", "h8"],
     maxMoves: 6,
     hints: ["The main diagonal is blocked.", "Try stepping to b2, then a3, then use the a3-f8 diagonal."],
-    starThresholds: { three: 5, two: 5, one: 6 },
+    starThresholds: { three: 5, two: 6, one: 7 },
   },
   {
     id: "bishop-09",
@@ -117,7 +117,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["a1", "h8"],
     maxMoves: 3,
     hints: ["Both stars are on the same diagonal!", "Visit one, then go to the other."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "bishop-10",
@@ -148,7 +148,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["d4", "g1"],
     maxMoves: 3,
     hints: ["Capture the rook first.", "Then find a diagonal to the star."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
     id: "bishop-12",
@@ -180,7 +180,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["a7", "d4", "g7"],
     maxMoves: 4,
     hints: ["Capture one, then reposition to capture the other.", "The knight is on the same diagonal."],
-    starThresholds: { three: 3, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
     id: "bishop-14",
@@ -192,7 +192,7 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["d4", "g7", "e5", "c7"],
     maxMoves: 5,
     hints: ["d4 and g7 are on the same diagonal as a1.", "From g7, reposition to reach c7."],
-    starThresholds: { three: 4, two: 4, one: 5 },
+    starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
     id: "bishop-15",
@@ -208,6 +208,6 @@ export const bishopPuzzles: Puzzle[] = [
     solution: ["c3", "f6"],
     maxMoves: 3,
     hints: ["Both enemies are on the same long diagonal!", "Capture them in order."],
-    starThresholds: { three: 2, two: 2, one: 3 },
+    starThresholds: { three: 2, two: 3, one: 4 },
   },
 ];
