@@ -1,4 +1,5 @@
 import { Puzzle } from "./types";
+import type { Arrow } from "../logic/pgn";
 
 // === Pins ===
 export const pinPuzzles: Puzzle[] = [
@@ -11,6 +12,7 @@ export const pinPuzzles: Puzzle[] = [
     targets: ["c2", "d3"],
     solution: ["c2", "d3"],
     opponentResponses: [{ from: "h7", to: "h6" }],
+    arrows: [{ from: "d3", to: "h7", color: "#15803d" }],
     maxMoves: 2,
     hints: [
       "The knight on d3 and king on h7 are on the same diagonal.",

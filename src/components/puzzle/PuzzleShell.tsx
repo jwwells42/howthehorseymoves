@@ -94,7 +94,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           board={board}
           selectedSquare={selectedSquare}
           validMoves={validMoves}
-          targets={puzzle.targets}
+          targets={puzzle.arrows ? [] : puzzle.targets}
           reachedTargets={reachedTargets}
           dragValidMoves={dragValidMoves}
           draggablePiece={isBotMode ? undefined : puzzle.piece}
@@ -105,6 +105,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           pawnSlide={showPawnSlide ? pawnSlideData : undefined}
           wrongMoveSquare={wrongMoveSquare}
           opponentSlide={opponentSlide}
+          arrows={puzzle.arrows}
         />
         {isComplete && (
           <SuccessOverlay stars={stars} onNext={onNext} onRetry={reset} />

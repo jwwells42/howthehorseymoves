@@ -1,4 +1,5 @@
 import { PieceKind, PiecePlacement, SquareId } from "../logic/types";
+import type { Arrow } from "../logic/pgn";
 
 export type PuzzleMode = "reach-target" | "checkmate" | "checkmate-bot";
 
@@ -24,6 +25,8 @@ export interface Puzzle {
   mode?: PuzzleMode;
   /** Opponent responses between player moves. Length = solution.length - 1. */
   opponentResponses?: OpponentResponse[];
+  /** Arrows drawn on the board to highlight tactical relationships. */
+  arrows?: Arrow[];
 }
 
 export interface PuzzleSet {
