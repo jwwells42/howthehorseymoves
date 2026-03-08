@@ -331,40 +331,29 @@ export default function Board({
         const dx = x2 - x1;
         const dy = y2 - y1;
         const len = Math.sqrt(dx * dx + dy * dy);
-        const headW = 45;
-        const headH = 55;
+        const headLen = 40;
+        const headW = 55;
+        const shaftW = 18;
         const ux = dx / len;
         const uy = dy / len;
-        // End the shaft where the arrowhead base starts; tip lands at square center
-        const ex = x2 - ux * headW;
-        const ey = y2 - uy * headW;
-        const markerId = `arrow-${i}`;
+        // Shaft starts at center of "from" square, ends at base of arrowhead
+        const sx = x2 - ux * headLen;
+        const sy = y2 - uy * headLen;
+        // Arrowhead points perpendicular
+        const px = -uy;
+        const py = ux;
+        const hw = headW / 2;
         return (
-          <g key={`arrow-${i}`} className="pointer-events-none">
-            <defs>
-              <marker
-                id={markerId}
-                markerWidth={headW}
-                markerHeight={headH}
-                refX={headW}
-                refY={headH / 2}
-                orient="auto"
-                markerUnits="userSpaceOnUse"
-              >
-                <polygon
-                  points={`0 0, ${headW} ${headH / 2}, 0 ${headH}`}
-                  fill={arrow.color}
-                  opacity={0.8}
-                />
-              </marker>
-            </defs>
+          <g key={`arrow-${i}`} className="pointer-events-none" opacity={0.75}>
             <line
-              x1={x1} y1={y1} x2={ex} y2={ey}
+              x1={x1} y1={y1} x2={sx} y2={sy}
               stroke={arrow.color}
-              strokeWidth={18}
+              strokeWidth={shaftW}
               strokeLinecap="round"
-              opacity={0.7}
-              markerEnd={`url(#${markerId})`}
+            />
+            <polygon
+              points={`${x2},${y2} ${sx + px * hw},${sy + py * hw} ${sx - px * hw},${sy - py * hw}`}
+              fill={arrow.color}
             />
           </g>
         );
