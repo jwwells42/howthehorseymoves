@@ -10,7 +10,7 @@ const LIGHT = "#f0d9b5";
 const DARK = "#b58863";
 const SELECTED_COLOR = "#ffff00";
 const VALID_MOVE_COLOR = "#00000033";
-const TARGET_COLOR = "#ffd700";
+const TARGET_COLOR = "#e6ac00";
 
 interface DragState {
   from: SquareId;
@@ -168,12 +168,14 @@ export default function Board({
               {isTarget && !hasOccupant && (
                 <text
                   x={fi * SQUARE_SIZE + SQUARE_SIZE / 2}
-                  y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 8}
-                  fontSize="36"
+                  y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 18}
+                  fontSize="70"
                   textAnchor="middle"
-                  fill={TARGET_COLOR}
+                  fill="#e6ac00"
+                  stroke="#b8860b"
+                  strokeWidth="1.5"
                   className="pointer-events-none select-none"
-                  style={{ filter: "drop-shadow(0 0 4px rgba(255,215,0,0.6))" }}
+                  style={{ filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.3))" }}
                 >
                   &#9733;
                 </text>
