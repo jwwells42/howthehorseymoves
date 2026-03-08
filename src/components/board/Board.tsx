@@ -331,8 +331,8 @@ export default function Board({
         const dx = x2 - x1;
         const dy = y2 - y1;
         const len = Math.sqrt(dx * dx + dy * dy);
-        const headW = 24;
-        const headH = 18;
+        const headW = 36;
+        const headH = 30;
         const ux = dx / len;
         const uy = dy / len;
         const ex = x2 - ux * headW;

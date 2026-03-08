@@ -114,12 +114,14 @@ export default function GameViewer({ game }: { game: ModelGame }) {
           <span className="text-sm text-muted">{game.white}</span>
         </div>
 
-        {/* Move comment */}
-        {currentComment && (
-          <div className="mt-2 px-3 py-2 rounded-lg bg-card border border-card-border text-sm text-muted italic">
-            {currentComment}
-          </div>
-        )}
+        {/* Move comment (fixed height so nav buttons don't shift) */}
+        <div className="mt-2 h-16 flex items-start">
+          {currentComment && (
+            <div className="px-3 py-2 rounded-lg bg-card border border-card-border text-xs text-muted italic w-full overflow-y-auto max-h-16">
+              {currentComment}
+            </div>
+          )}
+        </div>
 
         {/* Navigation controls */}
         <div className="flex items-center justify-center gap-2 mt-4">
