@@ -75,8 +75,8 @@ export const backreakMatePuzzles: Puzzle[] = [
     setup: [
       { piece: "K", color: "w", square: "g1" },
       { piece: "R", color: "w", square: "d1" },
-      { piece: "K", color: "b", square: "c8" },
-      { piece: "P", color: "b", square: "a7" },
+      { piece: "K", color: "b", square: "b8" },
+      { piece: "R", color: "b", square: "a7" },
       { piece: "P", color: "b", square: "b7" },
       { piece: "P", color: "b", square: "c7" },
     ],
