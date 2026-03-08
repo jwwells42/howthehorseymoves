@@ -51,11 +51,19 @@ export default function GameViewer({ game }: { game: ModelGame }) {
     return () => window.removeEventListener("keydown", handler);
   }, [goBack, goForward]);
 
-  // Scroll current move into view
+  // Scroll current move into view within the move list (not the page)
   useEffect(() => {
-    if (!moveListRef.current) return;
-    const highlighted = moveListRef.current.querySelector("[data-active='true']");
-    if (highlighted) highlighted.scrollIntoView({ block: "nearest" });
+    const container = moveListRef.current;
+    if (!container) return;
+    const highlighted = container.querySelector("[data-active='true']") as HTMLElement | null;
+    if (!highlighted) return;
+    const top = highlighted.offsetTop - container.offsetTop;
+    const bottom = top + highlighted.offsetHeight;
+    if (top < container.scrollTop) {
+      container.scrollTop = top;
+    } else if (bottom > container.scrollTop + container.clientHeight) {
+      container.scrollTop = bottom - container.clientHeight;
+    }
   }, [currentMove]);
 
   // Build move pairs for display
