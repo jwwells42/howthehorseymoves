@@ -114,17 +114,8 @@ export default function GameViewer({ game }: { game: ModelGame }) {
           <span className="text-sm text-muted">{game.white}</span>
         </div>
 
-        {/* Move comment (fixed height so nav buttons don't shift) */}
-        <div className="mt-2 h-16 flex items-start">
-          {currentComment && (
-            <div className="px-3 py-2 rounded-lg bg-card border border-card-border text-xs text-muted italic w-full overflow-y-auto max-h-16">
-              {currentComment}
-            </div>
-          )}
-        </div>
-
         {/* Navigation controls */}
-        <div className="flex items-center justify-center gap-2 mt-4">
+        <div className="flex items-center justify-center gap-2 mt-3">
           <NavButton onClick={() => setCurrentMove(0)} disabled={currentMove === 0} label="Start">
             ⏮
           </NavButton>
@@ -151,9 +142,14 @@ export default function GameViewer({ game }: { game: ModelGame }) {
           </NavButton>
         </div>
 
-        <p className="text-xs text-faint text-center mt-2">
-          Arrow keys ← → &nbsp;|&nbsp; Space to play/pause
-        </p>
+        {/* Move comment */}
+        <div className="mt-3 min-h-12">
+          {currentComment && (
+            <p className="text-sm text-muted italic text-center px-2">
+              {currentComment}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Move list side */}

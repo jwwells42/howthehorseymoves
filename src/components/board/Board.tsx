@@ -331,10 +331,11 @@ export default function Board({
         const dx = x2 - x1;
         const dy = y2 - y1;
         const len = Math.sqrt(dx * dx + dy * dy);
-        const headW = 36;
-        const headH = 30;
+        const headW = 45;
+        const headH = 55;
         const ux = dx / len;
         const uy = dy / len;
+        // End the shaft where the arrowhead base starts; tip lands at square center
         const ex = x2 - ux * headW;
         const ey = y2 - uy * headW;
         const markerId = `arrow-${i}`;
@@ -360,7 +361,7 @@ export default function Board({
             <line
               x1={x1} y1={y1} x2={ex} y2={ey}
               stroke={arrow.color}
-              strokeWidth={10}
+              strokeWidth={18}
               strokeLinecap="round"
               opacity={0.7}
               markerEnd={`url(#${markerId})`}
