@@ -7,7 +7,7 @@ import type { SlideAnimation } from "@/lib/state/use-puzzle";
 const SQUARE_SIZE = 100;
 const BOARD_SIZE = SQUARE_SIZE * 8;
 
-const LIGHT = "#e8dcc8";
+const LIGHT = "#d4c4a0";
 const DARK = "#7a9e6e";
 const SELECTED_COLOR = "#f0e060";
 const VALID_MOVE_COLOR = "#00000033";
@@ -137,7 +137,6 @@ export default function Board({
 
           let fill = isLight ? LIGHT : DARK;
           if (isPawnSlideSquare) fill = LAST_MOVE_COLOR;
-          if (isTarget && hasOccupant) fill = "#d4920a66";
           if (isSelected) fill = SELECTED_COLOR;
           if (isWrongMove) fill = WRONG_MOVE_COLOR;
 
@@ -287,6 +286,29 @@ export default function Board({
             className="pointer-events-none"
             style={slideStyle}
           />
+        );
+      })}
+
+      {/* Stars on top of target pieces */}
+      {targets.map((sq) => {
+        if (reachedTargets.includes(sq)) return null;
+        if (!board.pieces.has(sq)) return null;
+        const [fx, fy] = squareToCoords(sq);
+        return (
+          <text
+            key={`target-star-${sq}`}
+            x={fx * SQUARE_SIZE + SQUARE_SIZE / 2}
+            y={fy * SQUARE_SIZE + SQUARE_SIZE / 2 + 18}
+            fontSize="70"
+            textAnchor="middle"
+            fill="#f5c518"
+            stroke="#8b6914"
+            strokeWidth="2"
+            className="pointer-events-none select-none"
+            style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }}
+          >
+            &#9733;
+          </text>
         );
       })}
 
