@@ -133,6 +133,30 @@ export function hasLegalMoves(color: PieceColor, board: BoardState): boolean {
   return false;
 }
 
+/** Get all legal moves for a specific piece (filters out moves that leave own king in check). */
+export function getLegalMoves(from: SquareId, board: BoardState, color: PieceColor): SquareId[] {
+  const piece = board.pieces.get(from);
+  if (!piece || piece.color !== color) return [];
+  const pseudo = getValidMoves(piece.piece, from, board, color);
+  return pseudo.filter((to) => {
+    const after = simulateMove(board, from, to);
+    return !isInCheck(color, after);
+  });
+}
+
+/** Get all legal moves for a color as {from, to} pairs. */
+export function getAllLegalMoves(color: PieceColor, board: BoardState): { from: SquareId; to: SquareId }[] {
+  const result: { from: SquareId; to: SquareId }[] = [];
+  for (const [sq, p] of board.pieces) {
+    if (p.color !== color) continue;
+    const legal = getLegalMoves(sq, board, color);
+    for (const to of legal) {
+      result.push({ from: sq, to });
+    }
+  }
+  return result;
+}
+
 export function isCheckmate(color: PieceColor, board: BoardState): boolean {
   return isInCheck(color, board) && !hasLegalMoves(color, board);
 }

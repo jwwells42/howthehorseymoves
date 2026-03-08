@@ -30,7 +30,7 @@ interface BoardProps {
   targets: SquareId[];
   reachedTargets: SquareId[];
   dragValidMoves: SquareId[];
-  draggablePiece: PieceKind;
+  draggablePiece?: PieceKind;
   onSquareClick: (sq: SquareId) => void;
   onDrop: (from: SquareId, to: SquareId) => void;
   onDragStart: (sq: SquareId) => void;
@@ -79,7 +79,7 @@ export default function Board({
 
   const handlePointerDown = useCallback((e: React.PointerEvent, sq: SquareId) => {
     const p = board.pieces.get(sq);
-    if (!p || p.color !== "w" || p.piece !== draggablePiece) return;
+    if (!p || p.color !== "w" || (draggablePiece && p.piece !== draggablePiece)) return;
     const svgPt = pointerToSvg(e);
     if (!svgPt) return;
 
