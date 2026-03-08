@@ -123,7 +123,7 @@ export const rookPuzzles: Puzzle[] = [
       { piece: "R", color: "w", square: "h1" },
       { piece: "B", color: "b", square: "h5" },
     ],
-    targets: ["h5, a5"],
+    targets: ["h5", "a5"],
     solution: ["h5", "a5"],
     maxMoves: 3,
     hints: ["Capture the bishop first — it's on your way!", "Then slide across the rank."],
