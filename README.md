@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# How The Horsey Moves
 
-## Getting Started
+A free, open-source chess trainer for young students learning how each piece moves.
 
-First, run the development server:
+Built for classroom use — no chat, no ads, no memberships. A teacher introduces chess in a lesson, and students practice the basics here afterward. Designed for settings where one teacher supports ~20 students and can't sit with each one individually.
+
+**Live at:** [howthehorseymoves.vercel.app](https://howthehorseymoves.vercel.app)
+
+## What it does
+
+- **Progressive puzzles** for each piece — rook, bishop, queen, king, knight, pawn
+- **Special moves** — castling, en passant
+- **Checkmate patterns** — back rank, rook ladder, queen-bishop battery, knight on f7, Lolli's mate, queen & king endgames, smothered mate
+- **Play vs computer** — random-move bot for practice games
+- **Model games** — step through famous games move by move (PGN format)
+- **Star ratings** — 1-3 stars based on move efficiency
+- **Sequential unlock** — complete a puzzle to unlock the next one
+- **No accounts** — progress saves to the browser (localStorage)
+
+## Running locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build
+npm run lint     # eslint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Requires Node.js 18+.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Adding content
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Puzzles** live in `src/lib/puzzles/`. Each file exports an array of puzzles. Positions can be defined as piece-by-piece JSON or as a [FEN string](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation):
 
-## Learn More
+```ts
+{
+  id: "my-puzzle-01",
+  piece: "R",
+  title: "Rook Checkmate",
+  instruction: "Deliver checkmate with the rook!",
+  setup: "6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1",
+  targets: [],
+  solution: ["a8"],
+  mode: "checkmate",
+  maxMoves: 1,
+  starThresholds: { three: 1, two: 2, one: 3 },
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+**Model games** live in `src/lib/games/index.ts`. Drop in a PGN string:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```ts
+{
+  id: "immortal",
+  white: "Adolf Anderssen",
+  black: "Lionel Kieseritzky",
+  event: "London",
+  year: 1851,
+  result: "1-0",
+  pgn: "1.e4 e5 2.f4 exf4 3.Bc4 ...",
+  description: "The Immortal Game.",
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech stack
 
-## Deploy on Vercel
+- Next.js 16 + React 19 + TypeScript (strict)
+- Tailwind CSS 4
+- SVG chess board with drag-and-drop
+- No backend — everything runs client-side
+- Deployed on Vercel (free tier)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Contributions welcome! Ideas for what would help:
+
+- More puzzles (especially beginner-friendly checkmate patterns)
+- More model games
+- Accessibility improvements
+- Mobile UX polish
+- Translations
+
+Open an issue to discuss before starting large changes.
+
+## License
+
+[GNU Affero General Public License v3.0](LICENSE) — free to use, modify, and deploy, but if you host a modified version, you must share your source code too. In the spirit of [Lichess](https://lichess.org).
