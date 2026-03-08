@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { BoardState, PieceKind, PieceColor, SquareId, createBoardState, squareToCoords, coordsToSquare } from "@/lib/logic/types";
+import { BoardState, PieceKind, PieceColor, SquareId, createBoardState, parseFen, squareToCoords, coordsToSquare } from "@/lib/logic/types";
 import { getValidMoves } from "@/lib/logic/moves";
 import { isCheckmate, isStalemate, getLegalMoves, getAllLegalMoves } from "@/lib/logic/attacks";
 import { Puzzle, OpponentResponse } from "@/lib/puzzles/types";
@@ -21,6 +21,13 @@ export function usePuzzle(puzzle: Puzzle) {
   const isMultiMove = isCheckmateMode && puzzle.opponentResponses && puzzle.opponentResponses.length > 0;
 
   const buildBoard = useCallback(() => {
+    if (typeof puzzle.setup === "string") {
+      const { placements, castlingRights, enPassantSquare } = parseFen(puzzle.setup);
+      return createBoardState(placements, {
+        enPassantSquare: puzzle.enPassantSquare ?? enPassantSquare,
+        castlingRights: puzzle.castlingRights ?? castlingRights,
+      });
+    }
     return createBoardState(puzzle.setup, {
       enPassantSquare: puzzle.enPassantSquare,
       castlingRights: puzzle.castlingRights,

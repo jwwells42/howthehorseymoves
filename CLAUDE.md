@@ -57,7 +57,10 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 - Tailwind CSS 4 for styling
 - No backend/database — all state is client-side localStorage
 - Obstacle pieces on puzzles are white pawns (so they can't be captured by the player's white piece)
-- Puzzles support two modes: `"reach-target"` (default) and `"checkmate"`
+- Puzzles support three modes: `"reach-target"` (default), `"checkmate"`, and `"checkmate-bot"`
+- Puzzle `setup` accepts either a `PiecePlacement[]` array or a FEN string (e.g., `"6k1/5ppp/8/4N3/8/8/8/6K1 w - - 0 1"`)
+- FEN strings also auto-extract castling rights and en passant square from fields 3-4
+- This codebase is designed to be hand-maintained by a human chess teacher — prefer simple, readable puzzle formats (FEN over verbose JSON when positions are complex)
 - Avoid `eslint-disable` comments — fix the root cause instead (e.g., use React `key` for state reset instead of useEffect)
 
 ## Workflow

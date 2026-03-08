@@ -12,7 +12,8 @@ export interface Puzzle {
   piece: PieceKind;
   title: string;
   instruction: string;
-  setup: PiecePlacement[];
+  /** Board setup — either piece placements array or a FEN string. */
+  setup: PiecePlacement[] | string;
   targets: SquareId[];
   solution: SquareId[];
   maxMoves?: number;

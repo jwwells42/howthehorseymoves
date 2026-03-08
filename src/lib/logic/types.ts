@@ -41,3 +41,60 @@ export function createBoardState(
   }
   return { pieces, enPassantSquare: options?.enPassantSquare, castlingRights: options?.castlingRights };
 }
+
+const FEN_PIECES: Record<string, { piece: PieceKind; color: PieceColor }> = {
+  K: { piece: "K", color: "w" }, Q: { piece: "Q", color: "w" },
+  R: { piece: "R", color: "w" }, B: { piece: "B", color: "w" },
+  N: { piece: "N", color: "w" }, P: { piece: "P", color: "w" },
+  k: { piece: "K", color: "b" }, q: { piece: "Q", color: "b" },
+  r: { piece: "R", color: "b" }, b: { piece: "B", color: "b" },
+  n: { piece: "N", color: "b" }, p: { piece: "P", color: "b" },
+};
+
+/**
+ * Parse a FEN position string into PiecePlacement[].
+ * Accepts a full FEN or just the piece-placement part (ranks separated by /).
+ * If full FEN, also extracts castling rights and en passant square.
+ */
+export function parseFen(fen: string): {
+  placements: PiecePlacement[];
+  castlingRights?: BoardState["castlingRights"];
+  enPassantSquare?: SquareId;
+} {
+  const parts = fen.trim().split(/\s+/);
+  const ranks = parts[0].split("/");
+  const placements: PiecePlacement[] = [];
+
+  for (let ri = 0; ri < 8; ri++) {
+    let fi = 0;
+    for (const ch of ranks[ri]) {
+      if (ch >= "1" && ch <= "8") {
+        fi += parseInt(ch);
+      } else {
+        const entry = FEN_PIECES[ch];
+        if (entry) {
+          const sq = `${FILES[fi]}${RANKS[ri]}` as SquareId;
+          placements.push({ piece: entry.piece, color: entry.color, square: sq });
+        }
+        fi++;
+      }
+    }
+  }
+
+  let castlingRights: BoardState["castlingRights"] | undefined;
+  if (parts.length >= 3 && parts[2] !== "-") {
+    castlingRights = {
+      K: parts[2].includes("K"),
+      Q: parts[2].includes("Q"),
+      k: parts[2].includes("k"),
+      q: parts[2].includes("q"),
+    };
+  }
+
+  let enPassantSquare: SquareId | undefined;
+  if (parts.length >= 4 && parts[3] !== "-") {
+    enPassantSquare = parts[3] as SquareId;
+  }
+
+  return { placements, castlingRights, enPassantSquare };
+}
