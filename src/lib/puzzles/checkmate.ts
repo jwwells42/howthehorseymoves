@@ -191,7 +191,7 @@ export const smotheredMatePuzzles: Puzzle[] = [
   },
 ];
 
-// === Rook Ladder (multi-move) ===
+// === Rook Ladder (multi-move with random bot) ===
 export const rookLadderPuzzles: Puzzle[] = [
   {
     id: "checkmate-rl-01",
@@ -205,19 +205,14 @@ export const rookLadderPuzzles: Puzzle[] = [
       { piece: "K", color: "b", square: "e6" },
     ],
     targets: [],
-    solution: ["b6", "a7", "b8"],
-    mode: "checkmate",
-    opponentResponses: [
-      { from: "e6", to: "e7" },
-      { from: "e7", to: "e8" },
-    ],
-    maxMoves: 5,
+    solution: [],
+    mode: "checkmate-bot",
     hints: [
       "Rooks work as a team — one cuts off a rank, the other gives check on the next rank.",
-      "Start by cutting off the king: move a rook to the 6th rank with check!",
-      "Rb6+ forces the king up. Then Ra7+ forces it up again. Then Rb8 is checkmate!",
+      "Give check with one rook, then use the other to check on the next rank.",
+      "Keep alternating rook checks to push the king to the edge!",
     ],
-    starThresholds: { three: 3, two: 4, one: 5 },
+    starThresholds: { three: 4, two: 7, one: 12 },
   },
   {
     id: "checkmate-rl-02",
@@ -231,19 +226,13 @@ export const rookLadderPuzzles: Puzzle[] = [
       { piece: "K", color: "b", square: "f5" },
     ],
     targets: [],
-    solution: ["d5", "c6", "d7", "c8"],
-    mode: "checkmate",
-    opponentResponses: [
-      { from: "f5", to: "f6" },
-      { from: "f6", to: "f7" },
-      { from: "f7", to: "f8" },
-    ],
-    maxMoves: 6,
+    solution: [],
+    mode: "checkmate-bot",
     hints: [
       "Cut off the king rank by rank, alternating your rooks.",
-      "Rd5+ pushes the king up. Then Rc6+, Rd7+, Rc8#!",
+      "Give check, then bring the other rook up to the next rank.",
     ],
-    starThresholds: { three: 4, two: 5, one: 7 },
+    starThresholds: { three: 5, two: 8, one: 14 },
   },
   {
     id: "checkmate-rl-03",
@@ -257,17 +246,13 @@ export const rookLadderPuzzles: Puzzle[] = [
       { piece: "K", color: "b", square: "d7" },
     ],
     targets: [],
-    solution: ["b7", "a8"],
-    mode: "checkmate",
-    opponentResponses: [
-      { from: "d7", to: "d8" },
-    ],
-    maxMoves: 3,
+    solution: [],
+    mode: "checkmate-bot",
     hints: [
       "The king is already close to the back rank.",
-      "Rb7+ forces the king to the 8th rank, then Ra8 is checkmate!",
+      "Check with one rook, then deliver the final blow with the other!",
     ],
-    starThresholds: { three: 2, two: 3, one: 4 },
+    starThresholds: { three: 3, two: 5, one: 8 },
   },
 ];
 

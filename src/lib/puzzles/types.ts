@@ -1,6 +1,6 @@
 import { PieceKind, PiecePlacement, SquareId } from "../logic/types";
 
-export type PuzzleMode = "reach-target" | "checkmate";
+export type PuzzleMode = "reach-target" | "checkmate" | "checkmate-bot";
 
 export interface OpponentResponse {
   from: SquareId;

@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { BoardState, PieceKind, PieceColor, SquareId, createBoardState, squareToCoords, coordsToSquare } from "@/lib/logic/types";
 import { getValidMoves } from "@/lib/logic/moves";
-import { isCheckmate, isStalemate } from "@/lib/logic/attacks";
+import { isCheckmate, isStalemate, getLegalMoves, getAllLegalMoves } from "@/lib/logic/attacks";
 import { Puzzle, OpponentResponse } from "@/lib/puzzles/types";
 import { useProgress } from "./progress-context";
 
@@ -17,6 +17,7 @@ export interface SlideAnimation {
 export function usePuzzle(puzzle: Puzzle) {
   const { completePuzzle } = useProgress();
   const isCheckmateMode = puzzle.mode === "checkmate";
+  const isBotMode = puzzle.mode === "checkmate-bot";
   const isMultiMove = isCheckmateMode && puzzle.opponentResponses && puzzle.opponentResponses.length > 0;
 
   const buildBoard = useCallback(() => {
@@ -41,9 +42,12 @@ export function usePuzzle(puzzle: Puzzle) {
   const validMoves = useMemo(() => {
     if (!selectedSquare) return [];
     const p = board.pieces.get(selectedSquare);
-    if (!p || p.color !== "w" || p.piece !== puzzle.piece) return [];
-    return getValidMoves(p.piece, selectedSquare, board, "w");
-  }, [selectedSquare, board, puzzle.piece]);
+    if (!p || p.color !== "w") return [];
+    if (!isBotMode && p.piece !== puzzle.piece) return [];
+    return isBotMode
+      ? getLegalMoves(selectedSquare, board, "w")
+      : getValidMoves(p.piece, selectedSquare, board, "w");
+  }, [selectedSquare, board, puzzle.piece, isBotMode]);
 
   const calculateStars = useCallback(
     (moves: number) => {
@@ -121,6 +125,52 @@ export function usePuzzle(puzzle: Puzzle) {
     []
   );
 
+  // Make a random bot move for black
+  const makeBotMove = useCallback(
+    (currentBoard: BoardState) => {
+      setWaitingForAnimation(true);
+      setTimeout(() => {
+        const moves = getAllLegalMoves("b", currentBoard);
+        if (moves.length === 0) return; // stalemate already handled
+
+        const move = moves[Math.floor(Math.random() * moves.length)];
+        const newPieces = new Map(currentBoard.pieces);
+        const piece = newPieces.get(move.from)!;
+        newPieces.delete(move.from);
+        newPieces.set(move.to, piece);
+
+        setOpponentSlide({
+          piece: piece.piece,
+          color: piece.color,
+          from: move.from,
+          to: move.to,
+        });
+
+        const newBoard: BoardState = { pieces: newPieces };
+        setBoard(newBoard);
+
+        // Check if white is now in checkmate or stalemate after bot move
+        if (isCheckmate("w", newBoard)) {
+          // Player lost — treat as needing reset
+          setTimeout(() => {
+            setOpponentSlide(null);
+            setWaitingForAnimation(false);
+          }, 500);
+          return;
+        }
+        if (isStalemate("w", newBoard)) {
+          setStalemateTrigger(true);
+        }
+
+        setTimeout(() => {
+          setOpponentSlide(null);
+          setWaitingForAnimation(false);
+        }, 500);
+      }, 400);
+    },
+    []
+  );
+
   // Execute a validated move from `from` to `to`
   const executeMove = useCallback(
     (from: SquareId, to: SquareId) => {
@@ -151,7 +201,18 @@ export function usePuzzle(puzzle: Puzzle) {
       const newMoveCount = moveCount + 1;
       setMoveCount(newMoveCount);
 
-      if (isCheckmateMode) {
+      if (isBotMode) {
+        // Bot mode: check for checkmate/stalemate, otherwise bot plays
+        if (isCheckmate("b", newBoard)) {
+          setIsComplete(true);
+          const finalStars = calculateStars(newMoveCount);
+          completePuzzle(puzzle.id, finalStars, newMoveCount);
+        } else if (isStalemate("b", newBoard)) {
+          setStalemateTrigger(true);
+        } else {
+          makeBotMove(newBoard);
+        }
+      } else if (isCheckmateMode) {
         const newStep = solutionStep + 1;
         setSolutionStep(newStep);
 
@@ -198,7 +259,7 @@ export function usePuzzle(puzzle: Puzzle) {
         }
       }
     },
-    [board, moveCount, reachedTargets, puzzle, calculateStars, completePuzzle, isCheckmateMode, isMultiMove, solutionStep, applyMoveEffects, applyOpponentResponse]
+    [board, moveCount, reachedTargets, puzzle, calculateStars, completePuzzle, isCheckmateMode, isBotMode, isMultiMove, solutionStep, applyMoveEffects, applyOpponentResponse, makeBotMove]
   );
 
   const handleSquareClick = useCallback(
@@ -207,7 +268,7 @@ export function usePuzzle(puzzle: Puzzle) {
 
       if (!selectedSquare) {
         const p = board.pieces.get(sq);
-        if (p && p.color === "w" && p.piece === puzzle.piece) {
+        if (p && p.color === "w" && (isBotMode || p.piece === puzzle.piece)) {
           setSelectedSquare(sq);
         }
         return;
@@ -220,10 +281,12 @@ export function usePuzzle(puzzle: Puzzle) {
 
       const p = board.pieces.get(selectedSquare);
       if (!p) return;
-      const moves = getValidMoves(p.piece, selectedSquare, board, "w");
+      const moves = isBotMode
+        ? getLegalMoves(selectedSquare, board, "w")
+        : getValidMoves(p.piece, selectedSquare, board, "w");
       if (!moves.includes(sq)) {
         const target = board.pieces.get(sq);
-        if (target && target.color === "w" && target.piece === puzzle.piece) {
+        if (target && target.color === "w" && (isBotMode || target.piece === puzzle.piece)) {
           setSelectedSquare(sq);
         } else {
           setSelectedSquare(null);
@@ -233,19 +296,21 @@ export function usePuzzle(puzzle: Puzzle) {
 
       executeMove(selectedSquare, sq);
     },
-    [board, selectedSquare, isComplete, waitingForAnimation, puzzle, executeMove]
+    [board, selectedSquare, isComplete, waitingForAnimation, puzzle, isBotMode, executeMove]
   );
 
   const handleDrop = useCallback(
     (from: SquareId, to: SquareId) => {
       if (isComplete || waitingForAnimation || from === to) return;
       const p = board.pieces.get(from);
-      if (!p || p.color !== "w" || p.piece !== puzzle.piece) return;
-      const moves = getValidMoves(p.piece, from, board, "w");
+      if (!p || p.color !== "w" || (!isBotMode && p.piece !== puzzle.piece)) return;
+      const moves = isBotMode
+        ? getLegalMoves(from, board, "w")
+        : getValidMoves(p.piece, from, board, "w");
       if (!moves.includes(to)) return;
       executeMove(from, to);
     },
-    [board, isComplete, waitingForAnimation, puzzle, executeMove]
+    [board, isComplete, waitingForAnimation, puzzle, isBotMode, executeMove]
   );
 
   const reset = useCallback(() => {

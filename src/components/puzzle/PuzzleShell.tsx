@@ -9,6 +9,7 @@ import { usePuzzle } from "@/lib/state/use-puzzle";
 import { Puzzle } from "@/lib/puzzles/types";
 import { SquareId, squareToCoords, coordsToSquare } from "@/lib/logic/types";
 import { getValidMoves } from "@/lib/logic/moves";
+import { getLegalMoves } from "@/lib/logic/attacks";
 
 interface PuzzleShellProps {
   puzzle: Puzzle;
@@ -54,12 +55,16 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
   // Show the slide until the player makes their first move
   const showPawnSlide = pawnSlideData && moveCount === 0;
 
+  const isBotMode = puzzle.mode === "checkmate-bot";
+
   const dragValidMoves = useMemo(() => {
     if (!dragFrom) return [];
     const p = board.pieces.get(dragFrom);
-    if (!p || p.color !== "w" || p.piece !== puzzle.piece) return [];
-    return getValidMoves(p.piece, dragFrom, board, "w");
-  }, [dragFrom, board, puzzle.piece]);
+    if (!p || p.color !== "w" || (!isBotMode && p.piece !== puzzle.piece)) return [];
+    return isBotMode
+      ? getLegalMoves(dragFrom, board, "w")
+      : getValidMoves(p.piece, dragFrom, board, "w");
+  }, [dragFrom, board, puzzle.piece, isBotMode]);
 
   const onDragStart = useCallback((sq: SquareId) => {
     setDragFrom(sq);
@@ -92,7 +97,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           targets={puzzle.targets}
           reachedTargets={reachedTargets}
           dragValidMoves={dragValidMoves}
-          draggablePiece={puzzle.piece}
+          draggablePiece={isBotMode ? undefined : puzzle.piece}
           onSquareClick={handleSquareClick}
           onDrop={handleDrop}
           onDragStart={onDragStart}
