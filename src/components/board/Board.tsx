@@ -258,7 +258,9 @@ export default function Board({
         const isOppSliding = opponentSlide && sq === opponentSlide.to;
 
         let slideStyle: React.CSSProperties | undefined;
-        if (isEpSliding && pawnSlide) {
+        if (readOnly) {
+          // No animation in game viewer — fast clicking shouldn't jerk
+        } else if (isEpSliding && pawnSlide) {
           const [fromFx, fromFy] = squareToCoords(pawnSlide.from);
           const dx = (fromFx - fx) * SQUARE_SIZE;
           const dy = (fromFy - fy) * SQUARE_SIZE;
