@@ -7,7 +7,7 @@ import StarRating from "./StarRating";
 import SuccessOverlay from "./SuccessOverlay";
 import { usePuzzle } from "@/lib/state/use-puzzle";
 import { Puzzle } from "@/lib/puzzles/types";
-import { SquareId } from "@/lib/logic/types";
+import { SquareId, squareToCoords, coordsToSquare } from "@/lib/logic/types";
 import { getValidMoves } from "@/lib/logic/moves";
 
 interface PuzzleShellProps {
@@ -33,6 +33,24 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
   } = usePuzzle(puzzle);
 
   const [dragFrom, setDragFrom] = useState<SquareId | null>(null);
+
+  // Compute en passant pawn slide animation (from starting rank to current square)
+  const pawnSlideData = useMemo(() => {
+    const ep = puzzle.enPassantSquare;
+    if (!ep) return null;
+    const [epFile, epRank] = squareToCoords(ep);
+    // En passant square is on rank 5 (index 2) for black pawns that moved from rank 7→5
+    // The pawn itself is one rank behind the EP square (closer to its start)
+    const pawnRank = epRank === 2 ? 3 : 4; // rank index: 3=rank5, 4=rank4
+    const startRank = epRank === 2 ? 1 : 6; // rank index: 1=rank7, 6=rank2
+    const pawnSq = coordsToSquare(epFile, pawnRank);
+    const startSq = coordsToSquare(epFile, startRank);
+    if (!pawnSq || !startSq) return null;
+    return { from: startSq, to: pawnSq };
+  }, [puzzle.enPassantSquare]);
+
+  // Show the slide until the player makes their first move
+  const showPawnSlide = pawnSlideData && moveCount === 0;
 
   const dragValidMoves = useMemo(() => {
     if (!dragFrom) return [];
@@ -77,6 +95,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           onDrop={handleDrop}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
+          pawnSlide={showPawnSlide ? pawnSlideData : undefined}
         />
         {isComplete && (
           <SuccessOverlay stars={stars} onNext={onNext} onRetry={reset} />

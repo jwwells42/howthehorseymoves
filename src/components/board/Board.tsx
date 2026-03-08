@@ -11,6 +11,7 @@ const DARK = "#b58863";
 const SELECTED_COLOR = "#ffff00";
 const VALID_MOVE_COLOR = "#00000033";
 const TARGET_COLOR = "#e6ac00";
+const LAST_MOVE_COLOR = "#7cacf8";
 
 interface DragState {
   from: SquareId;
@@ -32,6 +33,7 @@ interface BoardProps {
   onDrop: (from: SquareId, to: SquareId) => void;
   onDragStart: (sq: SquareId) => void;
   onDragEnd: () => void;
+  pawnSlide?: { from: SquareId; to: SquareId };
 }
 
 export default function Board({
@@ -46,6 +48,7 @@ export default function Board({
   onDrop,
   onDragStart,
   onDragEnd,
+  pawnSlide,
 }: BoardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -123,7 +126,10 @@ export default function Board({
           const isReached = reachedTargets.includes(sq);
           const hasOccupant = board.pieces.has(sq);
 
+          const isPawnSlideSquare = pawnSlide && (sq === pawnSlide.from || sq === pawnSlide.to);
+
           let fill = isLight ? LIGHT : DARK;
+          if (isPawnSlideSquare) fill = LAST_MOVE_COLOR;
           if (isTarget && hasOccupant) fill = "#ffd70066";
           if (isSelected) fill = SELECTED_COLOR;
 
@@ -232,6 +238,21 @@ export default function Board({
       {Array.from(board.pieces.entries()).map(([sq, { piece, color }]) => {
         if (drag && sq === drag.from) return null;
         const [fx, fy] = squareToCoords(sq);
+
+        // Animate the pawn that "just moved" in en passant puzzles
+        const isSliding = pawnSlide && sq === pawnSlide.to && piece === "P";
+        let slideStyle: React.CSSProperties | undefined;
+        if (isSliding && pawnSlide) {
+          const [fromFx, fromFy] = squareToCoords(pawnSlide.from);
+          const dx = (fromFx - fx) * SQUARE_SIZE;
+          const dy = (fromFy - fy) * SQUARE_SIZE;
+          slideStyle = {
+            "--slide-x": `${dx}px`,
+            "--slide-y": `${dy}px`,
+            animation: "pawn-slide 0.4s ease-out 0.3s backwards",
+          } as React.CSSProperties;
+        }
+
         return (
           <image
             key={`piece-${sq}`}
@@ -241,6 +262,7 @@ export default function Board({
             width={SQUARE_SIZE - 10}
             height={SQUARE_SIZE - 10}
             className="pointer-events-none"
+            style={slideStyle}
           />
         );
       })}
