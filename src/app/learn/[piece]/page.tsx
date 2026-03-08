@@ -91,10 +91,14 @@ function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
   const pieceInfo = PIECES.find((p) => p.key === pieceKey);
   const { state, isPuzzleUnlocked, getPuzzleProgress } = useProgress();
 
-  // For checkmate sub-categories, find the parent category for back-navigation
-  const isSubcategory = pieceKey.startsWith("checkmate-");
-  const backHref = isSubcategory ? "/learn/checkmate" : "/";
-  const backLabel = isSubcategory ? "Back to patterns" : "Back to home";
+  // For sub-categories, find the parent category for back-navigation
+  const parentCategory = pieceKey.startsWith("checkmate-")
+    ? "checkmate"
+    : pieceKey.startsWith("tactics-")
+      ? "tactics"
+      : null;
+  const backHref = parentCategory ? `/learn/${parentCategory}` : "/";
+  const backLabel = parentCategory ? "Back to patterns" : "Back to home";
 
   // Get display info — either from PIECES or from the puzzle set itself
   const displayName = pieceInfo?.name ?? puzzleSet?.name ?? "Puzzles";

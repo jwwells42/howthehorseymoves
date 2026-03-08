@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import PieceCard from "@/components/progress/PieceCard";
-import { PIECES, CATEGORIES, getPuzzlesForPiece } from "@/lib/puzzles";
+import { PIECES, CATEGORIES, getPuzzlesForPiece, CategoryInfo } from "@/lib/puzzles";
 import { useProgress } from "@/lib/state/progress-context";
 
 export default function Home() {
@@ -49,45 +49,10 @@ export default function Home() {
           );
         })}
 
-        {/* Category cards */}
-        {CATEGORIES.map((cat) => {
-          let totalPuzzles = 0;
-          let completedPuzzles = 0;
-
-          if (state.loaded) {
-            for (const sub of cat.subcategories) {
-              const puzzleSet = getPuzzlesForPiece(sub.key);
-              if (puzzleSet) {
-                totalPuzzles += puzzleSet.puzzles.length;
-                for (const p of puzzleSet.puzzles) {
-                  const progress = getPuzzleProgress(p.id);
-                  if (progress?.completed) completedPuzzles++;
-                }
-              }
-            }
-          }
-
-          return (
-            <Link key={cat.key} href={`/learn/${cat.key}`}>
-              <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
-                <div className="flex items-center gap-4 mb-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={cat.icon} alt={cat.name} className="w-12 h-12" />
-                  <h3 className="text-lg font-bold">{cat.name}</h3>
-                </div>
-                <p className="text-sm text-muted mb-3 flex-1">{cat.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-faint">
-                    {completedPuzzles}/{totalPuzzles} puzzles
-                  </span>
-                  <span className="text-xs text-faint">
-                    {cat.subcategories.length} patterns
-                  </span>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+        {/* Category cards (before Play) */}
+        {CATEGORIES.filter(c => c.key !== "tactics").map((cat) => (
+          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
+        ))}
 
         {/* Play card */}
         <Link href="/play">
@@ -103,6 +68,11 @@ export default function Home() {
             <div className="text-xs text-faint">&nbsp;</div>
           </div>
         </Link>
+
+        {/* Tactics card (between Play and Model Games) */}
+        {CATEGORIES.filter(c => c.key === "tactics").map((cat) => (
+          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
+        ))}
 
         {/* Model Games card */}
         <Link href="/games">
@@ -120,5 +90,52 @@ export default function Home() {
         </Link>
       </div>
     </main>
+  );
+}
+
+function CategoryCard({
+  cat,
+  state,
+  getPuzzleProgress,
+}: {
+  cat: CategoryInfo;
+  state: { loaded: boolean };
+  getPuzzleProgress: (id: string) => { completed?: boolean } | undefined;
+}) {
+  let totalPuzzles = 0;
+  let completedPuzzles = 0;
+
+  if (state.loaded) {
+    for (const sub of cat.subcategories) {
+      const puzzleSet = getPuzzlesForPiece(sub.key);
+      if (puzzleSet) {
+        totalPuzzles += puzzleSet.puzzles.length;
+        for (const p of puzzleSet.puzzles) {
+          const progress = getPuzzleProgress(p.id);
+          if (progress?.completed) completedPuzzles++;
+        }
+      }
+    }
+  }
+
+  return (
+    <Link href={`/learn/${cat.key}`}>
+      <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
+        <div className="flex items-center gap-4 mb-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={cat.icon} alt={cat.name} className="w-12 h-12" />
+          <h3 className="text-lg font-bold">{cat.name}</h3>
+        </div>
+        <p className="text-sm text-muted mb-3 flex-1">{cat.description}</p>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-faint">
+            {completedPuzzles}/{totalPuzzles} puzzles
+          </span>
+          <span className="text-xs text-faint">
+            {cat.subcategories.length} patterns
+          </span>
+        </div>
+      </div>
+    </Link>
   );
 }
