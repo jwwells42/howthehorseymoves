@@ -77,7 +77,7 @@ export default function Board({
     (e.target as Element).setPointerCapture(e.pointerId);
     setDrag({ from: sq, piece: p.piece, color: p.color, x: svgPt.x, y: svgPt.y });
     onDragStart(sq);
-  }, [board, pointerToSvg, onDragStart]);
+  }, [board, draggablePiece, pointerToSvg, onDragStart]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!drag) return;

@@ -23,6 +23,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
     reachedTargets,
     moveCount,
     isComplete,
+    stalemateTrigger,
     stars,
     currentHintIndex,
     handleSquareClick,
@@ -81,6 +82,14 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           <SuccessOverlay stars={stars} onNext={onNext} onRetry={reset} />
         )}
       </div>
+
+      {/* Stalemate warning */}
+      {stalemateTrigger && (
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg px-4 py-3 text-red-800 dark:text-red-200 text-sm text-center">
+          <strong>Stalemate!</strong> The opponent has no legal moves but isn&apos;t in check. That&apos;s a draw, not a win.
+          <button onClick={reset} className="ml-2 underline font-medium">Try again</button>
+        </div>
+      )}
 
       {/* Hint display */}
       {currentHintIndex >= 0 && puzzle.hints && puzzle.hints[currentHintIndex] && (

@@ -1,4 +1,5 @@
 import { BoardState, PieceKind, PieceColor, SquareId, squareToCoords, coordsToSquare } from "./types";
+import { isSquareAttacked } from "./attacks";
 
 type Direction = [number, number];
 
@@ -79,16 +80,84 @@ function pawnMoves(
     }
   }
 
-  // Captures
+  // Captures (including en passant)
   for (const dx of [-1, 1]) {
     const cap = coordsToSquare(fx + dx, fy + dir);
     if (cap) {
       const occupant = board.pieces.get(cap);
       if (occupant && occupant.color !== color) {
         moves.push(cap);
+      } else if (cap === board.enPassantSquare) {
+        moves.push(cap);
       }
     }
   }
+  return moves;
+}
+
+function kingMovesWithCastling(
+  from: SquareId,
+  board: BoardState,
+  color: PieceColor,
+): SquareId[] {
+  const moves = stepMoves(from, KING_DIRS, board, color);
+  const rights = board.castlingRights;
+  if (!rights) return moves;
+
+  if (color === "w" && from === "e1") {
+    // Kingside
+    if (rights.K
+      && !board.pieces.get("f1" as SquareId)
+      && !board.pieces.get("g1" as SquareId)
+      && board.pieces.get("h1" as SquareId)?.piece === "R"
+      && board.pieces.get("h1" as SquareId)?.color === "w"
+      && !isSquareAttacked("e1" as SquareId, "b", board)
+      && !isSquareAttacked("f1" as SquareId, "b", board)
+      && !isSquareAttacked("g1" as SquareId, "b", board)
+    ) {
+      moves.push("g1" as SquareId);
+    }
+    // Queenside
+    if (rights.Q
+      && !board.pieces.get("d1" as SquareId)
+      && !board.pieces.get("c1" as SquareId)
+      && !board.pieces.get("b1" as SquareId)
+      && board.pieces.get("a1" as SquareId)?.piece === "R"
+      && board.pieces.get("a1" as SquareId)?.color === "w"
+      && !isSquareAttacked("e1" as SquareId, "b", board)
+      && !isSquareAttacked("d1" as SquareId, "b", board)
+      && !isSquareAttacked("c1" as SquareId, "b", board)
+    ) {
+      moves.push("c1" as SquareId);
+    }
+  } else if (color === "b" && from === "e8") {
+    // Kingside
+    if (rights.k
+      && !board.pieces.get("f8" as SquareId)
+      && !board.pieces.get("g8" as SquareId)
+      && board.pieces.get("h8" as SquareId)?.piece === "R"
+      && board.pieces.get("h8" as SquareId)?.color === "b"
+      && !isSquareAttacked("e8" as SquareId, "w", board)
+      && !isSquareAttacked("f8" as SquareId, "w", board)
+      && !isSquareAttacked("g8" as SquareId, "w", board)
+    ) {
+      moves.push("g8" as SquareId);
+    }
+    // Queenside
+    if (rights.q
+      && !board.pieces.get("d8" as SquareId)
+      && !board.pieces.get("c8" as SquareId)
+      && !board.pieces.get("b8" as SquareId)
+      && board.pieces.get("a8" as SquareId)?.piece === "R"
+      && board.pieces.get("a8" as SquareId)?.color === "b"
+      && !isSquareAttacked("e8" as SquareId, "w", board)
+      && !isSquareAttacked("d8" as SquareId, "w", board)
+      && !isSquareAttacked("c8" as SquareId, "w", board)
+    ) {
+      moves.push("c8" as SquareId);
+    }
+  }
+
   return moves;
 }
 
@@ -102,7 +171,7 @@ export function getValidMoves(
     case "R": return slidingMoves(from, ROOK_DIRS, board, color);
     case "B": return slidingMoves(from, BISHOP_DIRS, board, color);
     case "Q": return slidingMoves(from, QUEEN_DIRS, board, color);
-    case "K": return stepMoves(from, KING_DIRS, board, color);
+    case "K": return kingMovesWithCastling(from, board, color);
     case "N": return stepMoves(from, KNIGHT_JUMPS, board, color);
     case "P": return pawnMoves(from, board, color);
   }

@@ -16,6 +16,8 @@ export const RANKS: Rank[] = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
 export interface BoardState {
   pieces: Map<SquareId, { piece: PieceKind; color: PieceColor }>;
+  enPassantSquare?: SquareId;
+  castlingRights?: { K: boolean; Q: boolean; k: boolean; q: boolean };
 }
 
 export function squareToCoords(sq: SquareId): [number, number] {
@@ -29,10 +31,13 @@ export function coordsToSquare(file: number, rank: number): SquareId | null {
   return `${FILES[file]}${RANKS[rank]}` as SquareId;
 }
 
-export function createBoardState(placements: PiecePlacement[]): BoardState {
+export function createBoardState(
+  placements: PiecePlacement[],
+  options?: { enPassantSquare?: SquareId; castlingRights?: BoardState["castlingRights"] },
+): BoardState {
   const pieces = new Map<SquareId, { piece: PieceKind; color: PieceColor }>();
   for (const p of placements) {
     pieces.set(p.square, { piece: p.piece, color: p.color });
   }
-  return { pieces };
+  return { pieces, enPassantSquare: options?.enPassantSquare, castlingRights: options?.castlingRights };
 }

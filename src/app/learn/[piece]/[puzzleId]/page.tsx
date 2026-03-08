@@ -40,7 +40,7 @@ export default function PuzzlePage({
       >
         &larr; Back to {piece} puzzles
       </Link>
-      <PuzzleShell puzzle={puzzle} onNext={handleNext} />
+      <PuzzleShell key={puzzle.id} puzzle={puzzle} onNext={handleNext} />
     </main>
   );
 }
