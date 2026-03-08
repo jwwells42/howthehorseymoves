@@ -331,26 +331,27 @@ export default function Board({
         const dx = x2 - x1;
         const dy = y2 - y1;
         const len = Math.sqrt(dx * dx + dy * dy);
-        const headLen = 22;
+        const headW = 24;
+        const headH = 18;
         const ux = dx / len;
         const uy = dy / len;
-        // Shorten the line so the arrowhead doesn't overshoot
-        const ex = x2 - ux * headLen * 0.5;
-        const ey = y2 - uy * headLen * 0.5;
+        const ex = x2 - ux * headW;
+        const ey = y2 - uy * headW;
         const markerId = `arrow-${i}`;
         return (
           <g key={`arrow-${i}`} className="pointer-events-none">
             <defs>
               <marker
                 id={markerId}
-                markerWidth={headLen}
-                markerHeight={headLen}
-                refX={headLen}
-                refY={headLen / 2}
+                markerWidth={headW}
+                markerHeight={headH}
+                refX={headW}
+                refY={headH / 2}
                 orient="auto"
+                markerUnits="userSpaceOnUse"
               >
                 <polygon
-                  points={`0 0, ${headLen} ${headLen / 2}, 0 ${headLen}`}
+                  points={`0 0, ${headW} ${headH / 2}, 0 ${headH}`}
                   fill={arrow.color}
                   opacity={0.8}
                 />
@@ -359,7 +360,7 @@ export default function Board({
             <line
               x1={x1} y1={y1} x2={ex} y2={ey}
               stroke={arrow.color}
-              strokeWidth={12}
+              strokeWidth={10}
               strokeLinecap="round"
               opacity={0.7}
               markerEnd={`url(#${markerId})`}
