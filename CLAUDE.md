@@ -66,5 +66,16 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 ## Workflow
 
 - After completing a task, always offer to commit and push so Vercel can deploy
-- Run `npm run build` and `npm run lint` before committing to catch errors early
-- Lint must pass clean (zero warnings, zero errors) before committing
+- Run `npm run build` before committing to catch errors early
+- The user often makes hand-edits to puzzle files (fixing positions, adjusting thresholds) while Claude works — always `git diff --stat` before committing and include their changed files
+- When pushing fails due to remote changes, `git pull --rebase` then push again — the user pushes from their terminal to the same branch
+- Do NOT try to programmatically verify checkmate positions — the move generation has edge cases that cause false negatives. Push and let the user test in-browser instead
+- PGN annotations go inline in the PGN string: `{comments}`, NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`). Lichess arrow color convention: G=green, R=red, Y=yellow, B=blue
+
+## Puzzle Authoring Notes
+
+- The user is a chess teacher — puzzle accuracy matters. When creating checkmate puzzles, carefully trace all king escape squares, check that every one is covered (by a piece, blocked by own pieces, or off the board)
+- Prefer FEN for complex positions (10+ pieces), piece-by-piece JSON for simple ones (the user can read both)
+- Checkmate puzzle categories: Queen Takes f7, Queen-Bishop Battery, Lolli's Mate, Smothered Mate, Back Rank Mate, Rook Ladder, Queen & King
+- When reorganizing puzzle categories, remember to update both `checkmate.ts` (the puzzle arrays) and `index.ts` (the registry + CATEGORIES subcategories)
+- Puzzle IDs use a prefix matching their category (e.g., `checkmate-qb-01`, `checkmate-sm-03`) — renumber when moving puzzles between categories
