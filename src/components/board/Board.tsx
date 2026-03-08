@@ -7,12 +7,12 @@ import type { SlideAnimation } from "@/lib/state/use-puzzle";
 const SQUARE_SIZE = 100;
 const BOARD_SIZE = SQUARE_SIZE * 8;
 
-const LIGHT = "#f0d9b5";
-const DARK = "#b58863";
-const SELECTED_COLOR = "#ffff00";
+const LIGHT = "#e8dcc8";
+const DARK = "#7a9e6e";
+const SELECTED_COLOR = "#f0e060";
 const VALID_MOVE_COLOR = "#00000033";
-const TARGET_COLOR = "#e6ac00";
-const LAST_MOVE_COLOR = "#7cacf8";
+const TARGET_COLOR = "#d4920a";
+const LAST_MOVE_COLOR = "#a8c4f0";
 const WRONG_MOVE_COLOR = "#ef4444";
 
 interface DragState {
@@ -137,7 +137,7 @@ export default function Board({
 
           let fill = isLight ? LIGHT : DARK;
           if (isPawnSlideSquare) fill = LAST_MOVE_COLOR;
-          if (isTarget && hasOccupant) fill = "#ffd70066";
+          if (isTarget && hasOccupant) fill = "#d4920a66";
           if (isSelected) fill = SELECTED_COLOR;
           if (isWrongMove) fill = WRONG_MOVE_COLOR;
 
@@ -185,11 +185,11 @@ export default function Board({
                   y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 18}
                   fontSize="70"
                   textAnchor="middle"
-                  fill="#e6ac00"
-                  stroke="#b8860b"
-                  strokeWidth="1.5"
+                  fill="#f5c518"
+                  stroke="#8b6914"
+                  strokeWidth="2"
                   className="pointer-events-none select-none"
-                  style={{ filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.3))" }}
+                  style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }}
                 >
                   &#9733;
                 </text>
@@ -200,8 +200,11 @@ export default function Board({
                   y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 8}
                   fontSize="36"
                   textAnchor="middle"
-                  fill="#22c55e"
+                  fill="#ffffff"
+                  stroke="#2d6a2e"
+                  strokeWidth="1.5"
                   className="pointer-events-none select-none"
+                  style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }}
                 >
                   &#10003;
                 </text>
