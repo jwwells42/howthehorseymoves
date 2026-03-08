@@ -38,6 +38,7 @@ interface BoardProps {
   pawnSlide?: { from: SquareId; to: SquareId };
   wrongMoveSquare?: SquareId | null;
   opponentSlide?: SlideAnimation | null;
+  readOnly?: boolean;
 }
 
 export default function Board({
@@ -55,6 +56,7 @@ export default function Board({
   pawnSlide,
   wrongMoveSquare,
   opponentSlide,
+  readOnly,
 }: BoardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -78,6 +80,7 @@ export default function Board({
   }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, sq: SquareId) => {
+    if (readOnly) return;
     const p = board.pieces.get(sq);
     if (!p || p.color !== "w" || (draggablePiece && p.piece !== draggablePiece)) return;
     const svgPt = pointerToSvg(e);
@@ -86,7 +89,7 @@ export default function Board({
     (e.target as Element).setPointerCapture(e.pointerId);
     setDrag({ from: sq, piece: p.piece, color: p.color, x: svgPt.x, y: svgPt.y });
     onDragStart(sq);
-  }, [board, draggablePiece, pointerToSvg, onDragStart]);
+  }, [readOnly, board, draggablePiece, pointerToSvg, onDragStart]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!drag) return;
