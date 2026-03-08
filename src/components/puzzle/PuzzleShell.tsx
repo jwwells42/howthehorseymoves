@@ -133,13 +133,11 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
       />
 
       {/* Star thresholds info */}
-      {!isComplete && (
-        <div className="flex gap-4 text-xs text-faint">
-          <span><StarRating stars={3} size="sm" /> {puzzle.starThresholds.three} moves</span>
-          <span><StarRating stars={2} size="sm" /> {puzzle.starThresholds.two} moves</span>
-          <span><StarRating stars={1} size="sm" /> {puzzle.starThresholds.one} moves</span>
-        </div>
-      )}
+      <div className="flex gap-4 text-xs text-faint">
+        <span><StarRating stars={3} size="sm" /> {puzzle.starThresholds.three} moves</span>
+        <span><StarRating stars={2} size="sm" /> {puzzle.starThresholds.two} moves</span>
+        <span><StarRating stars={1} size="sm" /> {puzzle.starThresholds.one} moves</span>
+      </div>
     </div>
   );
 }

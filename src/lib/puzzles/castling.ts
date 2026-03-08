@@ -59,7 +59,7 @@ export const castlingPuzzles: Puzzle[] = [
       { piece: "K", color: "w", square: "e1" },
       { piece: "R", color: "w", square: "a1" },
       { piece: "R", color: "w", square: "h1" },
-      { piece: "P", color: "w", square: "b1" },
+      { piece: "N", color: "w", square: "b1" },
     ],
     targets: ["g1"],
     solution: ["g1"],

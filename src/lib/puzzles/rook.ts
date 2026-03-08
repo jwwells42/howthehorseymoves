@@ -208,7 +208,7 @@ export const rookPuzzles: Puzzle[] = [
     solution: ["a3", "b3", "b6", "c6", "c8"],
     maxMoves: 6,
     hints: ["Move up, then right, then up, then right...", "Use the gaps in the pawn wall."],
-    starThresholds: { three: 5, two: 6, one: 7 },
+    starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
     id: "rook-15",
