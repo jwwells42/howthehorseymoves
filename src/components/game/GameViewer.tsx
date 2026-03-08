@@ -17,6 +17,8 @@ export default function GameViewer({ game }: { game: ModelGame }) {
   const board = parsed.positions[currentMove];
   const lastMove = currentMove > 0 ? parsed.moves[currentMove - 1] : null;
   const totalMoves = parsed.moves.length;
+  const currentComment = lastMove?.comment;
+  const currentArrows = lastMove?.arrows;
 
   const goForward = useCallback(
     () => setCurrentMove(m => Math.min(m + 1, totalMoves)),
@@ -66,13 +68,15 @@ export default function GameViewer({ game }: { game: ModelGame }) {
     }
   }, [currentMove]);
 
-  // Build move pairs for display
+  // Build move pairs for display (SAN + optional NAG like "!" or "!!")
   const movePairs: { num: number; white: string; black?: string }[] = [];
   for (let i = 0; i < totalMoves; i += 2) {
+    const wm = parsed.moves[i];
+    const bm = parsed.moves[i + 1];
     movePairs.push({
       num: Math.floor(i / 2) + 1,
-      white: parsed.moves[i].san,
-      black: parsed.moves[i + 1]?.san,
+      white: wm.san + (wm.nag ?? ""),
+      black: bm ? bm.san + (bm.nag ?? "") : undefined,
     });
   }
 
@@ -101,6 +105,7 @@ export default function GameViewer({ game }: { game: ModelGame }) {
           onDragEnd={noop}
           pawnSlide={lastMove ? { from: lastMove.from, to: lastMove.to } : undefined}
           readOnly
+          arrows={currentArrows}
         />
 
         {/* White player (bottom) */}
@@ -108,6 +113,13 @@ export default function GameViewer({ game }: { game: ModelGame }) {
           <div className="w-3 h-3 rounded-full bg-white border border-foreground/30" />
           <span className="text-sm text-muted">{game.white}</span>
         </div>
+
+        {/* Move comment */}
+        {currentComment && (
+          <div className="mt-2 px-3 py-2 rounded-lg bg-card border border-card-border text-sm text-muted italic">
+            {currentComment}
+          </div>
+        )}
 
         {/* Navigation controls */}
         <div className="flex items-center justify-center gap-2 mt-4">

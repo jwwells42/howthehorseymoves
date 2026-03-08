@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback } from "react";
 import { BoardState, FILES, RANKS, SquareId, PieceKind, PieceColor, squareToCoords } from "@/lib/logic/types";
 import type { SlideAnimation } from "@/lib/state/use-puzzle";
+import type { Arrow } from "@/lib/logic/pgn";
 
 const SQUARE_SIZE = 100;
 const BOARD_SIZE = SQUARE_SIZE * 8;
@@ -39,6 +40,7 @@ interface BoardProps {
   wrongMoveSquare?: SquareId | null;
   opponentSlide?: SlideAnimation | null;
   readOnly?: boolean;
+  arrows?: Arrow[];
 }
 
 export default function Board({
@@ -57,6 +59,7 @@ export default function Board({
   wrongMoveSquare,
   opponentSlide,
   readOnly,
+  arrows,
 }: BoardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -314,6 +317,54 @@ export default function Board({
           >
             &#9733;
           </text>
+        );
+      })}
+
+      {/* Arrows */}
+      {arrows && arrows.map((arrow, i) => {
+        const [fx, fy] = squareToCoords(arrow.from);
+        const [tx, ty] = squareToCoords(arrow.to);
+        const x1 = fx * SQUARE_SIZE + SQUARE_SIZE / 2;
+        const y1 = fy * SQUARE_SIZE + SQUARE_SIZE / 2;
+        const x2 = tx * SQUARE_SIZE + SQUARE_SIZE / 2;
+        const y2 = ty * SQUARE_SIZE + SQUARE_SIZE / 2;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const headLen = 22;
+        const ux = dx / len;
+        const uy = dy / len;
+        // Shorten the line so the arrowhead doesn't overshoot
+        const ex = x2 - ux * headLen * 0.5;
+        const ey = y2 - uy * headLen * 0.5;
+        const markerId = `arrow-${i}`;
+        return (
+          <g key={`arrow-${i}`} className="pointer-events-none">
+            <defs>
+              <marker
+                id={markerId}
+                markerWidth={headLen}
+                markerHeight={headLen}
+                refX={headLen}
+                refY={headLen / 2}
+                orient="auto"
+              >
+                <polygon
+                  points={`0 0, ${headLen} ${headLen / 2}, 0 ${headLen}`}
+                  fill={arrow.color}
+                  opacity={0.8}
+                />
+              </marker>
+            </defs>
+            <line
+              x1={x1} y1={y1} x2={ex} y2={ey}
+              stroke={arrow.color}
+              strokeWidth={12}
+              strokeLinecap="round"
+              opacity={0.7}
+              markerEnd={`url(#${markerId})`}
+            />
+          </g>
         );
       })}
 

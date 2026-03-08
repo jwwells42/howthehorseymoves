@@ -3,11 +3,20 @@ import { getLegalMoves } from "./attacks";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+export interface Arrow {
+  from: SquareId;
+  to: SquareId;
+  color: string; // hex color
+}
+
 export interface GameMove {
   san: string;
   from: SquareId;
   to: SquareId;
   promotion?: PieceKind;
+  nag?: string;       // "!", "!!", "?", "??", "!?", "?!"
+  comment?: string;   // text annotation
+  arrows?: Arrow[];   // arrows to draw on the board
 }
 
 export interface ParsedGame {
@@ -15,14 +24,80 @@ export interface ParsedGame {
   moves: GameMove[];
 }
 
-/** Extract SAN tokens from PGN text, stripping move numbers, comments, and results. */
-function tokenizePgn(pgn: string): string[] {
-  return pgn
-    .replace(/\{[^}]*\}/g, "")
-    .replace(/\([^)]*\)/g, "")
-    .split(/\s+/)
-    .map(t => t.replace(/^\d+\.+/, ""))
-    .filter(t => t.length > 0 && !t.match(/^(1-0|0-1|1\/2-1\/2|\*)$/));
+const ARROW_COLORS: Record<string, string> = {
+  G: "#15803d", // green
+  R: "#dc2626", // red
+  Y: "#ca8a04", // yellow
+  B: "#2563eb", // blue
+};
+
+interface AnnotatedToken {
+  san: string;
+  nag?: string;
+  comment?: string;
+  arrows?: Arrow[];
+}
+
+/** Parse [%cal Ge2e4,Rd7d5] arrow directives from a comment string. */
+function parseArrows(comment: string): { text: string; arrows: Arrow[] } {
+  const arrows: Arrow[] = [];
+  const text = comment.replace(/\[%cal\s+([^\]]+)\]/g, (_, spec: string) => {
+    for (const entry of spec.split(",")) {
+      const e = entry.trim();
+      if (e.length >= 5) {
+        const colorCode = e[0].toUpperCase();
+        const from = e.slice(1, 3) as SquareId;
+        const to = e.slice(3, 5) as SquareId;
+        arrows.push({ from, to, color: ARROW_COLORS[colorCode] ?? ARROW_COLORS.G });
+      }
+    }
+    return "";
+  }).trim();
+  return { text, arrows };
+}
+
+/** Tokenize PGN into annotated tokens, preserving comments and NAGs. */
+function tokenizePgn(pgn: string): AnnotatedToken[] {
+  const tokens: AnnotatedToken[] = [];
+
+  // Strip variations (parenthesized)
+  let cleaned = pgn.replace(/\([^)]*\)/g, "");
+
+  // Walk through, extracting SAN tokens + trailing NAGs + trailing comments
+  const re = /(\{[^}]*\})|([a-hKQRBNO][a-h1-8xO#+=-]*[1-8QRBN]?)([!?]{1,2})?/g;
+  let pendingComment: string | undefined;
+  let pendingArrows: Arrow[] | undefined;
+  let m: RegExpExecArray | null;
+
+  while ((m = re.exec(cleaned)) !== null) {
+    // Comment block
+    if (m[1]) {
+      const raw = m[1].slice(1, -1).trim();
+      const { text, arrows } = parseArrows(raw);
+      pendingComment = text || undefined;
+      pendingArrows = arrows.length > 0 ? arrows : undefined;
+      // Attach to the PREVIOUS token (comment follows a move)
+      if (tokens.length > 0) {
+        const last = tokens[tokens.length - 1];
+        if (pendingComment) last.comment = pendingComment;
+        if (pendingArrows) last.arrows = pendingArrows;
+        pendingComment = undefined;
+        pendingArrows = undefined;
+      }
+      continue;
+    }
+
+    // SAN token
+    const san = m[2];
+    // Skip move numbers, results
+    if (/^\d+\./.test(san)) continue;
+    if (/^(1-0|0-1|1\/2-1\/2|\*)$/.test(san)) continue;
+
+    const nag = m[3] || undefined;
+    tokens.push({ san, nag });
+  }
+
+  return tokens;
 }
 
 /** Parse a SAN move string into from/to squares using the current board state. */
@@ -144,9 +219,15 @@ export function parsePgn(pgn: string): ParsedGame {
   const tokens = tokenizePgn(pgn);
 
   let color: PieceColor = "w";
-  for (const san of tokens) {
-    const { from, to, promotion } = parseSan(san, board, color);
-    moves.push({ san, from, to, promotion });
+  for (const token of tokens) {
+    const { from, to, promotion } = parseSan(token.san, board, color);
+    moves.push({
+      san: token.san,
+      from, to, promotion,
+      nag: token.nag,
+      comment: token.comment,
+      arrows: token.arrows,
+    });
     board = applyMove(board, from, to, promotion);
     positions.push(board);
     color = color === "w" ? "b" : "w";
