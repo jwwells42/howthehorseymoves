@@ -1,13 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f2e8;
-  --foreground: #2d3a2e;
+  --background: #436533;
+  --foreground: #f0e6cc;
+  --card-bg: rgba(255, 248, 230, 0.08);
+  --card-border: rgba(255, 248, 230, 0.15);
+  --text-muted: #c8d0b0;
+  --text-faint: #a0b088;
+  --btn-bg: rgba(255, 248, 230, 0.12);
+  --btn-hover: rgba(255, 248, 230, 0.2);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-btn: var(--btn-bg);
+  --color-btn-hover: var(--btn-hover);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --animate-fade-in: fade-in 0.3s ease-out;
@@ -35,8 +47,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1c1f1a;
-    --foreground: #e5e2d8;
+    --background: #2d4a22;
+    --foreground: #ede4cc;
+    --card-bg: rgba(255, 248, 230, 0.06);
+    --card-border: rgba(255, 248, 230, 0.12);
+    --text-muted: #b8c4a0;
+    --text-faint: #90a078;
+    --btn-bg: rgba(255, 248, 230, 0.1);
+    --btn-hover: rgba(255, 248, 230, 0.18);
   }
 }
 

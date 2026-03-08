@@ -79,11 +79,11 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
       {/* Instruction */}
       <div className="text-center">
         <h2 className="text-xl font-bold mb-1">{puzzle.title}</h2>
-        <p className="text-gray-600 dark:text-gray-300">{puzzle.instruction}</p>
+        <p className="text-muted">{puzzle.instruction}</p>
       </div>
 
       {/* Move counter */}
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-faint">
         Moves: {moveCount}
         {puzzle.maxMoves && ` / ${puzzle.maxMoves}`}
       </div>
@@ -113,7 +113,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
 
       {/* Stalemate warning */}
       {stalemateTrigger && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg px-4 py-3 text-red-800 dark:text-red-200 text-sm text-center">
+        <div className="bg-red-900/40 border border-red-500/50 rounded-lg px-4 py-3 text-red-200 text-sm text-center">
           <strong>Stalemate!</strong> The opponent has no legal moves but isn&apos;t in check. That&apos;s a draw, not a win.
           <button onClick={reset} className="ml-2 underline font-medium">Try again</button>
         </div>
@@ -121,7 +121,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
 
       {/* Hint display */}
       {currentHintIndex >= 0 && puzzle.hints && puzzle.hints[currentHintIndex] && (
-        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg px-4 py-2 text-amber-800 dark:text-amber-200 text-sm">
+        <div className="bg-amber-900/40 border border-amber-500/50 rounded-lg px-4 py-2 text-amber-200 text-sm">
           Hint: {puzzle.hints[currentHintIndex]}
         </div>
       )}
@@ -134,7 +134,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
 
       {/* Star thresholds info */}
       {!isComplete && (
-        <div className="flex gap-4 text-xs text-gray-400">
+        <div className="flex gap-4 text-xs text-faint">
           <span><StarRating stars={3} size="sm" /> {puzzle.starThresholds.three} moves</span>
           <span><StarRating stars={2} size="sm" /> {puzzle.starThresholds.two} moves</span>
           <span><StarRating stars={1} size="sm" /> {puzzle.starThresholds.one} moves</span>

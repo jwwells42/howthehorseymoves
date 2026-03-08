@@ -28,8 +28,8 @@ export default function PieceCard({
     <div
       className={`rounded-xl border p-6 transition-all ${
         locked
-          ? "border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed"
-          : "border-gray-200 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow-lg cursor-pointer"
+          ? "border-card-border bg-card opacity-50 cursor-not-allowed"
+          : "border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer"
       }`}
     >
       <div className="flex items-center gap-4 mb-3">
@@ -37,13 +37,13 @@ export default function PieceCard({
         <img src={iconPath} alt={name} className="w-12 h-12" />
         <div>
           <h3 className="text-lg font-bold">{name}</h3>
-          {locked && <span className="text-xs text-gray-400">Locked</span>}
+          {locked && <span className="text-xs text-faint">Locked</span>}
         </div>
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{description}</p>
+      <p className="text-sm text-muted mb-3">{description}</p>
       {!locked && (
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-faint">
             {completedPuzzles}/{totalPuzzles} puzzles
           </span>
           {completedPuzzles > 0 && <StarRating stars={bestStars} size="sm" />}

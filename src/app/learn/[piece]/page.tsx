@@ -28,7 +28,7 @@ function CategoryPage({ categoryKey }: { categoryKey: string }) {
 
   return (
     <main className="min-h-screen p-6 max-w-2xl mx-auto">
-      <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4 inline-block">
+      <Link href="/" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
         &larr; Back to home
       </Link>
 
@@ -37,7 +37,7 @@ function CategoryPage({ categoryKey }: { categoryKey: string }) {
         <img src={category.icon} alt={category.name} className="w-16 h-16" />
         <div>
           <h1 className="text-3xl font-bold">{category.name}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{category.description}</p>
+          <p className="text-muted">{category.description}</p>
         </div>
       </div>
 
@@ -62,18 +62,18 @@ function CategoryPage({ categoryKey }: { categoryKey: string }) {
             <Link
               key={sub.key}
               href={`/learn/${sub.key}`}
-              className="flex items-center justify-between p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow-lg transition-all"
+              className="flex items-center justify-between p-5 rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg transition-all"
             >
               <div className="flex items-center gap-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={sub.icon} alt={sub.name} className="w-10 h-10" />
                 <div>
                   <h3 className="font-bold">{sub.name}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{sub.description}</p>
+                  <p className="text-sm text-muted">{sub.description}</p>
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-xs text-gray-400">{completedPuzzles}/{totalPuzzles}</span>
+                <span className="text-xs text-faint">{completedPuzzles}/{totalPuzzles}</span>
                 {completedPuzzles > 0 && (
                   <div className="mt-1"><StarRating stars={bestStars} size="sm" /></div>
                 )}
@@ -105,7 +105,7 @@ function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
     return (
       <main className="min-h-screen p-6 max-w-4xl mx-auto text-center">
         <h1 className="text-2xl font-bold mb-4">Not found</h1>
-        <Link href="/" className="text-blue-500 hover:underline">Back to home</Link>
+        <Link href="/" className="text-muted hover:underline">Back to home</Link>
       </main>
     );
   }
@@ -114,7 +114,7 @@ function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
 
   return (
     <main className="min-h-screen p-6 max-w-2xl mx-auto">
-      <Link href={backHref} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4 inline-block">
+      <Link href={backHref} className="text-sm text-muted hover:text-foreground mb-4 inline-block">
         &larr; {backLabel}
       </Link>
 
@@ -123,7 +123,7 @@ function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
         <img src={displayIcon} alt={displayName} className="w-16 h-16" />
         <div>
           <h1 className="text-3xl font-bold">{displayName} Puzzles</h1>
-          {displayDescription && <p className="text-gray-500 dark:text-gray-400">{displayDescription}</p>}
+          {displayDescription && <p className="text-muted">{displayDescription}</p>}
         </div>
       </div>
 
@@ -137,13 +137,13 @@ function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
               {unlocked ? (
                 <Link
                   href={`/learn/${pieceKey}/${puzzle.id}`}
-                  className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow transition-all"
+                  className="flex items-center justify-between p-4 rounded-lg border border-card-border bg-card hover:border-foreground/30 hover:shadow transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-400 w-6 text-right">{idx + 1}.</span>
+                    <span className="text-sm text-faint w-6 text-right">{idx + 1}.</span>
                     <div>
                       <span className="font-medium">{puzzle.title}</span>
-                      <p className="text-xs text-gray-400">{puzzle.instruction}</p>
+                      <p className="text-xs text-faint">{puzzle.instruction}</p>
                     </div>
                   </div>
                   {progress?.completed && (
@@ -151,12 +151,12 @@ function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
                   )}
                 </Link>
               ) : (
-                <div className="flex items-center justify-between p-4 rounded-lg border border-gray-100 dark:border-gray-800 opacity-40">
+                <div className="flex items-center justify-between p-4 rounded-lg border border-card-border opacity-40">
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-400 w-6 text-right">{idx + 1}.</span>
+                    <span className="text-sm text-faint w-6 text-right">{idx + 1}.</span>
                     <span className="font-medium">{puzzle.title}</span>
                   </div>
-                  <span className="text-xs text-gray-400">Locked</span>
+                  <span className="text-xs text-faint">Locked</span>
                 </div>
               )}
             </div>

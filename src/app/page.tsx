@@ -12,7 +12,7 @@ export default function Home() {
     <main className="min-h-screen p-6 max-w-4xl mx-auto">
       <div className="text-center mb-10">
         <h1 className="text-4xl font-bold mb-2">How The Horsey Moves</h1>
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-muted">
           Learn how each chess piece moves through interactive puzzles
         </p>
       </div>
@@ -69,18 +69,18 @@ export default function Home() {
 
           return (
             <Link key={cat.key} href={`/learn/${cat.key}`}>
-              <div className="rounded-xl border border-gray-200 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow-lg cursor-pointer p-6 transition-all">
+              <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all">
                 <div className="flex items-center gap-4 mb-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={cat.icon} alt={cat.name} className="w-12 h-12" />
                   <h3 className="text-lg font-bold">{cat.name}</h3>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{cat.description}</p>
+                <p className="text-sm text-muted mb-3">{cat.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-faint">
                     {completedPuzzles}/{totalPuzzles} puzzles
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-faint">
                     {cat.subcategories.length} patterns
                   </span>
                 </div>
@@ -91,13 +91,13 @@ export default function Home() {
 
         {/* Play card */}
         <Link href="/play">
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow-lg cursor-pointer p-6 transition-all">
+          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all">
             <div className="flex items-center gap-4 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/pieces/wK.svg" alt="Play" className="w-12 h-12" />
               <h3 className="text-lg font-bold">Play vs Computer</h3>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            <p className="text-sm text-muted mb-3">
               Practice everything you&apos;ve learned in a full game!
             </p>
           </div>

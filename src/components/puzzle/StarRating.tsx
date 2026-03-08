@@ -10,7 +10,7 @@ export default function StarRating({ stars, size = "md" }: StarRatingProps) {
   return (
     <span className={`${sizeClass} inline-flex`}>
       {[1, 2, 3].map((i) => (
-        <span key={i} className={i <= stars ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}>
+        <span key={i} className={i <= stars ? "text-yellow-400" : "text-faint/40"}>
           &#9733;
         </span>
       ))}

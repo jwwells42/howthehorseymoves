@@ -49,7 +49,7 @@ export default function GameShell() {
     <div className="flex flex-col items-center gap-4 p-4 max-w-2xl mx-auto">
       <div className="text-center">
         <h2 className="text-xl font-bold mb-1">Play vs Computer</h2>
-        <p className="text-gray-600 dark:text-gray-300">
+        <p className="text-muted">
           {resultMessage ?? (
             inCheck ? "You're in check!" :
             waitingForBot ? "Opponent is thinking..." :
