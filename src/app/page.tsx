@@ -69,13 +69,13 @@ export default function Home() {
 
           return (
             <Link key={cat.key} href={`/learn/${cat.key}`}>
-              <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all">
+              <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
                 <div className="flex items-center gap-4 mb-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={cat.icon} alt={cat.name} className="w-12 h-12" />
                   <h3 className="text-lg font-bold">{cat.name}</h3>
                 </div>
-                <p className="text-sm text-muted mb-3">{cat.description}</p>
+                <p className="text-sm text-muted mb-3 flex-1">{cat.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-faint">
                     {completedPuzzles}/{totalPuzzles} puzzles
@@ -91,15 +91,16 @@ export default function Home() {
 
         {/* Play card */}
         <Link href="/play">
-          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all">
+          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
             <div className="flex items-center gap-4 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/pieces/wK.svg" alt="Play" className="w-12 h-12" />
               <h3 className="text-lg font-bold">Play vs Computer</h3>
             </div>
-            <p className="text-sm text-muted mb-3">
+            <p className="text-sm text-muted mb-3 flex-1">
               Practice everything you&apos;ve learned in a full game!
             </p>
+            <div className="text-xs text-faint">&nbsp;</div>
           </div>
         </Link>
       </div>

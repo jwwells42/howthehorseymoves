@@ -26,7 +26,7 @@ export default function PieceCard({
 }: PieceCardProps) {
   const content = (
     <div
-      className={`rounded-xl border p-6 transition-all ${
+      className={`rounded-xl border p-6 transition-all h-full flex flex-col ${
         locked
           ? "border-card-border bg-card opacity-50 cursor-not-allowed"
           : "border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer"
@@ -40,15 +40,13 @@ export default function PieceCard({
           {locked && <span className="text-xs text-faint">Locked</span>}
         </div>
       </div>
-      <p className="text-sm text-muted mb-3">{description}</p>
-      {!locked && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-faint">
-            {completedPuzzles}/{totalPuzzles} puzzles
-          </span>
-          {completedPuzzles > 0 && <StarRating stars={bestStars} size="sm" />}
-        </div>
-      )}
+      <p className="text-sm text-muted mb-3 flex-1">{description}</p>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-faint">
+          {locked ? "\u00A0" : `${completedPuzzles}/${totalPuzzles} puzzles`}
+        </span>
+        {!locked && completedPuzzles > 0 && <StarRating stars={bestStars} size="sm" />}
+      </div>
     </div>
   );
 
