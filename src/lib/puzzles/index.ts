@@ -8,7 +8,7 @@ import { knightPuzzles } from "./knight";
 import { pawnPuzzles } from "./pawn";
 import { castlingPuzzles } from "./castling";
 import { enPassantPuzzles } from "./enpassant";
-import { checkmatePuzzles } from "./checkmate";
+import { backreakMatePuzzles, smotheredMatePuzzles, rookLadderPuzzles, queenKingMatePuzzles } from "./checkmate";
 
 const puzzleSets: Record<string, PuzzleSet> = {
   rook: { piece: "R", name: "Rook", puzzles: rookPuzzles },
@@ -19,7 +19,10 @@ const puzzleSets: Record<string, PuzzleSet> = {
   pawn: { piece: "P", name: "Pawn", puzzles: pawnPuzzles },
   castling: { piece: "K", name: "Castling", puzzles: castlingPuzzles },
   "en-passant": { piece: "P", name: "En Passant", puzzles: enPassantPuzzles },
-  checkmate: { piece: "Q", name: "Checkmate", puzzles: checkmatePuzzles },
+  "checkmate-back-rank": { piece: "R", name: "Back Rank Mate", puzzles: backreakMatePuzzles },
+  "checkmate-smothered": { piece: "N", name: "Smothered Mate", puzzles: smotheredMatePuzzles },
+  "checkmate-rook-ladder": { piece: "R", name: "Rook Ladder", puzzles: rookLadderPuzzles },
+  "checkmate-queen-king": { piece: "Q", name: "Queen & King Mate", puzzles: queenKingMatePuzzles },
 };
 
 export function getPuzzlesForPiece(pieceKey: string): PuzzleSet | undefined {
@@ -45,6 +48,21 @@ export interface PieceInfo {
   available: boolean;
 }
 
+export interface SubcategoryInfo {
+  key: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+export interface CategoryInfo {
+  key: string;
+  name: string;
+  description: string;
+  icon: string;
+  subcategories: SubcategoryInfo[];
+}
+
 export const PIECES: PieceInfo[] = [
   { key: "rook", name: "Rook", description: "Moves in straight lines: up, down, left, right.", icon: "/pieces/wR.svg", pieceKind: "R", available: true },
   { key: "bishop", name: "Bishop", description: "Moves diagonally across the board.", icon: "/pieces/wB.svg", pieceKind: "B", available: true },
@@ -54,5 +72,23 @@ export const PIECES: PieceInfo[] = [
   { key: "pawn", name: "Pawn", description: "Moves forward, captures diagonally.", icon: "/pieces/wP.svg", pieceKind: "P", available: true },
   { key: "castling", name: "Castling", description: "A special king + rook move for safety.", icon: "/pieces/wK.svg", pieceKind: "K", available: true },
   { key: "en-passant", name: "En Passant", description: "A special pawn capture 'in passing'.", icon: "/pieces/wP.svg", pieceKind: "P", available: true },
-  { key: "checkmate", name: "Checkmate", description: "Trap the king — deliver the final blow!", icon: "/pieces/wQ.svg", pieceKind: "Q", available: true },
 ];
+
+export const CATEGORIES: CategoryInfo[] = [
+  {
+    key: "checkmate",
+    name: "Checkmate Patterns",
+    description: "Learn classic mating patterns!",
+    icon: "/pieces/wQ.svg",
+    subcategories: [
+      { key: "checkmate-back-rank", name: "Back Rank Mate", description: "Trap the king behind its own pawns.", icon: "/pieces/wR.svg" },
+      { key: "checkmate-smothered", name: "Smothered Mate", description: "The knight strikes when the king can't move.", icon: "/pieces/wN.svg" },
+      { key: "checkmate-rook-ladder", name: "Rook Ladder", description: "Two rooks push the king to the edge.", icon: "/pieces/wR.svg" },
+      { key: "checkmate-queen-king", name: "Queen & King", description: "Use the queen with king support.", icon: "/pieces/wQ.svg" },
+    ],
+  },
+];
+
+export function getCategory(key: string): CategoryInfo | undefined {
+  return CATEGORIES.find((c) => c.key === key);
+}

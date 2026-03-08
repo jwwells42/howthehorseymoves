@@ -1,15 +1,23 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { BoardState, SquareId, createBoardState, squareToCoords, coordsToSquare } from "@/lib/logic/types";
+import { BoardState, PieceKind, PieceColor, SquareId, createBoardState, squareToCoords, coordsToSquare } from "@/lib/logic/types";
 import { getValidMoves } from "@/lib/logic/moves";
 import { isCheckmate, isStalemate } from "@/lib/logic/attacks";
-import { Puzzle } from "@/lib/puzzles/types";
+import { Puzzle, OpponentResponse } from "@/lib/puzzles/types";
 import { useProgress } from "./progress-context";
+
+export interface SlideAnimation {
+  piece: PieceKind;
+  color: PieceColor;
+  from: SquareId;
+  to: SquareId;
+}
 
 export function usePuzzle(puzzle: Puzzle) {
   const { completePuzzle } = useProgress();
   const isCheckmateMode = puzzle.mode === "checkmate";
+  const isMultiMove = isCheckmateMode && puzzle.opponentResponses && puzzle.opponentResponses.length > 0;
 
   const buildBoard = useCallback(() => {
     return createBoardState(puzzle.setup, {
@@ -25,6 +33,10 @@ export function usePuzzle(puzzle: Puzzle) {
   const [isComplete, setIsComplete] = useState(false);
   const [stalemateTrigger, setStalemateTrigger] = useState(false);
   const [currentHintIndex, setCurrentHintIndex] = useState(-1);
+  const [solutionStep, setSolutionStep] = useState(0);
+  const [wrongMoveSquare, setWrongMoveSquare] = useState<SquareId | null>(null);
+  const [opponentSlide, setOpponentSlide] = useState<SlideAnimation | null>(null);
+  const [waitingForAnimation, setWaitingForAnimation] = useState(false);
 
   const validMoves = useMemo(() => {
     if (!selectedSquare) return [];
@@ -39,7 +51,7 @@ export function usePuzzle(puzzle: Puzzle) {
       if (moves <= three) return 3;
       if (moves <= two) return 2;
       if (moves <= one) return 1;
-      return 1; // always at least 1 star on completion
+      return 1;
     },
     [puzzle.starThresholds]
   );
@@ -48,8 +60,7 @@ export function usePuzzle(puzzle: Puzzle) {
 
   // Apply special move side-effects (en passant capture, castling rook)
   const applyMoveEffects = useCallback(
-    (pieces: Map<SquareId, { piece: string; color: string }>, from: SquareId, to: SquareId, movedPiece: { piece: string; color: string }) => {
-      // En passant: pawn moves diagonally to empty square = captured the pawn behind
+    (pieces: Map<SquareId, { piece: PieceKind; color: PieceColor }>, from: SquareId, to: SquareId, movedPiece: { piece: PieceKind; color: PieceColor }) => {
       if (movedPiece.piece === "P" && to === board.enPassantSquare) {
         const [, fromY] = squareToCoords(from);
         const [toX] = squareToCoords(to);
@@ -57,20 +68,16 @@ export function usePuzzle(puzzle: Puzzle) {
         if (capturedSq) pieces.delete(capturedSq);
       }
 
-      // Castling: king moves 2 squares = also move the rook
       if (movedPiece.piece === "K") {
         const [fx] = squareToCoords(from);
         const [tx] = squareToCoords(to);
         if (Math.abs(tx - fx) === 2) {
-          // Kingside
           if (tx > fx) {
             const rookFrom = `h${to[1]}` as SquareId;
             const rookTo = `f${to[1]}` as SquareId;
             const rook = pieces.get(rookFrom);
             if (rook) { pieces.delete(rookFrom); pieces.set(rookTo, rook); }
-          }
-          // Queenside
-          else {
+          } else {
             const rookFrom = `a${to[1]}` as SquareId;
             const rookTo = `d${to[1]}` as SquareId;
             const rook = pieces.get(rookFrom);
@@ -82,18 +89,62 @@ export function usePuzzle(puzzle: Puzzle) {
     [board.enPassantSquare]
   );
 
+  // Apply an opponent response and animate it
+  const applyOpponentResponse = useCallback(
+    (currentBoard: BoardState, response: OpponentResponse) => {
+      const oppPieces = new Map(currentBoard.pieces);
+      const oppPiece = oppPieces.get(response.from);
+      if (!oppPiece) return currentBoard;
+
+      // Set up animation before updating board
+      setOpponentSlide({
+        piece: oppPiece.piece,
+        color: oppPiece.color,
+        from: response.from,
+        to: response.to,
+      });
+      setWaitingForAnimation(true);
+
+      oppPieces.delete(response.from);
+      oppPieces.set(response.to, oppPiece);
+      const newBoard: BoardState = { pieces: oppPieces };
+      setBoard(newBoard);
+
+      // Clear animation after delay
+      setTimeout(() => {
+        setOpponentSlide(null);
+        setWaitingForAnimation(false);
+      }, 700);
+
+      return newBoard;
+    },
+    []
+  );
+
   // Execute a validated move from `from` to `to`
   const executeMove = useCallback(
     (from: SquareId, to: SquareId) => {
+      if (isCheckmateMode) {
+        // Multi-move: validate against solution
+        if (isMultiMove) {
+          const expectedTarget = puzzle.solution[solutionStep];
+          if (to !== expectedTarget) {
+            // Wrong move — flash and reject
+            setWrongMoveSquare(to);
+            setSelectedSquare(null);
+            setTimeout(() => setWrongMoveSquare(null), 600);
+            return;
+          }
+        }
+      }
+
       const newPieces = new Map(board.pieces);
       const piece = newPieces.get(from)!;
       newPieces.delete(from);
       newPieces.set(to, piece);
 
-      // Apply en passant / castling side-effects
-      applyMoveEffects(newPieces as Map<SquareId, { piece: string; color: string }>, from, to, piece as { piece: string; color: string });
+      applyMoveEffects(newPieces, from, to, piece);
 
-      // Clear en passant and castling rights after move (they're one-shot in puzzles)
       const newBoard: BoardState = { pieces: newPieces };
       setBoard(newBoard);
       setSelectedSquare(null);
@@ -101,33 +152,37 @@ export function usePuzzle(puzzle: Puzzle) {
       setMoveCount(newMoveCount);
 
       if (isCheckmateMode) {
-        // Apply opponent response if defined
-        let boardAfterOpponent = newBoard;
-        const response = puzzle.opponentMoves?.[to];
-        if (response) {
-          const oppPieces = new Map(newBoard.pieces);
-          // Find which opponent piece should move to the response square
-          // The key format is the player's destination; value is "from:to" encoded as just the destination
-          // We need to find the opponent piece that can reach the response square
-          // For simplicity, find the black king (most common responder in check puzzles)
-          for (const [sq, p] of oppPieces) {
-            if (p.color === "b" && p.piece === "K") {
-              oppPieces.delete(sq);
-              oppPieces.set(response, p);
-              break;
-            }
-          }
-          boardAfterOpponent = { pieces: oppPieces };
-          setBoard(boardAfterOpponent);
-        }
+        const newStep = solutionStep + 1;
+        setSolutionStep(newStep);
 
-        // Check for checkmate / stalemate
-        if (isCheckmate("b", boardAfterOpponent)) {
-          setIsComplete(true);
-          const finalStars = calculateStars(newMoveCount);
-          completePuzzle(puzzle.id, finalStars, newMoveCount);
-        } else if (isStalemate("b", boardAfterOpponent)) {
-          setStalemateTrigger(true);
+        // Check if this was the last move in the solution
+        const isLastMove = newStep >= puzzle.solution.length;
+
+        if (isLastMove || !isMultiMove) {
+          // Final move or mate-in-1: check for checkmate/stalemate
+          if (isCheckmate("b", newBoard)) {
+            setIsComplete(true);
+            const finalStars = calculateStars(newMoveCount);
+            completePuzzle(puzzle.id, finalStars, newMoveCount);
+          } else if (isStalemate("b", newBoard)) {
+            setStalemateTrigger(true);
+          } else if (!isMultiMove) {
+            // Mate-in-1 with no forced solution: wrong move, reject
+            setWrongMoveSquare(to);
+            // Revert the move
+            setBoard(board);
+            setMoveCount(moveCount);
+            setSolutionStep(solutionStep);
+            setTimeout(() => setWrongMoveSquare(null), 600);
+          }
+        } else {
+          // Not the last move — apply opponent response
+          const response = puzzle.opponentResponses?.[solutionStep];
+          if (response) {
+            setTimeout(() => {
+              applyOpponentResponse(newBoard, response);
+            }, 300);
+          }
         }
       } else {
         // Reach-target mode
@@ -143,12 +198,12 @@ export function usePuzzle(puzzle: Puzzle) {
         }
       }
     },
-    [board, moveCount, reachedTargets, puzzle, calculateStars, completePuzzle, isCheckmateMode, applyMoveEffects]
+    [board, moveCount, reachedTargets, puzzle, calculateStars, completePuzzle, isCheckmateMode, isMultiMove, solutionStep, applyMoveEffects, applyOpponentResponse]
   );
 
   const handleSquareClick = useCallback(
     (sq: SquareId) => {
-      if (isComplete) return;
+      if (isComplete || waitingForAnimation) return;
 
       if (!selectedSquare) {
         const p = board.pieces.get(sq);
@@ -178,20 +233,19 @@ export function usePuzzle(puzzle: Puzzle) {
 
       executeMove(selectedSquare, sq);
     },
-    [board, selectedSquare, isComplete, puzzle, executeMove]
+    [board, selectedSquare, isComplete, waitingForAnimation, puzzle, executeMove]
   );
 
-  // Drag-and-drop: validate and execute a move from `from` to `to`
   const handleDrop = useCallback(
     (from: SquareId, to: SquareId) => {
-      if (isComplete || from === to) return;
+      if (isComplete || waitingForAnimation || from === to) return;
       const p = board.pieces.get(from);
       if (!p || p.color !== "w" || p.piece !== puzzle.piece) return;
       const moves = getValidMoves(p.piece, from, board, "w");
       if (!moves.includes(to)) return;
       executeMove(from, to);
     },
-    [board, isComplete, puzzle, executeMove]
+    [board, isComplete, waitingForAnimation, puzzle, executeMove]
   );
 
   const reset = useCallback(() => {
@@ -202,6 +256,10 @@ export function usePuzzle(puzzle: Puzzle) {
     setIsComplete(false);
     setStalemateTrigger(false);
     setCurrentHintIndex(-1);
+    setSolutionStep(0);
+    setWrongMoveSquare(null);
+    setOpponentSlide(null);
+    setWaitingForAnimation(false);
   }, [buildBoard]);
 
   const showHint = useCallback(() => {
@@ -218,6 +276,8 @@ export function usePuzzle(puzzle: Puzzle) {
     moveCount,
     isComplete,
     stalemateTrigger,
+    wrongMoveSquare,
+    opponentSlide,
     stars,
     currentHintIndex,
     handleSquareClick,

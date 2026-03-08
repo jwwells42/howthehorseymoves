@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { BoardState, FILES, RANKS, SquareId, PieceKind, PieceColor, squareToCoords } from "@/lib/logic/types";
+import type { SlideAnimation } from "@/lib/state/use-puzzle";
 
 const SQUARE_SIZE = 100;
 const BOARD_SIZE = SQUARE_SIZE * 8;
@@ -12,6 +13,7 @@ const SELECTED_COLOR = "#ffff00";
 const VALID_MOVE_COLOR = "#00000033";
 const TARGET_COLOR = "#e6ac00";
 const LAST_MOVE_COLOR = "#7cacf8";
+const WRONG_MOVE_COLOR = "#ef4444";
 
 interface DragState {
   from: SquareId;
@@ -34,6 +36,8 @@ interface BoardProps {
   onDragStart: (sq: SquareId) => void;
   onDragEnd: () => void;
   pawnSlide?: { from: SquareId; to: SquareId };
+  wrongMoveSquare?: SquareId | null;
+  opponentSlide?: SlideAnimation | null;
 }
 
 export default function Board({
@@ -49,6 +53,8 @@ export default function Board({
   onDragStart,
   onDragEnd,
   pawnSlide,
+  wrongMoveSquare,
+  opponentSlide,
 }: BoardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -127,11 +133,13 @@ export default function Board({
           const hasOccupant = board.pieces.has(sq);
 
           const isPawnSlideSquare = pawnSlide && (sq === pawnSlide.from || sq === pawnSlide.to);
+          const isWrongMove = sq === wrongMoveSquare;
 
           let fill = isLight ? LIGHT : DARK;
           if (isPawnSlideSquare) fill = LAST_MOVE_COLOR;
           if (isTarget && hasOccupant) fill = "#ffd70066";
           if (isSelected) fill = SELECTED_COLOR;
+          if (isWrongMove) fill = WRONG_MOVE_COLOR;
 
           return (
             <g
@@ -240,9 +248,12 @@ export default function Board({
         const [fx, fy] = squareToCoords(sq);
 
         // Animate the pawn that "just moved" in en passant puzzles
-        const isSliding = pawnSlide && sq === pawnSlide.to && piece === "P";
+        const isEpSliding = pawnSlide && sq === pawnSlide.to && piece === "P";
+        // Animate opponent response pieces
+        const isOppSliding = opponentSlide && sq === opponentSlide.to;
+
         let slideStyle: React.CSSProperties | undefined;
-        if (isSliding && pawnSlide) {
+        if (isEpSliding && pawnSlide) {
           const [fromFx, fromFy] = squareToCoords(pawnSlide.from);
           const dx = (fromFx - fx) * SQUARE_SIZE;
           const dy = (fromFy - fy) * SQUARE_SIZE;
@@ -250,6 +261,15 @@ export default function Board({
             "--slide-x": `${dx}px`,
             "--slide-y": `${dy}px`,
             animation: "pawn-slide 0.4s ease-out 0.3s backwards",
+          } as React.CSSProperties;
+        } else if (isOppSliding && opponentSlide) {
+          const [fromFx, fromFy] = squareToCoords(opponentSlide.from);
+          const dx = (fromFx - fx) * SQUARE_SIZE;
+          const dy = (fromFy - fy) * SQUARE_SIZE;
+          slideStyle = {
+            "--slide-x": `${dx}px`,
+            "--slide-y": `${dy}px`,
+            animation: "pawn-slide 0.4s ease-out forwards",
           } as React.CSSProperties;
         }
 

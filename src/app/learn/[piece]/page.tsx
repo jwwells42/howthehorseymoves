@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { getPuzzlesForPiece, PIECES } from "@/lib/puzzles";
+import { getPuzzlesForPiece, PIECES, getCategory } from "@/lib/puzzles";
 import { useProgress } from "@/lib/state/progress-context";
 import StarRating from "@/components/puzzle/StarRating";
 
@@ -12,14 +12,99 @@ export default function PieceLearnPage({
   params: Promise<{ piece: string }>;
 }) {
   const { piece } = use(params);
-  const puzzleSet = getPuzzlesForPiece(piece);
-  const pieceInfo = PIECES.find((p) => p.key === piece);
+
+  // Check if this is a category page
+  const category = getCategory(piece);
+  if (category) {
+    return <CategoryPage categoryKey={piece} />;
+  }
+
+  return <PuzzleListPage pieceKey={piece} />;
+}
+
+function CategoryPage({ categoryKey }: { categoryKey: string }) {
+  const category = getCategory(categoryKey)!;
+  const { state, getPuzzleProgress } = useProgress();
+
+  return (
+    <main className="min-h-screen p-6 max-w-2xl mx-auto">
+      <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4 inline-block">
+        &larr; Back to home
+      </Link>
+
+      <div className="flex items-center gap-4 mb-8">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={category.icon} alt={category.name} className="w-16 h-16" />
+        <div>
+          <h1 className="text-3xl font-bold">{category.name}</h1>
+          <p className="text-gray-500 dark:text-gray-400">{category.description}</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {category.subcategories.map((sub) => {
+          const puzzleSet = getPuzzlesForPiece(sub.key);
+          const totalPuzzles = puzzleSet?.puzzles.length ?? 0;
+          let completedPuzzles = 0;
+          let bestStars = 0;
+
+          if (puzzleSet && state.loaded) {
+            for (const p of puzzleSet.puzzles) {
+              const progress = getPuzzleProgress(p.id);
+              if (progress?.completed) {
+                completedPuzzles++;
+                bestStars = Math.max(bestStars, progress.bestStars);
+              }
+            }
+          }
+
+          return (
+            <Link
+              key={sub.key}
+              href={`/learn/${sub.key}`}
+              className="flex items-center justify-between p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow-lg transition-all"
+            >
+              <div className="flex items-center gap-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={sub.icon} alt={sub.name} className="w-10 h-10" />
+                <div>
+                  <h3 className="font-bold">{sub.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{sub.description}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-gray-400">{completedPuzzles}/{totalPuzzles}</span>
+                {completedPuzzles > 0 && (
+                  <div className="mt-1"><StarRating stars={bestStars} size="sm" /></div>
+                )}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </main>
+  );
+}
+
+function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
+  const puzzleSet = getPuzzlesForPiece(pieceKey);
+  const pieceInfo = PIECES.find((p) => p.key === pieceKey);
   const { state, isPuzzleUnlocked, getPuzzleProgress } = useProgress();
 
-  if (!puzzleSet || !pieceInfo) {
+  // For checkmate sub-categories, find the parent category for back-navigation
+  const isSubcategory = pieceKey.startsWith("checkmate-");
+  const backHref = isSubcategory ? "/learn/checkmate" : "/";
+  const backLabel = isSubcategory ? "Back to patterns" : "Back to home";
+
+  // Get display info — either from PIECES or from the puzzle set itself
+  const displayName = pieceInfo?.name ?? puzzleSet?.name ?? "Puzzles";
+  const displayDescription = pieceInfo?.description ?? "";
+  const displayIcon = pieceInfo?.icon ?? "/pieces/wQ.svg";
+
+  if (!puzzleSet) {
     return (
       <main className="min-h-screen p-6 max-w-4xl mx-auto text-center">
-        <h1 className="text-2xl font-bold mb-4">Piece not found</h1>
+        <h1 className="text-2xl font-bold mb-4">Not found</h1>
         <Link href="/" className="text-blue-500 hover:underline">Back to home</Link>
       </main>
     );
@@ -29,16 +114,16 @@ export default function PieceLearnPage({
 
   return (
     <main className="min-h-screen p-6 max-w-2xl mx-auto">
-      <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4 inline-block">
-        &larr; Back to pieces
+      <Link href={backHref} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4 inline-block">
+        &larr; {backLabel}
       </Link>
 
       <div className="flex items-center gap-4 mb-8">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={pieceInfo.icon} alt={pieceInfo.name} className="w-16 h-16" />
+        <img src={displayIcon} alt={displayName} className="w-16 h-16" />
         <div>
-          <h1 className="text-3xl font-bold">{pieceInfo.name} Puzzles</h1>
-          <p className="text-gray-500 dark:text-gray-400">{pieceInfo.description}</p>
+          <h1 className="text-3xl font-bold">{displayName} Puzzles</h1>
+          {displayDescription && <p className="text-gray-500 dark:text-gray-400">{displayDescription}</p>}
         </div>
       </div>
 
@@ -51,7 +136,7 @@ export default function PieceLearnPage({
             <div key={puzzle.id}>
               {unlocked ? (
                 <Link
-                  href={`/learn/${piece}/${puzzle.id}`}
+                  href={`/learn/${pieceKey}/${puzzle.id}`}
                   className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow transition-all"
                 >
                   <div className="flex items-center gap-3">

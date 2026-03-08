@@ -2,6 +2,11 @@ import { PieceKind, PiecePlacement, SquareId } from "../logic/types";
 
 export type PuzzleMode = "reach-target" | "checkmate";
 
+export interface OpponentResponse {
+  from: SquareId;
+  to: SquareId;
+}
+
 export interface Puzzle {
   id: string;
   piece: PieceKind;
@@ -16,7 +21,8 @@ export interface Puzzle {
   enPassantSquare?: SquareId;
   castlingRights?: { K: boolean; Q: boolean; k: boolean; q: boolean };
   mode?: PuzzleMode;
-  opponentMoves?: Record<string, SquareId>;
+  /** Opponent responses between player moves. Length = solution.length - 1. */
+  opponentResponses?: OpponentResponse[];
 }
 
 export interface PuzzleSet {

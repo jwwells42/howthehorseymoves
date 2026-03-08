@@ -24,6 +24,8 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
     moveCount,
     isComplete,
     stalemateTrigger,
+    wrongMoveSquare,
+    opponentSlide,
     stars,
     currentHintIndex,
     handleSquareClick,
@@ -96,6 +98,8 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
           pawnSlide={showPawnSlide ? pawnSlideData : undefined}
+          wrongMoveSquare={wrongMoveSquare}
+          opponentSlide={opponentSlide}
         />
         {isComplete && (
           <SuccessOverlay stars={stars} onNext={onNext} onRetry={reset} />
