@@ -254,14 +254,47 @@ export function usePuzzle(puzzle: Puzzle) {
         }
       } else {
         // Reach-target mode
+        const hasMultiStepSolution = puzzle.solution.length > 1;
+
+        if (hasMultiStepSolution) {
+          // Multi-step: validate move order against solution
+          const expectedTarget = puzzle.solution[solutionStep];
+          if (to !== expectedTarget) {
+            setWrongMoveSquare(to);
+            setSelectedSquare(null);
+            setBoard(board);
+            setMoveCount(moveCount);
+            setTimeout(() => setWrongMoveSquare(null), 600);
+            return;
+          }
+        }
+
         if (puzzle.targets.includes(to) && !reachedTargets.includes(to)) {
           const newReached = [...reachedTargets, to];
           setReachedTargets(newReached);
 
-          if (newReached.length === puzzle.targets.length) {
-            setIsComplete(true);
-            const finalStars = calculateStars(newMoveCount);
-            completePuzzle(puzzle.id, finalStars, newMoveCount);
+          if (hasMultiStepSolution) {
+            const newStep = solutionStep + 1;
+            setSolutionStep(newStep);
+
+            if (newReached.length === puzzle.targets.length) {
+              setIsComplete(true);
+              const finalStars = calculateStars(newMoveCount);
+              completePuzzle(puzzle.id, finalStars, newMoveCount);
+            } else {
+              const response = puzzle.opponentResponses?.[solutionStep];
+              if (response) {
+                setTimeout(() => {
+                  applyOpponentResponse(newBoard, response);
+                }, 300);
+              }
+            }
+          } else {
+            if (newReached.length === puzzle.targets.length) {
+              setIsComplete(true);
+              const finalStars = calculateStars(newMoveCount);
+              completePuzzle(puzzle.id, finalStars, newMoveCount);
+            }
           }
         }
       }
