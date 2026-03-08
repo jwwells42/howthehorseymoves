@@ -193,4 +193,24 @@ export const enPassantPuzzles: Puzzle[] = [
     ],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
+  {
+    id: "enpassant-11",
+    piece: "P",
+    title: "Not From Here!",
+    instruction: "The black pawn just slid past yours! But en passant only works from the 5th rank — you're on the 6th. Push forward instead!",
+    setup: [
+      { piece: "P", color: "w", square: "e6" },
+      { piece: "P", color: "b", square: "d5" },
+    ],
+    enPassantSquare: "d6",
+    targets: ["e8"],
+    solution: ["e7", "e8"],
+    maxMoves: 3,
+    hints: [
+      "It looks tempting, but your pawn is too far advanced for en passant.",
+      "En passant only works when your pawn is on the 5th rank (row 5 for white).",
+      "Just push forward to e7 and e8!",
+    ],
+    starThresholds: { three: 2, two: 3, one: 4 },
+  },
 ];
