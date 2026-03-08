@@ -96,7 +96,7 @@ export const backRankMatePuzzles: Puzzle[] = [
     title: "Don't Stalemate!",
     instruction: "Checkmate in one — but be careful not to stalemate!",
     setup: [
-      { piece: "K", color: "w", square: "f6" },
+      { piece: "K", color: "w", square: "e7" },
       { piece: "Q", color: "w", square: "g3" },
       { piece: "K", color: "b", square: "h8" },
     ],
@@ -183,25 +183,8 @@ export const qbBatteryPuzzles: Puzzle[] = [
   {
     id: "checkmate-qb-01",
     piece: "Q",
-    title: "The Scholar's Mate",
-    instruction: "It's the most famous beginner checkmate. Find Qxf7#!",
-    setup: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K2R w KQkq - 4 4",
-    targets: [],
-    solution: ["f7"],
-    mode: "checkmate",
-    maxMoves: 1,
-    hints: [
-      "The f7 pawn is only defended by the king.",
-      "The queen on h5 can take f7 — and the bishop on c4 supports!",
-      "Qxf7 is checkmate! The king can't escape.",
-    ],
-    starThresholds: { three: 1, two: 2, one: 3 },
-  },
-  {
-    id: "checkmate-qb-02",
-    piece: "Q",
-    title: "Battery on f7",
-    instruction: "The same pattern as Scholar's Mate — queen takes f7 with bishop support!",
+    title: "Scholar's Mate",
+    instruction: "Deliver the famous Scholar's Mate!",
     setup: [
       { piece: "K", color: "w", square: "e1" },
       { piece: "Q", color: "w", square: "h5" },
@@ -226,7 +209,7 @@ export const qbBatteryPuzzles: Puzzle[] = [
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
-    id: "checkmate-qb-03",
+    id: "checkmate-qb-02",
     piece: "Q",
     title: "Queen-Bishop Diagonal",
     instruction: "The queen and bishop line up on a deadly diagonal. Deliver checkmate!",
@@ -252,7 +235,7 @@ export const qbBatteryPuzzles: Puzzle[] = [
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
-    id: "checkmate-qb-04",
+    id: "checkmate-qb-03",
     piece: "Q",
     title: "Battery Strike",
     instruction: "Find the queen move that delivers checkmate with bishop support!",
@@ -277,40 +260,6 @@ export const qbBatteryPuzzles: Puzzle[] = [
     ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
-  {
-    id: "checkmate-qb-05",
-    piece: "Q",
-    title: "Long Diagonal Mate",
-    instruction: "The bishop controls the long diagonal. Find the queen checkmate!",
-    setup: "6k1/5ppp/8/8/8/1B6/6PP/Q5K1 w - - 0 1",
-    targets: [],
-    solution: ["a8"],
-    mode: "checkmate",
-    maxMoves: 1,
-    hints: [
-      "The bishop on b3 watches the a2-g8 diagonal.",
-      "Where can the queen deliver check while the bishop covers escape squares?",
-      "Qa8# — the queen checks on the back rank, and the bishop covers f7!",
-    ],
-    starThresholds: { three: 1, two: 2, one: 3 },
-  },
-  {
-    id: "checkmate-qb-06",
-    piece: "Q",
-    title: "Dark Diagonal Battery",
-    instruction: "The bishop lurks on the long diagonal. Where does the queen strike?",
-    setup: "5rk1/5ppp/8/8/3Q4/8/1B4PP/6K1 w - - 0 1",
-    targets: [],
-    solution: ["g7"],
-    mode: "checkmate",
-    maxMoves: 1,
-    hints: [
-      "The bishop on b2 controls the long dark diagonal all the way to g7.",
-      "The queen on d4 can also reach g7 along that same diagonal.",
-      "Qxg7# — the bishop defends the queen, and the king has nowhere to run!",
-    ],
-    starThresholds: { three: 1, two: 2, one: 3 },
-  },
 ];
 
 // === Knight on f7 ===
@@ -321,7 +270,7 @@ export const knightF7Puzzles: Puzzle[] = [
     title: "Knight Strikes f7",
     instruction: "The f7 pawn is weak! Capture it with the knight for checkmate!",
     setup: [
-      { piece: "K", color: "w", square: "g6" },
+      { piece: "K", color: "w", square: "h6" },
       { piece: "N", color: "w", square: "e5" },
       { piece: "K", color: "b", square: "h8" },
       { piece: "R", color: "b", square: "g8" },
@@ -345,7 +294,7 @@ export const knightF7Puzzles: Puzzle[] = [
     title: "Central Knight Delivers",
     instruction: "Use the centralized knight to deliver checkmate!",
     setup: [
-      { piece: "K", color: "w", square: "f6" },
+      { piece: "K", color: "w", square: "g3" },
       { piece: "N", color: "w", square: "d6" },
       { piece: "K", color: "b", square: "h8" },
       { piece: "R", color: "b", square: "g8" },
@@ -369,7 +318,7 @@ export const knightF7Puzzles: Puzzle[] = [
     title: "Knight from the Flank",
     instruction: "The knight is on the edge — but it can still deliver checkmate!",
     setup: [
-      { piece: "K", color: "w", square: "g6" },
+      { piece: "K", color: "w", square: "h6" },
       { piece: "N", color: "w", square: "g5" },
       { piece: "K", color: "b", square: "h8" },
       { piece: "R", color: "b", square: "g8" },

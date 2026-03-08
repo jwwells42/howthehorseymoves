@@ -188,7 +188,7 @@ export const castlingPuzzles: Puzzle[] = [
       { piece: "P", color: "w", square: "a2" },
       { piece: "P", color: "w", square: "b2" },
       { piece: "P", color: "w", square: "c2" },
-      { piece: "R", color: "b", square: "h1" },
+      { piece: "R", color: "w", square: "h1" },
     ],
     targets: ["c1"],
     solution: ["c1"],
