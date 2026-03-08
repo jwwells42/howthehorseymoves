@@ -1,6 +1,6 @@
 # How The Horsey Moves
 
-A free, open-source chess trainer for young students learning how each piece moves.
+A free, open-source chess trainer for young students learning how each piece moves. All of this is with LLM help so except for this sentence expect everything to be impossibly cringe.
 
 Built for classroom use — no chat, no ads, no memberships. A teacher introduces chess in a lesson, and students practice the basics here afterward. Designed for settings where one teacher supports ~20 students and can't sit with each one individually.
 
