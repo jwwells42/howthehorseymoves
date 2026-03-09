@@ -105,7 +105,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           pawnSlide={showPawnSlide ? pawnSlideData : undefined}
           wrongMoveSquare={wrongMoveSquare}
           opponentSlide={opponentSlide}
-          arrows={puzzle.arrows}
+          arrows={moveCount === 0 ? puzzle.arrows : undefined}
         />
         {isComplete && (
           <SuccessOverlay stars={stars} onNext={onNext} onRetry={reset} />
