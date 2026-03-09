@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { BoardState, PieceKind, PieceColor, SquareId, PiecePlacement } from "@/lib/logic/types";
-import { getLegalMoves, getAllLegalMoves, isInCheck, isCheckmate, isStalemate } from "@/lib/logic/attacks";
+import { getLegalMoves, isInCheck, isCheckmate, isStalemate } from "@/lib/logic/attacks";
+import { pickBotMove, BotLevel } from "@/lib/logic/bot";
 import type { SlideAnimation } from "./use-puzzle";
 
 type GameResult = "playing" | "checkmate-white" | "checkmate-black" | "stalemate";
@@ -46,7 +47,7 @@ function applyPromotion(pieces: Map<SquareId, { piece: PieceKind; color: PieceCo
   }
 }
 
-export function useGame() {
+export function useGame(botLevel: BotLevel = "random") {
   const [board, setBoard] = useState<BoardState>(buildStartingBoard);
   const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
   const [result, setResult] = useState<GameResult>("playing");
@@ -73,10 +74,8 @@ export function useGame() {
     setWaitingForBot(true);
 
     setTimeout(() => {
-      const moves = getAllLegalMoves("b", currentBoard);
-      if (moves.length === 0) return; // already handled by checkGameOver
-
-      const move = moves[Math.floor(Math.random() * moves.length)];
+      const move = pickBotMove(currentBoard, "b", botLevel);
+      if (!move) return; // already handled by checkGameOver
       const newPieces = new Map(currentBoard.pieces);
       const piece = newPieces.get(move.from)!;
       newPieces.delete(move.from);
@@ -107,7 +106,7 @@ export function useGame() {
         setWaitingForBot(false);
       }, 500);
     }, 400);
-  }, [checkGameOver]);
+  }, [checkGameOver, botLevel]);
 
   const executeMove = useCallback(
     (from: SquareId, to: SquareId) => {

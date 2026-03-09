@@ -5,8 +5,9 @@ import Board from "@/components/board/Board";
 import { useGame } from "@/lib/state/use-game";
 import { SquareId } from "@/lib/logic/types";
 import { getLegalMoves } from "@/lib/logic/attacks";
+import type { BotLevel } from "@/lib/logic/bot";
 
-export default function GameShell() {
+export default function GameShell({ botLevel = "random" }: { botLevel?: BotLevel }) {
   const {
     board,
     selectedSquare,
@@ -18,7 +19,7 @@ export default function GameShell() {
     handleSquareClick,
     handleDrop,
     newGame,
-  } = useGame();
+  } = useGame(botLevel);
 
   const [dragFrom, setDragFrom] = useState<SquareId | null>(null);
 
