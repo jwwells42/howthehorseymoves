@@ -1,5 +1,5 @@
 import { BoardState, PieceKind, PieceColor, SquareId, squareToCoords } from "./types";
-import { getAllLegalMoves, isInCheck, isSquareAttacked } from "./attacks";
+import { getAllLegalMoves, isInCheck, isCheckmate, isSquareAttacked } from "./attacks";
 
 /** Piece values for material evaluation. */
 const PIECE_VALUES: Record<PieceKind, number> = {
@@ -72,7 +72,12 @@ function scoreMove(
   afterPieces.set(to, movingPiece);
   const afterBoard: BoardState = { pieces: afterPieces };
 
-  // 2. Does this move give check? (small bonus)
+  // 2. Checkmate? Always play it.
+  if (isCheckmate(opponent, afterBoard)) {
+    return 1000;
+  }
+
+  // 2b. Does this move give check? (small bonus)
   if (isInCheck(opponent, afterBoard)) {
     score += 3;
   }
