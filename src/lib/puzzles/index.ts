@@ -17,13 +17,7 @@ import {
   queenKingMatePuzzles,
   smotheredMatePuzzles,
 } from "./checkmate";
-import {
-  pinPuzzles,
-  skewerPuzzles,
-  forkPuzzles,
-  removingDefenderPuzzles,
-  discoveredAttackPuzzles,
-} from "./tactics";
+import { pinPuzzles } from "./tactics";
 
 const puzzleSets: Record<string, PuzzleSet> = {
   rook: { piece: "R", name: "Rook", puzzles: rookPuzzles },
@@ -42,10 +36,6 @@ const puzzleSets: Record<string, PuzzleSet> = {
   "checkmate-queen-king": { piece: "Q", name: "Queen & King Mate", puzzles: queenKingMatePuzzles },
   "checkmate-smothered": { piece: "N", name: "Smothered Mate", puzzles: smotheredMatePuzzles },
   "tactics-pins": { piece: "B", name: "Pins", puzzles: pinPuzzles },
-  "tactics-skewers": { piece: "B", name: "Skewers", puzzles: skewerPuzzles },
-  "tactics-forks": { piece: "N", name: "Forks", puzzles: forkPuzzles },
-  "tactics-removing-defender": { piece: "R", name: "Removing the Defender", puzzles: removingDefenderPuzzles },
-  "tactics-discovered": { piece: "N", name: "Discovered Attacks", puzzles: discoveredAttackPuzzles },
 };
 
 export function getPuzzlesForPiece(pieceKey: string): PuzzleSet | undefined {
@@ -76,6 +66,7 @@ export interface SubcategoryInfo {
   name: string;
   description: string;
   icon: string;
+  comingSoon?: boolean;
 }
 
 export interface CategoryInfo {
@@ -120,10 +111,10 @@ export const CATEGORIES: CategoryInfo[] = [
     icon: "/pieces/wN.svg",
     subcategories: [
       { key: "tactics-pins", name: "Pins", description: "Trap a piece on a line — it can't move!", icon: "/pieces/wB.svg" },
-      { key: "tactics-skewers", name: "Skewers", description: "Attack through one piece to grab another.", icon: "/pieces/wR.svg" },
-      { key: "tactics-forks", name: "Forks", description: "Attack two pieces at once with the knight.", icon: "/pieces/wN.svg" },
-      { key: "tactics-removing-defender", name: "Removing the Defender", description: "Capture the piece that guards a target.", icon: "/pieces/wR.svg" },
-      { key: "tactics-discovered", name: "Discovered Attacks", description: "Move one piece to unleash another.", icon: "/pieces/wN.svg" },
+      { key: "tactics-skewers", name: "Skewers", description: "Attack through one piece to grab another.", icon: "/pieces/wR.svg", comingSoon: true },
+      { key: "tactics-forks", name: "Forks", description: "Attack two pieces at once with the knight.", icon: "/pieces/wN.svg", comingSoon: true },
+      { key: "tactics-removing-defender", name: "Removing the Defender", description: "Capture the piece that guards a target.", icon: "/pieces/wR.svg", comingSoon: true },
+      { key: "tactics-discovered", name: "Discovered Attacks", description: "Move one piece to unleash another.", icon: "/pieces/wN.svg", comingSoon: true },
     ],
   },
 ];

@@ -58,6 +58,25 @@ function CategoryPage({ categoryKey }: { categoryKey: string }) {
             }
           }
 
+          if (sub.comingSoon) {
+            return (
+              <div
+                key={sub.key}
+                className="flex items-center justify-between p-5 rounded-xl border border-card-border opacity-40"
+              >
+                <div className="flex items-center gap-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={sub.icon} alt={sub.name} className="w-10 h-10" />
+                  <div>
+                    <h3 className="font-bold">{sub.name}</h3>
+                    <p className="text-sm text-muted">{sub.description}</p>
+                  </div>
+                </div>
+                <span className="text-xs text-faint">Coming soon</span>
+              </div>
+            );
+          }
+
           return (
             <Link
               key={sub.key}
