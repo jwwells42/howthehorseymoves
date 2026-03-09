@@ -93,44 +93,37 @@ export default function CoordinateTrainer() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* Target coordinate display */}
-      <div className="text-center">
-        {gameState === "idle" && (
-          <>
-            <p className="text-muted mb-4">
-              A coordinate appears — click the right square. How many can you get in {GAME_DURATION} seconds?
-            </p>
-            <button
-              onClick={startGame}
-              className="px-8 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors"
-            >
-              Start
-            </button>
-          </>
-        )}
-        {gameState === "playing" && (
-          <div className="text-6xl font-bold tracking-wider mb-1">
-            {target}
-          </div>
-        )}
-        {gameState === "done" && (
-          <>
-            <div className="text-4xl font-bold mb-1">{score}</div>
-            <p className="text-muted mb-1">
-              {score >= 20 ? "Amazing!" : score >= 15 ? "Great job!" : score >= 10 ? "Nice work!" : "Keep practicing!"}
-            </p>
-            {bestScore > 0 && (
-              <p className="text-sm text-faint mb-3">Best: {bestScore}</p>
-            )}
-            <button
-              onClick={startGame}
-              className="px-8 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors"
-            >
-              Play Again
-            </button>
-          </>
-        )}
-      </div>
+      {/* Pre-game / post-game messages */}
+      {gameState === "idle" && (
+        <div className="text-center">
+          <p className="text-muted mb-4">
+            A coordinate appears — click the right square. How many can you get in {GAME_DURATION} seconds?
+          </p>
+          <button
+            onClick={startGame}
+            className="px-8 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors"
+          >
+            Start
+          </button>
+        </div>
+      )}
+      {gameState === "done" && (
+        <div className="text-center">
+          <div className="text-4xl font-bold mb-1">{score}</div>
+          <p className="text-muted mb-1">
+            {score >= 20 ? "Amazing!" : score >= 15 ? "Great job!" : score >= 10 ? "Nice work!" : "Keep practicing!"}
+          </p>
+          {bestScore > 0 && (
+            <p className="text-sm text-faint mb-3">Best: {bestScore}</p>
+          )}
+          <button
+            onClick={startGame}
+            className="px-8 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors"
+          >
+            Play Again
+          </button>
+        </div>
+      )}
 
       {/* Timer bar + score */}
       {gameState === "playing" && (
@@ -207,6 +200,25 @@ export default function CoordinateTrainer() {
               </g>
             );
           }),
+        )}
+
+        {/* Target coordinate in center of board */}
+        {gameState === "playing" && (
+          <text
+            x={BOARD_SIZE / 2}
+            y={BOARD_SIZE / 2 + 36}
+            fontSize="120"
+            textAnchor="middle"
+            fill="white"
+            stroke="black"
+            strokeWidth="3"
+            paintOrder="stroke"
+            fontWeight="bold"
+            className="pointer-events-none select-none"
+            style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.5))" }}
+          >
+            {target}
+          </text>
         )}
       </svg>
     </div>
