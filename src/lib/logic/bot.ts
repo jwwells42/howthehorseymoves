@@ -77,7 +77,21 @@ function scoreMove(
     return 1000;
   }
 
-  // 2b. Does this move give check? (small bonus)
+  // 2b. Does this move allow opponent to checkmate us? Avoid it.
+  const opponentMoves = getAllLegalMoves(opponent, afterBoard);
+  for (const opp of opponentMoves) {
+    const oppPieces = new Map(afterPieces);
+    const oppPiece = oppPieces.get(opp.from);
+    if (!oppPiece) continue;
+    oppPieces.delete(opp.from);
+    oppPieces.set(opp.to, oppPiece);
+    if (isCheckmate(color, { pieces: oppPieces })) {
+      score -= 500;
+      break;
+    }
+  }
+
+  // 2c. Does this move give check? (small bonus)
   if (isInCheck(opponent, afterBoard)) {
     score += 3;
   }
