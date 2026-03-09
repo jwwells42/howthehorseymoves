@@ -89,14 +89,14 @@ export default function Home() {
         return (
           <div className="mt-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center animate-fade-in relative overflow-hidden">
             <div className="h-28 relative">
-              <div className="absolute inset-0" style={{ animation: "horsey-x 2.8s linear infinite alternate" }}>
-                <div className="w-16 h-16" style={{ animation: "horsey-y 1.9s linear infinite alternate" }}>
+              <div className="absolute inset-0" style={{ animation: "horsey-x 4.7s linear infinite alternate" }}>
+                <div className="absolute inset-0" style={{ animation: "horsey-y 3.1s linear infinite alternate" }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/pieces/wN.svg"
                     alt="Knight"
                     className="w-16 h-16"
-                    style={{ animation: "horsey-spin 2s linear infinite" }}
+                    style={{ animation: "horsey-spin 3s linear infinite" }}
                   />
                 </div>
               </div>
