@@ -87,9 +87,14 @@ export default function Home() {
         });
         if (!allPieces3Star || coordStars < 3) return null;
         return (
-          <div className="mt-4 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center animate-fade-in">
+          <div className="mt-4 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center animate-fade-in relative overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/pieces/wN.svg" alt="Knight" className="w-16 h-16 mx-auto mb-2" />
+            <img
+              src="/pieces/wN.svg"
+              alt="Knight"
+              className="w-16 h-16 mx-auto mb-2"
+              style={{ animation: "horsey-bounce 3s ease-in-out infinite" }}
+            />
             <p className="font-bold text-lg">The horsey is proud of you!</p>
             <p className="text-sm text-muted">You earned 3 stars on every basic. Now go use those pieces!</p>
           </div>
