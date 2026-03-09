@@ -254,7 +254,7 @@ export function usePuzzle(puzzle: Puzzle) {
         }
       } else {
         // Reach-target mode
-        const hasMultiStepSolution = puzzle.solution.length > 1;
+        const hasMultiStepSolution = puzzle.solution.length > 1 && puzzle.opponentResponses && puzzle.opponentResponses.length > 0;
 
         if (hasMultiStepSolution) {
           // Multi-step: validate move order against solution
