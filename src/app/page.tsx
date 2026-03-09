@@ -1,12 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import PieceCard from "@/components/progress/PieceCard";
+import StarRating from "@/components/puzzle/StarRating";
 import { PIECES, CATEGORIES, getPuzzlesForPiece, CategoryInfo } from "@/lib/puzzles";
 import { useProgress } from "@/lib/state/progress-context";
 
 export default function Home() {
   const { state, getPuzzleProgress } = useProgress();
+  const [coordStars, setCoordStars] = useState(0);
+  useEffect(() => {
+    setCoordStars(parseInt(localStorage.getItem("coord-best-stars") ?? "0", 10));
+  }, []);
 
   return (
     <main className="min-h-screen p-6 max-w-4xl mx-auto">
@@ -63,10 +69,32 @@ export default function Home() {
             <p className="text-sm text-muted mb-3 flex-1">
               Learn squares, coordinates, and board vision.
             </p>
-            <div className="text-xs text-faint">&nbsp;</div>
+            <div className="text-xs text-faint">
+              {coordStars > 0 && <StarRating stars={coordStars} size="sm" />}
+            </div>
           </div>
         </Link>
       </div>
+
+      {state.loaded && (() => {
+        const allPieces3Star = PIECES.every((piece) => {
+          const puzzleSet = getPuzzlesForPiece(piece.key);
+          if (!puzzleSet) return false;
+          return puzzleSet.puzzles.every((p) => {
+            const progress = getPuzzleProgress(p.id);
+            return progress?.completed && progress.bestStars >= 3;
+          });
+        });
+        if (!allPieces3Star || coordStars < 3) return null;
+        return (
+          <div className="mt-4 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center animate-fade-in">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/pieces/wN.svg" alt="Knight" className="w-16 h-16 mx-auto mb-2" />
+            <p className="font-bold text-lg">The horsey is proud of you!</p>
+            <p className="text-sm text-muted">You earned 3 stars on every basic. Now go use those pieces!</p>
+          </div>
+        );
+      })()}
 
       {/* === Practice === */}
       <SectionHeader title="Practice" subtitle="Learn how to use the pieces" />

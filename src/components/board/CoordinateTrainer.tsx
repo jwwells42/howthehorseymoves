@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { FILES, RANKS, SquareId } from "@/lib/logic/types";
+import StarRating from "@/components/puzzle/StarRating";
 
 const SQUARE_SIZE = 100;
 const BOARD_SIZE = SQUARE_SIZE * 8;
@@ -28,6 +29,13 @@ function randomSquare(exclude?: SquareId): SquareId {
 
 type GameState = "idle" | "playing" | "done";
 
+function scoreToStars(score: number): number {
+  if (score >= 10) return 3;
+  if (score >= 5) return 2;
+  if (score >= 3) return 1;
+  return 0;
+}
+
 export default function CoordinateTrainer() {
   const [gameState, setGameState] = useState<GameState>("idle");
   const [target, setTarget] = useState<SquareId>(() => randomSquare());
@@ -37,6 +45,10 @@ export default function CoordinateTrainer() {
   const [bestScore, setBestScore] = useState<number>(() => {
     if (typeof window === "undefined") return 0;
     return parseInt(localStorage.getItem("coord-best") ?? "0", 10);
+  });
+  const [bestStars, setBestStars] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    return parseInt(localStorage.getItem("coord-best-stars") ?? "0", 10);
   });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -66,13 +78,19 @@ export default function CoordinateTrainer() {
     };
   }, [gameState]);
 
-  // Save best score
+  // Save best score and stars
   useEffect(() => {
-    if (gameState === "done" && score > bestScore) {
+    if (gameState !== "done") return;
+    if (score > bestScore) {
       setBestScore(score);
       localStorage.setItem("coord-best", String(score));
     }
-  }, [gameState, score, bestScore]);
+    const stars = scoreToStars(score);
+    if (stars > bestStars) {
+      setBestStars(stars);
+      localStorage.setItem("coord-best-stars", String(stars));
+    }
+  }, [gameState, score, bestScore, bestStars]);
 
   const handleClick = useCallback(
     (sq: SquareId) => {
@@ -109,13 +127,19 @@ export default function CoordinateTrainer() {
       )}
       {gameState === "done" && (
         <div className="text-center">
+          <div className="mb-2"><StarRating stars={scoreToStars(score)} size="lg" /></div>
           <div className="text-4xl font-bold mb-1">{score}</div>
           <p className="text-muted mb-1">
             {score >= 20 ? "Amazing!" : score >= 15 ? "Great job!" : score >= 10 ? "Nice work!" : "Keep practicing!"}
           </p>
           {bestScore > 0 && (
-            <p className="text-sm text-faint mb-3">Best: {bestScore}</p>
+            <p className="text-sm text-faint mb-1">Best: {bestScore}</p>
           )}
+          <div className="flex justify-center gap-4 text-xs text-faint mb-3">
+            <span><StarRating stars={3} size="sm" /> 10+</span>
+            <span><StarRating stars={2} size="sm" /> 5+</span>
+            <span><StarRating stars={1} size="sm" /> 3+</span>
+          </div>
           <button
             onClick={startGame}
             className="px-8 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors"
