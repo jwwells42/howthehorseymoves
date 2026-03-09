@@ -41,6 +41,7 @@ interface BoardProps {
   opponentSlide?: SlideAnimation | null;
   readOnly?: boolean;
   arrows?: Arrow[];
+  playableColors?: PieceColor[];
 }
 
 export default function Board({
@@ -60,6 +61,7 @@ export default function Board({
   opponentSlide,
   readOnly,
   arrows,
+  playableColors,
 }: BoardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -85,14 +87,16 @@ export default function Board({
   const handlePointerDown = useCallback((e: React.PointerEvent, sq: SquareId) => {
     if (readOnly) return;
     const p = board.pieces.get(sq);
-    if (!p || p.color !== "w" || (draggablePiece && p.piece !== draggablePiece)) return;
+    if (!p) return;
+    const canPlay = playableColors ? playableColors.includes(p.color) : p.color === "w";
+    if (!canPlay || (draggablePiece && p.piece !== draggablePiece)) return;
     const svgPt = pointerToSvg(e);
     if (!svgPt) return;
 
     (e.target as Element).setPointerCapture(e.pointerId);
     setDrag({ from: sq, piece: p.piece, color: p.color, x: svgPt.x, y: svgPt.y });
     onDragStart(sq);
-  }, [readOnly, board, draggablePiece, pointerToSvg, onDragStart]);
+  }, [readOnly, board, draggablePiece, playableColors, pointerToSvg, onDragStart]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!drag) return;

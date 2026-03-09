@@ -17,6 +17,8 @@ export default function Home() {
         </p>
       </div>
 
+      {/* === Basics === */}
+      <SectionHeader title="Basics" subtitle="Learn how each piece moves" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {PIECES.map((piece) => {
           const puzzleSet = getPuzzlesForPiece(piece.key);
@@ -49,8 +51,33 @@ export default function Home() {
           );
         })}
 
-        {/* Category cards (before Play) */}
+        {/* The Board card */}
+        <Link href="/board">
+          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-12 h-12 rounded bg-[#7a9e6e] border-2 border-[#d4c4a0] flex items-center justify-center text-2xl font-bold text-[#d4c4a0]">
+                e4
+              </div>
+              <h3 className="text-lg font-bold">The Board</h3>
+            </div>
+            <p className="text-sm text-muted mb-3 flex-1">
+              Learn squares, coordinates, and board vision.
+            </p>
+            <div className="text-xs text-faint">&nbsp;</div>
+          </div>
+        </Link>
+      </div>
+
+      {/* === Practice === */}
+      <SectionHeader title="Practice" subtitle="Learn how to use the pieces" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Category cards (Checkmate Patterns) */}
         {CATEGORIES.filter(c => c.key !== "tactics").map((cat) => (
+          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
+        ))}
+
+        {/* Tactics */}
+        {CATEGORIES.filter(c => c.key === "tactics").map((cat) => (
           <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
         ))}
 
@@ -64,26 +91,6 @@ export default function Home() {
             </div>
             <p className="text-sm text-muted mb-3 flex-1">
               Practice everything you&apos;ve learned in a full game!
-            </p>
-            <div className="text-xs text-faint">&nbsp;</div>
-          </div>
-        </Link>
-
-        {/* Tactics card (between Play and Model Games) */}
-        {CATEGORIES.filter(c => c.key === "tactics").map((cat) => (
-          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
-        ))}
-
-        {/* Model Games card */}
-        <Link href="/games">
-          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
-            <div className="flex items-center gap-4 mb-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/pieces/bK.svg" alt="Model Games" className="w-12 h-12" />
-              <h3 className="text-lg font-bold">Model Games</h3>
-            </div>
-            <p className="text-sm text-muted mb-3 flex-1">
-              Study famous games move by move.
             </p>
             <div className="text-xs text-faint">&nbsp;</div>
           </div>
@@ -103,8 +110,52 @@ export default function Home() {
             <div className="text-xs text-faint">&nbsp;</div>
           </div>
         </Link>
+
+        {/* Endings card (coming soon) */}
+        <div className="rounded-xl border border-card-border bg-card p-6 opacity-40 cursor-default h-full flex flex-col">
+          <div className="flex items-center gap-4 mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/pieces/wR.svg" alt="Endings" className="w-12 h-12" />
+            <h3 className="text-lg font-bold">Endings</h3>
+          </div>
+          <p className="text-sm text-muted mb-3 flex-1">
+            Master essential endgame techniques.
+          </p>
+          <div className="text-xs text-faint">Coming soon</div>
+        </div>
+      </div>
+
+      {/* === Study === */}
+      <SectionHeader title="Study" subtitle="Bring the pieces to life" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Model Games card */}
+        <Link href="/games">
+          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
+            <div className="flex items-center gap-4 mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/pieces/bK.svg" alt="Model Games" className="w-12 h-12" />
+              <h3 className="text-lg font-bold">Model Games</h3>
+            </div>
+            <p className="text-sm text-muted mb-3 flex-1">
+              Study famous games move by move.
+            </p>
+            <div className="text-xs text-faint">&nbsp;</div>
+          </div>
+        </Link>
       </div>
     </main>
+  );
+}
+
+function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="mt-10 mb-4 first:mt-0">
+      <div className="flex items-center gap-3 mb-1">
+        <h2 className="text-lg font-bold whitespace-nowrap">{title}</h2>
+        <div className="flex-1 border-t border-foreground/15" />
+      </div>
+      <p className="text-sm text-faint">{subtitle}</p>
+    </div>
   );
 }
 

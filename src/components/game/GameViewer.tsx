@@ -3,7 +3,10 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Board from "@/components/board/Board";
 import { parsePgn } from "@/lib/logic/pgn";
+import { getLegalMoves } from "@/lib/logic/attacks";
 import { ModelGame } from "@/lib/games/types";
+import { SquareId, PieceColor } from "@/lib/logic/types";
+import type { Arrow } from "@/lib/logic/pgn";
 
 const AUTOPLAY_MS = 1200;
 
@@ -14,11 +17,124 @@ export default function GameViewer({ game }: { game: ModelGame }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const moveListRef = useRef<HTMLDivElement>(null);
 
-  const board = parsed.positions[currentMove];
+  // Test mode state
+  const [testMode, setTestMode] = useState(false);
+  const [testMoveIdx, setTestMoveIdx] = useState(0);
+  const [testSelected, setTestSelected] = useState<SquareId | null>(null);
+  const [testHintArrow, setTestHintArrow] = useState<Arrow | null>(null);
+  const [testComplete, setTestComplete] = useState(false);
+
+  const board = testMode
+    ? parsed.positions[testMoveIdx]
+    : parsed.positions[currentMove];
   const lastMove = currentMove > 0 ? parsed.moves[currentMove - 1] : null;
   const totalMoves = parsed.moves.length;
   const currentComment = lastMove?.comment;
   const currentArrows = lastMove?.arrows;
+
+  const testColorToMove: PieceColor = testMoveIdx % 2 === 0 ? "w" : "b";
+
+  const testValidMoves = useMemo(() => {
+    if (!testMode || !testSelected || testComplete) return [];
+    return getLegalMoves(testSelected, parsed.positions[testMoveIdx], testColorToMove);
+  }, [testMode, testSelected, testMoveIdx, testComplete, parsed.positions, testColorToMove]);
+
+  const [testDragFrom, setTestDragFrom] = useState<SquareId | null>(null);
+  const testDragMoves = useMemo(() => {
+    if (!testMode || !testDragFrom || testComplete) return [];
+    return getLegalMoves(testDragFrom, parsed.positions[testMoveIdx], testColorToMove);
+  }, [testMode, testDragFrom, testMoveIdx, testComplete, parsed.positions, testColorToMove]);
+
+  const advanceTestMove = useCallback((from: SquareId, to: SquareId) => {
+    const expected = parsed.moves[testMoveIdx];
+    if (from === expected.from && to === expected.to) {
+      setTestHintArrow(null);
+      const next = testMoveIdx + 1;
+      if (next >= totalMoves) {
+        setTestMoveIdx(next);
+        setTestComplete(true);
+      } else {
+        setTestMoveIdx(next);
+      }
+      setTestSelected(null);
+    } else {
+      // Wrong move — show hint arrow
+      setTestHintArrow({ from: expected.from, to: expected.to, color: "#15803d" });
+      setTestSelected(null);
+    }
+  }, [parsed.moves, testMoveIdx, totalMoves]);
+
+  const handleTestClick = useCallback((sq: SquareId) => {
+    if (testComplete) return;
+    const currentBoard = parsed.positions[testMoveIdx];
+
+    if (!testSelected) {
+      const p = currentBoard.pieces.get(sq);
+      if (p && p.color === testColorToMove) {
+        setTestSelected(sq);
+        setTestHintArrow(null);
+      }
+      return;
+    }
+
+    if (sq === testSelected) {
+      setTestSelected(null);
+      return;
+    }
+
+    // Clicking another own piece
+    const target = currentBoard.pieces.get(sq);
+    if (target && target.color === testColorToMove) {
+      setTestSelected(sq);
+      return;
+    }
+
+    // Try to move
+    const legal = getLegalMoves(testSelected, currentBoard, testColorToMove);
+    if (!legal.includes(sq)) {
+      setTestSelected(null);
+      return;
+    }
+
+    advanceTestMove(testSelected, sq);
+  }, [testComplete, testSelected, testMoveIdx, testColorToMove, parsed.positions, advanceTestMove]);
+
+  const handleTestDrop = useCallback((from: SquareId, to: SquareId) => {
+    if (testComplete || from === to) return;
+    const currentBoard = parsed.positions[testMoveIdx];
+    const p = currentBoard.pieces.get(from);
+    if (!p || p.color !== testColorToMove) return;
+    const legal = getLegalMoves(from, currentBoard, testColorToMove);
+    if (!legal.includes(to)) return;
+    advanceTestMove(from, to);
+  }, [testComplete, testMoveIdx, testColorToMove, parsed.positions, advanceTestMove]);
+
+  const handleTestDragStart = useCallback((sq: SquareId) => {
+    if (testComplete) return;
+    setTestDragFrom(sq);
+    setTestHintArrow(null);
+  }, [testComplete]);
+
+  const handleTestDragEnd = useCallback(() => {
+    setTestDragFrom(null);
+  }, []);
+
+  const startTestMode = useCallback(() => {
+    setTestMode(true);
+    setTestMoveIdx(0);
+    setTestSelected(null);
+    setTestHintArrow(null);
+    setTestComplete(false);
+    setIsPlaying(false);
+  }, []);
+
+  const exitTestMode = useCallback(() => {
+    setTestMode(false);
+    setTestSelected(null);
+    setTestHintArrow(null);
+    setTestComplete(false);
+    setCurrentMove(0);
+  }, []);
 
   const goForward = useCallback(
     () => setCurrentMove(m => Math.min(m + 1, totalMoves)),
@@ -31,6 +147,7 @@ export default function GameViewer({ game }: { game: ModelGame }) {
 
   // Auto-play
   useEffect(() => {
+    if (testMode) return;
     if (!isPlaying || currentMove >= totalMoves) return;
     const timer = setTimeout(() => {
       setCurrentMove(m => {
@@ -40,10 +157,11 @@ export default function GameViewer({ game }: { game: ModelGame }) {
       });
     }, AUTOPLAY_MS);
     return () => clearTimeout(timer);
-  }, [isPlaying, currentMove, totalMoves]);
+  }, [testMode, isPlaying, currentMove, totalMoves]);
 
   // Keyboard controls
   useEffect(() => {
+    if (testMode) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") { e.preventDefault(); goBack(); }
       else if (e.key === "ArrowRight") { e.preventDefault(); goForward(); }
@@ -51,10 +169,11 @@ export default function GameViewer({ game }: { game: ModelGame }) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [goBack, goForward]);
+  }, [testMode, goBack, goForward]);
 
   // Scroll current move into view within the move list (not the page)
   useEffect(() => {
+    if (testMode) return;
     const container = moveListRef.current;
     if (!container) return;
     const highlighted = container.querySelector("[data-active='true']") as HTMLElement | null;
@@ -66,7 +185,7 @@ export default function GameViewer({ game }: { game: ModelGame }) {
     } else if (bottom > container.scrollTop + container.clientHeight) {
       container.scrollTop = bottom - container.clientHeight;
     }
-  }, [currentMove]);
+  }, [testMode, currentMove]);
 
   // Build move pairs for display (SAN + optional NAG like "!" or "!!")
   const movePairs: { num: number; white: string; black?: string }[] = [];
@@ -81,6 +200,70 @@ export default function GameViewer({ game }: { game: ModelGame }) {
   }
 
   const noop = useCallback(() => {}, []);
+
+  // Test mode rendering
+  if (testMode) {
+    const moveNum = Math.floor(testMoveIdx / 2) + 1;
+    const isWhiteTurn = testMoveIdx % 2 === 0;
+    const statusText = testComplete
+      ? "You did it! You reproduced the entire game."
+      : `Move ${moveNum}${isWhiteTurn ? "." : "..."} ${isWhiteTurn ? "White" : "Black"} to play`;
+
+    return (
+      <div className="flex flex-col items-center gap-4 max-w-4xl mx-auto">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-1">Test Mode</h2>
+          <p className="text-muted">{statusText}</p>
+        </div>
+
+        <div className="w-full max-w-[560px]">
+          {/* Black player (top) */}
+          <div className="flex items-center gap-2 mb-1 px-1">
+            <div className="w-3 h-3 rounded-full bg-[#1a1a1a] border border-foreground/30" />
+            <span className="text-sm text-muted">{game.black}</span>
+          </div>
+
+          <Board
+            board={board}
+            selectedSquare={testSelected}
+            validMoves={testValidMoves}
+            targets={[]}
+            reachedTargets={[]}
+            dragValidMoves={testDragMoves}
+            onSquareClick={handleTestClick}
+            onDrop={handleTestDrop}
+            onDragStart={handleTestDragStart}
+            onDragEnd={handleTestDragEnd}
+            playableColors={["w", "b"]}
+            arrows={testHintArrow ? [testHintArrow] : undefined}
+          />
+
+          {/* White player (bottom) */}
+          <div className="flex items-center gap-2 mt-1 px-1">
+            <div className="w-3 h-3 rounded-full bg-white border border-foreground/30" />
+            <span className="text-sm text-muted">{game.white}</span>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          {testComplete && (
+            <button
+              onClick={() => { setTestMoveIdx(0); setTestComplete(false); setTestHintArrow(null); }}
+              className="px-5 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+            >
+              Try Again
+            </button>
+          )}
+          <button
+            onClick={exitTestMode}
+            className="px-5 py-2 rounded-lg border border-card-border bg-card hover:bg-btn-hover transition-colors"
+          >
+            Back to Viewer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-start max-w-4xl mx-auto">
@@ -140,6 +323,16 @@ export default function GameViewer({ game }: { game: ModelGame }) {
           >
             ⏭
           </NavButton>
+        </div>
+
+        {/* Test button */}
+        <div className="flex justify-center mt-3">
+          <button
+            onClick={startTestMode}
+            className="px-5 py-2 rounded-lg border border-card-border bg-card hover:bg-btn-hover transition-colors text-sm font-medium"
+          >
+            Test Yourself
+          </button>
         </div>
 
         {/* Move comment */}
