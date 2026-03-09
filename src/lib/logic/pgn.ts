@@ -101,7 +101,7 @@ function tokenizePgn(pgn: string): AnnotatedToken[] {
 }
 
 /** Parse a SAN move string into from/to squares using the current board state. */
-function parseSan(
+export function parseSan(
   san: string,
   board: BoardState,
   color: PieceColor,
@@ -159,7 +159,7 @@ function parseSan(
 }
 
 /** Apply a move to the board, handling captures, castling, en passant, and promotion. */
-function applyMove(
+export function applyMove(
   board: BoardState,
   from: SquareId,
   to: SquareId,
