@@ -45,7 +45,7 @@ export default function PieceCard({
         <span className="text-xs text-faint">
           {locked ? "\u00A0" : `${completedPuzzles}/${totalPuzzles} puzzles`}
         </span>
-        {!locked && completedPuzzles > 0 && <StarRating stars={bestStars} size="sm" />}
+        {!locked && completedPuzzles > 0 && completedPuzzles === totalPuzzles && <StarRating stars={bestStars} size="sm" />}
       </div>
     </div>
   );

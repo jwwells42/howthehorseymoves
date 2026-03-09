@@ -93,7 +93,7 @@ function CategoryPage({ categoryKey }: { categoryKey: string }) {
               </div>
               <div className="text-right">
                 <span className="text-xs text-faint">{completedPuzzles}/{totalPuzzles}</span>
-                {completedPuzzles > 0 && (
+                {completedPuzzles > 0 && completedPuzzles === totalPuzzles && (
                   <div className="mt-1"><StarRating stars={bestStars} size="sm" /></div>
                 )}
               </div>
