@@ -32,7 +32,7 @@ No test framework is configured.
 - Per-piece files (`rook.ts`, `bishop.ts`, etc.) + `castling.ts`, `enpassant.ts`, `checkmate.ts`, `tactics.ts`
 - `index.ts` — Registry with `getPuzzlesForPiece()`, `PIECES`, `CATEGORIES` (with `comingSoon` support for subcategories)
 - Three puzzle modes: `"reach-target"` (default), `"checkmate"`, `"checkmate-bot"`
-- Reach-target supports multi-step solutions with `opponentResponses` (for tactics puzzles where the student demonstrates "the point" — e.g., pin then capture)
+- Reach-target supports multi-step solutions with `opponentResponses` (for tactics puzzles where the student demonstrates "the point" — e.g., pin then capture). Multi-step validation ONLY activates when `opponentResponses` is present — basic puzzles with multi-entry `solution` arrays use them as hints, not strict enforcement
 
 ### Model Games (`src/lib/games/`)
 - `types.ts` — `ModelGame` interface
@@ -48,17 +48,24 @@ No test framework is configured.
 - `progress-context.tsx` — React Context + Reducer, persists to localStorage (`"horsey-progress"`). Sequential unlock: puzzle N requires N-1 completed
 - `use-puzzle.ts` — Custom hook for gameplay: board state, move validation, drag-and-drop, star calculation, side-effects, multi-step solution validation
 
+### Board Trainer (`src/components/board/CoordinateTrainer.tsx`)
+- Timed 30-second mini-game: random coordinate appears, click the correct square
+- Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`)
+- Standalone from the puzzle system — no puzzle progress context
+
 ### UI (`src/components/`)
-- `board/Board.tsx` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations. `readOnly` prop skips animations (used by game viewer)
+- `board/Board.tsx` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode)
 - `puzzle/PuzzleShell.tsx` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
-- `game/GameViewer.tsx` — PGN game viewer with move list, auto-play, keyboard nav, comments, arrows
+- `game/GameViewer.tsx` — PGN game viewer with move list, auto-play, keyboard nav, comments, arrows. **Test mode**: student reproduces the game from memory playing both sides; wrong moves show arrow hint
+- `game/GameShell.tsx` — Play vs Computer wrapper, accepts `botLevel` prop
 - `opening/OpeningTrainer.tsx` — Opening repertoire trainer with learn/practice phases
 
 ### Routing (`src/app/`)
-- `/` — Landing page with piece cards, category cards, play/tactics/model games/openings links
+- `/` — Landing page organized into three sections: **Basics** (piece movements + The Board), **Practice** (checkmate, tactics, play, openings, endings coming soon), **Study** (model games)
 - `/learn/[piece]` — Puzzle list (or subcategory list for categories like checkmate/tactics)
 - `/learn/[piece]/[puzzleId]` — Individual puzzle
-- `/games`, `/games/[gameId]` — Model game viewer
+- `/board` — Coordinate trainer (timed mini-game)
+- `/games`, `/games/[gameId]` — Model game viewer (with test mode)
 - `/openings`, `/openings/[id]` — Opening repertoire trainer
 - `/play` — Play vs computer (level selector: Random Bot, Basic Bot)
 
@@ -68,6 +75,8 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 
 ## Key Conventions
 
+- Landing page has three sections with `SectionHeader` components: Basics, Practice, Study. Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
+- Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
 - Board state is immutable — new `BoardState` created per move, never mutated
 - Chess piece SVGs live in `public/pieces/` named `{color}{piece}.svg` (e.g., `wR.svg`, `bN.svg`)
 - Path alias: `@/*` maps to `src/*`
