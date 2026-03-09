@@ -87,24 +87,20 @@ export default function Home() {
         });
         if (!allPieces3Star || coordStars < 3) return null;
         return (
-          <div className="mt-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center animate-fade-in relative overflow-hidden">
-            <div className="h-28 relative">
-              <div className="absolute inset-0" style={{ animation: "horsey-x 4.7s linear infinite alternate" }}>
-                <div className="absolute inset-0" style={{ animation: "horsey-y 3.1s linear infinite alternate" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/pieces/wN.svg"
-                    alt="Knight"
-                    className="w-16 h-16"
-                    style={{ animation: "horsey-spin 3s linear infinite" }}
-                  />
-                </div>
+          <div className="mt-4 py-8 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center animate-fade-in relative overflow-hidden">
+            <div className="absolute inset-0" style={{ animation: "horsey-x 4.7s linear infinite alternate" }}>
+              <div className="absolute inset-0" style={{ animation: "horsey-y 3.1s linear infinite alternate" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/pieces/wN.svg"
+                  alt="Knight"
+                  className="w-16 h-16"
+                  style={{ animation: "horsey-spin 3s linear infinite" }}
+                />
               </div>
             </div>
-            <div className="pb-4">
-              <p className="font-bold text-lg">The horsey is proud of you!</p>
-              <p className="text-sm text-muted">You earned 3 stars on every basic. Now go use those pieces!</p>
-            </div>
+            <p className="font-bold text-lg relative pointer-events-none">The horsey is proud of you!</p>
+            <p className="text-sm text-muted relative pointer-events-none">You earned 3 stars on every basic. Now go use those pieces!</p>
           </div>
         );
       })()}
