@@ -74,21 +74,6 @@ export default function Home() {
           <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
         ))}
 
-        {/* Openings card */}
-        <Link href="/openings">
-          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
-            <div className="flex items-center gap-4 mb-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/pieces/wP.svg" alt="Openings" className="w-12 h-12" />
-              <h3 className="text-lg font-bold">Openings</h3>
-            </div>
-            <p className="text-sm text-muted mb-3 flex-1">
-              Learn opening lines move by move.
-            </p>
-            <div className="text-xs text-faint">&nbsp;</div>
-          </div>
-        </Link>
-
         {/* Model Games card */}
         <Link href="/games">
           <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
@@ -99,6 +84,21 @@ export default function Home() {
             </div>
             <p className="text-sm text-muted mb-3 flex-1">
               Study famous games move by move.
+            </p>
+            <div className="text-xs text-faint">&nbsp;</div>
+          </div>
+        </Link>
+
+        {/* Openings card */}
+        <Link href="/openings">
+          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
+            <div className="flex items-center gap-4 mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/pieces/wP.svg" alt="Openings" className="w-12 h-12" />
+              <h3 className="text-lg font-bold">Openings</h3>
+            </div>
+            <p className="text-sm text-muted mb-3 flex-1">
+              Learn opening lines move by move.
             </p>
             <div className="text-xs text-faint">&nbsp;</div>
           </div>
