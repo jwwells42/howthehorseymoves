@@ -25,6 +25,7 @@ No test framework is configured.
 - `moves.ts` — Pure functions for move generation per piece type. Sliding pieces (R/B/Q) use direction arrays; step pieces (K/N) use offset arrays; pawns have special forward/capture/en-passant logic
 - `attacks.ts` — `isSquareAttacked()`, `isInCheck()`, `isCheckmate()`, `isStalemate()`, `getLegalMoves()`, `getAllLegalMoves()`
 - `pgn.ts` — PGN parser for model games. Exports `parseSan()` and `applyMove()` (also used by openings parser). Supports comments (`{text}`), NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`)
+- `bot.ts` — Bot move selection: `pickBotMove(board, color, level)`. `"random"` = any legal move; `"basic"` = one-ply scored evaluation
 
 ### Puzzle System (`src/lib/puzzles/`)
 - `types.ts` — `Puzzle` interface: setup (FEN or placements), targets, solution, star thresholds, hints, arrows, opponent responses
@@ -59,7 +60,7 @@ No test framework is configured.
 - `/learn/[piece]/[puzzleId]` — Individual puzzle
 - `/games`, `/games/[gameId]` — Model game viewer
 - `/openings`, `/openings/[id]` — Opening repertoire trainer
-- `/play` — Play vs computer
+- `/play` — Play vs computer (level selector: Random Bot, Basic Bot)
 
 ## Deployment
 
@@ -103,3 +104,12 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 - Student plays one side (white), opponent auto-responds
 - Lines are trained sequentially: main line first, then variations rewind to branch point
 - Learn phase shows arrows; practice phase hides them unless the student makes a mistake
+
+## Bot System (`src/lib/logic/bot.ts`)
+
+- Two levels: `"random"` (any legal move) and `"basic"` (one-ply evaluation)
+- Basic bot scores each legal move by: captures (trade up), checkmate delivery (+1000), checkmate defense (-500 if move allows opponent mate-in-1), piece safety (avoid hanging pieces), check bonus, center control, castling, pawn advancement
+- No search tree — single pass over legal moves, runs instantly on Chromebooks
+- `useGame(botLevel)` in `use-game.ts` accepts the level; `GameShell` passes it through
+- Play page (`/play`) shows a level selector before starting the game
+- Adding new levels: add to `BotLevel` type, handle in `pickBotMove()`. Depth-2 minimax would be the natural next step (~900 positions, still fast)
