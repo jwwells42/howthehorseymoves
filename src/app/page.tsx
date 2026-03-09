@@ -87,16 +87,24 @@ export default function Home() {
         });
         if (!allPieces3Star || coordStars < 3) return null;
         return (
-          <div className="mt-4 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center animate-fade-in relative overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/pieces/wN.svg"
-              alt="Knight"
-              className="w-16 h-16 mx-auto mb-2"
-              style={{ animation: "horsey-bounce 3s ease-in-out infinite" }}
-            />
-            <p className="font-bold text-lg">The horsey is proud of you!</p>
-            <p className="text-sm text-muted">You earned 3 stars on every basic. Now go use those pieces!</p>
+          <div className="mt-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center animate-fade-in relative overflow-hidden">
+            <div className="h-28 relative">
+              <div className="absolute inset-0" style={{ animation: "horsey-x 2.8s linear infinite alternate" }}>
+                <div className="w-16 h-16" style={{ animation: "horsey-y 1.9s linear infinite alternate" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/pieces/wN.svg"
+                    alt="Knight"
+                    className="w-16 h-16"
+                    style={{ animation: "horsey-spin 2s linear infinite" }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="pb-4">
+              <p className="font-bold text-lg">The horsey is proud of you!</p>
+              <p className="text-sm text-muted">You earned 3 stars on every basic. Now go use those pieces!</p>
+            </div>
           </div>
         );
       })()}
