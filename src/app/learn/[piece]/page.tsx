@@ -5,6 +5,20 @@ import Link from "next/link";
 import { getPuzzlesForPiece, PIECES, getCategory } from "@/lib/puzzles";
 import { useProgress } from "@/lib/state/progress-context";
 import StarRating from "@/components/puzzle/StarRating";
+import EndgameShell from "@/components/endgame/EndgameShell";
+import type { PiecePlacement } from "@/lib/logic/types";
+
+const ENDGAME_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[] }> = {
+  "endings-kpk": {
+    title: "King + Pawn vs King",
+    instruction: "Promote the pawn! Every wrong move is a draw.",
+    placements: [
+      { piece: "K", color: "w", square: "d6" },
+      { piece: "P", color: "w", square: "d4" },
+      { piece: "K", color: "b", square: "d8" },
+    ],
+  },
+};
 
 export default function PieceLearnPage({
   params,
@@ -12,6 +26,26 @@ export default function PieceLearnPage({
   params: Promise<{ piece: string }>;
 }) {
   const { piece } = use(params);
+
+  // Check for endgame trainers
+  const endgame = ENDGAME_POSITIONS[piece];
+  if (endgame) {
+    return (
+      <main className="min-h-screen p-4">
+        <Link
+          href="/learn/endings"
+          className="text-sm text-muted hover:text-foreground mb-2 inline-block ml-4"
+        >
+          &larr; Back to endings
+        </Link>
+        <EndgameShell
+          title={endgame.title}
+          instruction={endgame.instruction}
+          placements={endgame.placements}
+        />
+      </main>
+    );
+  }
 
   // Check if this is a category page
   const category = getCategory(piece);

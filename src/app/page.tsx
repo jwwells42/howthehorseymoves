@@ -108,13 +108,8 @@ export default function Home() {
       {/* === Study === */}
       <SectionHeader title="Study" subtitle="Bring the pieces to life" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Category cards (Checkmate Patterns) */}
-        {CATEGORIES.filter(c => c.key !== "tactics").map((cat) => (
-          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
-        ))}
-
-        {/* Tactics */}
-        {CATEGORIES.filter(c => c.key === "tactics").map((cat) => (
+        {/* Category cards */}
+        {CATEGORIES.map((cat) => (
           <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
         ))}
 
@@ -163,18 +158,6 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Endings card (coming soon) */}
-        <div className="rounded-xl border border-card-border bg-card p-6 opacity-40 cursor-default h-full flex flex-col">
-          <div className="flex items-center gap-4 mb-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/pieces/wR.svg" alt="Endings" className="w-12 h-12" />
-            <h3 className="text-lg font-bold">Endings</h3>
-          </div>
-          <p className="text-sm text-muted mb-3 flex-1">
-            Master essential endgame techniques.
-          </p>
-          <div className="text-xs text-faint">Coming soon</div>
-        </div>
       </div>
     </main>
   );

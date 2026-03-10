@@ -117,6 +117,15 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "tactics-discovered", name: "Discovered Attacks", description: "Move one piece to unleash another.", icon: "/pieces/wN.svg", comingSoon: true },
     ],
   },
+  {
+    key: "endings",
+    name: "Endings",
+    description: "Master essential endgame techniques!",
+    icon: "/pieces/wK.svg",
+    subcategories: [
+      { key: "endings-kpk", name: "King + Pawn vs King", description: "Promote the pawn against perfect defense.", icon: "/pieces/wP.svg" },
+    ],
+  },
 ];
 
 export function getCategory(key: string): CategoryInfo | undefined {
