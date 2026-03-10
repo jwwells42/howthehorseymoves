@@ -6,6 +6,8 @@ import { getPuzzlesForPiece, PIECES, getCategory } from "@/lib/puzzles";
 import { useProgress } from "@/lib/state/progress-context";
 import StarRating from "@/components/puzzle/StarRating";
 import EndgameShell from "@/components/endgame/EndgameShell";
+import ColorOfSquare from "@/components/blindfold/ColorOfSquare";
+import KnightRoutes from "@/components/blindfold/KnightRoutes";
 import type { PiecePlacement } from "@/lib/logic/types";
 
 const ENDGAME_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[] }> = {
@@ -43,6 +45,28 @@ export default function PieceLearnPage({
           instruction={endgame.instruction}
           placements={endgame.placements}
         />
+      </main>
+    );
+  }
+
+  // Check for blindfold trainers
+  if (piece === "blindfold-color") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <ColorOfSquare />
+      </main>
+    );
+  }
+  if (piece === "blindfold-knight-routes") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <KnightRoutes />
       </main>
     );
   }

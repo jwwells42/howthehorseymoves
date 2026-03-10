@@ -126,6 +126,16 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "endings-kpk", name: "King + Pawn vs King", description: "Promote the pawn against perfect defense.", icon: "/pieces/wP.svg" },
     ],
   },
+  {
+    key: "blindfold",
+    name: "Blindfold",
+    description: "Train your mental board vision!",
+    icon: "/pieces/wN.svg",
+    subcategories: [
+      { key: "blindfold-color", name: "Color of Square", description: "Dark or light? Identify the color from the name.", icon: "/pieces/wP.svg" },
+      { key: "blindfold-knight-routes", name: "Knight Routes", description: "Find a knight path between two squares — no board!", icon: "/pieces/wN.svg" },
+    ],
+  },
 ];
 
 export function getCategory(key: string): CategoryInfo | undefined {
