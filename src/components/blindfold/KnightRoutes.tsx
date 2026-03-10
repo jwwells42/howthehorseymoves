@@ -74,6 +74,7 @@ export default function KnightRoutes() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<"playing" | "won">("playing");
   const inputRef = useRef<HTMLInputElement>(null);
+  const newRouteRef = useRef<HTMLButtonElement>(null);
 
   const currentSquare = route.length > 0 ? route[route.length - 1] : puzzle.start;
   const moveCount = route.length;
@@ -81,6 +82,8 @@ export default function KnightRoutes() {
   useEffect(() => {
     if (result === "playing") {
       inputRef.current?.focus();
+    } else if (result === "won") {
+      newRouteRef.current?.focus();
     }
   }, [result, route]);
 
@@ -179,6 +182,7 @@ export default function KnightRoutes() {
           <p className="text-sm text-muted">{moveCount} moves (optimal: {puzzle.optimal})</p>
           <StarRating stars={stars} size="lg" />
           <button
+            ref={newRouteRef}
             onClick={newPuzzle}
             className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
           >

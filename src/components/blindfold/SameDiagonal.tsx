@@ -4,46 +4,66 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import StarRating from "@/components/puzzle/StarRating";
 
 const GAME_DURATION = 30;
-const ALL_SQUARES: string[] = [];
-for (let f = 0; f < 8; f++) {
-  for (let r = 1; r <= 8; r++) {
-    ALL_SQUARES.push(String.fromCharCode(97 + f) + r);
+
+function areSameDiagonal(sq1: string, sq2: string): boolean {
+  const df = Math.abs(sq1.charCodeAt(0) - sq2.charCodeAt(0));
+  const dr = Math.abs(parseInt(sq1[1]) - parseInt(sq2[1]));
+  return df === dr;
+}
+
+function generatePair(): { sq1: string; sq2: string; same: boolean } {
+  const forceSame = Math.random() < 0.5;
+
+  for (;;) {
+    const f1 = Math.floor(Math.random() * 8);
+    const r1 = Math.floor(Math.random() * 8);
+
+    if (forceSame) {
+      // Pick another square on the same diagonal
+      const dir1 = Math.random() < 0.5 ? 1 : -1;
+      const dir2 = Math.random() < 0.5 ? 1 : -1;
+      const dist = Math.floor(Math.random() * 7) + 1;
+      const f2 = f1 + dir1 * dist;
+      const r2 = r1 + dir2 * dist;
+      if (f2 < 0 || f2 > 7 || r2 < 0 || r2 > 7) continue;
+      return {
+        sq1: String.fromCharCode(97 + f1) + (r1 + 1),
+        sq2: String.fromCharCode(97 + f2) + (r2 + 1),
+        same: true,
+      };
+    } else {
+      // Pick two squares NOT on the same diagonal
+      const f2 = Math.floor(Math.random() * 8);
+      const r2 = Math.floor(Math.random() * 8);
+      if (f1 === f2 && r1 === r2) continue;
+      const sq1 = String.fromCharCode(97 + f1) + (r1 + 1);
+      const sq2 = String.fromCharCode(97 + f2) + (r2 + 1);
+      if (areSameDiagonal(sq1, sq2)) continue;
+      return { sq1, sq2, same: false };
+    }
   }
 }
 
-function isDark(sq: string): boolean {
-  const file = sq.charCodeAt(0) - 97;
-  const rank = parseInt(sq[1]) - 1;
-  return (file + rank) % 2 === 0;
-}
-
-function randomSquare(): string {
-  return ALL_SQUARES[Math.floor(Math.random() * ALL_SQUARES.length)];
-}
-
 function getStars(score: number): number {
-  if (score >= 15) return 3;
-  if (score >= 10) return 2;
-  if (score >= 5) return 1;
+  if (score >= 20) return 3;
+  if (score >= 12) return 2;
+  if (score >= 6) return 1;
   return 0;
 }
 
-const DARK_COLOR = "#2c2c2c";
-const LIGHT_COLOR = "#f0ead6";
-
-export default function ColorOfSquare() {
+export default function SameDiagonal() {
   const [gameState, setGameState] = useState<"idle" | "playing" | "done">("idle");
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
-  const [target, setTarget] = useState(randomSquare);
+  const [pair, setPair] = useState(generatePair);
   const [flash, setFlash] = useState<"correct" | "wrong" | null>(null);
   const [bestScore, setBestScore] = useState(0);
   const [bestStars, setBestStars] = useState(0);
   const flashTimeout = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
-    setBestScore(parseInt(localStorage.getItem("blindfold-color-best") ?? "0", 10));
-    setBestStars(parseInt(localStorage.getItem("blindfold-color-best-stars") ?? "0", 10));
+    setBestScore(parseInt(localStorage.getItem("blindfold-diagonal-best") ?? "0", 10));
+    setBestStars(parseInt(localStorage.getItem("blindfold-diagonal-best-stars") ?? "0", 10));
   }, []);
 
   useEffect(() => {
@@ -61,42 +81,41 @@ export default function ColorOfSquare() {
     return () => clearInterval(interval);
   }, [gameState]);
 
-  // Persist best score when game ends
   useEffect(() => {
     if (gameState !== "done") return;
     const stars = getStars(score);
     if (score > bestScore) {
-      localStorage.setItem("blindfold-color-best", String(score));
+      localStorage.setItem("blindfold-diagonal-best", String(score));
       setBestScore(score);
     }
     if (stars > bestStars) {
-      localStorage.setItem("blindfold-color-best-stars", String(stars));
+      localStorage.setItem("blindfold-diagonal-best-stars", String(stars));
       setBestStars(stars);
     }
   }, [gameState, score, bestScore, bestStars]);
 
   const handleAnswer = useCallback(
-    (answeredDark: boolean) => {
+    (answeredYes: boolean) => {
       if (gameState !== "playing") return;
       if (flashTimeout.current) clearTimeout(flashTimeout.current);
 
-      if (isDark(target) === answeredDark) {
+      if (pair.same === answeredYes) {
         setScore((s) => s + 1);
         setFlash("correct");
       } else {
         setFlash("wrong");
       }
-      setTarget(randomSquare());
+      setPair(generatePair());
       flashTimeout.current = setTimeout(() => setFlash(null), 200);
     },
-    [gameState, target],
+    [gameState, pair],
   );
 
   const startGame = useCallback(() => {
     setGameState("playing");
     setScore(0);
     setTimeLeft(GAME_DURATION);
-    setTarget(randomSquare());
+    setPair(generatePair());
     setFlash(null);
   }, []);
 
@@ -106,14 +125,10 @@ export default function ColorOfSquare() {
   if (gameState === "idle") {
     return (
       <div className="flex flex-col items-center gap-6 max-w-md mx-auto text-center">
-        <h2 className="text-xl font-bold">Color of Square</h2>
+        <h2 className="text-xl font-bold">Same Diagonal?</h2>
         <p className="text-muted">
-          A square will appear. Click the correct color — dark or light. You have 30 seconds!
+          Two squares will appear. Are they on the same diagonal? You have 30 seconds!
         </p>
-        <div className="flex gap-4">
-          <div className="w-16 h-16 rounded-lg border-2 border-foreground/20" style={{ backgroundColor: DARK_COLOR }} />
-          <div className="w-16 h-16 rounded-lg border-2 border-foreground/20" style={{ backgroundColor: LIGHT_COLOR }} />
-        </div>
         {bestScore > 0 && (
           <div className="text-sm text-faint">
             Best: {bestScore} {bestStars > 0 && <StarRating stars={bestStars} size="sm" />}
@@ -163,29 +178,29 @@ export default function ColorOfSquare() {
         <span>{timeLeft}s</span>
       </div>
 
-      {/* Target square */}
+      {/* Two squares */}
       <div
-        className={`text-6xl font-bold py-8 transition-colors duration-100 ${
+        className={`text-5xl font-bold py-8 transition-colors duration-100 ${
           flash === "correct" ? "text-green-400" : flash === "wrong" ? "text-red-400" : ""
         }`}
       >
-        {target}
+        {pair.sq1} &mdash; {pair.sq2}
       </div>
 
       {/* Answer buttons */}
-      <div className="flex gap-6">
+      <div className="flex gap-4">
         <button
           onClick={() => handleAnswer(true)}
-          className="w-28 h-28 rounded-xl border-4 border-foreground/20 hover:border-foreground/50 transition-colors active:scale-95 transition-transform"
-          style={{ backgroundColor: DARK_COLOR }}
-          aria-label="Dark square"
-        />
+          className="px-10 py-4 rounded-xl border-2 border-green-600 text-green-400 font-bold text-lg hover:bg-green-600/20 transition-colors active:scale-95"
+        >
+          Yes
+        </button>
         <button
           onClick={() => handleAnswer(false)}
-          className="w-28 h-28 rounded-xl border-4 border-foreground/20 hover:border-foreground/50 transition-colors active:scale-95 transition-transform"
-          style={{ backgroundColor: LIGHT_COLOR }}
-          aria-label="Light square"
-        />
+          className="px-10 py-4 rounded-xl border-2 border-red-500 text-red-400 font-bold text-lg hover:bg-red-500/20 transition-colors active:scale-95"
+        >
+          No
+        </button>
       </div>
     </div>
   );

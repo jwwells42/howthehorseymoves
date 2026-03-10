@@ -7,6 +7,7 @@ import { useProgress } from "@/lib/state/progress-context";
 import StarRating from "@/components/puzzle/StarRating";
 import EndgameShell from "@/components/endgame/EndgameShell";
 import ColorOfSquare from "@/components/blindfold/ColorOfSquare";
+import SameDiagonal from "@/components/blindfold/SameDiagonal";
 import KnightRoutes from "@/components/blindfold/KnightRoutes";
 import type { PiecePlacement } from "@/lib/logic/types";
 
@@ -57,6 +58,16 @@ export default function PieceLearnPage({
           &larr; Back to blindfold
         </Link>
         <ColorOfSquare />
+      </main>
+    );
+  }
+  if (piece === "blindfold-diagonals") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <SameDiagonal />
       </main>
     );
   }
