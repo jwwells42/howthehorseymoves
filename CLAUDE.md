@@ -60,9 +60,9 @@ No test framework is configured.
 - Each endgame type can have its own bitbase — adding new ones doesn't require deciding everything upfront
 
 ### Blindfold Trainers (`src/components/blindfold/`)
-- **Color of Square**: timed 30s, identify dark/light from coordinate. Stars: 5/10/15. localStorage: `blindfold-color-*`
+- **Color of Square**: timed 30s, identify dark/light from coordinate. Stars: 5/10/15. localStorage: `blindfold-color-*`. Postmortem: mini-boards with tinted highlights preserving dark/light distinction (dark-green/dark-red/light-green/light-red), mistakes shown first then all answers
 - **Same Diagonal**: timed 30s, are two squares on the same diagonal? Mini-board review screen after. Stars: 6/12/20. localStorage: `blindfold-diagonal-*`
-- **Knight Routes**: type a legal knight path between two squares step by step. BFS shortest path (distance 2-4). Stars: optimal/+1/+2+
+- **Knight Routes**: type a legal knight path between two squares step by step. BFS shortest path (distance 2-4). Stars: optimal/+1/+2+. Postmortem: SVG board with numbered dots (green start/end, blue intermediate) connected by lines
 - **Who's Guarding Whom**: 4 white pieces (Q/N/R/B) on a board, identify guarding relationships. After each correct answer, a move is announced but the board stays frozen — track positions mentally. Wrong answers show feedback but don't end the game (streak resets). Give up reveals actual positions and full move history. Stars: streak 1/3/5. localStorage: `blindfold-guarding-*`
 - All blindfold games use standalone localStorage keys (not puzzle progress system)
 
