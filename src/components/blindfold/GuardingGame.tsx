@@ -126,7 +126,7 @@ const LT = "#d4c4a0";
 const DKC = "#7a9e6e";
 
 function BoardSVG({ pieces, label, size }: { pieces: Piece[]; label?: string; size?: "sm" | "lg" }) {
-  const sizeClass = size === "lg" ? "w-full max-w-[300px] sm:max-w-[400px]" : "w-full max-w-[300px]";
+  const sizeClass = size === "lg" ? "w-full max-w-[300px] sm:max-w-[480px]" : "w-full max-w-[300px]";
   return (
     <div className="flex flex-col items-center">
       {label && <p className="text-xs text-faint mb-1">{label}</p>}
@@ -297,7 +297,7 @@ export default function GuardingGame() {
   const latestMove = moves.length > 0 ? moves[moves.length - 1] : null;
 
   return (
-    <div className="flex flex-col gap-4 max-w-lg sm:max-w-3xl mx-auto">
+    <div className="flex flex-col gap-4 max-w-lg sm:max-w-5xl mx-auto">
       <div className="flex justify-between w-full text-sm">
         <span className="text-faint">Streak: <span className="font-bold text-foreground">{streak}</span></span>
         {best > 0 && <span className="text-faint">Best: {best}</span>}
