@@ -305,7 +305,7 @@ export default function GuardingGame() {
 
       <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-center sm:items-start">
         {/* Left: board + latest move */}
-        <div className="flex flex-col items-center gap-3 shrink-0">
+        <div className="flex flex-col items-center gap-3 shrink-0 w-full sm:w-[480px]">
           <BoardSVG pieces={visible} label={moves.length > 0 ? "Board (original positions)" : undefined} size="lg" />
 
           {latestMove && (

@@ -61,6 +61,69 @@ function generatePair(): { start: string; target: string; optimal: number } {
   }
 }
 
+const LIGHT = "#d4c4a0";
+const DARK = "#7a9e6e";
+
+function RouteBoard({ start, route, target }: { start: string; route: string[]; target: string }) {
+  const S = 36;
+  const B = S * 8;
+  const allStops = [start, ...route];
+  const stopSet = new Set(allStops);
+
+  function sqXY(sq: string): [number, number] {
+    const f = sq.charCodeAt(0) - 97;
+    const r = parseInt(sq[1]) - 1;
+    return [f * S + S / 2, (7 - r) * S + S / 2];
+  }
+
+  return (
+    <svg viewBox={`-14 -2 ${B + 28} ${B + 16}`} className="w-full max-w-[280px] sm:max-w-[360px]">
+      {Array.from({ length: 8 }, (_, i) => (
+        <text key={`r${i}`} x={-6} y={(7 - i) * S + S / 2 + 3}
+          textAnchor="middle" fontSize="8" fill="#888">{i + 1}</text>
+      ))}
+      {Array.from({ length: 8 }, (_, i) => (
+        <text key={`f${i}`} x={i * S + S / 2} y={B + 10}
+          textAnchor="middle" fontSize="8" fill="#888">{String.fromCharCode(97 + i)}</text>
+      ))}
+      {Array.from({ length: 8 }, (_, row) =>
+        Array.from({ length: 8 }, (_, col) => {
+          const sq = String.fromCharCode(97 + col) + (8 - row);
+          const isLight = (col + row) % 2 === 0;
+          let fill = isLight ? LIGHT : DARK;
+          if (sq === start) fill = "#4ade80";
+          else if (sq === target) fill = "#4ade80";
+          else if (stopSet.has(sq)) fill = "#60a5fa";
+          return <rect key={`${col}-${row}`} x={col * S} y={row * S} width={S} height={S} fill={fill} />;
+        })
+      )}
+      {/* Lines connecting stops */}
+      {allStops.slice(1).map((sq, i) => {
+        const [x1, y1] = sqXY(allStops[i]);
+        const [x2, y2] = sqXY(sq);
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+          stroke="rgba(0,0,0,0.35)" strokeWidth="2" strokeLinecap="round" />;
+      })}
+      {/* Numbered dots at each stop */}
+      {allStops.map((sq, i) => {
+        const [x, y] = sqXY(sq);
+        const isEnd = sq === target;
+        return (
+          <g key={`dot-${i}`}>
+            <circle cx={x} cy={y} r={S * 0.3}
+              fill={i === 0 || isEnd ? "#166534" : "#1e40af"}
+              stroke="white" strokeWidth="1.5" />
+            <text x={x} y={y + 1} textAnchor="middle" dominantBaseline="central"
+              fontSize="9" fill="white" fontWeight="bold">
+              {i === 0 ? "S" : i}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function getStars(moves: number, optimal: number): number {
   if (moves <= optimal) return 3;
   if (moves <= optimal + 1) return 2;
@@ -181,6 +244,7 @@ export default function KnightRoutes() {
           <p className="font-bold text-lg">Route complete!</p>
           <p className="text-sm text-muted">{moveCount} moves (optimal: {puzzle.optimal})</p>
           <StarRating stars={stars} size="lg" />
+          <RouteBoard start={puzzle.start} route={route} target={puzzle.target} />
           <button
             ref={newRouteRef}
             onClick={newPuzzle}

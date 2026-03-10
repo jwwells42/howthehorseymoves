@@ -31,6 +31,70 @@ function getStars(score: number): number {
 const DARK_COLOR = "#2c2c2c";
 const LIGHT_COLOR = "#f0ead6";
 
+const BOARD_LIGHT = "#d4c4a0";
+const BOARD_DARK = "#7a9e6e";
+
+interface Attempt {
+  square: string;
+  dark: boolean;
+  correct: boolean;
+}
+
+/** Mini board highlighting a single square, tinted to show dark/light + correct/wrong. */
+function MiniBoard({ attempt }: { attempt: Attempt }) {
+  const S = 10;
+  const B = S * 8;
+  const f = attempt.square.charCodeAt(0) - 97;
+  const r = parseInt(attempt.square[1]) - 1;
+  const svgR = 7 - r; // SVG row (y=0 is top = rank 8)
+
+  // Tinted highlights that preserve dark/light distinction
+  let highlight: string;
+  if (attempt.dark && attempt.correct) highlight = "#2a5a2a";
+  else if (attempt.dark && !attempt.correct) highlight = "#5a2a2a";
+  else if (!attempt.dark && attempt.correct) highlight = "#b8e0b8";
+  else highlight = "#e0b8b8";
+
+  const borderColor = attempt.correct ? "#22c55e" : "#ef4444";
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <svg
+        viewBox={`0 0 ${B} ${B}`}
+        className="w-20 h-20"
+        style={{ border: `3px solid ${borderColor}`, borderRadius: 4 }}
+      >
+        {Array.from({ length: 8 }, (_, ri) =>
+          Array.from({ length: 8 }, (_, fi) => {
+            const isLight = (fi + ri) % 2 === 0;
+            const isTarget = fi === f && ri === svgR;
+            return (
+              <rect
+                key={`${fi}-${ri}`}
+                x={fi * S}
+                y={ri * S}
+                width={S}
+                height={S}
+                fill={isTarget ? highlight : isLight ? BOARD_LIGHT : BOARD_DARK}
+              />
+            );
+          }),
+        )}
+      </svg>
+      <div className="text-xs text-center">
+        <span className="font-mono font-bold">{attempt.square}</span>
+        <br />
+        <span className={attempt.correct ? "text-green-400" : "text-red-400"}>
+          {attempt.dark ? "Dark" : "Light"}
+          {!attempt.correct && (
+            <span className="text-faint"> (you: {attempt.dark ? "Light" : "Dark"})</span>
+          )}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function ColorOfSquare() {
   const [gameState, setGameState] = useState<"idle" | "playing" | "done">("idle");
   const [score, setScore] = useState(0);
@@ -39,6 +103,7 @@ export default function ColorOfSquare() {
   const [flash, setFlash] = useState<"correct" | "wrong" | null>(null);
   const [bestScore, setBestScore] = useState(0);
   const [bestStars, setBestStars] = useState(0);
+  const [history, setHistory] = useState<Attempt[]>([]);
   const flashTimeout = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
@@ -80,7 +145,10 @@ export default function ColorOfSquare() {
       if (gameState !== "playing") return;
       if (flashTimeout.current) clearTimeout(flashTimeout.current);
 
-      if (isDark(target) === answeredDark) {
+      const correct = isDark(target) === answeredDark;
+      setHistory((h) => [...h, { square: target, dark: isDark(target), correct }]);
+
+      if (correct) {
         setScore((s) => s + 1);
         setFlash("correct");
       } else {
@@ -98,6 +166,7 @@ export default function ColorOfSquare() {
     setTimeLeft(GAME_DURATION);
     setTarget(randomSquare());
     setFlash(null);
+    setHistory([]);
   }, []);
 
   const stars = getStars(score);
@@ -130,10 +199,12 @@ export default function ColorOfSquare() {
   }
 
   if (gameState === "done") {
+    const wrongOnes = history.filter((a) => !a.correct);
+
     return (
-      <div className="flex flex-col items-center gap-4 max-w-md mx-auto text-center">
+      <div className="flex flex-col items-center gap-4 max-w-2xl mx-auto text-center">
         <h2 className="text-xl font-bold">Time&apos;s up!</h2>
-        <p className="text-3xl font-bold">{score} correct</p>
+        <p className="text-3xl font-bold">{score}/{history.length} correct</p>
         {stars > 0 && <StarRating stars={stars} size="lg" />}
         {bestScore > 0 && (
           <p className="text-sm text-faint">Personal best: {bestScore}</p>
@@ -144,6 +215,28 @@ export default function ColorOfSquare() {
         >
           Play Again
         </button>
+
+        {wrongOnes.length > 0 && (
+          <div className="w-full border-t border-foreground/10 mt-2 pt-4">
+            <h3 className="font-bold text-sm mb-3">Mistakes ({wrongOnes.length})</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 justify-items-center">
+              {wrongOnes.map((attempt, i) => (
+                <MiniBoard key={i} attempt={attempt} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {history.length > 0 && (
+          <div className="w-full border-t border-foreground/10 mt-2 pt-4">
+            <h3 className="font-bold text-sm mb-3">All answers ({history.length})</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 justify-items-center">
+              {history.map((attempt, i) => (
+                <MiniBoard key={i} attempt={attempt} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
