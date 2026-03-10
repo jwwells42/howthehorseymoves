@@ -125,11 +125,12 @@ const BD = SQ * 8;
 const LT = "#d4c4a0";
 const DKC = "#7a9e6e";
 
-function BoardSVG({ pieces, label }: { pieces: Piece[]; label?: string }) {
+function BoardSVG({ pieces, label, size }: { pieces: Piece[]; label?: string; size?: "sm" | "lg" }) {
+  const sizeClass = size === "lg" ? "w-full max-w-[300px] sm:max-w-[400px]" : "w-full max-w-[300px]";
   return (
     <div className="flex flex-col items-center">
       {label && <p className="text-xs text-faint mb-1">{label}</p>}
-      <svg viewBox={`-14 -2 ${BD + 28} ${BD + 16}`} className="w-full max-w-[300px]">
+      <svg viewBox={`-14 -2 ${BD + 28} ${BD + 16}`} className={sizeClass}>
         {Array.from({ length: 8 }, (_, i) => (
           <text key={`r${i}`} x={-6} y={(7 - i) * SQ + SQ / 2 + 4}
             textAnchor="middle" fontSize="9" fill="#888">{i + 1}</text>
@@ -296,95 +297,103 @@ export default function GuardingGame() {
   const latestMove = moves.length > 0 ? moves[moves.length - 1] : null;
 
   return (
-    <div className="flex flex-col items-center gap-4 max-w-lg mx-auto">
+    <div className="flex flex-col gap-4 max-w-lg sm:max-w-3xl mx-auto">
       <div className="flex justify-between w-full text-sm">
         <span className="text-faint">Streak: <span className="font-bold text-foreground">{streak}</span></span>
         {best > 0 && <span className="text-faint">Best: {best}</span>}
       </div>
 
-      <BoardSVG pieces={visible} label={moves.length > 0 ? "Board (original positions)" : undefined} />
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-center sm:items-start">
+        {/* Left: board + latest move */}
+        <div className="flex flex-col items-center gap-3 shrink-0">
+          <BoardSVG pieces={visible} label={moves.length > 0 ? "Board (original positions)" : undefined} size="lg" />
 
-      {latestMove && (
-        <div className="w-full p-3 rounded-lg border border-card-border bg-card text-center">
-          <span className="text-sm font-mono">
-            <span className="text-faint">Move {moves.length}:</span>{" "}
-            <span className="font-bold">{NAMES[latestMove.piece]} {latestMove.from} &rarr; {latestMove.to}</span>
-          </span>
-        </div>
-      )}
-
-      <div className="w-full">
-        <p className="text-sm font-medium mb-2">
-          {moves.length === 0 ? "Which pieces guard which?" : "Now who guards whom?"}
-        </p>
-        <div className="space-y-2">
-          {PIECE_TYPES.map(from => (
-            <div key={from} className="flex items-center gap-2">
-              <div className="flex items-center gap-1 w-[52px] shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={SVGS[from]} alt={NAMES[from]} className="w-5 h-5" />
-                <span className="text-xs text-faint">&rarr;</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {PIECE_TYPES.filter(to => to !== from).map(to => {
-                  const key: GKey = `${from}-${to}`;
-                  const isSel = selected.has(key);
-                  const isAns = answer.has(key);
-                  const fb = phase === "feedback";
-                  let cls = "px-2 py-1 rounded text-xs font-medium border transition-colors ";
-                  if (fb) {
-                    if (isSel && isAns) cls += "bg-green-600/30 border-green-500 text-green-300";
-                    else if (isSel && !isAns) cls += "bg-red-600/30 border-red-500 text-red-300 line-through";
-                    else if (!isSel && isAns) cls += "bg-orange-500/20 border-orange-400 text-orange-300";
-                    else cls += "border-card-border text-faint opacity-40";
-                  } else {
-                    cls += isSel
-                      ? "bg-blue-600/30 border-blue-500 text-blue-300"
-                      : "border-card-border text-muted hover:border-foreground/30";
-                  }
-                  return (
-                    <button key={key} onClick={() => phase === "guessing" && toggle(key)}
-                      disabled={fb} className={cls}>
-                      {NAMES[to]}
-                    </button>
-                  );
-                })}
-              </div>
+          {latestMove && (
+            <div className="w-full p-3 rounded-lg border border-card-border bg-card text-center">
+              <span className="text-sm sm:text-base font-mono">
+                <span className="text-faint">Move {moves.length}:</span>{" "}
+                <span className="font-bold">{NAMES[latestMove.piece]} {latestMove.from} &rarr; {latestMove.to}</span>
+              </span>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {phase === "guessing" && (
-        <div className="flex items-center gap-4">
-          <button onClick={check}
-            className="px-8 py-2.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors">
-            Check
-          </button>
-          {moves.length > 0 && (
-            <button onClick={giveUp} className="text-sm text-faint hover:text-foreground transition-colors">
-              Give up
-            </button>
           )}
         </div>
-      )}
 
-      {phase === "feedback" && (
-        <div className="flex flex-col items-center gap-3">
-          <p className={wasRight ? "text-green-400 font-bold" : "text-red-400 font-bold"}>
-            {wasRight ? "Correct!" : "Not quite — check the highlights"}
-          </p>
-          <div className="flex items-center gap-4">
-            <button onClick={nextRound}
-              className="px-8 py-2.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors">
-              Next Move
-            </button>
-            <button onClick={giveUp} className="text-sm text-faint hover:text-foreground transition-colors">
-              Give up
-            </button>
+        {/* Right: guarding selector + buttons */}
+        <div className="flex flex-col items-center sm:items-start gap-4 w-full">
+          <div className="w-full">
+            <p className="text-sm sm:text-base font-medium mb-3">
+              {moves.length === 0 ? "Which pieces guard which?" : "Now who guards whom?"}
+            </p>
+            <div className="space-y-3">
+              {PIECE_TYPES.map(from => (
+                <div key={from} className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 w-[52px] sm:w-[60px] shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={SVGS[from]} alt={NAMES[from]} className="w-5 h-5 sm:w-7 sm:h-7" />
+                    <span className="text-xs text-faint">&rarr;</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    {PIECE_TYPES.filter(to => to !== from).map(to => {
+                      const key: GKey = `${from}-${to}`;
+                      const isSel = selected.has(key);
+                      const isAns = answer.has(key);
+                      const fb = phase === "feedback";
+                      let cls = "px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm font-medium border transition-colors ";
+                      if (fb) {
+                        if (isSel && isAns) cls += "bg-green-600/30 border-green-500 text-green-300";
+                        else if (isSel && !isAns) cls += "bg-red-600/30 border-red-500 text-red-300 line-through";
+                        else if (!isSel && isAns) cls += "bg-orange-500/20 border-orange-400 text-orange-300";
+                        else cls += "border-card-border text-faint opacity-40";
+                      } else {
+                        cls += isSel
+                          ? "bg-blue-600/30 border-blue-500 text-blue-300"
+                          : "border-card-border text-muted hover:border-foreground/30";
+                      }
+                      return (
+                        <button key={key} onClick={() => phase === "guessing" && toggle(key)}
+                          disabled={fb} className={cls}>
+                          {NAMES[to]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {phase === "guessing" && (
+            <div className="flex items-center gap-4">
+              <button onClick={check}
+                className="px-8 py-2.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors">
+                Check
+              </button>
+              {moves.length > 0 && (
+                <button onClick={giveUp} className="text-sm text-faint hover:text-foreground transition-colors">
+                  Give up
+                </button>
+              )}
+            </div>
+          )}
+
+          {phase === "feedback" && (
+            <div className="flex flex-col items-center sm:items-start gap-3">
+              <p className={wasRight ? "text-green-400 font-bold" : "text-red-400 font-bold"}>
+                {wasRight ? "Correct!" : "Not quite — check the highlights"}
+              </p>
+              <div className="flex items-center gap-4">
+                <button onClick={nextRound}
+                  className="px-8 py-2.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors">
+                  Next Move
+                </button>
+                <button onClick={giveUp} className="text-sm text-faint hover:text-foreground transition-colors">
+                  Give up
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
