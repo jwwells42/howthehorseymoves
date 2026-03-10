@@ -167,9 +167,8 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
       }
 
       if (waitingForBot) {
-        // Queue as premove — it fires when the bot animation ends
+        // Queue as premove — piece stays highlighted, fires when bot animation ends
         setPremove({ from: selectedSquare, to: sq });
-        setSelectedSquare(null);
         return;
       }
 
@@ -240,9 +239,11 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
         <p className="text-muted">
           {result === "won"
             ? "Pawn promoted — you win!"
-            : waitingForBot
-              ? "Opponent is thinking..."
-              : instruction}
+            : premove
+              ? "Move queued..."
+              : waitingForBot
+                ? "Opponent is thinking..."
+                : instruction}
         </p>
       </div>
 
