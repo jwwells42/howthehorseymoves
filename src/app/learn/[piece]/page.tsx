@@ -9,6 +9,7 @@ import EndgameShell from "@/components/endgame/EndgameShell";
 import ColorOfSquare from "@/components/blindfold/ColorOfSquare";
 import SameDiagonal from "@/components/blindfold/SameDiagonal";
 import KnightRoutes from "@/components/blindfold/KnightRoutes";
+import GuardingGame from "@/components/blindfold/GuardingGame";
 import type { PiecePlacement } from "@/lib/logic/types";
 
 const ENDGAME_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[] }> = {
@@ -78,6 +79,16 @@ export default function PieceLearnPage({
           &larr; Back to blindfold
         </Link>
         <KnightRoutes />
+      </main>
+    );
+  }
+  if (piece === "blindfold-guarding") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <GuardingGame />
       </main>
     );
   }

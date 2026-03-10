@@ -135,6 +135,7 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "blindfold-color", name: "Color of Square", description: "Dark or light? Identify the color from the name.", icon: "/pieces/wP.svg" },
       { key: "blindfold-diagonals", name: "Same Diagonal?", description: "Are these two squares on the same diagonal?", icon: "/pieces/wB.svg" },
       { key: "blindfold-knight-routes", name: "Knight Routes", description: "Find a knight path between two squares — no board!", icon: "/pieces/wN.svg" },
+      { key: "blindfold-guarding", name: "Who's Guarding Whom?", description: "Track piece interactions as they move — blindfolded!", icon: "/pieces/wQ.svg" },
     ],
   },
 ];

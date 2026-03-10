@@ -53,6 +53,19 @@ No test framework is configured.
 - Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`)
 - Standalone from the puzzle system — no puzzle progress context
 
+### Endgame Trainer (`src/components/endgame/EndgameShell.tsx`)
+- KPK bitbase (`src/lib/logic/kpk-bitbase.ts`): retrograde analysis classifying every King+Pawn vs King position as WIN/DRAW (24KB, generated on first probe)
+- Bot plays perfect defense via bitbase; validates student moves must maintain winning evaluation
+- Win condition: pawn reaches rank 8. Stars: 0 mistakes = 3, 1 = 2, 2+ = 1
+- Each endgame type can have its own bitbase — adding new ones doesn't require deciding everything upfront
+
+### Blindfold Trainers (`src/components/blindfold/`)
+- **Color of Square**: timed 30s, identify dark/light from coordinate. Stars: 5/10/15. localStorage: `blindfold-color-*`
+- **Same Diagonal**: timed 30s, are two squares on the same diagonal? Mini-board review screen after. Stars: 6/12/20. localStorage: `blindfold-diagonal-*`
+- **Knight Routes**: type a legal knight path between two squares step by step. BFS shortest path (distance 2-4). Stars: optimal/+1/+2+
+- **Who's Guarding Whom**: 4 white pieces (Q/N/R/B) on a board, identify guarding relationships. After each correct answer, a move is announced but the board stays frozen — track positions mentally. Wrong answers show feedback but don't end the game (streak resets). Give up reveals actual positions and full move history. Stars: streak 1/3/5. localStorage: `blindfold-guarding-*`
+- All blindfold games use standalone localStorage keys (not puzzle progress system)
+
 ### UI (`src/components/`)
 - `board/Board.tsx` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode)
 - `puzzle/PuzzleShell.tsx` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
@@ -61,7 +74,7 @@ No test framework is configured.
 - `opening/OpeningTrainer.tsx` — Opening repertoire trainer with learn/practice phases
 
 ### Routing (`src/app/`)
-- `/` — Landing page organized into three sections: **Basics** (piece movements + The Board), **Practice** (checkmate, tactics, play, openings, endings coming soon), **Study** (model games)
+- `/` — Landing page organized into two sections: **Basics** (piece movements + The Board), **Study** (checkmate, tactics, play, openings, endings, model games, blindfold)
 - `/learn/[piece]` — Puzzle list (or subcategory list for categories like checkmate/tactics)
 - `/learn/[piece]/[puzzleId]` — Individual puzzle
 - `/board` — Coordinate trainer (timed mini-game)
@@ -75,7 +88,7 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 
 ## Key Conventions
 
-- Landing page has three sections with `SectionHeader` components: Basics, Practice, Study. Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
+- Landing page has two sections with `SectionHeader` components: Basics, Study. Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
 - Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
 - Board state is immutable — new `BoardState` created per move, never mutated
 - Chess piece SVGs live in `public/pieces/` named `{color}{piece}.svg` (e.g., `wR.svg`, `bN.svg`)
@@ -106,6 +119,8 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 - Checkmate categories: Queen Takes f7, Queen-Bishop Battery, Lolli's Mate, Smothered Mate, Back Rank Mate, Rook Ladder, Queen & King
 - Tactics categories: Pins, Skewers, Forks, Removing the Defender, Discovered Attacks (most currently Coming Soon)
 - Puzzle IDs use a prefix matching their category (e.g., `tactics-pin-01`, `checkmate-qb-01`)
+- Blindfold categories: Color of Square, Same Diagonal, Knight Routes, Who's Guarding Whom
+- Endings categories: KPK (King + Pawn vs King with bitbase)
 
 ## Opening Trainer Notes
 
