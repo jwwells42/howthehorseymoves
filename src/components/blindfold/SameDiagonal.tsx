@@ -4,6 +4,15 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import StarRating from "@/components/puzzle/StarRating";
 
 const GAME_DURATION = 30;
+const LIGHT = "#d4c4a0";
+const DARK = "#7a9e6e";
+
+interface Attempt {
+  sq1: string;
+  sq2: string;
+  same: boolean;
+  correct: boolean;
+}
 
 function areSameDiagonal(sq1: string, sq2: string): boolean {
   const df = Math.abs(sq1.charCodeAt(0) - sq2.charCodeAt(0));
@@ -19,7 +28,6 @@ function generatePair(): { sq1: string; sq2: string; same: boolean } {
     const r1 = Math.floor(Math.random() * 8);
 
     if (forceSame) {
-      // Pick another square on the same diagonal
       const dir1 = Math.random() < 0.5 ? 1 : -1;
       const dir2 = Math.random() < 0.5 ? 1 : -1;
       const dist = Math.floor(Math.random() * 7) + 1;
@@ -32,7 +40,6 @@ function generatePair(): { sq1: string; sq2: string; same: boolean } {
         same: true,
       };
     } else {
-      // Pick two squares NOT on the same diagonal
       const f2 = Math.floor(Math.random() * 8);
       const r2 = Math.floor(Math.random() * 8);
       if (f1 === f2 && r1 === r2) continue;
@@ -51,6 +58,86 @@ function getStars(score: number): number {
   return 0;
 }
 
+function sqToCoords(sq: string): [number, number] {
+  return [sq.charCodeAt(0) - 97, 8 - parseInt(sq[1])];
+}
+
+/** Small 8x8 board showing two squares and, if they share a diagonal, the diagonal. */
+function MiniBoard({ attempt }: { attempt: Attempt }) {
+  const S = 10; // square size
+  const B = S * 8;
+  const [f1, r1] = sqToCoords(attempt.sq1);
+  const [f2, r2] = sqToCoords(attempt.sq2);
+
+  // Build diagonal squares if same diagonal
+  const diagonalSquares: [number, number][] = [];
+  if (attempt.same) {
+    const df = f2 > f1 ? 1 : -1;
+    const dr = r2 > r1 ? 1 : -1;
+    let f = f1, r = r1;
+    while (f >= 0 && f <= 7 && r >= 0 && r <= 7) {
+      diagonalSquares.push([f, r]);
+      f += df;
+      r += dr;
+    }
+    // go the other direction from f1,r1
+    f = f1 - df;
+    r = r1 - dr;
+    while (f >= 0 && f <= 7 && r >= 0 && r <= 7) {
+      diagonalSquares.push([f, r]);
+      f -= df;
+      r -= dr;
+    }
+  }
+
+  const borderColor = attempt.correct ? "#22c55e" : "#ef4444";
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <svg
+        viewBox={`0 0 ${B} ${B}`}
+        className="w-20 h-20"
+        style={{ border: `3px solid ${borderColor}`, borderRadius: 4 }}
+      >
+        {/* Board squares */}
+        {Array.from({ length: 8 }, (_, ri) =>
+          Array.from({ length: 8 }, (_, fi) => {
+            const isLight = (fi + ri) % 2 === 0;
+            const isDiag = diagonalSquares.some(([df, dr]) => df === fi && dr === ri);
+            const isSq1 = fi === f1 && ri === r1;
+            const isSq2 = fi === f2 && ri === r2;
+
+            let fill = isLight ? LIGHT : DARK;
+            if (isDiag) fill = attempt.correct ? "#a3d9a3" : "#f0a0a0";
+            if (isSq1 || isSq2) fill = "#5b9bd5";
+
+            return (
+              <rect
+                key={`${fi}-${ri}`}
+                x={fi * S}
+                y={ri * S}
+                width={S}
+                height={S}
+                fill={fill}
+              />
+            );
+          }),
+        )}
+      </svg>
+      <div className="text-xs text-center">
+        <span className="font-mono font-bold">{attempt.sq1} — {attempt.sq2}</span>
+        <br />
+        <span className={attempt.correct ? "text-green-400" : "text-red-400"}>
+          {attempt.same ? "Yes" : "No"}
+          {!attempt.correct && (
+            <span className="text-faint"> (you: {attempt.same ? "No" : "Yes"})</span>
+          )}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function SameDiagonal() {
   const [gameState, setGameState] = useState<"idle" | "playing" | "done">("idle");
   const [score, setScore] = useState(0);
@@ -59,6 +146,7 @@ export default function SameDiagonal() {
   const [flash, setFlash] = useState<"correct" | "wrong" | null>(null);
   const [bestScore, setBestScore] = useState(0);
   const [bestStars, setBestStars] = useState(0);
+  const [history, setHistory] = useState<Attempt[]>([]);
   const flashTimeout = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
@@ -99,7 +187,10 @@ export default function SameDiagonal() {
       if (gameState !== "playing") return;
       if (flashTimeout.current) clearTimeout(flashTimeout.current);
 
-      if (pair.same === answeredYes) {
+      const correct = pair.same === answeredYes;
+      setHistory((h) => [...h, { sq1: pair.sq1, sq2: pair.sq2, same: pair.same, correct }]);
+
+      if (correct) {
         setScore((s) => s + 1);
         setFlash("correct");
       } else {
@@ -117,6 +208,7 @@ export default function SameDiagonal() {
     setTimeLeft(GAME_DURATION);
     setPair(generatePair());
     setFlash(null);
+    setHistory([]);
   }, []);
 
   const stars = getStars(score);
@@ -145,10 +237,12 @@ export default function SameDiagonal() {
   }
 
   if (gameState === "done") {
+    const wrongOnes = history.filter((a) => !a.correct);
+
     return (
-      <div className="flex flex-col items-center gap-4 max-w-md mx-auto text-center">
+      <div className="flex flex-col items-center gap-4 max-w-2xl mx-auto text-center">
         <h2 className="text-xl font-bold">Time&apos;s up!</h2>
-        <p className="text-3xl font-bold">{score} correct</p>
+        <p className="text-3xl font-bold">{score}/{history.length} correct</p>
         {stars > 0 && <StarRating stars={stars} size="lg" />}
         {bestScore > 0 && (
           <p className="text-sm text-faint">Personal best: {bestScore}</p>
@@ -159,6 +253,31 @@ export default function SameDiagonal() {
         >
           Play Again
         </button>
+
+        {/* Review section */}
+        {wrongOnes.length > 0 && (
+          <>
+            <div className="w-full border-t border-foreground/10 mt-2 pt-4">
+              <h3 className="font-bold text-sm mb-3">Mistakes ({wrongOnes.length})</h3>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 justify-items-center">
+                {wrongOnes.map((attempt, i) => (
+                  <MiniBoard key={i} attempt={attempt} />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {history.length > 0 && (
+          <div className="w-full border-t border-foreground/10 mt-2 pt-4">
+            <h3 className="font-bold text-sm mb-3">All answers ({history.length})</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 justify-items-center">
+              {history.map((attempt, i) => (
+                <MiniBoard key={i} attempt={attempt} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
