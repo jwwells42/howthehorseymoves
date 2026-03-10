@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Board from "@/components/board/Board";
 import StarRating from "@/components/puzzle/StarRating";
 import { BoardState, SquareId, createBoardState, PiecePlacement } from "@/lib/logic/types";
@@ -14,7 +14,6 @@ interface EndgameShellProps {
   placements: PiecePlacement[];
 }
 
-/** Find the three KPK pieces on the board. Returns null if pawn is gone. */
 function findKPKPieces(board: BoardState): { wk: SquareId; bk: SquareId; wp: SquareId } | null {
   let wk: SquareId | undefined, bk: SquareId | undefined, wp: SquareId | undefined;
   for (const [sq, piece] of board.pieces) {
@@ -32,40 +31,6 @@ function probeBoard(board: BoardState, stm: number): boolean | null {
   return probeKPK(squareToIndex(pieces.wk), squareToIndex(pieces.bk), squareToIndex(pieces.wp), stm);
 }
 
-/**
- * Try to apply a student move on a given board. Returns the new board state
- * and result, or null if the move is a mistake (draws).
- */
-function tryStudentMove(
-  boardState: BoardState,
-  from: SquareId,
-  to: SquareId,
-): { board: BoardState; won: boolean } | null {
-  const piece = boardState.pieces.get(from);
-  if (!piece || piece.color !== "w") return null;
-
-  const legal = getLegalMoves(from, boardState, "w");
-  if (!legal.includes(to)) return null;
-
-  const newPieces = new Map(boardState.pieces);
-  newPieces.delete(from);
-  newPieces.set(to, piece);
-
-  // Pawn promotion
-  if (piece.piece === "P" && to[1] === "8") {
-    newPieces.set(to, { piece: "Q", color: "w" });
-    return { board: { pieces: newPieces }, won: true };
-  }
-
-  const newBoard: BoardState = { pieces: newPieces };
-
-  // Probe bitbase: still winning?
-  const isWin = probeBoard(newBoard, KPK_BLACK);
-  if (isWin === false) return null; // drawing move
-
-  return { board: newBoard, won: false };
-}
-
 export default function EndgameShell({ title, instruction, placements }: EndgameShellProps) {
   const buildBoard = useCallback(() => createBoardState(placements), [placements]);
 
@@ -78,9 +43,6 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
   const [waitingForBot, setWaitingForBot] = useState(false);
   const [dragFrom, setDragFrom] = useState<SquareId | null>(null);
 
-  // Ref-based premove — avoids React state timing issues
-  const premoveRef = useRef<{ from: SquareId; to: SquareId } | null>(null);
-
   const validMoves = useMemo(() => {
     if (!selectedSquare) return [];
     return getLegalMoves(selectedSquare, board, "w");
@@ -92,32 +54,6 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
   }, [dragFrom, board]);
 
   const stars = mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
-
-  // Process a student move on a specific board state (used by both direct moves and premoves)
-  const processMove = useCallback(
-    (currentBoard: BoardState, from: SquareId, to: SquareId): BoardState | null => {
-      const moveResult = tryStudentMove(currentBoard, from, to);
-      if (!moveResult) {
-        // Mistake
-        setMistakes((m) => m + 1);
-        setFeedback("That lets black draw — try again!");
-        setSelectedSquare(null);
-        return null;
-      }
-
-      setBoard(moveResult.board);
-      setSelectedSquare(null);
-      setFeedback(null);
-
-      if (moveResult.won) {
-        setResult("won");
-        return null; // no bot move needed
-      }
-
-      return moveResult.board; // caller should trigger bot move
-    },
-    [],
-  );
 
   const makeBotMove = useCallback((currentBoard: BoardState) => {
     setWaitingForBot(true);
@@ -142,79 +78,71 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
       setTimeout(() => {
         setBotSlide(null);
         setWaitingForBot(false);
-
-        // Check for queued premove
-        const pm = premoveRef.current;
-        if (pm) {
-          premoveRef.current = null;
-          const afterMove = tryStudentMove(newBoard, pm.from, pm.to);
-          if (!afterMove) {
-            // Premove invalid on new board — silently cancel
-            return;
-          }
-          setBoard(afterMove.board);
-          setSelectedSquare(null);
-          setFeedback(null);
-          if (afterMove.won) {
-            setResult("won");
-          } else {
-            // Chain: bot responds to premove
-            makeBotMove(afterMove.board);
-          }
-        }
       }, 500);
     }, 400);
   }, []);
 
   const executeMove = useCallback(
     (from: SquareId, to: SquareId) => {
-      const afterBoard = processMove(board, from, to);
-      if (afterBoard) {
-        makeBotMove(afterBoard);
+      const newPieces = new Map(board.pieces);
+      const piece = newPieces.get(from)!;
+      newPieces.delete(from);
+      newPieces.set(to, piece);
+
+      if (piece.piece === "P" && to[1] === "8") {
+        newPieces.set(to, { piece: "Q", color: "w" });
+        setBoard({ pieces: newPieces });
+        setSelectedSquare(null);
+        setResult("won");
+        setFeedback(null);
+        return;
       }
+
+      const newBoard: BoardState = { pieces: newPieces };
+
+      const isWin = probeBoard(newBoard, KPK_BLACK);
+      if (isWin === false) {
+        setMistakes((m) => m + 1);
+        setFeedback("That lets black draw — try again!");
+        setSelectedSquare(null);
+        return;
+      }
+
+      setBoard(newBoard);
+      setSelectedSquare(null);
+      setFeedback(null);
+      makeBotMove(newBoard);
     },
-    [board, processMove, makeBotMove],
+    [board, makeBotMove],
   );
 
   const handleSquareClick = useCallback(
     (sq: SquareId) => {
-      if (result !== "playing") return;
+      if (result !== "playing" || waitingForBot) return;
 
       if (!selectedSquare) {
         const p = board.pieces.get(sq);
         if (p && p.color === "w") {
           setSelectedSquare(sq);
           setFeedback(null);
-          premoveRef.current = null;
         }
         return;
       }
 
       if (sq === selectedSquare) {
         setSelectedSquare(null);
-        premoveRef.current = null;
         return;
       }
 
-      // Clicking another own piece
       const target = board.pieces.get(sq);
       if (target && target.color === "w") {
         setSelectedSquare(sq);
-        premoveRef.current = null;
         return;
       }
 
-      // Try to move
       const legal = getLegalMoves(selectedSquare, board, "w");
       if (!legal.includes(sq)) {
         setSelectedSquare(null);
-        premoveRef.current = null;
-        return;
-      }
-
-      if (waitingForBot) {
-        // Queue as premove — piece stays highlighted
-        premoveRef.current = { from: selectedSquare, to: sq };
         return;
       }
 
@@ -225,17 +153,11 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
 
   const handleDrop = useCallback(
     (from: SquareId, to: SquareId) => {
-      if (result !== "playing" || from === to) return;
+      if (result !== "playing" || waitingForBot || from === to) return;
       const p = board.pieces.get(from);
       if (!p || p.color !== "w") return;
       const legal = getLegalMoves(from, board, "w");
       if (!legal.includes(to)) return;
-
-      if (waitingForBot) {
-        premoveRef.current = { from, to };
-        return;
-      }
-
       executeMove(from, to);
     },
     [board, result, waitingForBot, executeMove],
@@ -243,10 +165,10 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
 
   const onDragStart = useCallback(
     (sq: SquareId) => {
-      if (result !== "playing") return;
+      if (result !== "playing" || waitingForBot) return;
       setDragFrom(sq);
     },
-    [result],
+    [result, waitingForBot],
   );
 
   const onDragEnd = useCallback(() => {
@@ -262,7 +184,6 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
     setBotSlide(null);
     setWaitingForBot(false);
     setDragFrom(null);
-    premoveRef.current = null;
   }, [buildBoard]);
 
   return (
