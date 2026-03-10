@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import Board from "@/components/board/Board";
 import StarRating from "@/components/puzzle/StarRating";
 import { BoardState, SquareId, PieceKind, PieceColor, createBoardState, PiecePlacement } from "@/lib/logic/types";
@@ -49,6 +49,7 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
   const [botSlide, setBotSlide] = useState<SlideAnimation | null>(null);
   const [waitingForBot, setWaitingForBot] = useState(false);
   const [dragFrom, setDragFrom] = useState<SquareId | null>(null);
+  const [premove, setPremove] = useState<{ from: SquareId; to: SquareId } | null>(null);
 
   const validMoves = useMemo(() => {
     if (!selectedSquare) return [];
@@ -131,19 +132,21 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
 
   const handleSquareClick = useCallback(
     (sq: SquareId) => {
-      if (result !== "playing" || waitingForBot) return;
+      if (result !== "playing") return;
 
       if (!selectedSquare) {
         const p = board.pieces.get(sq);
         if (p && p.color === "w") {
           setSelectedSquare(sq);
           setFeedback(null);
+          setPremove(null);
         }
         return;
       }
 
       if (sq === selectedSquare) {
         setSelectedSquare(null);
+        setPremove(null);
         return;
       }
 
@@ -151,12 +154,21 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
       const target = board.pieces.get(sq);
       if (target && target.color === "w") {
         setSelectedSquare(sq);
+        setPremove(null);
         return;
       }
 
       // Try to move
       const legal = getLegalMoves(selectedSquare, board, "w");
       if (!legal.includes(sq)) {
+        setSelectedSquare(null);
+        setPremove(null);
+        return;
+      }
+
+      if (waitingForBot) {
+        // Queue as premove — it fires when the bot animation ends
+        setPremove({ from: selectedSquare, to: sq });
         setSelectedSquare(null);
         return;
       }
@@ -168,11 +180,17 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
 
   const handleDrop = useCallback(
     (from: SquareId, to: SquareId) => {
-      if (result !== "playing" || waitingForBot || from === to) return;
+      if (result !== "playing" || from === to) return;
       const p = board.pieces.get(from);
       if (!p || p.color !== "w") return;
       const legal = getLegalMoves(from, board, "w");
       if (!legal.includes(to)) return;
+
+      if (waitingForBot) {
+        setPremove({ from, to });
+        return;
+      }
+
       executeMove(from, to);
     },
     [board, result, waitingForBot, executeMove],
@@ -180,15 +198,28 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
 
   const onDragStart = useCallback(
     (sq: SquareId) => {
-      if (result !== "playing" || waitingForBot) return;
+      if (result !== "playing") return;
       setDragFrom(sq);
     },
-    [result, waitingForBot],
+    [result],
   );
 
   const onDragEnd = useCallback(() => {
     setDragFrom(null);
   }, []);
+
+  // Fire premove when bot animation ends
+  useEffect(() => {
+    if (!premove || waitingForBot || result !== "playing") return;
+    const { from, to } = premove;
+    setPremove(null);
+    // Re-validate against the current (post-bot-move) board
+    const p = board.pieces.get(from);
+    if (!p || p.color !== "w") return;
+    const legal = getLegalMoves(from, board, "w");
+    if (!legal.includes(to)) return;
+    executeMove(from, to);
+  }, [premove, waitingForBot, result, board, executeMove]);
 
   const reset = useCallback(() => {
     setBoard(buildBoard());
@@ -199,6 +230,7 @@ export default function EndgameShell({ title, instruction, placements }: Endgame
     setBotSlide(null);
     setWaitingForBot(false);
     setDragFrom(null);
+    setPremove(null);
   }, [buildBoard]);
 
   return (
