@@ -53,6 +53,14 @@ No test framework is configured.
 - Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`)
 - Standalone from the puzzle system — no puzzle progress context
 
+### Setup Trainer (`src/components/board/SetupTrainer.tsx`)
+- 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup from scratch
+- Stages 1-6: board pre-filled except target pieces, click correct empty squares
+- Stage 7 (full setup): piece tray for selecting piece type, then click correct square
+- Stars based on total mistakes across all stages: 0 = 3, 1-2 = 2, 3+ = 1. localStorage: `setup-best-stars`
+- Uses Board component in readOnly mode with onSquareClick for placement, wrongMoveSquare for error feedback
+- Standalone from puzzle system (like CoordinateTrainer)
+
 ### Endgame Trainer (`src/components/endgame/EndgameShell.tsx`)
 - KPK bitbase (`src/lib/logic/kpk-bitbase.ts`): retrograde analysis classifying every King+Pawn vs King position as WIN/DRAW (24KB, generated on first probe)
 - Bot plays perfect defense via bitbase; validates student moves must maintain winning evaluation
@@ -78,6 +86,7 @@ No test framework is configured.
 - `/learn/[piece]` — Puzzle list (or subcategory list for categories like checkmate/tactics)
 - `/learn/[piece]/[puzzleId]` — Individual puzzle
 - `/board` — Coordinate trainer (timed mini-game)
+- `/setup` — Set Up the Board (7-stage piece placement game)
 - `/games`, `/games/[gameId]` — Model game viewer (with test mode)
 - `/openings`, `/openings/[id]` — Opening repertoire trainer
 - `/play` — Play vs computer (level selector: Random Bot, Basic Bot)

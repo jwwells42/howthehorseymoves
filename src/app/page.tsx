@@ -10,9 +10,11 @@ import { useProgress } from "@/lib/state/progress-context";
 export default function Home() {
   const { state, getPuzzleProgress } = useProgress();
   const [coordStars, setCoordStars] = useState(0);
+  const [setupStars, setSetupStars] = useState(0);
   const [showStudy, setShowStudy] = useState(false);
   useEffect(() => {
     setCoordStars(parseInt(localStorage.getItem("coord-best-stars") ?? "0", 10));
+    setSetupStars(parseInt(localStorage.getItem("setup-best-stars") ?? "0", 10));
   }, []);
 
   // Check if all basics are complete
@@ -124,7 +126,28 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Play a Game card (step 7 capstone) */}
+        {/* Set Up the Board card */}
+        <Link href="/setup">
+          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-12 h-12 flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/pieces/wK.svg" alt="Setup" className="w-8 h-8 -mr-1" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/pieces/wQ.svg" alt="Setup" className="w-8 h-8 -ml-1" />
+              </div>
+              <h3 className="text-lg font-bold">Set Up the Board</h3>
+            </div>
+            <p className="text-sm text-muted mb-3 flex-1">
+              Place every piece on its starting square.
+            </p>
+            <div className="text-xs text-faint">
+              {setupStars > 0 && <StarRating stars={setupStars} size="sm" />}
+            </div>
+          </div>
+        </Link>
+
+        {/* Play a Game card (capstone) */}
         <Link href="/play?level=random">
           <div
             className={`rounded-xl border p-6 transition-all h-full flex flex-col relative ${
