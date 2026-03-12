@@ -17,7 +17,6 @@ export interface Puzzle {
   setup: PiecePlacement[] | string;
   targets: SquareId[];
   solution: SquareId[];
-  maxMoves?: number;
   hints?: string[];
   starThresholds: { three: number; two: number; one: number };
   enPassantSquare?: SquareId;

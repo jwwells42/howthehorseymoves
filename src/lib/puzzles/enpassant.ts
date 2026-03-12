@@ -13,7 +13,6 @@ export const enPassantPuzzles: Puzzle[] = [
     enPassantSquare: "d6",
     targets: ["d6"],
     solution: ["d6"],
-    maxMoves: 1,
     hints: [
       "When a pawn advances two squares and lands beside your pawn, you can capture it 'in passing'.",
       "Your pawn moves diagonally to d6, capturing the black pawn on d5.",
@@ -32,7 +31,6 @@ export const enPassantPuzzles: Puzzle[] = [
     enPassantSquare: "d6",
     targets: ["d6"],
     solution: ["d6"],
-    maxMoves: 1,
     hints: [
       "En passant works from either side.",
       "Capture diagonally to d6 — the black pawn on d5 is removed.",
@@ -52,7 +50,6 @@ export const enPassantPuzzles: Puzzle[] = [
     enPassantSquare: "f6",
     targets: ["f6"],
     solution: ["f6"],
-    maxMoves: 1,
     hints: [
       "En passant only works on the pawn that JUST moved two squares.",
       "The en passant square is f6 — the pawn on f5 just arrived.",
@@ -71,7 +68,6 @@ export const enPassantPuzzles: Puzzle[] = [
     enPassantSquare: "a6",
     targets: ["a6"],
     solution: ["a6"],
-    maxMoves: 1,
     hints: [
       "En passant must be done immediately — you can't wait!",
       "Capture on a6 now before the chance disappears.",
@@ -90,7 +86,6 @@ export const enPassantPuzzles: Puzzle[] = [
     enPassantSquare: "h6",
     targets: ["h8"],
     solution: ["h6", "h7", "h8"],
-    maxMoves: 4,
     hints: [
       "First capture en passant on h6.",
       "Then keep pushing the pawn forward to h8!",
@@ -110,7 +105,6 @@ export const enPassantPuzzles: Puzzle[] = [
     enPassantSquare: "c6",
     targets: ["c6"],
     solution: ["c6"],
-    maxMoves: 1,
     hints: [
       "The black pawn on c5 is blocking your c4 pawn.",
       "Use your d5 pawn to capture en passant on c6, clearing the way.",
@@ -129,7 +123,6 @@ export const enPassantPuzzles: Puzzle[] = [
     enPassantSquare: "e6",
     targets: ["d8"],
     solution: ["d6", "d7", "d8"],
-    maxMoves: 4,
     hints: [
       "Just because you CAN capture en passant doesn't mean you should!",
       "Push your pawn straight ahead to reach the promotion square d8.",
@@ -148,7 +141,6 @@ export const enPassantPuzzles: Puzzle[] = [
     enPassantSquare: "d6",
     targets: ["e8"],
     solution: ["e7", "e8"],
-    maxMoves: 3,
     hints: [
       "It looks tempting, but your pawn is too far advanced for en passant.",
       "En passant only works when your pawn is on the 5th rank (row 5 for white).",

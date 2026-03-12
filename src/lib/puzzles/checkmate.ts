@@ -18,7 +18,6 @@ export const backRankMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["a8"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The black king is trapped behind its own pawns on the back rank.",
       "Move the rook to the 8th rank!",
@@ -40,7 +39,6 @@ export const backRankMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["d8"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The king is stuck in the corner with pawns blocking escape.",
       "Put the queen on the back rank — d8!",
@@ -60,7 +58,6 @@ export const backRankMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["a1"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The white king on c7 controls b7 and b8.",
       "Deliver check on the a-file — the king has no escape.",
@@ -83,7 +80,6 @@ export const backRankMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["d8"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The pawns on a7, b7, c7 block all the king's escape squares.",
       "Move the rook to the 8th rank!",
@@ -103,7 +99,6 @@ export const backRankMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["g7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "If the king has no legal moves AND isn't in check, it's stalemate — a draw!",
       "Don't play Qg6 — the king has no moves but isn't in check. That's stalemate!",
@@ -189,7 +184,6 @@ export const queenF7Puzzles: Puzzle[] = [
     targets: [],
     solution: ["f7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The f7 pawn is only defended by the king.",
       "The queen on h5 can take f7 — and the bishop on c4 supports!",
@@ -217,7 +211,6 @@ export const queenF7Puzzles: Puzzle[] = [
     targets: [],
     solution: ["f7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The f7 pawn is only defended by the king.",
       "The queen on h5 can take f7 diagonally — and the bishop on c4 supports!",
@@ -234,7 +227,6 @@ export const queenF7Puzzles: Puzzle[] = [
     targets: [],
     solution: ["f7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The knight on e5 covers d7 — the king can't flee that way.",
       "The queen on h5 can reach f7 diagonally.",
@@ -255,7 +247,6 @@ export const qbBatteryPuzzles: Puzzle[] = [
     targets: [],
     solution: ["g7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The bishop on c3 and queen on f6 share the a1-h8 diagonal.",
       "When the queen takes g7, the bishop defends it through the now-open diagonal.",
@@ -281,7 +272,6 @@ export const qbBatteryPuzzles: Puzzle[] = [
     targets: [],
     solution: ["h7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The queen and bishop share the same long diagonal.",
       "When the queen moves to h7, the bishop behind it defends through the cleared diagonal.",
@@ -307,7 +297,6 @@ export const qbBatteryPuzzles: Puzzle[] = [
     targets: [],
     solution: ["h7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The bishop on c2 and queen share a diagonal aimed at h7.",
       "Take on h7 — when the queen moves, the bishop defends through the diagonal!",
@@ -324,7 +313,6 @@ export const qbBatteryPuzzles: Puzzle[] = [
     targets: [],
     solution: ["a8"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The bishop on b3 watches the a2-g8 diagonal.",
       "Where can the queen deliver check while the bishop covers escape squares?",
@@ -341,7 +329,6 @@ export const qbBatteryPuzzles: Puzzle[] = [
     targets: [],
     solution: ["g7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The bishop on b2 controls the long dark diagonal all the way to g7.",
       "The queen on d4 can also reach g7 along that same diagonal.",
@@ -370,7 +357,6 @@ export const lollisMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["g7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The pawn on f6 supports g7 — can the queen get there?",
       "Qg7 delivers check, and the pawn on f6 defends the queen!",
@@ -399,7 +385,6 @@ export const lollisMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["g7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "Ignore the extra pieces — look for the Lolli's Mate pattern!",
       "The key ingredients: queen on h6, pawn on f6, enemy king behind pawns on g8.",
@@ -425,7 +410,6 @@ export const lollisMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["g7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "Bxf7+ and Qxh7+ both look tempting, but neither is checkmate!",
       "After Bxf7+ Kf8, or Qxh7+ Kf8 — the king escapes.",
@@ -452,7 +436,6 @@ export const queenKingMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["a7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The black king is nearly trapped — the a7 pawn is the key target.",
       "Your king on b6 controls b7. The rook covers the b-file.",
@@ -475,7 +458,6 @@ export const queenKingMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["e8"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The black king is boxed in by its own pawns.",
       "The white king covers f7 and g7.",
@@ -496,7 +478,6 @@ export const queenKingMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["b7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The black king is almost trapped in the corner.",
       "Be careful — some queen moves leave the king with no legal moves but no check (stalemate)!",
@@ -564,7 +545,6 @@ export const smotheredMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["f7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The king on h8 is boxed in by its own rook and pawn.",
       "The knight on e5 can jump to f7 — capturing the pawn and giving check!",
@@ -588,7 +568,6 @@ export const smotheredMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["f7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The king is completely smothered — rook on g8, pawns on g7 and h7.",
       "The knight on d6 can reach f7 — does that give check?",
@@ -612,7 +591,6 @@ export const smotheredMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["f7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The king is trapped in the corner by its own pieces.",
       "From g5, the knight can jump to f7 — capturing the pawn!",
@@ -638,7 +616,6 @@ export const smotheredMatePuzzles: Puzzle[] = [
     targets: [],
     solution: ["e7"],
     mode: "checkmate",
-    maxMoves: 1,
     hints: [
       "The king is completely surrounded by its own pieces.",
       "The knight on d5 can go to several squares — which one gives check?",

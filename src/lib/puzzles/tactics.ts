@@ -12,7 +12,6 @@ export const pinPuzzles: Puzzle[] = [
     solution: ["c2", "d3"],
     opponentResponses: [{ from: "h7", to: "h6" }],
     arrows: [{ from: "c2", to: "h7", color: "#15803d" }],
-    maxMoves: 2,
     hints: [
       "The knight on d3 and king on h7 are on the same diagonal.",
       "If the bishop goes to c2, it pins the knight — moving it exposes the king!",
@@ -30,7 +29,6 @@ export const pinPuzzles: Puzzle[] = [
     solution: ["e1", "e4"],
     opponentResponses: [{ from: "e8", to: "d7" }],
     arrows: [{ from: "e1", to: "e8", color: "#15803d" }],
-    maxMoves: 2,
     hints: [
       "The bishop on e4 and king on e8 are on the same file.",
       "If the rook goes to e1, the bishop is pinned — it can't move!",
