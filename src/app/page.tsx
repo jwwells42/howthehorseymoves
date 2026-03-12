@@ -124,7 +124,7 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Play a Game card (step 9 capstone) */}
+        {/* Play a Game card (step 7 capstone) */}
         <Link href="/play?level=random">
           <div
             className={`rounded-xl border p-6 transition-all h-full flex flex-col relative ${
@@ -141,7 +141,7 @@ export default function Home() {
                 ? "bg-green-600 border-green-500 text-white"
                 : "bg-card border-card-border text-faint"
             }`}>
-              {allBasicsDone ? "\u2713" : 9}
+              {allBasicsDone ? "\u2713" : PIECES.length + 1}
             </div>
             <div className="flex items-center gap-4 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}

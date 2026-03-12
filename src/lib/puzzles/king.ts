@@ -184,18 +184,6 @@ export const kingPuzzles: Puzzle[] = [
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
-    id: "king-14",
-    piece: "K",
-    title: "Long Journey",
-    instruction: "Walk the king to the far corner!",
-    setup: [{ piece: "K", color: "w", square: "a1" }],
-    targets: ["d4"],
-    solution: ["b2", "c3", "d4"],
-    maxMoves: 5,
-    hints: ["Diagonal moves are the fastest way.", "You can reach d4 in just 3 diagonal steps!"],
-    starThresholds: { three: 3, two: 4, one: 5 },
-  },
-  {
     id: "king-15",
     piece: "K",
     title: "King Master",
