@@ -7,11 +7,15 @@ import StarRating from "@/components/puzzle/StarRating";
 import { PIECES, CATEGORIES, getPuzzlesForPiece, CategoryInfo } from "@/lib/puzzles";
 import { useProgress } from "@/lib/state/progress-context";
 
+const INTERMEDIATE_KEYS = ["checkmate", "tactics", "endings"];
+const ADVANCED_KEYS = ["blindfold"];
+
 export default function Home() {
   const { state, getPuzzleProgress } = useProgress();
   const [coordStars, setCoordStars] = useState(0);
   const [setupStars, setSetupStars] = useState(0);
-  const [showStudy, setShowStudy] = useState(false);
+  const [showIntermediate, setShowIntermediate] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   useEffect(() => {
     setCoordStars(parseInt(localStorage.getItem("coord-best-stars") ?? "0", 10));
     setSetupStars(parseInt(localStorage.getItem("setup-best-stars") ?? "0", 10));
@@ -37,7 +41,6 @@ export default function Home() {
       );
       if (!allDone) {
         upNextPieceKey = piece.key;
-        // Find the first unsolved puzzle in this set
         for (const p of puzzleSet.puzzles) {
           if (!getPuzzleProgress(p.id)?.completed) {
             continueTarget = {
@@ -52,6 +55,9 @@ export default function Home() {
       }
     }
   }
+
+  const intermediateCats = CATEGORIES.filter(c => INTERMEDIATE_KEYS.includes(c.key));
+  const advancedCats = CATEGORIES.filter(c => ADVANCED_KEYS.includes(c.key));
 
   return (
     <main className="min-h-screen p-6 max-w-4xl mx-auto">
@@ -208,29 +214,49 @@ export default function Home() {
         );
       })()}
 
-      {/* === Study === */}
-      {allBasicsDone ? (
-        <SectionHeader title="Study" subtitle="Bring the pieces to life" />
-      ) : (
-        <div className="mt-10 mb-4">
-          <button
-            onClick={() => setShowStudy(!showStudy)}
-            className="flex items-center gap-3 w-full text-left"
-          >
-            <h2 className="text-lg font-bold whitespace-nowrap text-faint">Study</h2>
-            <div className="flex-1 border-t border-foreground/15" />
-            <span className="text-xs text-faint">{showStudy ? "Hide" : "Show more"}</span>
-          </button>
-          <p className="text-sm text-faint mt-1">Complete the basics first, or peek ahead</p>
+      {/* === Intermediate === */}
+      <CollapsibleSection
+        title="Intermediate"
+        subtitle="Practice checkmates, tactics, and endings"
+        expanded={allBasicsDone}
+        show={showIntermediate}
+        onToggle={() => setShowIntermediate(!showIntermediate)}
+      />
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${!allBasicsDone && !showIntermediate ? "hidden" : ""}`}>
+        {/* Checkmate in One placeholder */}
+        <div className="rounded-xl border border-card-border bg-card p-6 transition-all h-full flex flex-col opacity-40">
+          <div className="flex items-center gap-4 mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/pieces/wQ.svg" alt="Checkmate in One" className="w-12 h-12" />
+            <h3 className="text-lg font-bold">Checkmate in One</h3>
+          </div>
+          <p className="text-sm text-muted mb-3 flex-1">
+            Spot the winning move to deliver checkmate.
+          </p>
+          <div className="text-xs text-faint">Coming soon</div>
         </div>
-      )}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${!allBasicsDone && !showStudy ? "hidden" : ""}`}>
-        {/* Category cards */}
-        {CATEGORIES.map((cat) => (
+
+        {/* Intermediate category cards */}
+        {intermediateCats.map((cat) => (
+          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
+        ))}
+      </div>
+
+      {/* === Advanced === */}
+      <CollapsibleSection
+        title="Advanced"
+        subtitle="Openings, model games, and board vision"
+        expanded={allBasicsDone}
+        show={showAdvanced}
+        onToggle={() => setShowAdvanced(!showAdvanced)}
+      />
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${!allBasicsDone && !showAdvanced ? "hidden" : ""}`}>
+        {/* Advanced category cards */}
+        {advancedCats.map((cat) => (
           <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
         ))}
 
-        {/* Play card */}
+        {/* Play vs Computer */}
         <Link href="/play">
           <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
             <div className="flex items-center gap-4 mb-3">
@@ -245,7 +271,7 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Openings card */}
+        {/* Openings */}
         <Link href="/openings">
           <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
             <div className="flex items-center gap-4 mb-3">
@@ -260,7 +286,7 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Model Games card */}
+        {/* Model Games */}
         <Link href="/games">
           <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
             <div className="flex items-center gap-4 mb-3">
@@ -274,7 +300,6 @@ export default function Home() {
             <div className="text-xs text-faint">&nbsp;</div>
           </div>
         </Link>
-
       </div>
     </main>
   );
@@ -288,6 +313,37 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle: string })
         <div className="flex-1 border-t border-foreground/15" />
       </div>
       <p className="text-sm text-faint">{subtitle}</p>
+    </div>
+  );
+}
+
+function CollapsibleSection({
+  title,
+  subtitle,
+  expanded,
+  show,
+  onToggle,
+}: {
+  title: string;
+  subtitle: string;
+  expanded: boolean;
+  show: boolean;
+  onToggle: () => void;
+}) {
+  if (expanded) {
+    return <SectionHeader title={title} subtitle={subtitle} />;
+  }
+  return (
+    <div className="mt-10 mb-4">
+      <button
+        onClick={onToggle}
+        className="flex items-center gap-3 w-full text-left"
+      >
+        <h2 className="text-lg font-bold whitespace-nowrap text-faint">{title}</h2>
+        <div className="flex-1 border-t border-foreground/15" />
+        <span className="text-xs text-faint">{show ? "Hide" : "Show more"}</span>
+      </button>
+      <p className="text-sm text-faint mt-1">Complete the basics first, or peek ahead</p>
     </div>
   );
 }
@@ -331,7 +387,7 @@ function CategoryCard({
             {completedPuzzles}/{totalPuzzles} puzzles
           </span>
           <span className="text-xs text-faint">
-            {cat.subcategories.length} patterns
+            {cat.subcategories.length} {cat.subcategories.length === 1 ? "topic" : "topics"}
           </span>
         </div>
       </div>

@@ -26,20 +26,23 @@ const BLACK_PIECES: { piece: PieceKind; square: SquareId }[] = [
 
 /* ── Stages ──────────────────────────────────────────────── */
 
-interface Stage {
+export interface SetupStage {
+  slug: string;
   label: string;
+  description: string;
   instruction: string;
+  icon: string;
   piecesToPlace: { piece: PieceKind; square: SquareId }[];
 }
 
-const STAGES: Stage[] = [
-  { label: "Rooks", instruction: "Place the white rooks!", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "R") },
-  { label: "Knights", instruction: "Place the white knights!", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "N") },
-  { label: "Bishops", instruction: "Place the white bishops!", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "B") },
-  { label: "King", instruction: "Place the white king!", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "K") },
-  { label: "Queen", instruction: "Place the white queen!", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "Q") },
-  { label: "Pawns", instruction: "Place all the white pawns!", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "P") },
-  { label: "Full Setup", instruction: "Set up all the white pieces!", piecesToPlace: [...WHITE_PIECES] },
+export const SETUP_STAGES: SetupStage[] = [
+  { slug: "rooks", label: "Rooks", description: "Place the two rooks on their starting squares.", instruction: "Place the white rooks!", icon: "/pieces/wR.svg", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "R") },
+  { slug: "knights", label: "Knights", description: "Place the two knights on their starting squares.", instruction: "Place the white knights!", icon: "/pieces/wN.svg", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "N") },
+  { slug: "bishops", label: "Bishops", description: "Place the two bishops on their starting squares.", instruction: "Place the white bishops!", icon: "/pieces/wB.svg", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "B") },
+  { slug: "king", label: "King", description: "Place the king on its starting square.", instruction: "Place the white king!", icon: "/pieces/wK.svg", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "K") },
+  { slug: "queen", label: "Queen", description: "Place the queen on its starting square.", instruction: "Place the white queen!", icon: "/pieces/wQ.svg", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "Q") },
+  { slug: "pawns", label: "Pawns", description: "Place all eight pawns on the second rank.", instruction: "Place all the white pawns!", icon: "/pieces/wP.svg", piecesToPlace: WHITE_PIECES.filter(p => p.piece === "P") },
+  { slug: "full", label: "Full Setup", description: "Set up all 16 white pieces from scratch.", instruction: "Set up all the white pieces!", icon: "/pieces/wK.svg", piecesToPlace: [...WHITE_PIECES] },
 ];
 
 function mistakesToStars(m: number): number {
@@ -60,7 +63,20 @@ interface TrayDrag {
   y: number;
 }
 
-export default function SetupTrainer() {
+interface SetupTrainerProps {
+  /** If provided, play only this single stage (not sequential). */
+  stageSlug?: string;
+  /** Label for the "next" button on done screen in single-stage mode. */
+  nextLabel?: string;
+  /** URL for the "next" button on done screen in single-stage mode. */
+  nextHref?: string;
+}
+
+export default function SetupTrainer({ stageSlug, nextLabel, nextHref }: SetupTrainerProps) {
+  const singleStageIndex = stageSlug ? SETUP_STAGES.findIndex(s => s.slug === stageSlug) : -1;
+  const isSingleStage = singleStageIndex >= 0;
+  const stages = isSingleStage ? [SETUP_STAGES[singleStageIndex]] : SETUP_STAGES;
+
   const [phase, setPhase] = useState<Phase>("idle");
   const [stageIndex, setStageIndex] = useState(0);
   const [placed, setPlaced] = useState<Set<SquareId>>(new Set());
@@ -71,11 +87,15 @@ export default function SetupTrainer() {
   const [trayDrag, setTrayDrag] = useState<TrayDrag | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setBestStars(parseInt(localStorage.getItem("setup-best-stars") ?? "0", 10));
-  }, []);
+  const storageKey = isSingleStage
+    ? `setup-${stageSlug}-best-stars`
+    : "setup-best-stars";
 
-  const stage = STAGES[stageIndex];
+  useEffect(() => {
+    setBestStars(parseInt(localStorage.getItem(storageKey) ?? "0", 10));
+  }, [storageKey]);
+
+  const stage = stages[stageIndex];
 
   // Check if this stage has only one piece type
   const pieceTypes = useMemo(() => {
@@ -160,7 +180,7 @@ export default function SetupTrainer() {
 
     // Stage complete?
     if (newPlaced.size === stage.piecesToPlace.length) {
-      if (stageIndex < STAGES.length - 1) {
+      if (stageIndex < stages.length - 1) {
         setTimeout(() => {
           setStageIndex(i => i + 1);
           setPlaced(new Set());
@@ -169,16 +189,16 @@ export default function SetupTrainer() {
       } else {
         setTimeout(() => {
           const stars = mistakesToStars(mistakes);
-          const prev = parseInt(localStorage.getItem("setup-best-stars") ?? "0", 10);
+          const prev = parseInt(localStorage.getItem(storageKey) ?? "0", 10);
           if (stars > prev) {
-            localStorage.setItem("setup-best-stars", stars.toString());
+            localStorage.setItem(storageKey, stars.toString());
             setBestStars(stars);
           }
           setPhase("done");
         }, 600);
       }
     }
-  }, [phase, stage, placed, board.pieces, isSingleType, stageIndex, mistakes]);
+  }, [phase, stage, placed, board.pieces, isSingleType, stageIndex, stages.length, mistakes, storageKey]);
 
   // Handle board square click
   const handleSquareClick = useCallback((sq: SquareId) => {
@@ -224,7 +244,7 @@ export default function SetupTrainer() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Place the Pieces</h2>
           <p className="text-muted">Put each piece on its starting square.</p>
-          <p className="text-sm text-faint mt-1">7 stages — from individual pieces to the full setup!</p>
+          {!isSingleStage && <p className="text-sm text-faint mt-1">7 stages — from individual pieces to the full setup!</p>}
         </div>
         {bestStars > 0 && (
           <div className="flex items-center gap-2">
@@ -265,10 +285,10 @@ export default function SetupTrainer() {
             Play Again
           </button>
           <Link
-            href="/play?level=random"
+            href={nextHref ?? "/play?level=random"}
             className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
           >
-            Play a Game!
+            {nextLabel ?? (isSingleStage ? "Back to Stages" : "Play a Game!")}
           </Link>
         </div>
       </div>
@@ -284,9 +304,11 @@ export default function SetupTrainer() {
     >
       {/* Stage info */}
       <div className="text-center">
-        <div className="text-xs text-faint mb-1">
-          Stage {stageIndex + 1} of {STAGES.length}
-        </div>
+        {!isSingleStage && (
+          <div className="text-xs text-faint mb-1">
+            Stage {stageIndex + 1} of {stages.length}
+          </div>
+        )}
         <h2 className="text-xl font-bold">{stage.instruction}</h2>
         <p className="text-sm text-faint mt-1">
           {mistakes > 0 && `${mistakes} mistake${mistakes === 1 ? "" : "s"} · `}

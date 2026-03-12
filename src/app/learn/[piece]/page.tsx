@@ -195,9 +195,13 @@ function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
     ? "checkmate"
     : pieceKey.startsWith("tactics-")
       ? "tactics"
-      : null;
+      : pieceKey.startsWith("endings-")
+        ? "endings"
+        : pieceKey.startsWith("blindfold-")
+          ? "blindfold"
+          : null;
   const backHref = parentCategory ? `/learn/${parentCategory}` : "/";
-  const backLabel = parentCategory ? "Back to patterns" : "Back to home";
+  const backLabel = parentCategory ? `Back to ${parentCategory}` : "Back to home";
 
   // Get display info — either from PIECES or from the puzzle set itself
   const displayName = pieceInfo?.name ?? puzzleSet?.name ?? "Puzzles";
