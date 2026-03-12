@@ -55,12 +55,25 @@ No test framework is configured.
 
 ### Setup Trainer (`src/components/board/SetupTrainer.tsx`) — "Place the Pieces"
 - 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup from scratch
-- Piece tray shown on right side of board for ALL stages (side-by-side on desktop, stacked on mobile)
+- Each stage is individually addressable via `/setup/[stage]` (e.g., `/setup/rooks`, `/setup/full`)
+- `/setup` shows a list page of all stages with per-stage stars
+- Exports `SETUP_STAGES` array with slugs, labels, descriptions, icons
+- Accepts `stageSlug` prop for single-stage mode (vs sequential all-7 mode)
+- Piece tray shown on right side of board with `sm:min-w-[7.5rem]` to prevent board resizing between stages
 - Single-type stages auto-select the piece type; multi-type stages require tray selection first
 - Supports both click-click (click tray → click board) and drag (drag from tray to board)
-- Stars based on total mistakes across all stages: 0 = 3, 1-2 = 2, 3+ = 1. localStorage: `setup-best-stars`
-- Done screen has "Play a Game!" link to `/play?level=random`
+- Stars based on total mistakes: 0 = 3, 1-2 = 2, 3+ = 1. Per-stage localStorage: `setup-{slug}-best-stars`
 - Standalone from puzzle system (like CoordinateTrainer)
+
+### Polgar Mate Trainer (`src/components/polgar/PolgarTrainer.tsx`)
+- 4,462 checkmate puzzles from Laszlo Polgar's "Chess: 5,334 Problems, Combinations, and Games" (1994)
+- Three types: mate-in-1 (307), mate-in-2 (3,412), mate-in-3 (743)
+- Data in `public/data/polgar/mate-in-{1,2,3}.json` — fetched at runtime
+- Sequential progress saved to localStorage: `polgar-mate-in-{1,2,3}-index` and `-solved`
+- Supports both White and Black to move puzzles (uses `playableColors` prop on Board)
+- Final move validated by checkmate detection (accepts any mating move); intermediate moves matched against solution
+- Opponent responses animated between player moves
+- Routes: `/learn/mate-in-one`, `/learn/mate-in-two`, `/learn/mate-in-three` (handled in `[piece]/page.tsx`)
 
 ### Endgame Trainer (`src/components/endgame/EndgameShell.tsx`)
 - KPK bitbase (`src/lib/logic/kpk-bitbase.ts`): retrograde analysis classifying every King+Pawn vs King position as WIN/DRAW (24KB, generated on first probe)
@@ -83,14 +96,16 @@ No test framework is configured.
 - `opening/OpeningTrainer.tsx` — Opening repertoire trainer with learn/practice phases
 
 ### Routing (`src/app/`)
-- `/` — Landing page organized into two sections: **Basics** (6 piece cards + The Board + Play a Game), **Study** (checkmate, tactics, play, openings, endings, model games, blindfold). Study is collapsed behind "Show more" until all basics are complete
+- `/` — Landing page with three sections: **Basics** (pieces, The Board, Place the Pieces, Play a Game), **Intermediate** (Mate in 1/2/3, Checkmate Patterns, Tactics, Endings), **Advanced** (Blindfold, Play vs Computer, Openings, Model Games). Intermediate/Advanced collapse behind "Show more" until all basics are complete
 - `/learn/[piece]` — Puzzle list (or subcategory list for categories like checkmate/tactics)
 - `/learn/[piece]/[puzzleId]` — Individual puzzle
+- `/learn/mate-in-one`, `/learn/mate-in-two`, `/learn/mate-in-three` — Polgar mate trainers
 - `/board` — Coordinate trainer (timed mini-game)
-- `/setup` — Set Up the Board (7-stage piece placement game)
+- `/setup` — Place the Pieces stage list; `/setup/[stage]` — individual stage
 - `/games`, `/games/[gameId]` — Model game viewer (with test mode)
 - `/openings`, `/openings/[id]` — Opening repertoire trainer
 - `/play` — Play vs computer (level selector: Random Bot, Basic Bot)
+- `/about` — Privacy, COPPA, credits, license, administrator info
 
 ## Deployment
 
@@ -98,7 +113,7 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 
 ## Key Conventions
 
-- Landing page has two sections with `SectionHeader` components: Basics, Study. Study is collapsed behind "Show more" toggle until all basics are complete (not locked — older students can click to reveal). Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
+- Landing page has three sections: Basics, Intermediate, Advanced. Intermediate/Advanced collapse behind "Show more" toggle until all basics are complete (not locked — older students can click to reveal). Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
 - Basics cards have step numbers (1-6) with green checkmarks when complete, yellow glow + "Start here!"/"Up next!" badge on the first incomplete card
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
 - "Continue" button above Basics grid links directly to the next unsolved puzzle. "Play a Game!" card (step 7) in Basics links to `/play?level=random`
