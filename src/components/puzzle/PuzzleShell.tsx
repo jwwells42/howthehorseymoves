@@ -14,9 +14,10 @@ import { getLegalMoves } from "@/lib/logic/attacks";
 interface PuzzleShellProps {
   puzzle: Puzzle;
   onNext?: () => void;
+  nextLabel?: string;
 }
 
-export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
+export default function PuzzleShell({ puzzle, onNext, nextLabel }: PuzzleShellProps) {
   const {
     board,
     selectedSquare,
@@ -108,7 +109,7 @@ export default function PuzzleShell({ puzzle, onNext }: PuzzleShellProps) {
           arrows={moveCount === 0 ? puzzle.arrows : undefined}
         />
         {isComplete && (
-          <SuccessOverlay stars={stars} onNext={onNext} onRetry={reset} />
+          <SuccessOverlay stars={stars} onNext={onNext} onRetry={reset} nextLabel={nextLabel} />
         )}
       </div>
 

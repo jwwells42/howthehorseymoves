@@ -6,9 +6,10 @@ interface SuccessOverlayProps {
   stars: number;
   onNext?: () => void;
   onRetry: () => void;
+  nextLabel?: string;
 }
 
-export default function SuccessOverlay({ stars, onNext, onRetry }: SuccessOverlayProps) {
+export default function SuccessOverlay({ stars, onNext, onRetry, nextLabel }: SuccessOverlayProps) {
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg animate-fade-in">
       <div className="bg-background rounded-xl p-8 text-center shadow-2xl max-w-xs mx-4 border border-card-border">
@@ -27,7 +28,7 @@ export default function SuccessOverlay({ stars, onNext, onRetry }: SuccessOverla
               onClick={onNext}
               className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors text-sm font-medium"
             >
-              Next Puzzle
+              {nextLabel ?? "Next Puzzle"}
             </button>
           )}
         </div>

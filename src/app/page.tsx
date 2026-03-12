@@ -10,9 +10,46 @@ import { useProgress } from "@/lib/state/progress-context";
 export default function Home() {
   const { state, getPuzzleProgress } = useProgress();
   const [coordStars, setCoordStars] = useState(0);
+  const [showStudy, setShowStudy] = useState(false);
   useEffect(() => {
     setCoordStars(parseInt(localStorage.getItem("coord-best-stars") ?? "0", 10));
   }, []);
+
+  // Check if all basics are complete
+  const allBasicsDone = state.loaded && PIECES.every((piece) => {
+    const puzzleSet = getPuzzlesForPiece(piece.key);
+    if (!puzzleSet) return false;
+    return puzzleSet.puzzles.every((p) => getPuzzleProgress(p.id)?.completed);
+  });
+
+  // Find the first incomplete basics piece and the next unsolved puzzle
+  let upNextPieceKey: string | null = null;
+  let continueTarget: { piece: string; puzzleId: string; label: string } | null = null;
+
+  if (state.loaded) {
+    for (const piece of PIECES) {
+      const puzzleSet = getPuzzlesForPiece(piece.key);
+      if (!puzzleSet) continue;
+      const allDone = puzzleSet.puzzles.every(
+        (p) => getPuzzleProgress(p.id)?.completed
+      );
+      if (!allDone) {
+        upNextPieceKey = piece.key;
+        // Find the first unsolved puzzle in this set
+        for (const p of puzzleSet.puzzles) {
+          if (!getPuzzleProgress(p.id)?.completed) {
+            continueTarget = {
+              piece: piece.key,
+              puzzleId: p.id,
+              label: `${piece.name} Puzzle ${puzzleSet.puzzles.indexOf(p) + 1}`,
+            };
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
 
   return (
     <main className="min-h-screen p-6 max-w-4xl mx-auto">
@@ -25,8 +62,18 @@ export default function Home() {
 
       {/* === Basics === */}
       <SectionHeader title="Basics" subtitle="Learn how each piece moves" />
+
+      {/* Continue button */}
+      {continueTarget && (
+        <Link href={`/learn/${continueTarget.piece}/${continueTarget.puzzleId}`}>
+          <div className="mb-4 py-3 px-4 rounded-xl bg-green-600 hover:bg-green-700 transition-colors text-white text-center font-bold text-lg cursor-pointer">
+            Continue: {continueTarget.label}
+          </div>
+        </Link>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {PIECES.map((piece) => {
+        {PIECES.map((piece, idx) => {
           const puzzleSet = getPuzzlesForPiece(piece.key);
           const totalPuzzles = puzzleSet?.puzzles.length ?? 0;
           let completedPuzzles = 0;
@@ -53,6 +100,8 @@ export default function Home() {
               completedPuzzles={completedPuzzles}
               bestStars={bestStars}
               locked={!piece.available}
+              stepNumber={idx + 1}
+              isUpNext={piece.key === upNextPieceKey}
             />
           );
         })}
@@ -72,6 +121,37 @@ export default function Home() {
             <div className="text-xs text-faint">
               {coordStars > 0 && <StarRating stars={coordStars} size="sm" />}
             </div>
+          </div>
+        </Link>
+
+        {/* Play a Game card (step 9 capstone) */}
+        <Link href="/play?level=random">
+          <div
+            className={`rounded-xl border p-6 transition-all h-full flex flex-col relative ${
+              allBasicsDone
+                ? "border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer"
+                : upNextPieceKey === null
+                  ? "border-yellow-400 bg-card hover:shadow-lg cursor-pointer"
+                  : "border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer"
+            }`}
+            style={!allBasicsDone && upNextPieceKey === null ? { animation: "up-next-glow 2s ease-in-out infinite" } : undefined}
+          >
+            <div className={`absolute -top-2.5 -left-2.5 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+              allBasicsDone
+                ? "bg-green-600 border-green-500 text-white"
+                : "bg-card border-card-border text-faint"
+            }`}>
+              {allBasicsDone ? "\u2713" : 9}
+            </div>
+            <div className="flex items-center gap-4 mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/pieces/wK.svg" alt="Play" className="w-12 h-12" />
+              <h3 className="text-lg font-bold">Play a Game!</h3>
+            </div>
+            <p className="text-sm text-muted mb-3 flex-1">
+              Use everything you&apos;ve learned against the Random Bot.
+            </p>
+            <div className="text-xs text-faint">&nbsp;</div>
           </div>
         </Link>
       </div>
@@ -106,8 +186,22 @@ export default function Home() {
       })()}
 
       {/* === Study === */}
-      <SectionHeader title="Study" subtitle="Bring the pieces to life" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {allBasicsDone ? (
+        <SectionHeader title="Study" subtitle="Bring the pieces to life" />
+      ) : (
+        <div className="mt-10 mb-4">
+          <button
+            onClick={() => setShowStudy(!showStudy)}
+            className="flex items-center gap-3 w-full text-left"
+          >
+            <h2 className="text-lg font-bold whitespace-nowrap text-faint">Study</h2>
+            <div className="flex-1 border-t border-foreground/15" />
+            <span className="text-xs text-faint">{showStudy ? "Hide" : "Show more"}</span>
+          </button>
+          <p className="text-sm text-faint mt-1">Complete the basics first, or peek ahead</p>
+        </div>
+      )}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${!allBasicsDone && !showStudy ? "hidden" : ""}`}>
         {/* Category cards */}
         {CATEGORIES.map((cat) => (
           <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />

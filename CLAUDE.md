@@ -74,7 +74,7 @@ No test framework is configured.
 - `opening/OpeningTrainer.tsx` — Opening repertoire trainer with learn/practice phases
 
 ### Routing (`src/app/`)
-- `/` — Landing page organized into two sections: **Basics** (piece movements + The Board), **Study** (checkmate, tactics, play, openings, endings, model games, blindfold)
+- `/` — Landing page organized into two sections: **Basics** (piece movements + The Board + Play a Game), **Study** (checkmate, tactics, play, openings, endings, model games, blindfold). Study is collapsed behind "Show more" until all basics are complete
 - `/learn/[piece]` — Puzzle list (or subcategory list for categories like checkmate/tactics)
 - `/learn/[piece]/[puzzleId]` — Individual puzzle
 - `/board` — Coordinate trainer (timed mini-game)
@@ -88,7 +88,11 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 
 ## Key Conventions
 
-- Landing page has two sections with `SectionHeader` components: Basics, Study. Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
+- Landing page has two sections with `SectionHeader` components: Basics, Study. Study is collapsed behind "Show more" toggle until all basics are complete (not locked — older students can click to reveal). Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
+- Basics cards have step numbers (1-8) with green checkmarks when complete, yellow glow + "Start here!"/"Up next!" badge on the first incomplete card
+- "Continue" button above Basics grid links directly to the next unsolved puzzle. "Play a Game!" card (step 9) in Basics links to `/play?level=random`
+- Cross-category "Next" button: last puzzle in a basics category shows "Continue to Bishop!" etc., last en passant puzzle shows "Play a Game!"
+- Play page accepts `?level=random` or `?level=basic` query param to skip the level selector
 - Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
 - Board state is immutable — new `BoardState` created per move, never mutated
 - Chess piece SVGs live in `public/pieces/` named `{color}{piece}.svg` (e.g., `wR.svg`, `bN.svg`)

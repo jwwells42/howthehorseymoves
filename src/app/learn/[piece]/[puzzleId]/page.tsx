@@ -3,7 +3,7 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getPuzzle, getPuzzlesForPiece } from "@/lib/puzzles";
+import { getPuzzle, getPuzzlesForPiece, PIECES } from "@/lib/puzzles";
 import PuzzleShell from "@/components/puzzle/PuzzleShell";
 
 export default function PuzzlePage({
@@ -28,9 +28,31 @@ export default function PuzzlePage({
   const currentIdx = puzzleSet.puzzles.findIndex((p) => p.id === puzzleId);
   const nextPuzzle = puzzleSet.puzzles[currentIdx + 1];
 
-  const handleNext = nextPuzzle
-    ? () => router.push(`/learn/${piece}/${nextPuzzle.id}`)
-    : () => router.push(`/learn/${piece}`);
+  // Cross-category navigation for Basics pieces
+  const pieceIdx = PIECES.findIndex((p) => p.key === piece);
+  const isBasicsPiece = pieceIdx !== -1;
+  const isLastInSet = !nextPuzzle;
+  const nextBasicsPiece = isBasicsPiece && isLastInSet ? PIECES[pieceIdx + 1] : null;
+
+  let handleNext: () => void;
+  let nextLabel: string | undefined;
+
+  if (nextPuzzle) {
+    handleNext = () => router.push(`/learn/${piece}/${nextPuzzle.id}`);
+  } else if (nextBasicsPiece) {
+    const nextSet = getPuzzlesForPiece(nextBasicsPiece.key);
+    const firstPuzzleId = nextSet?.puzzles[0]?.id;
+    nextLabel = `Continue to ${nextBasicsPiece.name}!`;
+    handleNext = firstPuzzleId
+      ? () => router.push(`/learn/${nextBasicsPiece.key}/${firstPuzzleId}`)
+      : () => router.push(`/learn/${nextBasicsPiece.key}`);
+  } else if (isBasicsPiece && isLastInSet) {
+    // Last puzzle of last basics category (en passant) → play a game!
+    nextLabel = "Play a Game!";
+    handleNext = () => router.push("/play?level=random");
+  } else {
+    handleNext = () => router.push(`/learn/${piece}`);
+  }
 
   return (
     <main className="min-h-screen p-4">
@@ -40,7 +62,7 @@ export default function PuzzlePage({
       >
         &larr; Back to {piece} puzzles
       </Link>
-      <PuzzleShell key={puzzle.id} puzzle={puzzle} onNext={handleNext} />
+      <PuzzleShell key={puzzle.id} puzzle={puzzle} onNext={handleNext} nextLabel={nextLabel} />
     </main>
   );
 }

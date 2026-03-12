@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GameShell from "@/components/game/GameShell";
 import type { BotLevel } from "@/lib/logic/bot";
 
-export default function PlayPage() {
-  const [level, setLevel] = useState<BotLevel | null>(null);
+const VALID_LEVELS: BotLevel[] = ["random", "basic"];
+
+function PlayContent() {
+  const searchParams = useSearchParams();
+  const paramLevel = searchParams.get("level");
+  const initialLevel = VALID_LEVELS.includes(paramLevel as BotLevel) ? (paramLevel as BotLevel) : null;
+  const [level, setLevel] = useState<BotLevel | null>(initialLevel);
 
   if (!level) {
     return (
@@ -48,5 +54,13 @@ export default function PlayPage() {
       </button>
       <GameShell key={level} botLevel={level} />
     </main>
+  );
+}
+
+export default function PlayPage() {
+  return (
+    <Suspense>
+      <PlayContent />
+    </Suspense>
   );
 }
