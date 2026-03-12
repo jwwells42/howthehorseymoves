@@ -314,6 +314,13 @@ export default function Home() {
           </div>
         </Link>
       </div>
+
+      {/* Footer */}
+      <div className="mt-12 pt-6 border-t border-foreground/10 text-center">
+        <Link href="/about" className="text-xs text-faint hover:text-muted transition-colors">
+          About &middot; Privacy &middot; Credits
+        </Link>
+      </div>
     </main>
   );
 }
