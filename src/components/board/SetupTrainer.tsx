@@ -337,7 +337,7 @@ export default function SetupTrainer({ stageSlug, nextLabel, nextHref }: SetupTr
         </div>
 
         {/* Piece tray — back rank row + pawn row */}
-        <div className="flex sm:flex-col gap-2 justify-center sm:justify-start sm:pt-2">
+        <div className="flex sm:flex-col gap-2 justify-center sm:justify-start sm:pt-2 sm:min-w-[7.5rem]">
           <div className="text-xs text-faint text-center sm:mb-0.5 w-full hidden sm:block">
             {isSingleType ? "Click or drag" : "Pick & place"}
           </div>

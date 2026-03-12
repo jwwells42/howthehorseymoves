@@ -223,18 +223,31 @@ export default function Home() {
         onToggle={() => setShowIntermediate(!showIntermediate)}
       />
       <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${!allBasicsDone && !showIntermediate ? "hidden" : ""}`}>
-        {/* Checkmate in One placeholder */}
-        <div className="rounded-xl border border-card-border bg-card p-6 transition-all h-full flex flex-col opacity-40">
-          <div className="flex items-center gap-4 mb-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/pieces/wQ.svg" alt="Checkmate in One" className="w-12 h-12" />
-            <h3 className="text-lg font-bold">Checkmate in One</h3>
-          </div>
-          <p className="text-sm text-muted mb-3 flex-1">
-            Spot the winning move to deliver checkmate.
-          </p>
-          <div className="text-xs text-faint">Coming soon</div>
-        </div>
+        {/* Polgar mate trainers */}
+        <PolgarCard
+          href="/learn/mate-in-one"
+          title="Mate in One"
+          description="Find the single move that delivers checkmate."
+          icon="/pieces/wQ.svg"
+          count={307}
+          storageKey="polgar-mate-in-1-solved"
+        />
+        <PolgarCard
+          href="/learn/mate-in-two"
+          title="Mate in Two"
+          description="Set up the checkmate in two precise moves."
+          icon="/pieces/wQ.svg"
+          count={3412}
+          storageKey="polgar-mate-in-2-solved"
+        />
+        <PolgarCard
+          href="/learn/mate-in-three"
+          title="Mate in Three"
+          description="Find the three-move mating combination."
+          icon="/pieces/wQ.svg"
+          count={743}
+          storageKey="polgar-mate-in-3-solved"
+        />
 
         {/* Intermediate category cards */}
         {intermediateCats.map((cat) => (
@@ -345,6 +358,43 @@ function CollapsibleSection({
       </button>
       <p className="text-sm text-faint mt-1">Complete the basics first, or peek ahead</p>
     </div>
+  );
+}
+
+function PolgarCard({
+  href,
+  title,
+  description,
+  icon,
+  count,
+  storageKey,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon: string;
+  count: number;
+  storageKey: string;
+}) {
+  const [solved, setSolved] = useState(0);
+  useEffect(() => {
+    setSolved(parseInt(localStorage.getItem(storageKey) ?? "0", 10));
+  }, [storageKey]);
+
+  return (
+    <Link href={href}>
+      <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
+        <div className="flex items-center gap-4 mb-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={icon} alt={title} className="w-12 h-12" />
+          <h3 className="text-lg font-bold">{title}</h3>
+        </div>
+        <p className="text-sm text-muted mb-3 flex-1">{description}</p>
+        <div className="text-xs text-faint">
+          {solved > 0 ? `${solved}/${count} solved` : `${count} puzzles`}
+        </div>
+      </div>
+    </Link>
   );
 }
 
