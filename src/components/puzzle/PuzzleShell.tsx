@@ -85,8 +85,7 @@ export default function PuzzleShell({ puzzle, onNext, nextLabel }: PuzzleShellPr
 
       {/* Move counter */}
       <div className="text-sm text-faint">
-        Moves: {moveCount}
-        {puzzle.maxMoves && ` / ${puzzle.maxMoves}`}
+        Moves: {moveCount} / {puzzle.starThresholds.three}
       </div>
 
       {/* Board */}
