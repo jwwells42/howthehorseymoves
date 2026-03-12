@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import Link from "next/link";
 import { FILES, RANKS, SquareId } from "@/lib/logic/types";
 import StarRating from "@/components/puzzle/StarRating";
 
@@ -140,12 +141,20 @@ export default function CoordinateTrainer() {
             <span><StarRating stars={2} size="sm" /> 5+</span>
             <span><StarRating stars={1} size="sm" /> 3+</span>
           </div>
-          <button
-            onClick={startGame}
-            className="px-8 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors"
-          >
-            Play Again
-          </button>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={startGame}
+              className="px-6 py-3 bg-btn hover:bg-btn-hover rounded-lg font-bold text-lg transition-colors"
+            >
+              Play Again
+            </button>
+            <Link
+              href="/setup"
+              className="px-6 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors"
+            >
+              Place the Pieces!
+            </Link>
+          </div>
         </div>
       )}
 

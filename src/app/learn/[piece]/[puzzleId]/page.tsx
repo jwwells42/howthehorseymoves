@@ -47,9 +47,9 @@ export default function PuzzlePage({
       ? () => router.push(`/learn/${nextBasicsPiece.key}/${firstPuzzleId}`)
       : () => router.push(`/learn/${nextBasicsPiece.key}`);
   } else if (isBasicsPiece && isLastInSet) {
-    // Last puzzle of last basics category (en passant) → play a game!
-    nextLabel = "Play a Game!";
-    handleNext = () => router.push("/play?level=random");
+    // Last puzzle of last basics category (pawn) → The Board
+    nextLabel = "Continue to The Board!";
+    handleNext = () => router.push("/board");
   } else {
     handleNext = () => router.push(`/learn/${piece}`);
   }

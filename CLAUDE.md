@@ -53,12 +53,13 @@ No test framework is configured.
 - Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`)
 - Standalone from the puzzle system — no puzzle progress context
 
-### Setup Trainer (`src/components/board/SetupTrainer.tsx`)
+### Setup Trainer (`src/components/board/SetupTrainer.tsx`) — "Place the Pieces"
 - 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup from scratch
-- Stages 1-6: board pre-filled except target pieces, click correct empty squares
-- Stage 7 (full setup): piece tray for selecting piece type, then click correct square
+- Piece tray shown on right side of board for ALL stages (side-by-side on desktop, stacked on mobile)
+- Single-type stages auto-select the piece type; multi-type stages require tray selection first
+- Supports both click-click (click tray → click board) and drag (drag from tray to board)
 - Stars based on total mistakes across all stages: 0 = 3, 1-2 = 2, 3+ = 1. localStorage: `setup-best-stars`
-- Uses Board component in readOnly mode with onSquareClick for placement, wrongMoveSquare for error feedback
+- Done screen has "Play a Game!" link to `/play?level=random`
 - Standalone from puzzle system (like CoordinateTrainer)
 
 ### Endgame Trainer (`src/components/endgame/EndgameShell.tsx`)
@@ -101,7 +102,8 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 - Basics cards have step numbers (1-6) with green checkmarks when complete, yellow glow + "Start here!"/"Up next!" badge on the first incomplete card
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
 - "Continue" button above Basics grid links directly to the next unsolved puzzle. "Play a Game!" card (step 7) in Basics links to `/play?level=random`
-- Cross-category "Next" button: last puzzle in a basics category shows "Continue to Bishop!" etc., last pawn puzzle shows "Play a Game!"
+- Cross-category "Next" button: last puzzle in a basics category shows "Continue to Bishop!" etc., last pawn puzzle shows "Continue to The Board!"
+- Full basics flow: puzzles (rook→...→pawn) → The Board → Place the Pieces → Play a Game. Each section's completion screen links to the next
 - Play page accepts `?level=random` or `?level=basic` query param to skip the level selector
 - Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
 - Board state is immutable — new `BoardState` created per move, never mutated

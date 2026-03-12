@@ -126,7 +126,7 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Set Up the Board card */}
+        {/* Place the Pieces card */}
         <Link href="/setup">
           <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
             <div className="flex items-center gap-4 mb-3">
@@ -136,10 +136,10 @@ export default function Home() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/pieces/wQ.svg" alt="Setup" className="w-8 h-8 -ml-1" />
               </div>
-              <h3 className="text-lg font-bold">Set Up the Board</h3>
+              <h3 className="text-lg font-bold">Place the Pieces</h3>
             </div>
             <p className="text-sm text-muted mb-3 flex-1">
-              Place every piece on its starting square.
+              Put each piece on its starting square.
             </p>
             <div className="text-xs text-faint">
               {setupStars > 0 && <StarRating stars={setupStars} size="sm" />}
