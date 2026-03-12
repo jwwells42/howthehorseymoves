@@ -24,6 +24,8 @@ export interface Puzzle {
   mode?: PuzzleMode;
   /** Opponent responses between player moves. Length = solution.length - 1. */
   opponentResponses?: OpponentResponse[];
+  /** Reject any move that doesn't match the next solution step (red flash). */
+  strictSolution?: boolean;
   /** Arrows drawn on the board to highlight tactical relationships. */
   arrows?: Arrow[];
 }

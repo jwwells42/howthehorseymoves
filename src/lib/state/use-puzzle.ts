@@ -256,8 +256,8 @@ export function usePuzzle(puzzle: Puzzle) {
         // Reach-target mode
         const hasMultiStepSolution = puzzle.solution.length > 1 && puzzle.opponentResponses && puzzle.opponentResponses.length > 0;
 
-        if (hasMultiStepSolution) {
-          // Multi-step: validate move order against solution
+        if (hasMultiStepSolution || puzzle.strictSolution) {
+          // Strict or multi-step: validate move against solution
           const expectedTarget = puzzle.solution[solutionStep];
           if (to !== expectedTarget) {
             setWrongMoveSquare(to);

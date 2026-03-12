@@ -14,6 +14,7 @@ export const castlingPuzzles: Puzzle[] = [
     solution: ["g1"],
     castlingRights: { K: true, Q: false, k: false, q: false },
     hints: ["The king moves two squares toward the rook to castle.", "Click the king, then click g1."],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -29,6 +30,7 @@ export const castlingPuzzles: Puzzle[] = [
     solution: ["c1"],
     castlingRights: { K: false, Q: true, k: false, q: false },
     hints: ["Queenside castling moves the king to c1.", "The rook jumps over to d1."],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -45,6 +47,7 @@ export const castlingPuzzles: Puzzle[] = [
     solution: ["g1"],
     castlingRights: { K: true, Q: true, k: false, q: false },
     hints: ["Both sides are open for castling.", "Kingside is g1, queenside is c1."],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -62,6 +65,7 @@ export const castlingPuzzles: Puzzle[] = [
     solution: ["g1"],
     castlingRights: { K: true, Q: true, k: false, q: false },
     hints: ["You can't castle if pieces are between the king and rook.", "The queenside is blocked by the pawn on b1."],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -83,6 +87,7 @@ export const castlingPuzzles: Puzzle[] = [
       "The black rook on f8 attacks f1, blocking kingside castling.",
       "Castle queenside instead!",
     ],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -103,6 +108,7 @@ export const castlingPuzzles: Puzzle[] = [
       "Move the king out of check first — or simply step aside.",
       "Move the king to f1 to escape.",
     ],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -125,6 +131,7 @@ export const castlingPuzzles: Puzzle[] = [
       "Castling tucks the king behind pawns for safety.",
       "The pawns on f2, g2, h2 will shield the king after castling.",
     ],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -145,6 +152,7 @@ export const castlingPuzzles: Puzzle[] = [
       "The king can't pass through f1 because it's attacked.",
       "You can't castle! Step the king to safety instead.",
     ],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -166,6 +174,7 @@ export const castlingPuzzles: Puzzle[] = [
       "Queenside castling passes the king through d1 — that's attacked!",
       "Castle kingside to g1.",
     ],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -188,6 +197,7 @@ export const castlingPuzzles: Puzzle[] = [
       "The enemy rook controls the h-file — kingside isn't available anyway.",
       "Castle queenside to tuck behind your a, b, c pawns.",
     ],
+    strictSolution: true,
     starThresholds: { three: 1, two: 2, one: 3 },
   },
 ];
