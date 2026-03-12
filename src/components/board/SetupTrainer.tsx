@@ -314,30 +314,39 @@ export default function SetupTrainer() {
           />
         </div>
 
-        {/* Piece tray */}
-        <div className="flex sm:flex-col gap-1.5 flex-wrap justify-center sm:justify-start sm:pt-2">
-          <div className="text-xs text-faint text-center sm:mb-1 w-full hidden sm:block">
+        {/* Piece tray — back rank row + pawn row */}
+        <div className="flex sm:flex-col gap-2 justify-center sm:justify-start sm:pt-2">
+          <div className="text-xs text-faint text-center sm:mb-0.5 w-full hidden sm:block">
             {isSingleType ? "Click or drag" : "Pick & place"}
           </div>
-          {remaining.map((p) => (
-            <button
-              key={p.square}
-              onClick={() => setSelectedPiece(p.piece)}
-              onPointerDown={(e) => handleTrayPointerDown(e, p.piece)}
-              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg border-2 transition-colors touch-none ${
-                selectedPiece === p.piece
-                  ? "border-yellow-400 bg-yellow-400/20"
-                  : "border-card-border bg-card hover:border-foreground/30"
-              }`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/pieces/w${p.piece}.svg`}
-                alt={p.piece}
-                className="w-full h-full pointer-events-none"
-              />
-            </button>
-          ))}
+          {/* Back rank pieces */}
+          {remaining.some(p => p.piece !== "P") && (
+            <div className="flex sm:grid sm:grid-cols-2 gap-1.5">
+              {remaining.filter(p => p.piece !== "P").map((p) => (
+                <TrayPiece
+                  key={p.square}
+                  piece={p.piece}
+                  selected={selectedPiece === p.piece}
+                  onSelect={() => setSelectedPiece(p.piece)}
+                  onPointerDown={(e) => handleTrayPointerDown(e, p.piece)}
+                />
+              ))}
+            </div>
+          )}
+          {/* Pawns */}
+          {remaining.some(p => p.piece === "P") && (
+            <div className="flex sm:grid sm:grid-cols-2 gap-1.5">
+              {remaining.filter(p => p.piece === "P").map((p) => (
+                <TrayPiece
+                  key={p.square}
+                  piece={p.piece}
+                  selected={selectedPiece === p.piece}
+                  onSelect={() => setSelectedPiece(p.piece)}
+                  onPointerDown={(e) => handleTrayPointerDown(e, p.piece)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -360,5 +369,34 @@ export default function SetupTrainer() {
         />
       )}
     </div>
+  );
+}
+
+/* ── Tray piece button ──────────────────────────────────── */
+
+function TrayPiece({
+  piece,
+  selected,
+  onSelect,
+  onPointerDown,
+}: {
+  piece: PieceKind;
+  selected: boolean;
+  onSelect: () => void;
+  onPointerDown: (e: React.PointerEvent) => void;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      onPointerDown={onPointerDown}
+      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg border-2 transition-colors touch-none ${
+        selected
+          ? "border-yellow-400 bg-yellow-400/20"
+          : "border-card-border bg-card hover:border-foreground/30"
+      }`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/pieces/w${piece}.svg`} alt={piece} className="w-full h-full pointer-events-none" />
+    </button>
   );
 }
