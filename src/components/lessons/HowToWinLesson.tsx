@@ -450,7 +450,7 @@ export default function HowToWinLesson({ section }: { section: HowToWinSection }
 
       {/* Board */}
       <div className="w-full max-w-md relative">
-        {step.isVictory && (
+        {(step.isVictory || (solved && (step.validation === "checkmate" || step.validation === "no-stalemate"))) && (
           <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
             <div className="text-8xl" style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.4))" }}>
               &#127942;
