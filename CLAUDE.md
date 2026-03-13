@@ -89,18 +89,21 @@ No test framework is configured.
 - All blindfold games use standalone localStorage keys (not puzzle progress system)
 
 ### UI (`src/components/`)
-- `board/Board.tsx` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode)
+- `board/Board.tsx` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations, danger-square overlays. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode). `dangerSquares` prop highlights squares with red semi-transparent overlay
+- `lessons/HowToWinLesson.tsx` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
 - `puzzle/PuzzleShell.tsx` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
 - `game/GameViewer.tsx` — PGN game viewer with move list, auto-play, keyboard nav, comments, arrows. **Test mode**: student reproduces the game from memory playing both sides; wrong moves show arrow hint
 - `game/GameShell.tsx` — Play vs Computer wrapper, accepts `botLevel` prop
 - `opening/OpeningTrainer.tsx` — Opening repertoire trainer with learn/practice phases
 
 ### Routing (`src/app/`)
-- `/` — Landing page with three sections: **Basics** (pieces, The Board, Place the Pieces, Play a Game), **Intermediate** (Mate in 1/2/3, Checkmate Patterns, Tactics, Endings), **Advanced** (Blindfold, Play vs Computer, Openings, Model Games). Intermediate/Advanced collapse behind "Show more" until all basics are complete
+- `/` — Landing page with three sections: **Basics** (pieces, The Board, How to Win, Play a Game), **Intermediate** (Mate in 1/2/3, Checkmate Patterns, Tactics, Endings), **Advanced** (Blindfold, Play vs Computer, Openings, Model Games). Intermediate/Advanced collapse behind "Show more" until all basics are complete
 - `/learn/[piece]` — Puzzle list (or subcategory list for categories like checkmate/tactics)
 - `/learn/[piece]/[puzzleId]` — Individual puzzle
 - `/learn/mate-in-one`, `/learn/mate-in-two`, `/learn/mate-in-three` — Polgar mate trainers
-- `/board` — Coordinate trainer (timed mini-game)
+- `/learn/how-to-win` — How to Win guided lesson (check, checkmate, stalemate)
+- `/board` — Board hub listing: Name the Square + Place the Pieces
+- `/board/coordinates` — Coordinate trainer (timed mini-game)
 - `/setup` — Place the Pieces stage list; `/setup/[stage]` — individual stage
 - `/games`, `/games/[gameId]` — Model game viewer (with test mode)
 - `/openings`, `/openings/[id]` — Opening repertoire trainer
@@ -114,11 +117,11 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 ## Key Conventions
 
 - Landing page has three sections: Basics, Intermediate, Advanced. Intermediate/Advanced collapse behind "Show more" toggle until all basics are complete (not locked — older students can click to reveal). Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
-- Basics cards have step numbers (1-6) with green checkmarks when complete, yellow glow + "Start here!"/"Up next!" badge on the first incomplete card
+- Basics cards have step numbers (1-9) with green checkmarks when complete, yellow glow + "Start here!"/"Up next!" badge on the first incomplete card
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
 - "Continue" button above Basics grid links directly to the next unsolved puzzle. "Play a Game!" card (step 7) in Basics links to `/play?level=random`
 - Cross-category "Next" button: last puzzle in a basics category shows "Continue to Bishop!" etc., last pawn puzzle shows "Continue to The Board!"
-- Full basics flow: puzzles (rook→...→pawn) → The Board → Place the Pieces → Play a Game. Each section's completion screen links to the next
+- Full basics flow: puzzles (rook→...→pawn) → The Board (Name the Square + Place the Pieces) → How to Win → Play a Game. Each section's completion screen links to the next
 - Play page accepts `?level=random` or `?level=basic` query param to skip the level selector
 - Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
 - Board state is immutable — new `BoardState` created per move, never mutated

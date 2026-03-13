@@ -42,6 +42,7 @@ interface BoardProps {
   readOnly?: boolean;
   arrows?: Arrow[];
   playableColors?: PieceColor[];
+  dangerSquares?: SquareId[];
 }
 
 export default function Board({
@@ -62,6 +63,7 @@ export default function Board({
   readOnly,
   arrows,
   playableColors,
+  dangerSquares,
 }: BoardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -144,6 +146,7 @@ export default function Board({
 
           const isPawnSlideSquare = pawnSlide && (sq === pawnSlide.from || sq === pawnSlide.to);
           const isWrongMove = sq === wrongMoveSquare;
+          const isDanger = dangerSquares?.includes(sq);
 
           let fill = isLight ? LIGHT : DARK;
           if (isPawnSlideSquare) fill = LAST_MOVE_COLOR;
@@ -164,6 +167,16 @@ export default function Board({
                 height={SQUARE_SIZE}
                 fill={fill}
               />
+              {isDanger && (
+                <rect
+                  x={fi * SQUARE_SIZE}
+                  y={ri * SQUARE_SIZE}
+                  width={SQUARE_SIZE}
+                  height={SQUARE_SIZE}
+                  fill="rgba(220, 38, 38, 0.35)"
+                  className="pointer-events-none"
+                />
+              )}
               {ri === 7 && (
                 <text
                   x={fi * SQUARE_SIZE + 5}

@@ -13,12 +13,12 @@ const ADVANCED_KEYS = ["blindfold"];
 export default function Home() {
   const { state, getPuzzleProgress } = useProgress();
   const [coordStars, setCoordStars] = useState(0);
-  const [setupStars, setSetupStars] = useState(0);
+  const [howToWinStars, setHowToWinStars] = useState(0);
   const [showIntermediate, setShowIntermediate] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   useEffect(() => {
     setCoordStars(parseInt(localStorage.getItem("coord-best-stars") ?? "0", 10));
-    setSetupStars(parseInt(localStorage.getItem("setup-best-stars") ?? "0", 10));
+    setHowToWinStars(parseInt(localStorage.getItem("how-to-win-best-stars") ?? "0", 10));
   }, []);
 
   // Check if all basics are complete
@@ -114,9 +114,16 @@ export default function Home() {
           );
         })}
 
-        {/* The Board card */}
+        {/* The Board card (Name the Square + Place the Pieces) */}
         <Link href="/board">
-          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
+          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col relative">
+            <div className={`absolute -top-2.5 -left-2.5 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+              coordStars > 0
+                ? "bg-green-600 border-green-500 text-white"
+                : "bg-card border-card-border text-faint"
+            }`}>
+              {coordStars > 0 ? "\u2713" : PIECES.length + 1}
+            </div>
             <div className="flex items-center gap-4 mb-3">
               <div className="w-12 h-12 rounded bg-[#7a9e6e] border-2 border-[#d4c4a0] flex items-center justify-center text-2xl font-bold text-[#d4c4a0]">
                 e4
@@ -124,7 +131,7 @@ export default function Home() {
               <h3 className="text-lg font-bold">The Board</h3>
             </div>
             <p className="text-sm text-muted mb-3 flex-1">
-              Learn squares, coordinates, and board vision.
+              Learn squares, coordinates, and set up the pieces.
             </p>
             <div className="text-xs text-faint">
               {coordStars > 0 && <StarRating stars={coordStars} size="sm" />}
@@ -132,23 +139,26 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Place the Pieces card */}
-        <Link href="/setup">
-          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col">
+        {/* How to Win card */}
+        <Link href="/learn/how-to-win">
+          <div className="rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg cursor-pointer p-6 transition-all h-full flex flex-col relative">
+            <div className={`absolute -top-2.5 -left-2.5 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+              howToWinStars > 0
+                ? "bg-green-600 border-green-500 text-white"
+                : "bg-card border-card-border text-faint"
+            }`}>
+              {howToWinStars > 0 ? "\u2713" : PIECES.length + 2}
+            </div>
             <div className="flex items-center gap-4 mb-3">
-              <div className="w-12 h-12 flex items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/pieces/wK.svg" alt="Setup" className="w-8 h-8 -mr-1" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/pieces/wQ.svg" alt="Setup" className="w-8 h-8 -ml-1" />
-              </div>
-              <h3 className="text-lg font-bold">Place the Pieces</h3>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/pieces/wK.svg" alt="How to Win" className="w-12 h-12" />
+              <h3 className="text-lg font-bold">How to Win</h3>
             </div>
             <p className="text-sm text-muted mb-3 flex-1">
-              Put each piece on its starting square.
+              Learn check, checkmate, and stalemate.
             </p>
             <div className="text-xs text-faint">
-              {setupStars > 0 && <StarRating stars={setupStars} size="sm" />}
+              {howToWinStars > 0 && <StarRating stars={howToWinStars} size="sm" />}
             </div>
           </div>
         </Link>
@@ -170,7 +180,7 @@ export default function Home() {
                 ? "bg-green-600 border-green-500 text-white"
                 : "bg-card border-card-border text-faint"
             }`}>
-              {allBasicsDone ? "\u2713" : PIECES.length + 1}
+              {allBasicsDone ? "\u2713" : PIECES.length + 3}
             </div>
             <div className="flex items-center gap-4 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
