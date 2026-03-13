@@ -43,6 +43,7 @@ interface BoardProps {
   arrows?: Arrow[];
   playableColors?: PieceColor[];
   dangerSquares?: SquareId[];
+  safeSquares?: SquareId[];
 }
 
 export default function Board({
@@ -64,6 +65,7 @@ export default function Board({
   arrows,
   playableColors,
   dangerSquares,
+  safeSquares,
 }: BoardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -174,6 +176,16 @@ export default function Board({
                   width={SQUARE_SIZE}
                   height={SQUARE_SIZE}
                   fill="rgba(220, 38, 38, 0.35)"
+                  className="pointer-events-none"
+                />
+              )}
+              {safeSquares?.includes(sq) && (
+                <rect
+                  x={fi * SQUARE_SIZE}
+                  y={ri * SQUARE_SIZE}
+                  width={SQUARE_SIZE}
+                  height={SQUARE_SIZE}
+                  fill="rgba(34, 197, 94, 0.35)"
                   className="pointer-events-none"
                 />
               )}

@@ -71,13 +71,47 @@ interface LessonStep {
   type: "demo" | "interactive";
   arrows?: Arrow[];
   dangerSquares?: SquareId[];
+  safeSquares?: SquareId[];
   validation?: ValidationMode;
 }
 
-/* ── Lesson steps ────────────────────────────────────────── */
+/* ── Sections ────────────────────────────────────────────── */
 
-const STEPS: LessonStep[] = [
-  // Part 1: Check
+export type HowToWinSection = "check" | "checkmate" | "stalemate";
+
+export interface SectionInfo {
+  key: HowToWinSection;
+  title: string;
+  description: string;
+  icon: string;
+  storageKey: string;
+}
+
+export const SECTIONS: SectionInfo[] = [
+  {
+    key: "check",
+    title: "Check",
+    description: "Learn what check is and three ways to escape it.",
+    icon: "/pieces/wR.svg",
+    storageKey: "how-to-win-check-stars",
+  },
+  {
+    key: "checkmate",
+    title: "Checkmate",
+    description: "Trap the king with nowhere to go. That's how you win!",
+    icon: "/pieces/wQ.svg",
+    storageKey: "how-to-win-checkmate-stars",
+  },
+  {
+    key: "stalemate",
+    title: "Stalemate",
+    description: "Don't let the game end in a draw when you're winning!",
+    icon: "/pieces/bK.svg",
+    storageKey: "how-to-win-stalemate-stars",
+  },
+];
+
+const CHECK_STEPS: LessonStep[] = [
   {
     title: "Check!",
     instruction: "The rook attacks the king. That's check!",
@@ -85,8 +119,6 @@ const STEPS: LessonStep[] = [
     type: "demo",
     arrows: [{ from: "e8" as SquareId, to: "e1" as SquareId, color: "#dc2626" }],
   },
-
-  // Part 2: Escape check — move
   {
     title: "Move the King",
     instruction: "Your king is in check! Move it to safety.",
@@ -95,8 +127,6 @@ const STEPS: LessonStep[] = [
     arrows: [{ from: "e8" as SquareId, to: "e1" as SquareId, color: "#dc2626" }],
     validation: "any",
   },
-
-  // Part 2: Escape check — capture
   {
     title: "Capture!",
     instruction: "Take the piece that's attacking your king!",
@@ -108,8 +138,6 @@ const STEPS: LessonStep[] = [
     ],
     validation: "any",
   },
-
-  // Part 2: Escape check — block
   {
     title: "Block!",
     instruction: "Put a piece in the way to block the attack!",
@@ -121,8 +149,6 @@ const STEPS: LessonStep[] = [
     ],
     validation: "any",
   },
-
-  // Part 3: Give check
   {
     title: "Give Check!",
     instruction: "Move a piece to attack their king!",
@@ -130,8 +156,9 @@ const STEPS: LessonStep[] = [
     type: "interactive",
     validation: "check",
   },
+];
 
-  // Part 4: Checkmate (demo)
+const CHECKMATE_STEPS: LessonStep[] = [
   {
     title: "Checkmate!",
     instruction: "The king is in check and can't escape. You win!",
@@ -140,17 +167,6 @@ const STEPS: LessonStep[] = [
     arrows: [{ from: "e8" as SquareId, to: "g8" as SquareId, color: "#dc2626" }],
     dangerSquares: ["f8" as SquareId, "h8" as SquareId],
   },
-
-  // Part 5: Stalemate (demo)
-  {
-    title: "Stalemate",
-    instruction: "Not in check, but can't move. It's a draw — not a win!",
-    fen: "k7/8/1Q6/8/8/8/8/6K1 b - - 0 1",
-    type: "demo",
-    dangerSquares: ["a7" as SquareId, "b7" as SquareId, "b8" as SquareId],
-  },
-
-  // Part 6: Deliver checkmate (practice)
   {
     title: "Deliver Checkmate!",
     instruction: "Find the move that traps the king. Checkmate!",
@@ -186,8 +202,22 @@ const STEPS: LessonStep[] = [
     type: "interactive",
     validation: "checkmate",
   },
+];
 
-  // Part 7: Don't stalemate!
+const STALEMATE_STEPS: LessonStep[] = [
+  {
+    title: "Stalemate",
+    instruction: "The king is NOT in check, but every square is attacked. It's a draw!",
+    fen: "k7/8/1Q6/8/8/8/8/6K1 b - - 0 1",
+    type: "demo",
+    arrows: [
+      { from: "b6" as SquareId, to: "a7" as SquareId, color: "#dc2626" },
+      { from: "b6" as SquareId, to: "b7" as SquareId, color: "#dc2626" },
+      { from: "b6" as SquareId, to: "b8" as SquareId, color: "#dc2626" },
+    ],
+    dangerSquares: ["a7" as SquareId, "b7" as SquareId, "b8" as SquareId],
+    safeSquares: ["a8" as SquareId],
+  },
   {
     title: "Win, Don't Draw!",
     instruction: "One move wins. The other is a draw. Choose wisely!",
@@ -204,6 +234,12 @@ const STEPS: LessonStep[] = [
   },
 ];
 
+const SECTION_STEPS: Record<HowToWinSection, LessonStep[]> = {
+  check: CHECK_STEPS,
+  checkmate: CHECKMATE_STEPS,
+  stalemate: STALEMATE_STEPS,
+};
+
 /* ── Component ────────────────────────────────────────────── */
 
 function mistakesToStars(m: number): number {
@@ -212,7 +248,11 @@ function mistakesToStars(m: number): number {
   return 1;
 }
 
-export default function HowToWinLesson() {
+export default function HowToWinLesson({ section }: { section: HowToWinSection }) {
+  const sectionInfo = SECTIONS.find(s => s.key === section)!;
+  const steps = SECTION_STEPS[section];
+  const storageKey = sectionInfo.storageKey;
+
   const [stepIndex, setStepIndex] = useState(0);
   const [board, setBoard] = useState<BoardState>({ pieces: new Map() });
   const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
@@ -223,16 +263,14 @@ export default function HowToWinLesson() {
   const [bestStars, setBestStars] = useState(0);
   const [done, setDone] = useState(false);
 
-  const storageKey = "how-to-win-best-stars";
-
   // Load initial step
   useEffect(() => {
-    const { placements, castlingRights, enPassantSquare } = parseFen(STEPS[0].fen);
+    const { placements, castlingRights, enPassantSquare } = parseFen(steps[0].fen);
     setBoard(createBoardState(placements, { castlingRights, enPassantSquare }));
     setBestStars(parseInt(localStorage.getItem(storageKey) ?? "0", 10));
-  }, []);
+  }, [steps, storageKey]);
 
-  const step = STEPS[stepIndex];
+  const step = steps[stepIndex];
   const playerColor: PieceColor = "w";
 
   const validMoves = useMemo(() => {
@@ -243,17 +281,19 @@ export default function HowToWinLesson() {
   }, [selectedSquare, board, solved, step, playerColor]);
 
   const goToStep = useCallback((idx: number) => {
-    if (idx >= STEPS.length) {
+    if (idx >= steps.length) {
       const stars = mistakesToStars(mistakes);
       const prev = parseInt(localStorage.getItem(storageKey) ?? "0", 10);
       if (stars > prev) {
         localStorage.setItem(storageKey, stars.toString());
         setBestStars(stars);
       }
+      // Also update the combined key for the landing page card
+      updateCombinedStars();
       setDone(true);
       return;
     }
-    const s = STEPS[idx];
+    const s = steps[idx];
     const { placements, castlingRights, enPassantSquare } = parseFen(s.fen);
     setBoard(createBoardState(placements, { castlingRights, enPassantSquare }));
     setStepIndex(idx);
@@ -261,7 +301,7 @@ export default function HowToWinLesson() {
     setSolved(false);
     setWrongMoveSquare(null);
     setFeedbackMessage(null);
-  }, [mistakes]);
+  }, [mistakes, steps, storageKey]);
 
   const executeMove = useCallback((from: SquareId, to: SquareId) => {
     if (solved || !step || step.type === "demo") return;
@@ -344,6 +384,7 @@ export default function HowToWinLesson() {
   // Done screen
   if (done) {
     const stars = mistakesToStars(mistakes);
+    const nextSection = SECTIONS[SECTIONS.findIndex(s => s.key === section) + 1];
     return (
       <div className="flex flex-col items-center gap-6 p-4 max-w-2xl mx-auto">
         <div className="text-center">
@@ -367,6 +408,14 @@ export default function HowToWinLesson() {
           >
             Play Again
           </button>
+          {nextSection && (
+            <a
+              href={`/learn/how-to-win-${nextSection.key}`}
+              className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
+            >
+              Continue to {nextSection.title}!
+            </a>
+          )}
         </div>
       </div>
     );
@@ -374,7 +423,7 @@ export default function HowToWinLesson() {
 
   if (!step) return null;
 
-  const progress = ((stepIndex + 1) / STEPS.length) * 100;
+  const progress = ((stepIndex + 1) / steps.length) * 100;
 
   return (
     <div className="flex flex-col items-center gap-4 p-4 max-w-2xl mx-auto">
@@ -387,7 +436,7 @@ export default function HowToWinLesson() {
           />
         </div>
         <p className="text-xs text-faint mt-1 text-center">
-          {stepIndex + 1} / {STEPS.length}
+          {stepIndex + 1} / {steps.length}
         </p>
       </div>
 
@@ -413,6 +462,7 @@ export default function HowToWinLesson() {
           wrongMoveSquare={wrongMoveSquare}
           arrows={step.arrows}
           dangerSquares={step.dangerSquares}
+          safeSquares={step.safeSquares}
           readOnly={step.type === "demo"}
           playableColors={["w"]}
         />
@@ -446,4 +496,11 @@ export default function HowToWinLesson() {
       ) : null}
     </div>
   );
+}
+
+function updateCombinedStars() {
+  const allKeys = SECTIONS.map(s => s.storageKey);
+  const allStars = allKeys.map(k => parseInt(localStorage.getItem(k) ?? "0", 10));
+  const min = Math.min(...allStars);
+  localStorage.setItem("how-to-win-best-stars", min.toString());
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { getPuzzlesForPiece, PIECES, getCategory } from "@/lib/puzzles";
 import { useProgress } from "@/lib/state/progress-context";
@@ -11,7 +11,8 @@ import SameDiagonal from "@/components/blindfold/SameDiagonal";
 import KnightRoutes from "@/components/blindfold/KnightRoutes";
 import GuardingGame from "@/components/blindfold/GuardingGame";
 import PolgarTrainer from "@/components/polgar/PolgarTrainer";
-import HowToWinLesson from "@/components/lessons/HowToWinLesson";
+import HowToWinLesson, { SECTIONS as HOW_TO_WIN_SECTIONS } from "@/components/lessons/HowToWinLesson";
+import type { HowToWinSection } from "@/components/lessons/HowToWinLesson";
 import type { PiecePlacement } from "@/lib/logic/types";
 
 const ENDGAME_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[] }> = {
@@ -95,14 +96,21 @@ export default function PieceLearnPage({
     );
   }
 
-  // How to Win lesson
+  // How to Win hub page
   if (piece === "how-to-win") {
+    return <HowToWinHub />;
+  }
+
+  // How to Win sub-sections
+  const howToWinMatch = piece.match(/^how-to-win-(check|checkmate|stalemate)$/);
+  if (howToWinMatch) {
+    const section = howToWinMatch[1] as HowToWinSection;
     return (
       <main className="min-h-screen p-6 max-w-2xl mx-auto">
-        <Link href="/" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
-          &larr; Back to home
+        <Link href="/learn/how-to-win" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to How to Win
         </Link>
-        <HowToWinLesson />
+        <HowToWinLesson section={section} />
       </main>
     );
   }
@@ -301,6 +309,56 @@ function PuzzleListPage({ pieceKey }: { pieceKey: string }) {
             </div>
           );
         })}
+      </div>
+    </main>
+  );
+}
+
+function HowToWinHub() {
+  const [stars, setStars] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const s: Record<string, number> = {};
+    for (const sec of HOW_TO_WIN_SECTIONS) {
+      s[sec.key] = parseInt(localStorage.getItem(sec.storageKey) ?? "0", 10);
+    }
+    setStars(s);
+  }, []);
+
+  return (
+    <main className="min-h-screen p-6 max-w-2xl mx-auto">
+      <Link href="/" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+        &larr; Back to home
+      </Link>
+
+      <div className="flex items-center gap-4 mb-8">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/pieces/wK.svg" alt="How to Win" className="w-16 h-16" />
+        <div>
+          <h1 className="text-3xl font-bold">How to Win</h1>
+          <p className="text-muted">Learn check, checkmate, and stalemate.</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {HOW_TO_WIN_SECTIONS.map((sec) => (
+          <Link
+            key={sec.key}
+            href={`/learn/how-to-win-${sec.key}`}
+            className="flex items-center justify-between p-5 rounded-xl border border-card-border bg-card hover:border-foreground/30 hover:shadow-lg transition-all"
+          >
+            <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={sec.icon} alt={sec.title} className="w-10 h-10" />
+              <div>
+                <h3 className="font-bold">{sec.title}</h3>
+                <p className="text-sm text-muted">{sec.description}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              {(stars[sec.key] ?? 0) > 0 && <StarRating stars={stars[sec.key]} size="sm" />}
+            </div>
+          </Link>
+        ))}
       </div>
     </main>
   );
