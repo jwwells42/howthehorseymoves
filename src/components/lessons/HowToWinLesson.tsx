@@ -249,7 +249,7 @@ const STALEMATE_STEPS: LessonStep[] = [
     slug: "dont-stalemate-2",
     title: "Win, Don't Draw!",
     instruction: "Checkmate the king — don't stalemate!",
-    fen: "8/8/8/8/8/2K5/2Q5/k7 w - - 0 1",
+    fen: "8/8/8/8/8/2K5/7Q/k7 w - - 0 1",
     type: "interactive",
     validation: "no-stalemate",
   },
