@@ -447,12 +447,19 @@ export default function HowToWinLesson({ section, stepSlug }: { section: HowToWi
           >
             Play Again
           </button>
-          {nextSection && (
+          {nextSection ? (
             <button
               onClick={() => router.push(`/learn/how-to-win-${nextSection.key}/${SECTION_STEPS[nextSection.key][0].slug}`)}
               className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
             >
               Continue to {nextSection.title}!
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push("/play?level=random")}
+              className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
+            >
+              Play vs Computer!
             </button>
           )}
         </div>
