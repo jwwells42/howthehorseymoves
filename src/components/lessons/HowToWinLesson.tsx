@@ -446,15 +446,17 @@ export default function HowToWinLesson({ section }: { section: HowToWinSection }
       <div className="text-center">
         <h2 className="text-xl font-bold">{step.title}</h2>
         <p className="text-sm text-muted mt-1">{step.instruction}</p>
-        {step.isVictory && (
-          <div className="mt-2 inline-block px-4 py-1 rounded-full bg-green-600 text-white font-bold text-sm">
-            You win!
-          </div>
-        )}
       </div>
 
       {/* Board */}
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md relative">
+        {step.isVictory && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <div className="text-8xl" style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.4))" }}>
+              &#127942;
+            </div>
+          </div>
+        )}
         <Board
           board={board}
           selectedSquare={step.type === "interactive" ? selectedSquare : null}

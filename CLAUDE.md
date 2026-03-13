@@ -116,6 +116,7 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 
 ## Key Conventions
 
+- Many students using this app cannot read yet. All interactive elements (puzzles, lessons, trainers) should be figure-out-able from visual cues alone: arrows, colors, icons, and board state. Text instructions are helpful for those who can read but must not be the only signal. Use universal symbols (trophies, checkmarks, red/green colors) over text labels
 - Landing page has three sections: Basics, Intermediate, Advanced. Intermediate/Advanced collapse behind "Show more" toggle until all basics are complete (not locked — older students can click to reveal). Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
 - Basics cards have step numbers (1-9) with green checkmarks when complete, yellow glow + "Start here!"/"Up next!" badge on the first incomplete card
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
