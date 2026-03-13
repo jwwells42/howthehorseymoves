@@ -11,7 +11,7 @@ import SameDiagonal from "@/components/blindfold/SameDiagonal";
 import KnightRoutes from "@/components/blindfold/KnightRoutes";
 import GuardingGame from "@/components/blindfold/GuardingGame";
 import PolgarTrainer from "@/components/polgar/PolgarTrainer";
-import HowToWinLesson, { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from "@/components/lessons/HowToWinLesson";
+import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from "@/components/lessons/HowToWinLesson";
 import type { HowToWinSection } from "@/components/lessons/HowToWinLesson";
 import type { PiecePlacement } from "@/lib/logic/types";
 

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getPuzzle, getPuzzlesForPiece, PIECES } from "@/lib/puzzles";
 import PuzzleShell from "@/components/puzzle/PuzzleShell";
-import HowToWinLesson, { getStepIndex } from "@/components/lessons/HowToWinLesson";
+import HowToWinLesson from "@/components/lessons/HowToWinLesson";
 import type { HowToWinSection } from "@/components/lessons/HowToWinLesson";
 
 export default function PuzzlePage({
@@ -20,13 +20,12 @@ export default function PuzzlePage({
   const howToWinMatch = piece.match(/^how-to-win-(check|checkmate|stalemate)$/);
   if (howToWinMatch) {
     const section = howToWinMatch[1] as HowToWinSection;
-    const stepIdx = getStepIndex(section, puzzleId);
     return (
       <main className="min-h-screen p-6 max-w-2xl mx-auto">
         <Link href={`/learn/${piece}`} className="text-sm text-muted hover:text-foreground mb-4 inline-block">
           &larr; Back to {section === "check" ? "Check" : section === "checkmate" ? "Checkmate" : "Stalemate"}
         </Link>
-        <HowToWinLesson section={section} initialStep={stepIdx} />
+        <HowToWinLesson section={section} stepSlug={puzzleId} />
       </main>
     );
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Board from "@/components/board/Board";
 import StarRating from "@/components/puzzle/StarRating";
 import {
@@ -26,7 +27,6 @@ function applyMove(board: BoardState, from: SquareId, to: SquareId): BoardState 
   pieces.delete(from);
   pieces.set(to, piece);
 
-  // Castling rook
   if (piece.piece === "K") {
     const [fx] = squareToCoords(from);
     const [tx] = squareToCoords(to);
@@ -45,7 +45,6 @@ function applyMove(board: BoardState, from: SquareId, to: SquareId): BoardState 
     }
   }
 
-  // Pawn promotion (auto-queen)
   if (piece.piece === "P") {
     const rank = to[1];
     if ((piece.color === "w" && rank === "8") || (piece.color === "b" && rank === "1")) {
@@ -59,10 +58,10 @@ function applyMove(board: BoardState, from: SquareId, to: SquareId): BoardState 
 /* ── Step types ──────────────────────────────────────────── */
 
 type ValidationMode =
-  | "any"              // Accept any legal move
-  | "check"            // Must give check
-  | "checkmate"        // Must deliver checkmate
-  | "no-stalemate";    // Must deliver checkmate, reject stalemate
+  | "any"
+  | "check"
+  | "checkmate"
+  | "no-stalemate";
 
 interface LessonStep {
   slug: string;
@@ -217,7 +216,7 @@ const CHECKMATE_STEPS: LessonStep[] = [
     slug: "two-rooks",
     title: "Deliver Checkmate!",
     instruction: "Use both rooks to trap the king!",
-    fen: "6k1/5R2/8/8/8/8/8/R3K3 w - - 0 1",
+    fen: "6k1/1R6/8/8/8/8/8/R3K3 w - - 0 1",
     type: "interactive",
     validation: "checkmate",
   },
@@ -282,29 +281,40 @@ function mistakesToStars(m: number): number {
   return 1;
 }
 
-export default function HowToWinLesson({ section, initialStep = 0 }: { section: HowToWinSection; initialStep?: number }) {
+export default function HowToWinLesson({ section, stepSlug }: { section: HowToWinSection; stepSlug: string }) {
+  const router = useRouter();
   const sectionInfo = SECTIONS.find(s => s.key === section)!;
   const steps = SECTION_STEPS[section];
   const storageKey = sectionInfo.storageKey;
+  const mistakesKey = `how-to-win-${section}-mistakes`;
 
-  const [stepIndex, setStepIndex] = useState(initialStep);
+  const stepIndex = getStepIndex(section, stepSlug);
+  const step = steps[stepIndex];
+
   const [board, setBoard] = useState<BoardState>({ pieces: new Map() });
   const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
   const [solved, setSolved] = useState(false);
-  const [mistakes, setMistakes] = useState(0);
   const [wrongMoveSquare, setWrongMoveSquare] = useState<SquareId | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [bestStars, setBestStars] = useState(0);
   const [done, setDone] = useState(false);
 
-  // Load initial step
+  // Load this step's board
   useEffect(() => {
-    const { placements, castlingRights, enPassantSquare } = parseFen(steps[initialStep].fen);
+    const { placements, castlingRights, enPassantSquare } = parseFen(step.fen);
     setBoard(createBoardState(placements, { castlingRights, enPassantSquare }));
+    setSelectedSquare(null);
+    setSolved(false);
+    setWrongMoveSquare(null);
+    setFeedbackMessage(null);
+    setDone(false);
     setBestStars(parseInt(localStorage.getItem(storageKey) ?? "0", 10));
-  }, [steps, storageKey, initialStep]);
+    // Reset mistakes at the start of a section
+    if (stepIndex === 0) {
+      localStorage.setItem(mistakesKey, "0");
+    }
+  }, [step, stepIndex, storageKey, mistakesKey]);
 
-  const step = steps[stepIndex];
   const playerColor: PieceColor = "w";
 
   const validMoves = useMemo(() => {
@@ -314,28 +324,27 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
     return getLegalMoves(selectedSquare, board, playerColor);
   }, [selectedSquare, board, solved, step, playerColor]);
 
-  const goToStep = useCallback((idx: number) => {
-    if (idx >= steps.length) {
+  const goToNext = useCallback(() => {
+    if (stepIndex + 1 >= steps.length) {
+      // Section complete — save stars
+      const mistakes = parseInt(localStorage.getItem(mistakesKey) ?? "0", 10);
       const stars = mistakesToStars(mistakes);
       const prev = parseInt(localStorage.getItem(storageKey) ?? "0", 10);
       if (stars > prev) {
         localStorage.setItem(storageKey, stars.toString());
         setBestStars(stars);
       }
-      // Also update the combined key for the landing page card
       updateCombinedStars();
       setDone(true);
-      return;
+    } else {
+      router.push(`/learn/how-to-win-${section}/${steps[stepIndex + 1].slug}`);
     }
-    const s = steps[idx];
-    const { placements, castlingRights, enPassantSquare } = parseFen(s.fen);
-    setBoard(createBoardState(placements, { castlingRights, enPassantSquare }));
-    setStepIndex(idx);
-    setSelectedSquare(null);
-    setSolved(false);
-    setWrongMoveSquare(null);
-    setFeedbackMessage(null);
-  }, [mistakes, steps, storageKey]);
+  }, [stepIndex, steps, section, storageKey, mistakesKey, router]);
+
+  const addMistake = useCallback(() => {
+    const cur = parseInt(localStorage.getItem(mistakesKey) ?? "0", 10);
+    localStorage.setItem(mistakesKey, (cur + 1).toString());
+  }, [mistakesKey]);
 
   const executeMove = useCallback((from: SquareId, to: SquareId) => {
     if (solved || !step || step.type === "demo") return;
@@ -345,7 +354,7 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
 
     if (validation === "check") {
       if (!isInCheck("b", newBoard)) {
-        setMistakes(m => m + 1);
+        addMistake();
         setWrongMoveSquare(to);
         setSelectedSquare(null);
         setTimeout(() => setWrongMoveSquare(null), 600);
@@ -353,7 +362,7 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
       }
     } else if (validation === "checkmate") {
       if (!isCheckmate("b", newBoard)) {
-        setMistakes(m => m + 1);
+        addMistake();
         setWrongMoveSquare(to);
         setSelectedSquare(null);
         setTimeout(() => setWrongMoveSquare(null), 600);
@@ -361,7 +370,7 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
       }
     } else if (validation === "no-stalemate") {
       if (isStalemate("b", newBoard)) {
-        setMistakes(m => m + 1);
+        addMistake();
         setWrongMoveSquare(to);
         setFeedbackMessage("That's stalemate — a draw!");
         setSelectedSquare(null);
@@ -372,19 +381,18 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
         return;
       }
       if (!isCheckmate("b", newBoard)) {
-        setMistakes(m => m + 1);
+        addMistake();
         setWrongMoveSquare(to);
         setSelectedSquare(null);
         setTimeout(() => setWrongMoveSquare(null), 600);
         return;
       }
     }
-    // "any" validation: just accept any legal move
 
     setBoard(newBoard);
     setSelectedSquare(null);
     setSolved(true);
-  }, [board, solved, step]);
+  }, [board, solved, step, addMistake]);
 
   const handleSquareClick = useCallback((sq: SquareId) => {
     if (solved || !step || step.type === "demo") return;
@@ -417,6 +425,7 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
 
   // Done screen
   if (done) {
+    const mistakes = parseInt(localStorage.getItem(mistakesKey) ?? "0", 10);
     const stars = mistakesToStars(mistakes);
     const nextSection = SECTIONS[SECTIONS.findIndex(s => s.key === section) + 1];
     return (
@@ -433,22 +442,18 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
         <StarRating stars={stars} size="lg" />
         <div className="flex gap-3">
           <button
-            onClick={() => {
-              setDone(false);
-              setMistakes(0);
-              goToStep(0);
-            }}
+            onClick={() => router.push(`/learn/how-to-win-${section}/${steps[0].slug}`)}
             className="px-6 py-2 rounded-lg bg-btn hover:bg-btn-hover font-medium transition-colors"
           >
             Play Again
           </button>
           {nextSection && (
-            <a
-              href={`/learn/how-to-win-${nextSection.key}`}
+            <button
+              onClick={() => router.push(`/learn/how-to-win-${nextSection.key}/${SECTION_STEPS[nextSection.key][0].slug}`)}
               className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
             >
               Continue to {nextSection.title}!
-            </a>
+            </button>
           )}
         </div>
       </div>
@@ -519,7 +524,7 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
       {/* Controls */}
       {step.type === "demo" ? (
         <button
-          onClick={() => goToStep(stepIndex + 1)}
+          onClick={goToNext}
           className="px-8 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-lg transition-colors"
         >
           Next
@@ -528,7 +533,7 @@ export default function HowToWinLesson({ section, initialStep = 0 }: { section: 
         <div className="flex flex-col items-center gap-2">
           <p className="text-green-500 font-bold">Correct!</p>
           <button
-            onClick={() => goToStep(stepIndex + 1)}
+            onClick={goToNext}
             className="px-8 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-lg transition-colors"
           >
             Next
