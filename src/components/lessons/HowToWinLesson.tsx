@@ -73,6 +73,7 @@ interface LessonStep {
   dangerSquares?: SquareId[];
   safeSquares?: SquareId[];
   validation?: ValidationMode;
+  isVictory?: boolean;
 }
 
 /* ── Sections ────────────────────────────────────────────── */
@@ -164,8 +165,9 @@ const CHECKMATE_STEPS: LessonStep[] = [
     instruction: "The king is in check and can't escape. You win!",
     fen: "4R1k1/5ppp/8/8/8/8/8/6K1 b - - 0 1",
     type: "demo",
-    arrows: [{ from: "e8" as SquareId, to: "g8" as SquareId, color: "#dc2626" }],
+    arrows: [{ from: "e8" as SquareId, to: "g8" as SquareId, color: "#22c55e" }],
     dangerSquares: ["f8" as SquareId, "h8" as SquareId],
+    isVictory: true,
   },
   {
     title: "Deliver Checkmate!",
@@ -444,6 +446,11 @@ export default function HowToWinLesson({ section }: { section: HowToWinSection }
       <div className="text-center">
         <h2 className="text-xl font-bold">{step.title}</h2>
         <p className="text-sm text-muted mt-1">{step.instruction}</p>
+        {step.isVictory && (
+          <div className="mt-2 inline-block px-4 py-1 rounded-full bg-green-600 text-white font-bold text-sm">
+            You win!
+          </div>
+        )}
       </div>
 
       {/* Board */}
