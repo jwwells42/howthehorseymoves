@@ -113,9 +113,12 @@ const STEPS: LessonStep[] = [
   {
     title: "Block!",
     instruction: "Put a piece in the way to block the attack!",
-    fen: "4r3/8/8/3R4/8/8/8/4K3 w - - 0 1",
+    fen: "4rbk1/6pp/8/8/8/5B2/r2P1P2/3RKR2 w - - 0 1",
     type: "interactive",
-    arrows: [{ from: "e8" as SquareId, to: "e1" as SquareId, color: "#dc2626" }],
+    arrows: [
+      { from: "e8" as SquareId, to: "e1" as SquareId, color: "#dc2626" },
+      { from: "f3" as SquareId, to: "e2" as SquareId, color: "#22c55e" },
+    ],
     validation: "any",
   },
 
