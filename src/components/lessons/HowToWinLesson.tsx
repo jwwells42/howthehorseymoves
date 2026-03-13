@@ -102,7 +102,10 @@ const STEPS: LessonStep[] = [
     instruction: "Take the piece that's attacking your king!",
     fen: "8/8/8/8/8/5n2/4B3/6K1 w - - 0 1",
     type: "interactive",
-    arrows: [{ from: "f3" as SquareId, to: "g1" as SquareId, color: "#dc2626" }],
+    arrows: [
+      { from: "f3" as SquareId, to: "g1" as SquareId, color: "#dc2626" },
+      { from: "e2" as SquareId, to: "f3" as SquareId, color: "#22c55e" },
+    ],
     validation: "any",
   },
 
