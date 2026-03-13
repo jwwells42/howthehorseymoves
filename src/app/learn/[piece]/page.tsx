@@ -11,7 +11,7 @@ import SameDiagonal from "@/components/blindfold/SameDiagonal";
 import KnightRoutes from "@/components/blindfold/KnightRoutes";
 import GuardingGame from "@/components/blindfold/GuardingGame";
 import PolgarTrainer from "@/components/polgar/PolgarTrainer";
-import HowToWinLesson, { SECTIONS as HOW_TO_WIN_SECTIONS } from "@/components/lessons/HowToWinLesson";
+import HowToWinLesson, { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from "@/components/lessons/HowToWinLesson";
 import type { HowToWinSection } from "@/components/lessons/HowToWinLesson";
 import type { PiecePlacement } from "@/lib/logic/types";
 
@@ -101,18 +101,11 @@ export default function PieceLearnPage({
     return <HowToWinHub />;
   }
 
-  // How to Win sub-sections
+  // How to Win sub-sections — show step list
   const howToWinMatch = piece.match(/^how-to-win-(check|checkmate|stalemate)$/);
   if (howToWinMatch) {
     const section = howToWinMatch[1] as HowToWinSection;
-    return (
-      <main className="min-h-screen p-6 max-w-2xl mx-auto">
-        <Link href="/learn/how-to-win" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
-          &larr; Back to How to Win
-        </Link>
-        <HowToWinLesson section={section} />
-      </main>
-    );
+    return <HowToWinSectionPage section={section} />;
   }
 
   // Polgar mate trainers
@@ -356,6 +349,63 @@ function HowToWinHub() {
             </div>
             <div className="text-right">
               {(stars[sec.key] ?? 0) > 0 && <StarRating stars={stars[sec.key]} size="sm" />}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+function HowToWinSectionPage({ section }: { section: HowToWinSection }) {
+  const sectionInfo = HOW_TO_WIN_SECTIONS.find(s => s.key === section)!;
+  const steps = getSectionSteps(section);
+  const [sectionStars, setSectionStars] = useState(0);
+  useEffect(() => {
+    setSectionStars(parseInt(localStorage.getItem(sectionInfo.storageKey) ?? "0", 10));
+  }, [sectionInfo.storageKey]);
+
+  return (
+    <main className="min-h-screen p-6 max-w-2xl mx-auto">
+      <Link href="/learn/how-to-win" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+        &larr; Back to How to Win
+      </Link>
+
+      <div className="flex items-center gap-4 mb-6">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={sectionInfo.icon} alt={sectionInfo.title} className="w-16 h-16" />
+        <div>
+          <h1 className="text-3xl font-bold">{sectionInfo.title}</h1>
+          <p className="text-muted">{sectionInfo.description}</p>
+        </div>
+      </div>
+
+      {/* Start from beginning */}
+      <Link
+        href={`/learn/how-to-win-${section}/${steps[0].slug}`}
+        className="block mb-4 py-3 px-4 rounded-xl bg-green-600 hover:bg-green-700 transition-colors text-white text-center font-bold text-lg"
+      >
+        {sectionStars > 0 ? "Play Again" : "Start"}
+      </Link>
+
+      {sectionStars > 0 && (
+        <div className="mb-4 text-center">
+          <StarRating stars={sectionStars} size="sm" />
+        </div>
+      )}
+
+      {/* Individual steps */}
+      <div className="space-y-2">
+        {steps.map((step, idx) => (
+          <Link
+            key={step.slug}
+            href={`/learn/how-to-win-${section}/${step.slug}`}
+            className="flex items-center gap-3 p-4 rounded-lg border border-card-border bg-card hover:border-foreground/30 hover:shadow transition-all"
+          >
+            <span className="text-sm text-faint w-6 text-right">{idx + 1}.</span>
+            <div>
+              <span className="font-medium">{step.title}</span>
+              <p className="text-xs text-faint">{step.instruction}</p>
             </div>
           </Link>
         ))}
