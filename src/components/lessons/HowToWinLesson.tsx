@@ -240,8 +240,8 @@ const STALEMATE_STEPS: LessonStep[] = [
   {
     slug: "dont-stalemate-1",
     title: "Win, Don't Draw!",
-    instruction: "One move wins. The other is a draw. Choose wisely!",
-    fen: "7k/8/5Q2/5K2/8/8/8/8 w - - 0 1",
+    instruction: "Five moves win. The rest are draws. Find one!",
+    fen: "7k/4Q3/6K1/8/8/8/8/8 w - - 0 1",
     type: "interactive",
     validation: "no-stalemate",
   },
