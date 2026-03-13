@@ -233,7 +233,12 @@ export default function Home() {
         onToggle={() => setShowIntermediate(!showIntermediate)}
       />
       <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${!allBasicsDone && !showIntermediate ? "hidden" : ""}`}>
-        {/* Polgar mate trainers */}
+        {/* Checkmate Patterns */}
+        {intermediateCats.filter(c => c.key === "checkmate").map((cat) => (
+          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
+        ))}
+
+        {/* Mate in One */}
         <PolgarCard
           href="/learn/mate-in-one"
           title="Mate in One"
@@ -242,6 +247,23 @@ export default function Home() {
           count={307}
           storageKey="polgar-mate-in-1-solved"
         />
+
+        {/* Tactics, Endings */}
+        {intermediateCats.filter(c => c.key !== "checkmate").map((cat) => (
+          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
+        ))}
+      </div>
+
+      {/* === Advanced === */}
+      <CollapsibleSection
+        title="Advanced"
+        subtitle="Openings, model games, and board vision"
+        expanded={allBasicsDone}
+        show={showAdvanced}
+        onToggle={() => setShowAdvanced(!showAdvanced)}
+      />
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${!allBasicsDone && !showAdvanced ? "hidden" : ""}`}>
+        {/* Mate in Two & Three */}
         <PolgarCard
           href="/learn/mate-in-two"
           title="Mate in Two"
@@ -259,21 +281,6 @@ export default function Home() {
           storageKey="polgar-mate-in-3-solved"
         />
 
-        {/* Intermediate category cards */}
-        {intermediateCats.map((cat) => (
-          <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />
-        ))}
-      </div>
-
-      {/* === Advanced === */}
-      <CollapsibleSection
-        title="Advanced"
-        subtitle="Openings, model games, and board vision"
-        expanded={allBasicsDone}
-        show={showAdvanced}
-        onToggle={() => setShowAdvanced(!showAdvanced)}
-      />
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${!allBasicsDone && !showAdvanced ? "hidden" : ""}`}>
         {/* Advanced category cards */}
         {advancedCats.map((cat) => (
           <CategoryCard key={cat.key} cat={cat} state={state} getPuzzleProgress={getPuzzleProgress} />

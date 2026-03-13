@@ -397,10 +397,6 @@ export default function PolgarTrainer({ type }: PolgarTrainerProps) {
         </div>
       )}
 
-      {/* Attribution */}
-      <p className="text-xs text-faint mt-4 text-center">
-        Puzzles from <em>Chess: 5,334 Problems, Combinations, and Games</em> by Laszlo Polgar
-      </p>
     </div>
   );
 }
