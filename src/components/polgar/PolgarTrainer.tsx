@@ -148,8 +148,8 @@ export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
           // URL has a puzzle ID — find it in the data
           const idx = data.findIndex((p) => p.id === puzzleId);
           if (idx === -1) {
-            // Invalid ID → redirect to puzzle 1
-            router.replace(`/learn/${slug}/1`);
+            // Invalid ID → redirect to first puzzle in this set
+            router.replace(`/learn/${slug}/${data[0].id}`);
             return;
           }
           setCurrentIndex(idx);
