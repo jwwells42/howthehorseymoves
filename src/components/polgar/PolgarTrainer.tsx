@@ -13,7 +13,7 @@ import {
   squareToCoords,
   coordsToSquare,
 } from "@/lib/logic/types";
-import { getLegalMoves } from "@/lib/logic/attacks";
+import { getLegalMoves, getAllLegalMoves } from "@/lib/logic/attacks";
 import { isCheckmate } from "@/lib/logic/attacks";
 
 /* ── Types ────────────────────────────────────────────────── */
@@ -130,6 +130,12 @@ export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
     to: SquareId;
   } | null>(null);
 
+  // Defense branching state (mate-in-2 only)
+  const [boardAfterMove1, setBoardAfterMove1] = useState<BoardState | null>(null);
+  const [defenses, setDefenses] = useState<{ from: SquareId; to: SquareId }[] | null>(null);
+  const [defenseIndex, setDefenseIndex] = useState(-1); // -1 = main line, 0+ = alternative defense
+  const [defensesCompleted, setDefensesCompleted] = useState(0);
+
   const storageKey = `polgar-${type}-index`;
   const solvedKey = `polgar-${type}-solved`;
   const slug = SLUG_MAP[type];
@@ -181,6 +187,10 @@ export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
     setWrongMoveSquare(null);
     setOpponentSlide(null);
     setWaitingForAnimation(false);
+    setBoardAfterMove1(null);
+    setDefenses(null);
+    setDefenseIndex(-1);
+    setDefensesCompleted(0);
   }, [puzzleId, problems]);
 
   const problem = problems?.[currentIndex];
@@ -203,13 +213,56 @@ export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
     return getLegalMoves(selectedSquare, board, playerColor);
   }, [selectedSquare, board, playerColor, solved, waitingForAnimation]);
 
+  // Transition to the next alternative defense (rewind + animate)
+  const transitionToDefense = useCallback(
+    (idx: number) => {
+      if (!boardAfterMove1 || !defenses) return;
+      setWaitingForAnimation(true);
+
+      // Brief pause to show the checkmate position
+      setTimeout(() => {
+        // Rewind to position after player's first move
+        setBoard(boardAfterMove1);
+
+        // Small delay, then animate the defense move
+        setTimeout(() => {
+          const defense = defenses[idx];
+          const oppPiece = boardAfterMove1.pieces.get(defense.from);
+          if (oppPiece) {
+            setOpponentSlide({
+              piece: oppPiece.piece,
+              color: oppPiece.color,
+              from: defense.from,
+              to: defense.to,
+            });
+          }
+          const afterDefense = applyMove(boardAfterMove1, defense.from, defense.to);
+          setBoard(afterDefense);
+
+          setTimeout(() => {
+            setOpponentSlide(null);
+            setWaitingForAnimation(false);
+            setDefenseIndex(idx);
+          }, 500);
+        }, 300);
+      }, 800);
+    },
+    [boardAfterMove1, defenses]
+  );
+
+  const markSolved = useCallback(() => {
+    setSolved(true);
+    const newSolved = totalSolved + 1;
+    setTotalSolved(newSolved);
+    localStorage.setItem(solvedKey, newSolved.toString());
+  }, [totalSolved, solvedKey]);
+
   const executeMove = useCallback(
     (from: SquareId, to: SquareId) => {
       if (solved || waitingForAnimation || !problem) return;
 
-      // Validate the move
-      if (isFinalMove) {
-        // Last move must deliver checkmate
+      // Defense phase: player must deliver checkmate
+      if (defenseIndex >= 0) {
         const newBoard = applyMove(board, from, to);
         if (!isCheckmate(opponentColor, newBoard)) {
           setWrongMoveSquare(to);
@@ -220,49 +273,92 @@ export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
         }
         setBoard(newBoard);
         setSelectedSquare(null);
-        setSolved(true);
-        const newSolved = totalSolved + 1;
-        setTotalSolved(newSolved);
-        localStorage.setItem(solvedKey, newSolved.toString());
-      } else {
-        // Intermediate move: must match solution exactly
-        const expected = solutionMoves[moveStep];
-        if (from !== expected.from || to !== expected.to) {
+
+        const completed = defensesCompleted + 1;
+        setDefensesCompleted(completed);
+
+        if (defenseIndex + 1 < defenses!.length) {
+          // More defenses — transition to next
+          transitionToDefense(defenseIndex + 1);
+        } else {
+          // All defenses done — puzzle complete
+          markSolved();
+        }
+        return;
+      }
+
+      // Main line: final move must deliver checkmate
+      if (isFinalMove) {
+        const newBoard = applyMove(board, from, to);
+        if (!isCheckmate(opponentColor, newBoard)) {
           setWrongMoveSquare(to);
           setSelectedSquare(null);
           setMistakes((m) => m + 1);
           setTimeout(() => setWrongMoveSquare(null), 600);
           return;
         }
-        const newBoard = applyMove(board, from, to);
         setBoard(newBoard);
         setSelectedSquare(null);
-        const nextStep = moveStep + 1;
-        setMoveStep(nextStep);
 
-        // Apply opponent response
-        if (nextStep < solutionMoves.length) {
-          setWaitingForAnimation(true);
-          const oppMove = solutionMoves[nextStep];
-          setTimeout(() => {
-            const oppPiece = newBoard.pieces.get(oppMove.from);
-            if (oppPiece) {
-              setOpponentSlide({
-                piece: oppPiece.piece,
-                color: oppPiece.color,
-                from: oppMove.from,
-                to: oppMove.to,
-              });
-            }
-            const afterOpp = applyMove(newBoard, oppMove.from, oppMove.to);
-            setBoard(afterOpp);
-            setTimeout(() => {
-              setOpponentSlide(null);
-              setWaitingForAnimation(false);
-              setMoveStep(nextStep + 1);
-            }, 500);
-          }, 300);
+        if (defenses && defenses.length > 0) {
+          // Has alternative defenses — transition to first one
+          setDefensesCompleted(1); // main line counts as first completed
+          transitionToDefense(0);
+        } else {
+          // No alternatives — puzzle complete
+          markSolved();
         }
+        return;
+      }
+
+      // Main line: intermediate move must match solution exactly
+      const expected = solutionMoves[moveStep];
+      if (from !== expected.from || to !== expected.to) {
+        setWrongMoveSquare(to);
+        setSelectedSquare(null);
+        setMistakes((m) => m + 1);
+        setTimeout(() => setWrongMoveSquare(null), 600);
+        return;
+      }
+      const newBoard = applyMove(board, from, to);
+      setBoard(newBoard);
+      setSelectedSquare(null);
+      const nextStep = moveStep + 1;
+      setMoveStep(nextStep);
+
+      // After move 1 in mate-in-2: save board and compute alternative defenses
+      if (moveStep === 0 && type === "mate-in-2") {
+        setBoardAfterMove1(newBoard);
+        const mainLineOpp = solutionMoves[1];
+        const oppMoves = getAllLegalMoves(opponentColor, newBoard);
+        const altDefenses = oppMoves.filter(
+          (m) => m.from !== mainLineOpp.from || m.to !== mainLineOpp.to
+        );
+        setDefenses(altDefenses);
+      }
+
+      // Apply opponent response
+      if (nextStep < solutionMoves.length) {
+        setWaitingForAnimation(true);
+        const oppMove = solutionMoves[nextStep];
+        setTimeout(() => {
+          const oppPiece = newBoard.pieces.get(oppMove.from);
+          if (oppPiece) {
+            setOpponentSlide({
+              piece: oppPiece.piece,
+              color: oppPiece.color,
+              from: oppMove.from,
+              to: oppMove.to,
+            });
+          }
+          const afterOpp = applyMove(newBoard, oppMove.from, oppMove.to);
+          setBoard(afterOpp);
+          setTimeout(() => {
+            setOpponentSlide(null);
+            setWaitingForAnimation(false);
+            setMoveStep(nextStep + 1);
+          }, 500);
+        }, 300);
       }
     },
     [
@@ -274,8 +370,12 @@ export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
       opponentColor,
       moveStep,
       solutionMoves,
-      totalSolved,
-      solvedKey,
+      defenseIndex,
+      defenses,
+      defensesCompleted,
+      transitionToDefense,
+      markSolved,
+      type,
     ]
   );
 
@@ -344,8 +444,13 @@ export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
   }, [problems, currentIndex, storageKey, router, slug]);
 
   const skipPuzzle = useCallback(() => {
-    goToNext();
-  }, [goToNext]);
+    if (defenseIndex >= 0) {
+      // In defense phase: skip remaining defenses, mark puzzle solved
+      markSolved();
+    } else {
+      goToNext();
+    }
+  }, [defenseIndex, markSolved, goToNext]);
 
   // Loading or redirect pending
   if (!problems || !problem || (puzzleId === undefined)) {
@@ -379,6 +484,26 @@ export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
       >
         {problem.btm ? "Black to move" : "White to move"}
       </div>
+
+      {/* Defense progress dots */}
+      {defenses && defenses.length > 0 && defenseIndex >= 0 && (
+        <div className="flex items-center gap-1.5">
+          {Array.from({ length: defenses.length + 1 }, (_, i) => (
+            <div
+              key={i}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                i < defensesCompleted
+                  ? "bg-green-500"
+                  : i === defensesCompleted && !solved
+                    ? "bg-yellow-400 animate-pulse"
+                    : i < defensesCompleted + 1 && solved
+                      ? "bg-green-500"
+                      : "bg-gray-600"
+              }`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Board */}
       <div className="w-full max-w-md">
