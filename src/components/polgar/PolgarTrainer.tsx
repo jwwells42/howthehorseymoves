@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Board from "@/components/board/Board";
 import {
   BoardState,
@@ -31,10 +32,16 @@ interface SolutionMove {
 
 type MateType = "mate-in-1" | "mate-in-2" | "mate-in-3";
 
-const MATE_LABELS: Record<MateType, string> = {
+export const MATE_LABELS: Record<MateType, string> = {
   "mate-in-1": "Mate in One",
   "mate-in-2": "Mate in Two",
   "mate-in-3": "Mate in Three",
+};
+
+const SLUG_MAP: Record<MateType, string> = {
+  "mate-in-1": "mate-in-one",
+  "mate-in-2": "mate-in-two",
+  "mate-in-3": "mate-in-three",
 };
 
 /* ── Helpers ──────────────────────────────────────────────── */
@@ -101,9 +108,11 @@ function applyMove(board: BoardState, from: SquareId, to: SquareId): BoardState 
 
 interface PolgarTrainerProps {
   type: MateType;
+  puzzleId?: number; // 1-based, matches JSON `id` field
 }
 
-export default function PolgarTrainer({ type }: PolgarTrainerProps) {
+export default function PolgarTrainer({ type, puzzleId }: PolgarTrainerProps) {
+  const router = useRouter();
   const [problems, setProblems] = useState<PolgarProblem[] | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [board, setBoard] = useState<BoardState>({ pieces: new Map() });
@@ -123,6 +132,8 @@ export default function PolgarTrainer({ type }: PolgarTrainerProps) {
 
   const storageKey = `polgar-${type}-index`;
   const solvedKey = `polgar-${type}-solved`;
+  const slug = SLUG_MAP[type];
+  const didRedirect = useRef(false);
 
   // Load problems
   useEffect(() => {
@@ -130,14 +141,47 @@ export default function PolgarTrainer({ type }: PolgarTrainerProps) {
       .then((r) => r.json())
       .then((data: PolgarProblem[]) => {
         setProblems(data);
-        const savedIndex = parseInt(localStorage.getItem(storageKey) ?? "0", 10);
         const savedSolved = parseInt(localStorage.getItem(solvedKey) ?? "0", 10);
-        const idx = Math.min(savedIndex, data.length - 1);
-        setCurrentIndex(idx);
         setTotalSolved(savedSolved);
-        setBoard(boardFromFen(data[idx].fen));
+
+        if (puzzleId !== undefined) {
+          // URL has a puzzle ID — find it in the data
+          const idx = data.findIndex((p) => p.id === puzzleId);
+          if (idx === -1) {
+            // Invalid ID → redirect to puzzle 1
+            router.replace(`/learn/${slug}/1`);
+            return;
+          }
+          setCurrentIndex(idx);
+          setBoard(boardFromFen(data[idx].fen));
+        } else {
+          // No puzzle ID in URL → redirect to saved position
+          if (!didRedirect.current) {
+            didRedirect.current = true;
+            const savedIndex = parseInt(localStorage.getItem(storageKey) ?? "0", 10);
+            const idx = Math.min(savedIndex, data.length - 1);
+            const targetId = data[idx].id;
+            router.replace(`/learn/${slug}/${targetId}`);
+          }
+        }
       });
-  }, [type, storageKey, solvedKey]);
+  }, [type, solvedKey, puzzleId, router, slug, storageKey]);
+
+  // Reset state when puzzleId changes (route-driven navigation)
+  useEffect(() => {
+    if (!problems || puzzleId === undefined) return;
+    const idx = problems.findIndex((p) => p.id === puzzleId);
+    if (idx === -1) return;
+    setCurrentIndex(idx);
+    setBoard(boardFromFen(problems[idx].fen));
+    setSelectedSquare(null);
+    setMoveStep(0);
+    setMistakes(0);
+    setSolved(false);
+    setWrongMoveSquare(null);
+    setOpponentSlide(null);
+    setWaitingForAnimation(false);
+  }, [puzzleId, problems]);
 
   const problem = problems?.[currentIndex];
   const playerColor: PieceColor = problem?.btm ? "b" : "w";
@@ -294,24 +338,17 @@ export default function PolgarTrainer({ type }: PolgarTrainerProps) {
     if (!problems) return;
     const nextIdx = currentIndex + 1;
     if (nextIdx >= problems.length) return; // at the end
-    setCurrentIndex(nextIdx);
+    const nextId = problems[nextIdx].id;
     localStorage.setItem(storageKey, nextIdx.toString());
-    setBoard(boardFromFen(problems[nextIdx].fen));
-    setSelectedSquare(null);
-    setMoveStep(0);
-    setMistakes(0);
-    setSolved(false);
-    setWrongMoveSquare(null);
-    setOpponentSlide(null);
-    setWaitingForAnimation(false);
-  }, [problems, currentIndex, storageKey]);
+    router.push(`/learn/${slug}/${nextId}`);
+  }, [problems, currentIndex, storageKey, router, slug]);
 
   const skipPuzzle = useCallback(() => {
     goToNext();
   }, [goToNext]);
 
-  // Loading
-  if (!problems || !problem) {
+  // Loading or redirect pending
+  if (!problems || !problem || (puzzleId === undefined)) {
     return (
       <div className="flex flex-col items-center gap-4 p-4">
         <p className="text-muted">Loading puzzles...</p>
