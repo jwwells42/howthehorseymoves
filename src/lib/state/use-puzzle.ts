@@ -267,29 +267,34 @@ export function usePuzzle(puzzle: Puzzle) {
             setTimeout(() => setWrongMoveSquare(null), 600);
             return;
           }
-        }
 
-        if (puzzle.targets.includes(to) && !reachedTargets.includes(to)) {
-          const newReached = [...reachedTargets, to];
-          setReachedTargets(newReached);
+          const newStep = solutionStep + 1;
+          setSolutionStep(newStep);
 
-          if (hasMultiStepSolution) {
-            const newStep = solutionStep + 1;
-            setSolutionStep(newStep);
+          // Track target visuals if applicable
+          if (puzzle.targets.includes(to) && !reachedTargets.includes(to)) {
+            setReachedTargets([...reachedTargets, to]);
+          }
 
-            if (newReached.length === puzzle.targets.length) {
-              setIsComplete(true);
-              const finalStars = calculateStars(newMoveCount);
-              completePuzzle(puzzle.id, finalStars, newMoveCount);
-            } else {
-              const response = puzzle.opponentResponses?.[solutionStep];
-              if (response) {
-                setTimeout(() => {
-                  applyOpponentResponse(newBoard, response);
-                }, 300);
-              }
-            }
+          // Complete when all solution steps are done
+          if (newStep >= puzzle.solution.length) {
+            setIsComplete(true);
+            const finalStars = calculateStars(newMoveCount);
+            completePuzzle(puzzle.id, finalStars, newMoveCount);
           } else {
+            // Not done — apply opponent response
+            const response = puzzle.opponentResponses?.[solutionStep];
+            if (response) {
+              setTimeout(() => {
+                applyOpponentResponse(newBoard, response);
+              }, 300);
+            }
+          }
+        } else {
+          // Basic reach-target (no strict validation)
+          if (puzzle.targets.includes(to) && !reachedTargets.includes(to)) {
+            const newReached = [...reachedTargets, to];
+            setReachedTargets(newReached);
             if (newReached.length === puzzle.targets.length) {
               setIsComplete(true);
               const finalStars = calculateStars(newMoveCount);

@@ -11,6 +11,7 @@ export const lichessDiscoveredPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["e7"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
   {
     id: "lichess-disc-02",
@@ -21,6 +22,7 @@ export const lichessDiscoveredPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["b5"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
   {
     id: "lichess-disc-03",
@@ -103,6 +105,7 @@ export const lichessDiscoveredPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["g6"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
   {
     id: "lichess-disc-10",
@@ -161,6 +164,7 @@ export const lichessDiscoveredPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["f2"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
   {
     id: "lichess-disc-15",

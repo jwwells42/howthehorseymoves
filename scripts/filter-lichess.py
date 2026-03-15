@@ -213,8 +213,8 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
     if opponent_responses:
         puzzle["opponentResponses"] = opponent_responses
 
-    # Tactical puzzles need strictSolution
-    if config["mode"] is None and len(solution) > 1:
+    # Tactical puzzles need strictSolution (all non-checkmate Lichess puzzles)
+    if config["mode"] is None:
         puzzle["strictSolution"] = True
 
     # Stash rating for post-sort (removed before output)

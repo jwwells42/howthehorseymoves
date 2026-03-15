@@ -23,6 +23,7 @@ export const lichessPinPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["e8"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
   {
     id: "lichess-pin-03",
@@ -57,6 +58,7 @@ export const lichessPinPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["h7"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
   {
     id: "lichess-pin-06",
@@ -115,6 +117,7 @@ export const lichessPinPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["e7"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
   {
     id: "lichess-pin-11",
@@ -137,6 +140,7 @@ export const lichessPinPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["f6"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
   {
     id: "lichess-pin-13",
@@ -171,5 +175,6 @@ export const lichessPinPuzzles: Puzzle[] = [
     targets: [] as SquareId[],
     solution: ["g6"] as SquareId[],
     starThresholds: { three: 1, two: 2, one: 3 },
+    strictSolution: true,
   },
 ];

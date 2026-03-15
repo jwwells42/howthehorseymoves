@@ -83,10 +83,12 @@ export default function PuzzleShell({ puzzle, onNext, nextLabel }: PuzzleShellPr
         <p className="text-muted">{puzzle.instruction}</p>
       </div>
 
-      {/* Move counter */}
-      <div className="text-sm text-faint">
-        Moves: {moveCount} / {puzzle.starThresholds.three}
-      </div>
+      {/* Move counter — hidden for strict-solution tactical puzzles */}
+      {!puzzle.strictSolution && (
+        <div className="text-sm text-faint">
+          Moves: {moveCount} / {puzzle.starThresholds.three}
+        </div>
+      )}
 
       {/* Board */}
       <div className="relative w-full flex justify-center">
@@ -94,7 +96,7 @@ export default function PuzzleShell({ puzzle, onNext, nextLabel }: PuzzleShellPr
           board={board}
           selectedSquare={selectedSquare}
           validMoves={validMoves}
-          targets={puzzle.arrows ? [] : puzzle.targets}
+          targets={puzzle.arrows || puzzle.strictSolution ? [] : puzzle.targets}
           reachedTargets={reachedTargets}
           dragValidMoves={dragValidMoves}
           draggablePiece={isBotMode ? undefined : puzzle.piece}
@@ -133,12 +135,14 @@ export default function PuzzleShell({ puzzle, onNext, nextLabel }: PuzzleShellPr
         onHint={puzzle.hints?.length ? showHint : undefined}
       />
 
-      {/* Star thresholds info */}
-      <div className="flex gap-4 text-xs text-faint">
-        <span><StarRating stars={3} size="sm" /> {puzzle.starThresholds.three} moves</span>
-        <span><StarRating stars={2} size="sm" /> {puzzle.starThresholds.two} moves</span>
-        <span><StarRating stars={1} size="sm" /> {puzzle.starThresholds.one} moves</span>
-      </div>
+      {/* Star thresholds info — hidden for strict-solution tactical puzzles */}
+      {!puzzle.strictSolution && (
+        <div className="flex gap-4 text-xs text-faint">
+          <span><StarRating stars={3} size="sm" /> {puzzle.starThresholds.three} moves</span>
+          <span><StarRating stars={2} size="sm" /> {puzzle.starThresholds.two} moves</span>
+          <span><StarRating stars={1} size="sm" /> {puzzle.starThresholds.one} moves</span>
+        </div>
+      )}
     </div>
   );
 }
