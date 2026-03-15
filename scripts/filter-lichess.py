@@ -11,6 +11,7 @@ Requires: pip install chess
 import csv
 import sys
 import os
+import random
 import chess
 
 # Theme -> output config
@@ -142,7 +143,6 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
     # Also detect the piece type from the first player move
     solution = []
     opponent_responses = []
-    targets = []
     player_piece_type = None
 
     PIECE_MAP = {
@@ -177,7 +177,6 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
                 return None
 
             solution.append(to_sq)
-            targets.append(to_sq)
         else:
             opponent_responses.append({"from": from_sq, "to": to_sq})
 
@@ -199,9 +198,13 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
         "title": title,
         "instruction": config["instruction"],
         "setup": puzzle_fen,
-        "targets": targets if config["mode"] != "checkmate" else [],
+        "targets": [],
         "solution": solution,
-        "starThresholds": {"three": 0, "two": 1, "one": 2},
+        "starThresholds": {
+            "three": len(solution),
+            "two": len(solution) + 1,
+            "one": len(solution) + 2,
+        },
     }
 
     if config["mode"] == "checkmate":
@@ -213,6 +216,9 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
     # Tactical puzzles need strictSolution
     if config["mode"] is None and len(solution) > 1:
         puzzle["strictSolution"] = True
+
+    # Stash rating for post-sort (removed before output)
+    puzzle["_rating"] = int(row["Rating"])
 
     return puzzle
 
@@ -318,20 +324,31 @@ def main():
             print(f"  WARNING: No candidates found for {theme}!")
             continue
 
-        # Sort by piece count (fewer pieces = simpler), then by rating (easier first)
-        cands.sort(key=lambda x: (x["piece_count"], x["rating"]))
+        # Variety: sort by popularity (most-played = best vetted), then sample
+        # evenly across the pool to avoid clustering on one pattern.
+        cands.sort(key=lambda x: -x["popularity"])
 
-        # Take top N (with generous buffer for filtering)
-        selected = cands[:config["max_puzzles"] * 20]
+        # Keep top candidates by popularity, then shuffle for variety
+        pool = cands[:config["max_puzzles"] * 40]
+        random.seed(42)  # deterministic for reproducibility
+        random.shuffle(pool)
 
         # Convert to puzzles
         puzzles = []
-        for cand in selected:
+        for cand in pool:
             if len(puzzles) >= config["max_puzzles"]:
                 break
             puzzle = process_puzzle(cand["row"], config, len(puzzles))
             if puzzle:
                 puzzles.append(puzzle)
+
+        # Sort final selection by rating (easiest first)
+        puzzles.sort(key=lambda p: p.get("_rating", 0))
+        # Re-number IDs after sorting
+        for i, p in enumerate(puzzles):
+            p["id"] = f'{config["id_prefix"]}-{i + 1:02d}'
+            p["title"] = f'{config["title_prefix"]} #{i + 1}'
+            p.pop("_rating", None)
 
         print(f"  Generated {len(puzzles)} puzzles")
 
