@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import StarRating from "@/components/puzzle/StarRating";
-import { BoardState, SquareId, createBoardState } from "@/lib/logic/types";
+import { BoardState, SquareId, PieceKind, createBoardState } from "@/lib/logic/types";
 import { getLegalMoves } from "@/lib/logic/attacks";
 import {
   MateEndgameType,
@@ -28,7 +28,7 @@ interface MoveEntry {
   black?: string;
 }
 
-/* ── Input parsing ───────────────────────────────── */
+/* ── Input parsing (standard algebraic notation) ─── */
 
 function isValidSquare(s: string): boolean {
   if (s.length !== 2) return false;
@@ -37,13 +37,65 @@ function isValidSquare(s: string): boolean {
   return f >= 0 && f <= 7 && r >= 0 && r <= 7;
 }
 
-function parseInput(raw: string): { from: SquareId; to: SquareId } | null {
-  const s = raw.trim().toLowerCase().replace(/-/g, "");
-  if (s.length !== 4) return null;
-  const from = s.slice(0, 2);
-  const to = s.slice(2, 4);
-  if (!isValidSquare(from) || !isValidSquare(to)) return null;
-  return { from: from as SquareId, to: to as SquareId };
+function parseSAN(
+  raw: string,
+  board: BoardState,
+): { from: SquareId; to: SquareId } | { error: string } {
+  let s = raw.trim().replace(/[+#]/g, "");
+  if (s.length === 0) return { error: "Enter a move like Qd2 or Kc3" };
+
+  const pieceChar = s[0].toUpperCase();
+  if (!"KQRBN".includes(pieceChar)) {
+    return { error: "Start with a piece letter (K, Q, R, B)" };
+  }
+
+  const rest = s.slice(1).toLowerCase().replace(/x/g, "");
+  if (rest.length < 2 || rest.length > 3) {
+    return { error: "Enter a move like Qd2 or Kc3" };
+  }
+
+  const dest = rest.slice(-2);
+  const disambig = rest.slice(0, -2);
+
+  if (!isValidSquare(dest)) {
+    return { error: `${dest} is not a valid square` };
+  }
+
+  const to = dest as SquareId;
+  const piece = pieceChar as PieceKind;
+
+  // Find all white pieces of this type that can legally move to 'to'
+  const candidates: SquareId[] = [];
+  for (const [sq, p] of board.pieces) {
+    if (p.color === "w" && p.piece === piece) {
+      const legal = getLegalMoves(sq, board, "w");
+      if (legal.includes(to)) {
+        candidates.push(sq);
+      }
+    }
+  }
+
+  if (candidates.length === 0) {
+    return { error: `No ${PIECE_NAMES[piece]} can reach ${dest}` };
+  }
+
+  if (candidates.length === 1) {
+    return { from: candidates[0], to };
+  }
+
+  // Disambiguation needed
+  if (!disambig) {
+    return { error: `Which one? Try ${pieceChar}${candidates[0][0]}${dest}` };
+  }
+  const filtered = candidates.filter((sq) => {
+    if (disambig >= "a" && disambig <= "h") return sq[0] === disambig;
+    if (disambig >= "1" && disambig <= "8") return sq[1] === disambig;
+    return false;
+  });
+  if (filtered.length !== 1) {
+    return { error: `No ${PIECE_NAMES[piece]} on ${disambig} can reach ${dest}` };
+  }
+  return { from: filtered[0], to };
 }
 
 /* ── Component ───────────────────────────────────── */
@@ -102,29 +154,15 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
       e.preventDefault();
       if (waitingForBot || phase !== "playing") return;
 
-      const parsed = parseInput(input);
+      const parsed = parseSAN(input, board);
       setInput("");
 
-      if (!parsed) {
-        setError("Enter a move like e1d2 or e1-d2");
+      if ("error" in parsed) {
+        setError(parsed.error);
         return;
       }
 
       const { from, to } = parsed;
-
-      // Check there's a white piece on 'from'
-      const piece = board.pieces.get(from);
-      if (!piece || piece.color !== "w") {
-        setError(`No white piece on ${from}`);
-        return;
-      }
-
-      // Check legality
-      const legal = getLegalMoves(from, board, "w");
-      if (!legal.includes(to)) {
-        setError(`${PIECE_NAMES[piece.piece]} can't move to ${to}`);
-        return;
-      }
 
       // Validate (stalemate, hanging)
       const validation = validateEndgameMove(board, from, to);
@@ -194,8 +232,8 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
       <div className="flex flex-col items-center gap-4 max-w-md mx-auto p-4">
         <h2 className="text-xl font-bold">{info.name}</h2>
         <p className="text-muted text-center text-sm">
-          Deliver checkmate without seeing the board. Enter moves as
-          coordinates (e.g., e1d2 or e1-d2).
+          Deliver checkmate without seeing the board. Enter moves in
+          standard notation (e.g., Qd2, Kc3, Rad1).
         </p>
         {bestStars > 0 && <StarRating stars={bestStars} size="sm" />}
         <button
@@ -248,8 +286,8 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={waitingForBot ? "..." : "Your move"}
-              maxLength={5}
+              placeholder={waitingForBot ? "..." : "e.g. Qd2"}
+              maxLength={6}
               disabled={waitingForBot}
               className="flex-1 px-4 py-2 rounded-lg border border-card-border bg-card text-foreground font-mono text-lg text-center focus:outline-none focus:border-foreground/40 disabled:opacity-50"
               autoComplete="off"

@@ -330,8 +330,25 @@ export function formatMoveNotation(
 ): string {
   const piece = board.pieces.get(from);
   if (!piece) return `${from}-${to}`;
+
+  // Disambiguation: check if another piece of same type can reach same square
+  let disambig = "";
+  for (const [sq, p] of board.pieces) {
+    if (sq !== from && p.color === piece.color && p.piece === piece.piece) {
+      const legal = getLegalMoves(sq, board, piece.color);
+      if (legal.includes(to)) {
+        // Need disambiguation — use file if sufficient, else rank
+        const sameFile = sq[0] === from[0];
+        if (!sameFile) disambig = from[0];
+        else disambig = from[1];
+        break;
+      }
+    }
+  }
+
+  const captures = board.pieces.has(to) ? "x" : "";
   let suffix = "";
   if (isCheckmate(targetColor, resultBoard)) suffix = "#";
   else if (isInCheck(targetColor, resultBoard)) suffix = "+";
-  return `${piece.piece}${from}-${to}${suffix}`;
+  return `${piece.piece}${disambig}${captures}${to}${suffix}`;
 }
