@@ -10,7 +10,7 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 
 - **Basics** — progressive puzzles for each piece (rook, bishop, queen, king, knight, pawn), plus castling, en passant, and a timed coordinate trainer
 - **Checkmate patterns** — back rank, rook ladder, queen-bishop battery, knight on f7, Lolli's mate, queen & king endgames, smothered mate
-- **Tactics** — pins (with multi-move sequences), skewers, forks, and more coming soon
+- **Tactics** — pins, skewers, forks, removing the defender, discovered attacks (hand-authored instruction + Lichess practice puzzles)
 - **Play vs computer** — random bot and basic bot (one-ply evaluation)
 - **Openings** — learn opening repertoires move by move with arrow hints
 - **Model games** — step through famous games with annotations, plus a test mode to reproduce games from memory
