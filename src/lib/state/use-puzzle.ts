@@ -260,6 +260,13 @@ export function usePuzzle(puzzle: Puzzle) {
           // Strict or multi-step: validate move against solution
           const expectedTarget = puzzle.solution[solutionStep];
           if (to !== expectedTarget) {
+            // Failsafe: accept any move that delivers checkmate
+            if (isCheckmate("b", newBoard)) {
+              setIsComplete(true);
+              const finalStars = calculateStars(newMoveCount);
+              completePuzzle(puzzle.id, finalStars, newMoveCount);
+              return;
+            }
             setWrongMoveSquare(to);
             setSelectedSquare(null);
             setBoard(board);

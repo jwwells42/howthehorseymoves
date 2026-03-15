@@ -188,6 +188,18 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
     if not solution or not player_piece_type:
         return None
 
+    # Skip puzzles with ambiguous first moves (multiple mates or equivalent wins)
+    first_move_uci = puzzle_moves[0]
+    first_move = chess.Move.from_uci(first_move_uci)
+    mate_count = 0
+    for legal in board.legal_moves:
+        board.push(legal)
+        if board.is_checkmate():
+            mate_count += 1
+        board.pop()
+    if mate_count > 1:
+        return None
+
     # Build the puzzle object
     puzzle_id = f'{config["id_prefix"]}-{idx + 1:02d}'
     title = f'{config["title_prefix"]} #{idx + 1}'
