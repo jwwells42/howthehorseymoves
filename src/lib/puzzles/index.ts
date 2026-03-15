@@ -18,6 +18,13 @@ import {
   smotheredMatePuzzles,
 } from "./checkmate";
 import { pinPuzzles } from "./tactics";
+import { lichessMateIn1Puzzles } from "./lichess-mate1";
+import { lichessMateIn2Puzzles } from "./lichess-mate2";
+import { lichessForkPuzzles } from "./lichess-forks";
+import { lichessSkewerPuzzles } from "./lichess-skewers";
+import { lichessRemovingDefenderPuzzles } from "./lichess-removing-defender";
+import { lichessDiscoveredPuzzles } from "./lichess-discovered";
+import { lichessPinPuzzles } from "./lichess-pins";
 
 const puzzleSets: Record<string, PuzzleSet> = {
   rook: { piece: "R", name: "Rook", puzzles: rookPuzzles },
@@ -33,7 +40,13 @@ const puzzleSets: Record<string, PuzzleSet> = {
   "checkmate-lollis": { piece: "Q", name: "Lolli's Mate", puzzles: lollisMatePuzzles },
   "checkmate-queen-king": { piece: "Q", name: "Queen & King Mate", puzzles: queenKingMatePuzzles },
   "checkmate-smothered": { piece: "N", name: "Smothered Mate", puzzles: smotheredMatePuzzles },
-  "tactics-pins": { piece: "B", name: "Pins", puzzles: pinPuzzles },
+  "checkmate-mate-in-1": { piece: "Q", name: "Mate in 1", puzzles: lichessMateIn1Puzzles },
+  "checkmate-mate-in-2": { piece: "Q", name: "Mate in 2", puzzles: lichessMateIn2Puzzles },
+  "tactics-pins": { piece: "B", name: "Pins", puzzles: [...pinPuzzles, ...lichessPinPuzzles] },
+  "tactics-forks": { piece: "N", name: "Forks", puzzles: lichessForkPuzzles },
+  "tactics-skewers": { piece: "R", name: "Skewers", puzzles: lichessSkewerPuzzles },
+  "tactics-removing-defender": { piece: "R", name: "Removing the Defender", puzzles: lichessRemovingDefenderPuzzles },
+  "tactics-discovered": { piece: "N", name: "Discovered Attacks", puzzles: lichessDiscoveredPuzzles },
 };
 
 export function getPuzzlesForPiece(pieceKey: string): PuzzleSet | undefined {
@@ -98,6 +111,8 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "checkmate-lollis", name: "Lolli's Mate", description: "Queen slips in behind the pawns for mate.", icon: "/pieces/wQ.svg" },
       { key: "checkmate-queen-king", name: "Queen & King", description: "Use the queen with king support.", icon: "/pieces/wQ.svg" },
       { key: "checkmate-smothered", name: "Smothered Mate", description: "The knight strikes when the king can't move.", icon: "/pieces/wN.svg" },
+      { key: "checkmate-mate-in-1", name: "Mate in 1", description: "Find the single move that delivers checkmate.", icon: "/pieces/wQ.svg" },
+      { key: "checkmate-mate-in-2", name: "Mate in 2", description: "Set up the checkmate in two precise moves.", icon: "/pieces/wQ.svg" },
     ],
   },
   {
@@ -107,10 +122,10 @@ export const CATEGORIES: CategoryInfo[] = [
     icon: "/pieces/wN.svg",
     subcategories: [
       { key: "tactics-pins", name: "Pins", description: "Trap a piece on a line — it can't move!", icon: "/pieces/wB.svg" },
-      { key: "tactics-skewers", name: "Skewers", description: "Attack through one piece to grab another.", icon: "/pieces/wR.svg", comingSoon: true },
-      { key: "tactics-forks", name: "Forks", description: "Attack two pieces at once with the knight.", icon: "/pieces/wN.svg", comingSoon: true },
-      { key: "tactics-removing-defender", name: "Removing the Defender", description: "Capture the piece that guards a target.", icon: "/pieces/wR.svg", comingSoon: true },
-      { key: "tactics-discovered", name: "Discovered Attacks", description: "Move one piece to unleash another.", icon: "/pieces/wN.svg", comingSoon: true },
+      { key: "tactics-skewers", name: "Skewers", description: "Attack through one piece to grab another.", icon: "/pieces/wR.svg" },
+      { key: "tactics-forks", name: "Forks", description: "Attack two pieces at once with the knight.", icon: "/pieces/wN.svg" },
+      { key: "tactics-removing-defender", name: "Removing the Defender", description: "Capture the piece that guards a target.", icon: "/pieces/wR.svg" },
+      { key: "tactics-discovered", name: "Discovered Attacks", description: "Move one piece to unleash another.", icon: "/pieces/wN.svg" },
     ],
   },
   {

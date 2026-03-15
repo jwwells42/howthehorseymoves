@@ -7,7 +7,6 @@ import { getPuzzle, getPuzzlesForPiece, PIECES } from "@/lib/puzzles";
 import PuzzleShell from "@/components/puzzle/PuzzleShell";
 import HowToWinLesson from "@/components/lessons/HowToWinLesson";
 import type { HowToWinSection } from "@/components/lessons/HowToWinLesson";
-import PolgarTrainer, { MATE_LABELS } from "@/components/polgar/PolgarTrainer";
 
 export default function PuzzlePage({
   params,
@@ -27,33 +26,6 @@ export default function PuzzlePage({
           &larr; Back to {section === "check" ? "Check" : section === "checkmate" ? "Checkmate" : "Stalemate"}
         </Link>
         <HowToWinLesson section={section} stepSlug={puzzleId} />
-      </main>
-    );
-  }
-
-  // Polgar mate trainers: /learn/mate-in-one/42
-  const mateMap: Record<string, "mate-in-1" | "mate-in-2" | "mate-in-3"> = {
-    "mate-in-one": "mate-in-1",
-    "mate-in-two": "mate-in-2",
-    "mate-in-three": "mate-in-3",
-  };
-  if (piece in mateMap) {
-    const mateType = mateMap[piece];
-    const id = parseInt(puzzleId, 10);
-    if (isNaN(id) || id < 1) {
-      return (
-        <main className="min-h-screen p-6 max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold mb-4">Puzzle not found</h1>
-          <Link href={`/learn/${piece}`} className="text-muted hover:underline">Back to {MATE_LABELS[mateType]}</Link>
-        </main>
-      );
-    }
-    return (
-      <main className="min-h-screen p-6 max-w-2xl mx-auto">
-        <Link href="/" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
-          &larr; Back to home
-        </Link>
-        <PolgarTrainer type={mateType} puzzleId={id} />
       </main>
     );
   }

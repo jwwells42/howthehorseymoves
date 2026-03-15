@@ -119,13 +119,12 @@ export default function AboutPage() {
       {/* Credits */}
       <Section title="Credits & Attributions">
         <Credit
-          title="Checkmate Puzzles"
-          description="Mate-in-one, mate-in-two, and mate-in-three puzzles from"
-          source="Chess: 5,334 Problems, Combinations, and Games"
-          author="Laszlo Polgar (1994)"
-          note="Digitized PGN by Christian Kuhn and 64 contributors from 12 countries. JSON data via"
-          linkText="github.com/denialromeo/4462-chess-problems"
-          linkHref="https://github.com/denialromeo/4462-chess-problems"
+          title="Practice Puzzles"
+          description="Tactics and checkmate practice puzzles sourced from the"
+          source="Lichess Puzzle Database"
+          note="Licensed under Creative Commons CC0 (public domain). Data from"
+          linkText="database.lichess.org"
+          linkHref="https://database.lichess.org/#puzzles"
         />
         <Credit
           title="Chess Piece SVGs"

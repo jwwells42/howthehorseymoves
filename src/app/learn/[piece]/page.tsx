@@ -13,7 +13,6 @@ import KnightRoutes from "@/components/blindfold/KnightRoutes";
 import GuardingGame from "@/components/blindfold/GuardingGame";
 import BlindfoldMate from "@/components/blindfold/BlindfoldMate";
 import type { MateEndgameType } from "@/lib/logic/endgame";
-import PolgarTrainer from "@/components/polgar/PolgarTrainer";
 import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from "@/components/lessons/HowToWinLesson";
 import type { HowToWinSection } from "@/components/lessons/HowToWinLesson";
 import type { PiecePlacement } from "@/lib/logic/types";
@@ -138,24 +137,6 @@ export default function PieceLearnPage({
   if (howToWinMatch) {
     const section = howToWinMatch[1] as HowToWinSection;
     return <HowToWinSectionPage section={section} />;
-  }
-
-  // Polgar mate trainers
-  const mateMap: Record<string, "mate-in-1" | "mate-in-2" | "mate-in-3"> = {
-    "mate-in-one": "mate-in-1",
-    "mate-in-two": "mate-in-2",
-    "mate-in-three": "mate-in-3",
-  };
-  if (piece in mateMap) {
-    const mateType = mateMap[piece];
-    return (
-      <main className="min-h-screen p-6 max-w-2xl mx-auto">
-        <Link href="/" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
-          &larr; Back to home
-        </Link>
-        <PolgarTrainer type={mateType} />
-      </main>
-    );
   }
 
   // Check if this is a category page
