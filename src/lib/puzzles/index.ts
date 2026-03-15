@@ -120,6 +120,10 @@ export const CATEGORIES: CategoryInfo[] = [
     icon: "/pieces/wK.svg",
     subcategories: [
       { key: "endings-kpk", name: "King + Pawn vs King", description: "Promote the pawn against perfect defense.", icon: "/pieces/wP.svg" },
+      { key: "endings-kqk", name: "Queen vs King", description: "Deliver checkmate with King + Queen.", icon: "/pieces/wQ.svg" },
+      { key: "endings-krrk", name: "2 Rooks vs King", description: "Deliver checkmate with King + 2 Rooks.", icon: "/pieces/wR.svg" },
+      { key: "endings-krk", name: "Rook vs King", description: "Deliver checkmate with King + Rook.", icon: "/pieces/wR.svg" },
+      { key: "endings-kbbk", name: "2 Bishops vs King", description: "Deliver checkmate with King + 2 Bishops.", icon: "/pieces/wB.svg" },
     ],
   },
   {
@@ -132,6 +136,10 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "blindfold-diagonals", name: "Same Diagonal?", description: "Are these two squares on the same diagonal?", icon: "/pieces/wB.svg" },
       { key: "blindfold-knight-routes", name: "Knight Routes", description: "Find a knight path between two squares — no board!", icon: "/pieces/wN.svg" },
       { key: "blindfold-guarding", name: "Who's Guarding Whom?", description: "Track piece interactions as they move — blindfolded!", icon: "/pieces/wQ.svg" },
+      { key: "blindfold-mate-kqk", name: "Mate: Q vs K", description: "Deliver checkmate blindfolded with King + Queen.", icon: "/pieces/wQ.svg" },
+      { key: "blindfold-mate-krrk", name: "Mate: RR vs K", description: "Deliver checkmate blindfolded with King + 2 Rooks.", icon: "/pieces/wR.svg" },
+      { key: "blindfold-mate-krk", name: "Mate: R vs K", description: "Deliver checkmate blindfolded with King + Rook.", icon: "/pieces/wR.svg" },
+      { key: "blindfold-mate-kbbk", name: "Mate: BB vs K", description: "Deliver checkmate blindfolded with King + 2 Bishops.", icon: "/pieces/wB.svg" },
     ],
   },
 ];

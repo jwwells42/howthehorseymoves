@@ -6,10 +6,13 @@ import { getPuzzlesForPiece, PIECES, getCategory } from "@/lib/puzzles";
 import { useProgress } from "@/lib/state/progress-context";
 import StarRating from "@/components/puzzle/StarRating";
 import EndgameShell from "@/components/endgame/EndgameShell";
+import MateTrainer from "@/components/endgame/MateTrainer";
 import ColorOfSquare from "@/components/blindfold/ColorOfSquare";
 import SameDiagonal from "@/components/blindfold/SameDiagonal";
 import KnightRoutes from "@/components/blindfold/KnightRoutes";
 import GuardingGame from "@/components/blindfold/GuardingGame";
+import BlindfoldMate from "@/components/blindfold/BlindfoldMate";
+import type { MateEndgameType } from "@/lib/logic/endgame";
 import PolgarTrainer from "@/components/polgar/PolgarTrainer";
 import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from "@/components/lessons/HowToWinLesson";
 import type { HowToWinSection } from "@/components/lessons/HowToWinLesson";
@@ -54,6 +57,23 @@ export default function PieceLearnPage({
     );
   }
 
+  // Check for mate conversion trainers
+  const mateEndgameMatch = piece.match(/^endings-(kqk|krrk|krk|kbbk)$/);
+  if (mateEndgameMatch) {
+    const endgameType = mateEndgameMatch[1] as MateEndgameType;
+    return (
+      <main className="min-h-screen p-4">
+        <Link
+          href="/learn/endings"
+          className="text-sm text-muted hover:text-foreground mb-2 inline-block ml-4"
+        >
+          &larr; Back to endings
+        </Link>
+        <MateTrainer type={endgameType} />
+      </main>
+    );
+  }
+
   // Check for blindfold trainers
   if (piece === "blindfold-color") {
     return (
@@ -92,6 +112,18 @@ export default function PieceLearnPage({
           &larr; Back to blindfold
         </Link>
         <GuardingGame />
+      </main>
+    );
+  }
+  const blindfoldMateMatch = piece.match(/^blindfold-mate-(kqk|krrk|krk|kbbk)$/);
+  if (blindfoldMateMatch) {
+    const endgameType = blindfoldMateMatch[1] as MateEndgameType;
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <BlindfoldMate type={endgameType} />
       </main>
     );
   }
