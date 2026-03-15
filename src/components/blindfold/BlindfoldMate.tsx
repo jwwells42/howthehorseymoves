@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import StarRating from "@/components/puzzle/StarRating";
+import Board from "@/components/board/Board";
 import { BoardState, SquareId, PieceKind, createBoardState } from "@/lib/logic/types";
 import { getLegalMoves } from "@/lib/logic/attacks";
 import {
@@ -114,6 +115,12 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
   const [error, setError] = useState<string | null>(null);
   const [waitingForBot, setWaitingForBot] = useState(false);
   const [bestStars, setBestStars] = useState(0);
+  const [hideHistory, setHideHistory] = useState(false);
+  const [lastOpponentMove, setLastOpponentMove] = useState<string | null>(null);
+
+  // Board history for post-game analysis
+  const [boardHistory, setBoardHistory] = useState<BoardState[]>([]);
+  const [reviewStep, setReviewStep] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const movesEndRef = useRef<HTMLDivElement>(null);
@@ -146,6 +153,9 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
     setInput("");
     setError(null);
     setWaitingForBot(false);
+    setLastOpponentMove(null);
+    setBoardHistory([newBoard]);
+    setReviewStep(0);
     setPhase("playing");
   }, [type]);
 
@@ -178,11 +188,13 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
 
       if (validation.checkmate) {
         setBoard(newBoard);
+        setBoardHistory((prev) => [...prev, newBoard]);
         setMoves((prev) => [
           ...prev,
           { number: moveNumber, white: whiteNotation },
         ]);
         setPhase("won");
+        setReviewStep(0);
         const s = mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
         if (s > bestStars) {
           localStorage.setItem(storageKey, s.toString());
@@ -193,6 +205,7 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
 
       // Bot responds
       setBoard(newBoard);
+      setBoardHistory((prev) => [...prev, newBoard]);
       setWaitingForBot(true);
 
       setTimeout(() => {
@@ -212,6 +225,8 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
         );
 
         setBoard(afterBot);
+        setBoardHistory((prev) => [...prev, afterBot]);
+        setLastOpponentMove(blackNotation);
         setMoves((prev) => [
           ...prev,
           { number: moveNumber, white: whiteNotation, black: blackNotation },
@@ -225,6 +240,13 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
 
   const stars = mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
 
+  // Build flat half-move list for review notation
+  const halfMoves: { notation: string; isWhite: boolean }[] = [];
+  for (const m of moves) {
+    halfMoves.push({ notation: `${m.number}. ${m.white}`, isWhite: true });
+    if (m.black) halfMoves.push({ notation: m.black, isWhite: false });
+  }
+
   /* ── Idle screen ───────────────────────────────── */
 
   if (phase === "idle") {
@@ -236,6 +258,27 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
           standard notation (e.g., Qd2, Kc3, Rad1).
         </p>
         {bestStars > 0 && <StarRating stars={bestStars} size="sm" />}
+
+        {/* Hide move list toggle */}
+        <label className="flex items-center gap-2 text-sm text-muted cursor-pointer select-none">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hideHistory}
+            onClick={() => setHideHistory((h) => !h)}
+            className={`relative w-10 h-5 rounded-full transition-colors ${
+              hideHistory ? "bg-green-600" : "bg-zinc-600"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                hideHistory ? "translate-x-5" : ""
+              }`}
+            />
+          </button>
+          Hide move list (harder)
+        </label>
+
         <button
           onClick={startGame}
           className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
@@ -264,21 +307,30 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
         </div>
       </div>
 
-      {/* Move list */}
-      {moves.length > 0 && (
-        <div className="w-full rounded-lg bg-card border border-card-border p-3 text-sm font-mono max-h-48 overflow-y-auto">
-          {moves.map((m) => (
-            <div key={m.number}>
-              <span className="text-muted">{m.number}.</span> {m.white}
-              {m.black && `  ${m.black}`}
-            </div>
-          ))}
-          <div ref={movesEndRef} />
-        </div>
-      )}
-
       {phase === "playing" && (
         <>
+          {/* Move list or last opponent move */}
+          {hideHistory ? (
+            lastOpponentMove && (
+              <div className="w-full rounded-lg bg-card border border-card-border p-3 text-sm font-mono text-center">
+                <span className="text-muted">Opponent played </span>
+                <span className="font-bold">{lastOpponentMove}</span>
+              </div>
+            )
+          ) : (
+            moves.length > 0 && (
+              <div className="w-full rounded-lg bg-card border border-card-border p-3 text-sm font-mono max-h-48 overflow-y-auto">
+                {moves.map((m) => (
+                  <div key={m.number}>
+                    <span className="text-muted">{m.number}.</span> {m.white}
+                    {m.black && `  ${m.black}`}
+                  </div>
+                ))}
+                <div ref={movesEndRef} />
+              </div>
+            )
+          )}
+
           {/* Input */}
           <form onSubmit={handleSubmit} className="flex gap-2 w-full">
             <input
@@ -317,7 +369,7 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
       )}
 
       {phase === "won" && (
-        <div className="flex flex-col items-center gap-3 animate-fade-in">
+        <div className="flex flex-col items-center gap-3 w-full animate-fade-in">
           <p className="text-green-500 font-bold">Checkmate!</p>
           <StarRating stars={stars} size="lg" />
           <p className="text-sm text-muted">
@@ -325,6 +377,80 @@ export default function BlindfoldMate({ type }: BlindfoldMateProps) {
               ? "Perfect — no mistakes!"
               : `${mistakes} mistake${mistakes > 1 ? "s" : ""}`}
           </p>
+
+          {/* Analysis board */}
+          {boardHistory.length > 1 && (
+            <div className="w-full flex flex-col items-center gap-2">
+              <p className="text-sm font-medium text-muted">Review your game</p>
+              <div className="w-full max-w-[360px]">
+                <Board
+                  board={boardHistory[reviewStep]}
+                  readOnly
+                  selectedSquare={null}
+                  validMoves={[]}
+                  targets={[]}
+                  reachedTargets={[]}
+                  dragValidMoves={[]}
+                  onSquareClick={() => {}}
+                  onDrop={() => {}}
+                  onDragStart={() => {}}
+                  onDragEnd={() => {}}
+                />
+              </div>
+
+              {/* Navigation */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setReviewStep(0)}
+                  disabled={reviewStep === 0}
+                  className="px-2 py-1 rounded text-sm font-mono disabled:opacity-30"
+                  aria-label="Go to start"
+                >
+                  &laquo;
+                </button>
+                <button
+                  onClick={() => setReviewStep((s) => Math.max(0, s - 1))}
+                  disabled={reviewStep === 0}
+                  className="px-3 py-1 rounded text-sm font-mono disabled:opacity-30"
+                  aria-label="Previous move"
+                >
+                  &lsaquo;
+                </button>
+                <span className="text-xs text-faint min-w-[4rem] text-center">
+                  {reviewStep === 0
+                    ? "Start"
+                    : halfMoves[reviewStep - 1]?.notation ?? ""}
+                </span>
+                <button
+                  onClick={() => setReviewStep((s) => Math.min(boardHistory.length - 1, s + 1))}
+                  disabled={reviewStep >= boardHistory.length - 1}
+                  className="px-3 py-1 rounded text-sm font-mono disabled:opacity-30"
+                  aria-label="Next move"
+                >
+                  &rsaquo;
+                </button>
+                <button
+                  onClick={() => setReviewStep(boardHistory.length - 1)}
+                  disabled={reviewStep >= boardHistory.length - 1}
+                  className="px-2 py-1 rounded text-sm font-mono disabled:opacity-30"
+                  aria-label="Go to end"
+                >
+                  &raquo;
+                </button>
+              </div>
+
+              {/* Full move list in review */}
+              <div className="w-full rounded-lg bg-card border border-card-border p-3 text-sm font-mono max-h-36 overflow-y-auto">
+                {moves.map((m) => (
+                  <div key={m.number}>
+                    <span className="text-muted">{m.number}.</span> {m.white}
+                    {m.black && `  ${m.black}`}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button
             onClick={startGame}
             className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
