@@ -1,5 +1,5 @@
-import { PieceKind } from "../logic/types";
-import { Puzzle, PuzzleSet } from "./types";
+import type { PieceKind } from "../logic/types";
+import type { Puzzle, PuzzleSet } from "./types";
 import { rookPuzzles } from "./rook";
 import { bishopPuzzles } from "./bishop";
 import { queenPuzzles } from "./queen";

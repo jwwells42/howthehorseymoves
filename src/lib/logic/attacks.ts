@@ -1,4 +1,5 @@
-import { BoardState, PieceColor, SquareId, squareToCoords, coordsToSquare } from "./types";
+import type { BoardState, PieceColor, SquareId } from "./types";
+import { squareToCoords, coordsToSquare } from "./types";
 import { getValidMoves } from "./moves";
 
 type Direction = [number, number];

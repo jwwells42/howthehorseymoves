@@ -1,4 +1,5 @@
-import { BoardState, PieceKind, PieceColor, SquareId, squareToCoords } from "./types";
+import type { BoardState, PieceKind, PieceColor, SquareId } from "./types";
+import { squareToCoords } from "./types";
 import { getAllLegalMoves, isInCheck, isCheckmate, isSquareAttacked } from "./attacks";
 
 /** Piece values for material evaluation. */

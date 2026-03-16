@@ -1,4 +1,5 @@
-import { BoardState, PieceKind, PieceColor, SquareId, squareToCoords, coordsToSquare } from "./types";
+import type { BoardState, PieceKind, PieceColor, SquareId } from "./types";
+import { squareToCoords, coordsToSquare } from "./types";
 import { isSquareAttacked } from "./attacks";
 
 type Direction = [number, number];

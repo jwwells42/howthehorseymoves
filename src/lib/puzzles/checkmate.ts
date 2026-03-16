@@ -1,4 +1,4 @@
-import { Puzzle } from "./types";
+import type { Puzzle } from "./types";
 
 // === Back Rank Mates ===
 export const backRankMatePuzzles: Puzzle[] = [

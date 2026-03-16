@@ -1,4 +1,5 @@
-import { BoardState, PieceKind, PieceColor, SquareId, parseFen, createBoardState } from "./types";
+import type { BoardState, PieceKind, PieceColor, SquareId } from "./types";
+import { parseFen, createBoardState } from "./types";
 import { getLegalMoves } from "./attacks";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

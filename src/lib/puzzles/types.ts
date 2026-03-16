@@ -1,4 +1,4 @@
-import { PieceKind, PiecePlacement, SquareId } from "../logic/types";
+import type { PieceKind, PiecePlacement, SquareId } from "../logic/types";
 import type { Arrow } from "../logic/pgn";
 
 export type PuzzleMode = "reach-target" | "checkmate" | "checkmate-bot";
