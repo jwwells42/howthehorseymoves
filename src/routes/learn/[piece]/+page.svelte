@@ -1,10 +1,34 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
   import { getPuzzlesForPiece, PIECES, getCategory } from '$lib/puzzles';
   import { progressState, isPuzzleUnlocked, getPuzzleProgress } from '$lib/state/progress-store';
+  import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
+  import MateTrainer from '$lib/components/endgame/MateTrainer.svelte';
+  import type { MateEndgameType } from '$lib/logic/endgame';
+  import type { PiecePlacement } from '$lib/logic/types';
+  import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from '$lib/components/lessons/how-to-win-data';
+  import type { HowToWinSection } from '$lib/components/lessons/how-to-win-data';
 
   let piece = $derived(page.params.piece);
+
+  // Endgame positions
+  const ENDGAME_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[] }> = {
+    'endings-kpk': {
+      title: 'King + Pawn vs King',
+      instruction: 'Promote the pawn! Every wrong move is a draw.',
+      placements: [
+        { piece: 'K', color: 'w', square: 'd6' },
+        { piece: 'P', color: 'w', square: 'd4' },
+        { piece: 'K', color: 'b', square: 'd8' },
+      ],
+    },
+  };
+
+  let endgame = $derived(ENDGAME_POSITIONS[piece]);
+  let mateEndgameMatch = $derived(piece.match(/^endings-(kqk|krrk|krk|kbbk)$/));
+  let howToWinMatch = $derived(piece.match(/^how-to-win-(check|checkmate|stalemate)$/));
 
   // Category page
   let category = $derived(getCategory(piece));
@@ -12,6 +36,23 @@
   // Puzzle list
   let puzzleSet = $derived(getPuzzlesForPiece(piece));
   let pieceInfo = $derived(PIECES.find((p) => p.key === piece));
+
+  // How to Win section stars
+  let sectionStars = $state<Record<string, number>>({});
+  let hwStepStars = $state(0);
+  onMount(() => {
+    const s: Record<string, number> = {};
+    for (const sec of HOW_TO_WIN_SECTIONS) {
+      s[sec.key] = parseInt(localStorage.getItem(sec.storageKey) ?? '0', 10);
+    }
+    sectionStars = s;
+    if (howToWinMatch) {
+      const sectionInfo = HOW_TO_WIN_SECTIONS.find(s => s.key === howToWinMatch![1]);
+      if (sectionInfo) {
+        hwStepStars = parseInt(localStorage.getItem(sectionInfo.storageKey) ?? '0', 10);
+      }
+    }
+  });
 
   let parentCategory = $derived(
     piece.startsWith('checkmate-') ? 'checkmate'
@@ -29,7 +70,93 @@
   let puzzleIds = $derived(puzzleSet?.puzzles.map((p) => p.id) ?? []);
 </script>
 
-{#if category}
+{#if endgame}
+  <!-- Endgame trainer (e.g. KPK) -->
+  <main class="page">
+    <a href="/learn/endings" class="back-link">&larr; Back to endings</a>
+    <EndgameShell title={endgame.title} instruction={endgame.instruction} placements={endgame.placements} />
+  </main>
+{:else if mateEndgameMatch}
+  <!-- Mate conversion trainer (KQK, KRRK, etc.) -->
+  <main class="page">
+    <a href="/learn/endings" class="back-link">&larr; Back to endings</a>
+    <MateTrainer type={mateEndgameMatch[1]} />
+  </main>
+{:else if piece === 'how-to-win'}
+  <!-- How to Win hub page -->
+  <main class="page">
+    <a href="/" class="back-link">&larr; Back to home</a>
+
+    <div class="page-header">
+      <img src="/pieces/wK.svg" alt="How to Win" class="header-icon" />
+      <div>
+        <h1>How to Win</h1>
+        <p class="muted">Learn check, checkmate, and stalemate.</p>
+      </div>
+    </div>
+
+    <div class="subcategory-list">
+      {#each HOW_TO_WIN_SECTIONS as sec}
+        <a href="/learn/how-to-win-{sec.key}" class="sub-item">
+          <div class="sub-left">
+            <img src={sec.icon} alt={sec.title} class="sub-icon" />
+            <div>
+              <h3>{sec.title}</h3>
+              <p class="sub-desc">{sec.description}</p>
+            </div>
+          </div>
+          <div class="sub-right">
+            {#if (sectionStars[sec.key] ?? 0) > 0}
+              <StarRating stars={sectionStars[sec.key]} size="sm" />
+            {/if}
+          </div>
+        </a>
+      {/each}
+    </div>
+  </main>
+{:else if howToWinMatch}
+  <!-- How to Win section page (check/checkmate/stalemate) -->
+  {@const section = howToWinMatch[1]}
+  {@const sectionInfo = HOW_TO_WIN_SECTIONS.find(s => s.key === section)}
+  {@const steps = getSectionSteps(section)}
+  <main class="page">
+    <a href="/learn/how-to-win" class="back-link">&larr; Back to How to Win</a>
+
+    {#if sectionInfo && steps}
+      <div class="page-header">
+        <img src={sectionInfo.icon} alt={sectionInfo.title} class="header-icon" />
+        <div>
+          <h1>{sectionInfo.title}</h1>
+          <p class="muted">{sectionInfo.description}</p>
+        </div>
+      </div>
+
+      <a href="/learn/{piece}/{steps[0].slug}" class="start-btn">
+        {hwStepStars > 0 ? 'Play Again' : 'Start'}
+      </a>
+
+      {#if hwStepStars > 0}
+        <div class="stars-center">
+          <StarRating stars={hwStepStars} size="sm" />
+        </div>
+      {/if}
+
+      <div class="puzzle-list">
+        {#each steps as step, idx}
+          <a href="/learn/{piece}/{step.slug}" class="puzzle-item">
+            <div class="puzzle-left">
+              <span class="puzzle-num">{idx + 1}.</span>
+              <div>
+                <span class="puzzle-title">{step.title}</span>
+                <p class="puzzle-instruction">{step.instruction}</p>
+              </div>
+            </div>
+          </a>
+        {/each}
+      </div>
+    {/if}
+  </main>
+{:else if category}
   <!-- Category page with subcategories -->
   <main class="page">
     <a href="/" class="back-link">&larr; Back to home</a>
@@ -188,4 +315,21 @@
   .puzzle-title { font-weight: 500; }
   .puzzle-instruction { font-size: 0.75rem; color: var(--text-faint); }
   .locked-label { font-size: 0.75rem; color: var(--text-faint); }
+
+  /* How to Win section */
+  .start-btn {
+    display: block;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: #16a34a;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.125rem;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .start-btn:hover { background: #15803d; }
+  .stars-center { margin-bottom: 1rem; text-align: center; }
 </style>

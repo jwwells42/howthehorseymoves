@@ -3,9 +3,14 @@
   import { goto } from '$app/navigation';
   import { getPuzzle, getPuzzlesForPiece, PIECES } from '$lib/puzzles';
   import PuzzleShell from '$lib/components/puzzle/PuzzleShell.svelte';
+  import HowToWinLesson from '$lib/components/lessons/HowToWinLesson.svelte';
+  import type { HowToWinSection } from '$lib/components/lessons/how-to-win-data';
 
   let piece = $derived(page.params.piece);
   let puzzleId = $derived(page.params.puzzleId);
+
+  // How to Win step routes: /learn/how-to-win-checkmate/back-rank
+  let howToWinMatch = $derived(piece.match(/^how-to-win-(check|checkmate|stalemate)$/));
 
   let puzzle = $derived(getPuzzle(piece, puzzleId));
   let puzzleSet = $derived(getPuzzlesForPiece(piece));
@@ -43,7 +48,17 @@
   }
 </script>
 
-{#if puzzle}
+{#if howToWinMatch}
+  {@const section = howToWinMatch[1]}
+  <main class="page lesson-page">
+    <a href="/learn/{piece}" class="back-link">
+      &larr; Back to {section === 'check' ? 'Check' : section === 'checkmate' ? 'Checkmate' : 'Stalemate'}
+    </a>
+    {#key puzzleId}
+      <HowToWinLesson section={section} stepSlug={puzzleId} />
+    {/key}
+  </main>
+{:else if puzzle}
   <main class="page">
     <a href="/learn/{piece}" class="back-link">
       &larr; Back to {piece} puzzles
@@ -61,6 +76,7 @@
 
 <style>
   .page { min-height: 100vh; padding: 1rem; }
+  .lesson-page { padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
   .center { text-align: center; padding: 1.5rem; max-width: 56rem; margin: 0 auto; }
   .back-link {
     font-size: 0.875rem;

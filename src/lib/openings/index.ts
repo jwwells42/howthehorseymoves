@@ -1,4 +1,5 @@
-import { BoardState, PieceKind, PieceColor, SquareId, parseFen, createBoardState } from "../logic/types";
+import type { BoardState, PieceKind, PieceColor, SquareId } from "../logic/types";
+import { parseFen, createBoardState } from "../logic/types";
 import { parseSan, applyMove } from "../logic/pgn";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

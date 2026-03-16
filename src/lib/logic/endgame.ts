@@ -9,14 +9,8 @@
  * Bot defense maximises king mobility and avoids mate-in-1.
  */
 
-import {
-  BoardState,
-  SquareId,
-  PiecePlacement,
-  PieceKind,
-  createBoardState,
-  squareToCoords,
-} from "./types";
+import type { BoardState, SquareId, PiecePlacement, PieceKind } from "./types";
+import { createBoardState, squareToCoords } from "./types";
 import {
   getAllLegalMoves,
   getLegalMoves,
