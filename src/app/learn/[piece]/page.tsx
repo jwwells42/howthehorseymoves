@@ -9,7 +9,21 @@ import EndgameShell from "@/components/endgame/EndgameShell";
 import MateTrainer from "@/components/endgame/MateTrainer";
 import ColorOfSquare from "@/components/blindfold/ColorOfSquare";
 import SameDiagonal from "@/components/blindfold/SameDiagonal";
+import SameRankFile from "@/components/blindfold/SameRankFile";
+import MoveCounting from "@/components/blindfold/MoveCounting";
 import KnightRoutes from "@/components/blindfold/KnightRoutes";
+import BishopRoutes from "@/components/blindfold/BishopRoutes";
+import PieceReachability from "@/components/blindfold/PieceReachability";
+import NeighborSquares from "@/components/blindfold/NeighborSquares";
+import RelativePosition from "@/components/blindfold/RelativePosition";
+import WhatChanged from "@/components/blindfold/WhatChanged";
+import WhereDidItLand from "@/components/blindfold/WhereDidItLand";
+import FlashPosition from "@/components/blindfold/FlashPosition";
+import PieceCount from "@/components/blindfold/PieceCount";
+import RookMaze from "@/components/blindfold/RookMaze";
+import BlindTactics from "@/components/blindfold/BlindTactics";
+import BlindfoldPuzzle from "@/components/blindfold/BlindfoldPuzzle";
+import KnightGauntlet from "@/components/blindfold/KnightGauntlet";
 import GuardingGame from "@/components/blindfold/GuardingGame";
 import BlindfoldMate from "@/components/blindfold/BlindfoldMate";
 import type { MateEndgameType } from "@/lib/logic/endgame";
@@ -94,6 +108,26 @@ export default function PieceLearnPage({
       </main>
     );
   }
+  if (piece === "blindfold-rankfile") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <SameRankFile />
+      </main>
+    );
+  }
+  if (piece === "blindfold-counting") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <MoveCounting />
+      </main>
+    );
+  }
   if (piece === "blindfold-knight-routes") {
     return (
       <main className="min-h-screen p-6 max-w-2xl mx-auto">
@@ -101,6 +135,126 @@ export default function PieceLearnPage({
           &larr; Back to blindfold
         </Link>
         <KnightRoutes />
+      </main>
+    );
+  }
+  if (piece === "blindfold-bishop-routes") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <BishopRoutes />
+      </main>
+    );
+  }
+  if (piece === "blindfold-reachability") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <PieceReachability />
+      </main>
+    );
+  }
+  if (piece === "blindfold-neighbors") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <NeighborSquares />
+      </main>
+    );
+  }
+  if (piece === "blindfold-relative") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <RelativePosition />
+      </main>
+    );
+  }
+  if (piece === "blindfold-changed") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <WhatChanged />
+      </main>
+    );
+  }
+  if (piece === "blindfold-landed") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <WhereDidItLand />
+      </main>
+    );
+  }
+  if (piece === "blindfold-flash") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <FlashPosition />
+      </main>
+    );
+  }
+  if (piece === "blindfold-piececount") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <PieceCount />
+      </main>
+    );
+  }
+  if (piece === "blindfold-rookmaze") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <RookMaze />
+      </main>
+    );
+  }
+  if (piece === "blindfold-blindtactics") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <BlindTactics />
+      </main>
+    );
+  }
+  if (piece === "blindfold-gauntlet") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <KnightGauntlet />
+      </main>
+    );
+  }
+  if (piece === "blindfold-puzzle") {
+    return (
+      <main className="min-h-screen p-6 max-w-2xl mx-auto">
+        <Link href="/learn/blindfold" className="text-sm text-muted hover:text-foreground mb-4 inline-block">
+          &larr; Back to blindfold
+        </Link>
+        <BlindfoldPuzzle />
       </main>
     );
   }
