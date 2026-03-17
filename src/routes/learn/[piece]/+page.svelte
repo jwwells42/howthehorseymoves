@@ -10,6 +10,25 @@
   import type { PiecePlacement } from '$lib/logic/types';
   import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from '$lib/components/lessons/how-to-win-data';
   import type { HowToWinSection } from '$lib/components/lessons/how-to-win-data';
+  import ColorOfSquare from '$lib/components/blindfold/ColorOfSquare.svelte';
+  import SameDiagonal from '$lib/components/blindfold/SameDiagonal.svelte';
+  import SameRankFile from '$lib/components/blindfold/SameRankFile.svelte';
+  import MoveCounting from '$lib/components/blindfold/MoveCounting.svelte';
+  import KnightRoutes from '$lib/components/blindfold/KnightRoutes.svelte';
+  import BishopRoutes from '$lib/components/blindfold/BishopRoutes.svelte';
+  import PieceReachability from '$lib/components/blindfold/PieceReachability.svelte';
+  import NeighborSquares from '$lib/components/blindfold/NeighborSquares.svelte';
+  import RelativePosition from '$lib/components/blindfold/RelativePosition.svelte';
+  import WhatChanged from '$lib/components/blindfold/WhatChanged.svelte';
+  import WhereDidItLand from '$lib/components/blindfold/WhereDidItLand.svelte';
+  import FlashPosition from '$lib/components/blindfold/FlashPosition.svelte';
+  import PieceCount from '$lib/components/blindfold/PieceCount.svelte';
+  import RookMaze from '$lib/components/blindfold/RookMaze.svelte';
+  import BlindTactics from '$lib/components/blindfold/BlindTactics.svelte';
+  import BlindfoldPuzzle from '$lib/components/blindfold/BlindfoldPuzzle.svelte';
+  import KnightGauntlet from '$lib/components/blindfold/KnightGauntlet.svelte';
+  import GuardingGame from '$lib/components/blindfold/GuardingGame.svelte';
+  import BlindfoldMate from '$lib/components/blindfold/BlindfoldMate.svelte';
 
   let piece = $derived(page.params.piece);
 
@@ -29,6 +48,29 @@
   let endgame = $derived(ENDGAME_POSITIONS[piece]);
   let mateEndgameMatch = $derived(piece.match(/^endings-(kqk|krrk|krk|kbbk)$/));
   let howToWinMatch = $derived(piece.match(/^how-to-win-(check|checkmate|stalemate)$/));
+  let blindfoldMateMatch = $derived(piece.match(/^blindfold-mate-(kqk|krrk|krk|kbbk)$/));
+
+  const BLINDFOLD_ROUTES: Record<string, any> = {
+    'blindfold-color': ColorOfSquare,
+    'blindfold-diagonals': SameDiagonal,
+    'blindfold-rankfile': SameRankFile,
+    'blindfold-counting': MoveCounting,
+    'blindfold-knight-routes': KnightRoutes,
+    'blindfold-bishop-routes': BishopRoutes,
+    'blindfold-reachability': PieceReachability,
+    'blindfold-neighbors': NeighborSquares,
+    'blindfold-relative': RelativePosition,
+    'blindfold-changed': WhatChanged,
+    'blindfold-landed': WhereDidItLand,
+    'blindfold-flash': FlashPosition,
+    'blindfold-piececount': PieceCount,
+    'blindfold-rookmaze': RookMaze,
+    'blindfold-blindtactics': BlindTactics,
+    'blindfold-puzzle': BlindfoldPuzzle,
+    'blindfold-gauntlet': KnightGauntlet,
+    'blindfold-guarding': GuardingGame,
+  };
+  let blindfoldComponent = $derived(BLINDFOLD_ROUTES[piece]);
 
   // Category page
   let category = $derived(getCategory(piece));
@@ -155,6 +197,18 @@
         {/each}
       </div>
     {/if}
+  </main>
+{:else if blindfoldComponent}
+  <!-- Blindfold trainer -->
+  <main class="page" class:blindfold-page={piece !== 'blindfold-guarding'} class:blindfold-wide={piece === 'blindfold-guarding'}>
+    <a href="/learn/blindfold" class="back-link">&larr; Back to blindfold</a>
+    <svelte:component this={blindfoldComponent} />
+  </main>
+{:else if blindfoldMateMatch}
+  <!-- Blindfold mate trainer -->
+  <main class="page blindfold-page">
+    <a href="/learn/blindfold" class="back-link">&larr; Back to blindfold</a>
+    <BlindfoldMate type={blindfoldMateMatch[1]} />
   </main>
 {:else if category}
   <!-- Category page with subcategories -->
@@ -332,4 +386,6 @@
   }
   .start-btn:hover { background: #15803d; }
   .stars-center { margin-bottom: 1rem; text-align: center; }
+  .blindfold-page { max-width: 42rem; margin: 0 auto; }
+  .blindfold-wide { max-width: 64rem; margin: 0 auto; }
 </style>
