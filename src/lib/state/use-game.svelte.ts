@@ -156,6 +156,14 @@ export function createGameState(botLevel: BotLevel = 'random') {
       newPieces.set(move.to, piece);
       applyPromotion(newPieces, move.to);
 
+      // Handle bot en passant capture
+      if (piece.piece === 'P' && move.to === currentBoard.enPassantSquare) {
+        const direction = piece.color === 'w' ? 1 : -1;
+        const capturedRank = String(parseInt(move.to[1]) - direction);
+        const capturedSq = `${move.to[0]}${capturedRank}` as SquareId;
+        newPieces.delete(capturedSq);
+      }
+
       // Handle bot castling rook movement
       if (piece.piece === 'K') {
         const fromFile = move.from.charCodeAt(0);
@@ -169,6 +177,17 @@ export function createGameState(botLevel: BotLevel = 'random') {
             const rook = newPieces.get(`a${rank}` as SquareId);
             if (rook) { newPieces.delete(`a${rank}` as SquareId); newPieces.set(`d${rank}` as SquareId, rook); }
           }
+        }
+      }
+
+      // Compute en passant square for bot's pawn push
+      let enPassantSquare: SquareId | undefined;
+      if (piece.piece === 'P') {
+        const fromRank = parseInt(move.from[1]);
+        const toRank = parseInt(move.to[1]);
+        if (Math.abs(toRank - fromRank) === 2) {
+          const epRank = String((fromRank + toRank) / 2);
+          enPassantSquare = `${move.from[0]}${epRank}` as SquareId;
         }
       }
 
@@ -193,7 +212,7 @@ export function createGameState(botLevel: BotLevel = 'random') {
         to: move.to,
       };
 
-      const newBoard: BoardState = { pieces: newPieces, castlingRights: rights };
+      const newBoard: BoardState = { pieces: newPieces, castlingRights: rights, enPassantSquare };
       const san = toSan(currentBoard, move.from, move.to, 'b', newBoard);
       moveHistory = [...moveHistory, { san, from: move.from, to: move.to }];
       positions = [...positions, newBoard];
