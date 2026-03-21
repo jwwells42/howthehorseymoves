@@ -220,7 +220,18 @@ ${setup.join(',\n')},
       <span class="tool-text">Piece</span>
     </button>
     <button class={['tool-btn', tool === 'obstacle' && 'active']} onclick={() => tool = 'obstacle'}>
-      <img src="/pieces/wP.svg" alt="Obstacle" class="tool-icon" />
+      <svg viewBox="0 0 24 24" class="tool-icon" aria-label="Wall">
+        <rect x="1" y="1" width="22" height="22" rx="2" fill="#a8a29e" stroke="#78716c" stroke-width="1"/>
+        <line x1="1" y1="8" x2="23" y2="8" stroke="#78716c" stroke-width="0.8"/>
+        <line x1="1" y1="15" x2="23" y2="15" stroke="#78716c" stroke-width="0.8"/>
+        <line x1="8" y1="1" x2="8" y2="8" stroke="#78716c" stroke-width="0.8"/>
+        <line x1="16" y1="1" x2="16" y2="8" stroke="#78716c" stroke-width="0.8"/>
+        <line x1="4" y1="8" x2="4" y2="15" stroke="#78716c" stroke-width="0.8"/>
+        <line x1="12" y1="8" x2="12" y2="15" stroke="#78716c" stroke-width="0.8"/>
+        <line x1="20" y1="8" x2="20" y2="15" stroke="#78716c" stroke-width="0.8"/>
+        <line x1="8" y1="15" x2="8" y2="23" stroke="#78716c" stroke-width="0.8"/>
+        <line x1="16" y1="15" x2="16" y2="23" stroke="#78716c" stroke-width="0.8"/>
+      </svg>
       <span class="tool-text">Wall</span>
     </button>
     <button class={['tool-btn', tool === 'target' && 'active']} onclick={() => tool = 'target'}>
@@ -302,11 +313,20 @@ ${setup.join(',\n')},
                 width={SQ - 16} height={SQ - 16}
               />
             {:else if isObstacle}
-              <image
-                href="/pieces/wP.svg"
-                x={fi * SQ + 8} y={ri * SQ + 8}
-                width={SQ - 16} height={SQ - 16}
-              />
+              {@const bx = fi * SQ + 12}
+              {@const by = ri * SQ + 12}
+              {@const bw = SQ - 24}
+              {@const bh = SQ - 24}
+              <rect x={bx} y={by} width={bw} height={bh} rx="4" fill="#a8a29e" stroke="#78716c" stroke-width="1.5"/>
+              <line x1={bx} y1={by + bh * 0.33} x2={bx + bw} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
+              <line x1={bx} y1={by + bh * 0.66} x2={bx + bw} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
+              <line x1={bx + bw * 0.33} y1={by} x2={bx + bw * 0.33} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
+              <line x1={bx + bw * 0.66} y1={by} x2={bx + bw * 0.66} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
+              <line x1={bx + bw * 0.17} y1={by + bh * 0.33} x2={bx + bw * 0.17} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
+              <line x1={bx + bw * 0.5} y1={by + bh * 0.33} x2={bx + bw * 0.5} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
+              <line x1={bx + bw * 0.83} y1={by + bh * 0.33} x2={bx + bw * 0.83} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
+              <line x1={bx + bw * 0.33} y1={by + bh * 0.66} x2={bx + bw * 0.33} y2={by + bh} stroke="#78716c" stroke-width="1"/>
+              <line x1={bx + bw * 0.66} y1={by + bh * 0.66} x2={bx + bw * 0.66} y2={by + bh} stroke="#78716c" stroke-width="1"/>
             {/if}
           </g>
         {/each}
