@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { type SquareId, type PieceKind, type PieceColor, FILES, RANKS } from '$lib/logic/types';
+  import { type SquareId, type PieceKind, type PieceColor, FILES, RANKS, squareToCoords } from '$lib/logic/types';
   import { getValidMoves } from '$lib/logic/moves';
   import type { BoardState } from '$lib/logic/types';
+  import type { Arrow } from '$lib/logic/pgn';
 
   const LIGHT = '#d4c4a0';
   const DARK = '#7a9e6e';
@@ -9,10 +10,11 @@
   const BOARD = SQ * 8;
 
   const ALL_PIECES: PieceKind[] = ['K', 'Q', 'R', 'B', 'N', 'P'];
+  const ARROW_COLORS = ['#15803d', '#dc2626', '#2563eb', '#ca8a04'];
 
   type EditorMode = 'route' | 'position';
-  type RouteTool = PieceKind | 'wall' | 'star' | 'erase';
-  type PositionTool = PieceKind | 'erase';
+  type RouteTool = PieceKind | 'wall' | 'star' | 'erase' | 'arrow';
+  type PositionTool = PieceKind | 'erase' | 'arrow';
 
   let mode = $state<EditorMode>('route');
 
@@ -34,6 +36,12 @@
   let posTargets = $state('');
   let posMaxMoves = $state(1);
   let posPlayerPiece = $state<PieceKind>('R');
+
+  /* ── Arrow state (shared) ───────────────────────── */
+
+  let arrows = $state<Arrow[]>([]);
+  let arrowColor = $state('#15803d');
+  let arrowStart = $state<SquareId | null>(null);
 
   /* ── Shared state ───────────────────────────────── */
 
@@ -156,6 +164,10 @@
         ? `Reach the star${moves > 0 ? ` in ${moves} move${moves !== 1 ? 's' : ''}` : ''}!`
         : `Collect all the stars!`;
 
+      const arrowsLine = arrows.length > 0
+        ? `\n  arrows: [${arrows.map(a => `{ from: "${a.from}", to: "${a.to}", color: "${a.color}" }`).join(', ')}],`
+        : '';
+
       return `{
   id: "${id}",
   piece: "${studentPiece}",
@@ -165,7 +177,7 @@
 ${setup.join(',\n')},
   ],
   targets: [${tgtStr}],
-  solution: [${sol}],
+  solution: [${sol}],${arrowsLine}
   starThresholds: { three: ${moves}, two: ${moves + 1}, one: ${moves + 2} },
 },`;
     } else {
@@ -186,6 +198,9 @@ ${setup.join(',\n')},
       if (posMode === 'checkmate') {
         lines.push(`  mode: "checkmate",`);
       }
+      if (arrows.length > 0) {
+        lines.push(`  arrows: [${arrows.map(a => `{ from: "${a.from}", to: "${a.to}", color: "${a.color}" }`).join(', ')}],`);
+      }
       lines.push(`  maxMoves: ${posMaxMoves},`);
       lines.push(`  starThresholds: { three: ${posMaxMoves}, two: ${posMaxMoves + 1}, one: ${posMaxMoves + 2} },`);
       lines.push(`},`);
@@ -193,9 +208,59 @@ ${setup.join(',\n')},
     }
   });
 
+  /* ── Arrow helpers ──────────────────────────────── */
+
+  function getArrowPath(arrow: Arrow) {
+    const [fx, fy] = squareToCoords(arrow.from);
+    const [tx, ty] = squareToCoords(arrow.to);
+    const x1 = fx * SQ + SQ / 2;
+    const y1 = fy * SQ + SQ / 2;
+    const x2 = tx * SQ + SQ / 2;
+    const y2 = ty * SQ + SQ / 2;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const headLen = 40;
+    const headW = 55;
+    const shaftW = 18;
+    const ux = dx / len;
+    const uy = dy / len;
+    const sx = x2 - ux * headLen;
+    const sy = y2 - uy * headLen;
+    const px = -uy;
+    const py = ux;
+    const hw = headW / 2;
+    return { x1, y1, sx, sy, x2, y2, px, py, hw, shaftW, color: arrow.color };
+  }
+
+  function handleArrowClick(sq: SquareId) {
+    if (!arrowStart) {
+      arrowStart = sq;
+    } else {
+      if (sq !== arrowStart) {
+        // Toggle: if this exact arrow exists, remove it
+        const existing = arrows.findIndex(a => a.from === arrowStart && a.to === sq);
+        if (existing >= 0) {
+          arrows = arrows.filter((_, i) => i !== existing);
+        } else {
+          arrows = [...arrows, { from: arrowStart, to: sq, color: arrowColor }];
+        }
+      }
+      arrowStart = null;
+    }
+  }
+
+  function removeArrow(idx: number) {
+    arrows = arrows.filter((_, i) => i !== idx);
+  }
+
   /* ── Click handling ─────────────────────────────── */
 
   function handleRouteClick(sq: SquareId) {
+    if (routeTool === 'arrow') {
+      handleArrowClick(sq);
+      return;
+    }
     if (typeof routeTool === 'string' && ALL_PIECES.includes(routeTool as PieceKind)) {
       obstacles = obstacles.filter(o => o !== sq);
       targets = targets.filter(t => t !== sq);
@@ -225,6 +290,10 @@ ${setup.join(',\n')},
   }
 
   function handlePositionClick(sq: SquareId) {
+    if (posTool === 'arrow') {
+      handleArrowClick(sq);
+      return;
+    }
     if (posTool === 'erase') {
       const next = new Map(positionPieces);
       next.delete(sq);
@@ -255,10 +324,13 @@ ${setup.join(',\n')},
     } else {
       positionPieces = new Map();
     }
+    arrows = [];
+    arrowStart = null;
   }
 
   function switchMode(m: EditorMode) {
     mode = m;
+    arrowStart = null;
   }
 
   async function copyOutput() {
@@ -312,6 +384,9 @@ ${setup.join(',\n')},
       <button class={['tool-btn', routeTool === 'star' && 'active']} onclick={() => routeTool = 'star'}>
         <span class="star-icon">&#9733;</span>
       </button>
+      <button class={['tool-btn', routeTool === 'arrow' && 'active']} onclick={() => { routeTool = 'arrow'; arrowStart = null; }} aria-label="Arrow">
+        <span class="arrow-icon">&rarr;</span>
+      </button>
       <button class={['tool-btn', routeTool === 'erase' && 'active']} onclick={() => routeTool = 'erase'}>
         <span class="erase-icon">&#10005;</span>
       </button>
@@ -338,10 +413,32 @@ ${setup.join(',\n')},
         <span class="color-swatch" style="background: {posColor === 'w' ? '#fff' : '#333'}; border-color: {posColor === 'w' ? '#aaa' : '#666'}"></span>
         <span class="tool-text-sm">{posColor === 'w' ? 'White' : 'Black'}</span>
       </button>
+      <button class={['tool-btn', posTool === 'arrow' && 'active']} onclick={() => { posTool = 'arrow'; arrowStart = null; }} aria-label="Arrow">
+        <span class="arrow-icon">&rarr;</span>
+      </button>
       <button class={['tool-btn', posTool === 'erase' && 'active']} onclick={() => posTool = 'erase'}>
         <span class="erase-icon">&#10005;</span>
       </button>
       <button class="tool-btn clear-btn" onclick={clearBoard}>Clear</button>
+    </div>
+  {/if}
+
+  <!-- Arrow color picker (shown when arrow tool active) -->
+  {#if (mode === 'route' && routeTool === 'arrow') || (mode === 'position' && posTool === 'arrow')}
+    <div class="arrow-controls">
+      <span class="arrow-hint">
+        {arrowStart ? `Click destination for arrow from ${arrowStart}` : 'Click start square, then end square'}
+      </span>
+      <div class="arrow-colors">
+        {#each ARROW_COLORS as c}
+          <button
+            class={['color-dot', arrowColor === c && 'color-dot-active']}
+            style="background: {c}"
+            onclick={() => arrowColor = c}
+            aria-label="Arrow color {c}"
+          ></button>
+        {/each}
+      </div>
     </div>
   {/if}
 
@@ -428,8 +525,50 @@ ${setup.join(',\n')},
           </g>
         {/each}
       {/each}
+
+      <!-- Arrow start highlight -->
+      {#if arrowStart}
+        {@const [asx, asy] = squareToCoords(arrowStart)}
+        <rect
+          x={asx * SQ} y={asy * SQ}
+          width={SQ} height={SQ}
+          fill="rgba(37, 99, 235, 0.3)"
+          class="no-select"
+        />
+      {/if}
+
+      <!-- Arrows -->
+      {#each arrows as arrow}
+        {@const a = getArrowPath(arrow)}
+        <g class="no-select" opacity="0.75">
+          <line
+            x1={a.x1} y1={a.y1} x2={a.sx} y2={a.sy}
+            stroke={a.color}
+            stroke-width={a.shaftW}
+            stroke-linecap="round"
+          />
+          <polygon
+            points="{a.x2},{a.y2} {a.sx + a.px * a.hw},{a.sy + a.py * a.hw} {a.sx - a.px * a.hw},{a.sy - a.py * a.hw}"
+            fill={a.color}
+          />
+        </g>
+      {/each}
     </svg>
   </div>
+
+  <!-- Arrow list -->
+  {#if arrows.length > 0}
+    <div class="arrow-list">
+      <span class="arrow-list-label">Arrows:</span>
+      {#each arrows as arrow, i}
+        <span class="arrow-tag" style="border-color: {arrow.color}">
+          <span class="arrow-tag-dot" style="background: {arrow.color}"></span>
+          {arrow.from}&rarr;{arrow.to}
+          <button class="arrow-tag-x" onclick={() => removeArrow(i)} aria-label="Remove arrow">&times;</button>
+        </span>
+      {/each}
+    </div>
+  {/if}
 
   <!-- Metadata -->
   <div class="meta-row">
@@ -616,6 +755,87 @@ ${setup.join(',\n')},
     color: #f87171;
     line-height: 1;
     font-weight: bold;
+  }
+
+  .arrow-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    font-weight: bold;
+  }
+
+  .arrow-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .arrow-hint {
+    font-style: italic;
+  }
+
+  .arrow-colors {
+    display: flex;
+    gap: 0.375rem;
+  }
+
+  .color-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.15s;
+  }
+
+  .color-dot-active {
+    border-color: var(--foreground);
+  }
+
+  .arrow-list {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+  }
+
+  .arrow-list-label {
+    color: var(--text-muted);
+  }
+
+  .arrow-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid;
+    background: var(--card-bg);
+    font-family: monospace;
+    font-size: 0.75rem;
+  }
+
+  .arrow-tag-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .arrow-tag-x {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0 0.125rem;
+    line-height: 1;
+  }
+
+  .arrow-tag-x:hover {
+    color: #f87171;
   }
 
   .clear-btn {

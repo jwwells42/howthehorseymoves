@@ -3,6 +3,12 @@ import { getLegalMoves, isInCheck, isCheckmate, isStalemate } from '$lib/logic/a
 import { pickBotMove, type BotLevel } from '$lib/logic/bot';
 import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
 
+export interface MoveRecord {
+  san: string;
+  from: SquareId;
+  to: SquareId;
+}
+
 type GameResult = 'playing' | 'checkmate-white' | 'checkmate-black' | 'stalemate';
 
 const STARTING_POSITION: PiecePlacement[] = [
@@ -44,6 +50,74 @@ function applyPromotion(pieces: Map<SquareId, { piece: PieceKind; color: PieceCo
   }
 }
 
+/** Generate SAN (Standard Algebraic Notation) for a move. */
+function toSan(
+  boardBefore: BoardState,
+  from: SquareId,
+  to: SquareId,
+  color: PieceColor,
+  boardAfter: BoardState,
+): string {
+  const piece = boardBefore.pieces.get(from)!;
+  const kind = piece.piece;
+  const opponent: PieceColor = color === 'w' ? 'b' : 'w';
+
+  // Castling
+  if (kind === 'K') {
+    const fromFile = from.charCodeAt(0);
+    const toFile = to.charCodeAt(0);
+    if (toFile - fromFile === 2) {
+      const suffix = isCheckmate(opponent, boardAfter) ? '#' : isInCheck(opponent, boardAfter) ? '+' : '';
+      return 'O-O' + suffix;
+    }
+    if (fromFile - toFile === 2) {
+      const suffix = isCheckmate(opponent, boardAfter) ? '#' : isInCheck(opponent, boardAfter) ? '+' : '';
+      return 'O-O-O' + suffix;
+    }
+  }
+
+  const isCapture = !!boardBefore.pieces.get(to) || (kind === 'P' && to === boardBefore.enPassantSquare);
+
+  let san = '';
+
+  if (kind === 'P') {
+    if (isCapture) san += from[0]; // file of departure for pawn captures
+  } else {
+    san += kind;
+    // Disambiguation: check if another piece of the same type can also reach `to`
+    const ambiguous: SquareId[] = [];
+    for (const [sq, p] of boardBefore.pieces) {
+      if (sq === from || p.piece !== kind || p.color !== color) continue;
+      const legal = getLegalMoves(sq, boardBefore, color);
+      if (legal.includes(to)) ambiguous.push(sq);
+    }
+    if (ambiguous.length > 0) {
+      const sameFile = ambiguous.some(sq => sq[0] === from[0]);
+      const sameRank = ambiguous.some(sq => sq[1] === from[1]);
+      if (!sameFile) san += from[0];
+      else if (!sameRank) san += from[1];
+      else san += from;
+    }
+  }
+
+  if (isCapture) san += 'x';
+  san += to;
+
+  // Promotion (auto-queen)
+  if (kind === 'P') {
+    const rank = to[1];
+    if ((color === 'w' && rank === '8') || (color === 'b' && rank === '1')) {
+      san += '=Q';
+    }
+  }
+
+  // Check / checkmate
+  if (isCheckmate(opponent, boardAfter)) san += '#';
+  else if (isInCheck(opponent, boardAfter)) san += '+';
+
+  return san;
+}
+
 export function createGameState(botLevel: BotLevel = 'random') {
   let board = $state<BoardState>(buildStartingBoard());
   let selectedSquare = $state<SquareId | null>(null);
@@ -51,6 +125,8 @@ export function createGameState(botLevel: BotLevel = 'random') {
   let inCheck = $state(false);
   let botSlide = $state<SlideAnimation | null>(null);
   let waitingForBot = $state(false);
+  let moveHistory = $state<MoveRecord[]>([]);
+  let positions = $state<BoardState[]>([buildStartingBoard()]);
 
   let validMoves = $derived.by(() => {
     if (!selectedSquare) return [];
@@ -118,6 +194,9 @@ export function createGameState(botLevel: BotLevel = 'random') {
       };
 
       const newBoard: BoardState = { pieces: newPieces, castlingRights: rights };
+      const san = toSan(currentBoard, move.from, move.to, 'b', newBoard);
+      moveHistory = [...moveHistory, { san, from: move.from, to: move.to }];
+      positions = [...positions, newBoard];
       board = newBoard;
 
       const gameResult = checkGameOver(newBoard, 'w');
@@ -189,6 +268,9 @@ export function createGameState(botLevel: BotLevel = 'random') {
     }
 
     const newBoard: BoardState = { pieces: newPieces, castlingRights: rights, enPassantSquare };
+    const san = toSan(board, from, to, 'w', newBoard);
+    moveHistory = [...moveHistory, { san, from, to }];
+    positions = [...positions, newBoard];
     board = newBoard;
     selectedSquare = null;
 
@@ -250,6 +332,8 @@ export function createGameState(botLevel: BotLevel = 'random') {
     inCheck = false;
     botSlide = null;
     waitingForBot = false;
+    moveHistory = [];
+    positions = [buildStartingBoard()];
   }
 
   return {
@@ -260,6 +344,8 @@ export function createGameState(botLevel: BotLevel = 'random') {
     get inCheck() { return inCheck; },
     get botSlide() { return botSlide; },
     get waitingForBot() { return waitingForBot; },
+    get moveHistory() { return moveHistory; },
+    get positions() { return positions; },
     handleSquareClick,
     handleDrop,
     newGame,
