@@ -3,7 +3,7 @@
   import { getGame } from '$lib/games';
   import GameViewer from '$lib/components/game/GameViewer.svelte';
 
-  let gameId = $derived(page.params.gameId);
+  let gameId = $derived(page.params.gameId ?? '');
   let game = $derived(getGame(gameId));
 </script>
 

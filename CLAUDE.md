@@ -4,21 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-"How The Horsey Moves" — a free, open-source chess puzzle trainer for young students in classroom settings. Built with Next.js 16 + React 19 + TypeScript (strict mode). No chat, no ads, no memberships, no server compute — everything is client-side. Deployed to Vercel.
+"How The Horsey Moves" — a free, open-source chess puzzle trainer for young students in classroom settings. Built with SvelteKit (Svelte 5 runes) + TypeScript (strict mode). No chat, no ads, no memberships, no server compute — everything is client-side. Deployed to Vercel.
 
 ## Commands
 
 ```bash
-npm run dev      # Dev server at localhost:3000
-npm run build    # Production build
-npm run lint     # ESLint
+npm run dev          # Dev server at localhost:5173
+npm run build        # Production build
+npx svelte-check     # TypeScript + Svelte diagnostics
 ```
 
 No test framework is configured.
 
 ## Architecture
 
-**Three-layer design**: chess logic → state management → React UI.
+**Three-layer design**: chess logic → state management → Svelte UI.
 
 ### Chess Logic (`src/lib/logic/`)
 - `types.ts` — Core types: `PieceKind`, `PieceColor`, `SquareId` (union of all 64 squares), `BoardState` (Map-based, immutable). FEN parser via `parseFen()`
@@ -26,6 +26,7 @@ No test framework is configured.
 - `attacks.ts` — `isSquareAttacked()`, `isInCheck()`, `isCheckmate()`, `isStalemate()`, `getLegalMoves()`, `getAllLegalMoves()`
 - `pgn.ts` — PGN parser for model games. Exports `parseSan()` and `applyMove()` (also used by openings parser). Supports comments (`{text}`), NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`)
 - `bot.ts` — Bot move selection: `pickBotMove(board, color, level)`. `"random"` = any legal move; `"basic"` = one-ply scored evaluation
+- `endgame.ts` — Mate conversion logic for KQK, KRRK, KRK, KBBK endgames
 
 ### Puzzle System (`src/lib/puzzles/`)
 - `types.ts` — `Puzzle` interface: setup (FEN or placements), targets, solution, star thresholds, hints, arrows, opponent responses
@@ -45,25 +46,33 @@ No test framework is configured.
 - Learn mode: arrows show each move. Practice mode: arrows only on mistakes
 
 ### State (`src/lib/state/`)
-- `progress-context.tsx` — React Context + Reducer, persists to localStorage (`"horsey-progress"`). Sequential unlock: puzzle N requires N-1 completed
-- `use-puzzle.ts` — Custom hook for gameplay: board state, move validation, drag-and-drop, star calculation, side-effects, multi-step solution validation
+- `progress-store.ts` — Svelte writable store, persists to localStorage (`"horsey-progress"`). Sequential unlock: puzzle N requires N-1 completed
+- `use-puzzle.svelte.ts` — State factory for gameplay: board state, move validation, drag-and-drop, star calculation, side-effects, multi-step solution validation
+- `use-game.svelte.ts` — State factory for Play vs Computer: castling, promotion, bot moves
 
-### Board Trainer (`src/components/board/CoordinateTrainer.tsx`)
-- Timed 30-second mini-game: random coordinate appears, click the correct square
-- Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`)
-- Standalone from the puzzle system — no puzzle progress context
+### Components (`src/lib/components/`)
+- `board/Board.svelte` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations, danger-square overlays. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode). `dangerSquares` prop highlights squares with red semi-transparent overlay
+- `board/CoordinateTrainer.svelte` — Timed 30s square-naming mini-game. Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`). Standalone from puzzle progress system
+- `board/SetupTrainer.svelte` — 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup. Each stage individually addressable via `/setup/[stage]`. Exports `SETUP_STAGES` via `<script module>`. Supports click-click and drag-from-tray. Stars based on mistakes: 0=3, 1-2=2, 3+=1. Per-stage localStorage: `setup-{slug}-best-stars`
+- `puzzle/PuzzleShell.svelte` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
+- `game/GameViewer.svelte` — PGN game viewer with move list, auto-play, keyboard nav (`<svelte:window>`), comments, arrows. Test mode for memorization
+- `game/GameShell.svelte` — Play vs Computer wrapper, accepts `botLevel` prop
+- `opening/OpeningTrainer.svelte` — Opening repertoire trainer with learn/practice phases
+- `endgame/EndgameShell.svelte` — KPK bitbase trainer (`src/lib/logic/kpk-bitbase.ts`: 24KB retrograde analysis). Bot plays perfect defense via bitbase; validates student moves must maintain winning evaluation. Win condition: pawn reaches rank 8. Stars: 0 mistakes=3, 1=2, 2+=1
+- `endgame/MateTrainer.svelte` — Mate conversion trainer (KQK, KRRK, KRK, KBBK)
+- `lessons/HowToWinLesson.svelte` + `how-to-win-data.ts` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
+- `blindfold/` — 19 blindfold/visualization trainers, all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, RelativePosition, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
 
-### Setup Trainer (`src/components/board/SetupTrainer.tsx`) — "Place the Pieces"
-- 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup from scratch
-- Each stage is individually addressable via `/setup/[stage]` (e.g., `/setup/rooks`, `/setup/full`)
-- `/setup` shows a list page of all stages with per-stage stars
-- Exports `SETUP_STAGES` array with slugs, labels, descriptions, icons
-- Accepts `stageSlug` prop for single-stage mode (vs sequential all-7 mode)
-- Piece tray shown on right side of board with `sm:min-w-[7.5rem]` to prevent board resizing between stages
-- Single-type stages auto-select the piece type; multi-type stages require tray selection first
-- Supports both click-click (click tray → click board) and drag (drag from tray to board)
-- Stars based on total mistakes: 0 = 3, 1-2 = 2, 3+ = 1. Per-stage localStorage: `setup-{slug}-best-stars`
-- Standalone from puzzle system (like CoordinateTrainer)
+### Routing (`src/routes/`)
+- `/` — Landing page with three sections: **Basics**, **Intermediate**, **Advanced**
+- `/learn/[piece]` — Puzzle list, category hub, endgame trainers, blindfold trainers, How to Win hub/sections
+- `/learn/[piece]/[puzzleId]` — Individual puzzle or How to Win lesson step
+- `/board` — Board hub; `/board/coordinates` — Coordinate trainer
+- `/setup` — Place the Pieces stage list; `/setup/[stage]` — individual stage
+- `/games`, `/games/[gameId]` — Model game viewer
+- `/openings`, `/openings/[id]` — Opening repertoire trainer
+- `/play` — Play vs computer
+- `/about` — Privacy, COPPA, credits, license
 
 ### Lichess Puzzles (`src/lib/puzzles/lichess-*.ts`)
 - Practice puzzles sourced from the Lichess puzzle database (CC0 public domain)
@@ -74,43 +83,63 @@ No test framework is configured.
 - Lichess pins are appended after hand-authored pin puzzles in the same puzzle set
 - To regenerate: download `lichess_db_puzzle.csv.zst` from database.lichess.org, decompress, run the script with python-chess in a venv
 
-### Endgame Trainer (`src/components/endgame/EndgameShell.tsx`)
-- KPK bitbase (`src/lib/logic/kpk-bitbase.ts`): retrograde analysis classifying every King+Pawn vs King position as WIN/DRAW (24KB, generated on first probe)
-- Bot plays perfect defense via bitbase; validates student moves must maintain winning evaluation
-- Win condition: pawn reaches rank 8. Stars: 0 mistakes = 3, 1 = 2, 2+ = 1
-- Each endgame type can have its own bitbase — adding new ones doesn't require deciding everything upfront
-
-### Blindfold Trainers (`src/components/blindfold/`)
-- **Color of Square**: timed 30s, identify dark/light from coordinate. Stars: 5/10/15. localStorage: `blindfold-color-*`. Postmortem: mini-boards with tinted highlights preserving dark/light distinction (dark-green/dark-red/light-green/light-red), mistakes shown first then all answers
-- **Same Diagonal**: timed 30s, are two squares on the same diagonal? Mini-board review screen after. Stars: 6/12/20. localStorage: `blindfold-diagonal-*`
-- **Knight Routes**: type a legal knight path between two squares step by step. BFS shortest path (distance 2-4). Stars: optimal/+1/+2+. Postmortem: SVG board with numbered dots (green start/end, blue intermediate) connected by lines
-- **Who's Guarding Whom**: 4 white pieces (Q/N/R/B) on a board, identify guarding relationships. After each correct answer, a move is announced but the board stays frozen — track positions mentally. Wrong answers show feedback but don't end the game (streak resets). Give up reveals actual positions and full move history. Stars: streak 1/3/5. localStorage: `blindfold-guarding-*`
-- All blindfold games use standalone localStorage keys (not puzzle progress system)
-
-### UI (`src/components/`)
-- `board/Board.tsx` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations, danger-square overlays. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode). `dangerSquares` prop highlights squares with red semi-transparent overlay
-- `lessons/HowToWinLesson.tsx` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
-- `puzzle/PuzzleShell.tsx` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
-- `game/GameViewer.tsx` — PGN game viewer with move list, auto-play, keyboard nav, comments, arrows. **Test mode**: student reproduces the game from memory playing both sides; wrong moves show arrow hint
-- `game/GameShell.tsx` — Play vs Computer wrapper, accepts `botLevel` prop
-- `opening/OpeningTrainer.tsx` — Opening repertoire trainer with learn/practice phases
-
-### Routing (`src/app/`)
-- `/` — Landing page with three sections: **Basics** (pieces, The Board, How to Win, Play a Game), **Intermediate** (Checkmate Patterns, Tactics, Endings), **Advanced** (Blindfold, Play vs Computer, Openings, Model Games). Intermediate/Advanced collapse behind "Show more" until all basics are complete
-- `/learn/[piece]` — Puzzle list (or subcategory list for categories like checkmate/tactics)
-- `/learn/[piece]/[puzzleId]` — Individual puzzle
-- `/learn/how-to-win` — How to Win guided lesson (check, checkmate, stalemate)
-- `/board` — Board hub listing: Name the Square + Place the Pieces
-- `/board/coordinates` — Coordinate trainer (timed mini-game)
-- `/setup` — Place the Pieces stage list; `/setup/[stage]` — individual stage
-- `/games`, `/games/[gameId]` — Model game viewer (with test mode)
-- `/openings`, `/openings/[id]` — Opening repertoire trainer
-- `/play` — Play vs computer (level selector: Random Bot, Basic Bot)
-- `/about` — Privacy, COPPA, credits, license, administrator info
-
 ## Deployment
 
-Vercel auto-deploys on `git push` — no manual deployment steps needed.
+Vercel auto-deploys on `git push` — no manual deployment steps needed. Uses `@sveltejs/adapter-vercel` with `runtime: 'nodejs22.x'`.
+
+## Svelte 5 Conventions
+
+This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
+
+### State & Reactivity
+- **`$state()`** for reactive variables: `let count = $state(0)`
+- **Typed state** uses generic syntax: `let items = $state<string[]>([])` — NOT `let items: string[] = $state([])`
+- **`$derived()`** for computed values: `let doubled = $derived(count * 2)`
+- **`$derived.by()`** for complex computations that need a function body
+- **`$effect()`** for side effects (DOM updates, timers, localStorage). Avoid updating state inside effects — use `$derived` instead
+- **`onMount()`** for one-time browser-only initialization (localStorage reads, interval setup with cleanup)
+- **`$props()`** for component inputs: `let { piece, onNext }: Props = $props()`
+
+### Components
+- **Dynamic components**: use a PascalCase variable directly as a tag — `<MyComponent />`. Do NOT use `<svelte:component this={...}>` (deprecated in runes mode). Variable names MUST start with a capital letter for Svelte to treat them as components
+- **Props interface**: declare with `interface Props { ... }` then destructure with `$props()`
+- **`{#key value}`** blocks to force re-mount when a value changes (replaces React's `key` prop)
+- **Component-level exports**: use `<script lang="ts" module>` for non-component exports (e.g., `SETUP_STAGES`). For larger data exports, use separate `.ts` files
+- **Self-closing tags**: `<Component />` is fine for components; for HTML elements use `<div></div>`
+
+### Styling
+- **Scoped CSS** in `<style>` blocks — no Tailwind
+- **Conditional classes** use array syntax (Svelte 5.16+): `class={['card', isActive && 'active']}` — NOT `class:active={isActive}` (legacy directive)
+- CSS custom properties for theming: `--background`, `--foreground`, `--card-bg`, `--card-border`, `--text-muted`, `--text-faint`, `--btn-bg`, `--btn-hover`
+
+### Events & DOM
+- **Event handlers**: `onclick`, `onkeydown`, `onsubmit` — NOT `on:click` (Svelte 4 syntax)
+- **SVG a11y**: interactive SVGs need `role="application"` and `aria-label`; display-only SVGs need `role="img"` and `aria-label`. Never suppress a11y warnings with `svelte-ignore` — fix the underlying accessibility issue instead
+- **Keyboard nav**: use `<svelte:window onkeydown={handler} />` for global keyboard shortcuts
+
+### Imports
+- **`import type { X }`** for type-only imports (prevents Rollup "not exported" warnings)
+- **Path alias**: `$lib/` maps to `src/lib/`
+- Static assets live in `static/` (not `public/`)
+
+### Translation Cheatsheet (React → Svelte 5)
+
+| React/Next.js | SvelteKit (Svelte 5) |
+|---|---|
+| `useState(x)` | `let x = $state(x)` |
+| `useState<Type>(x)` | `let x = $state<Type>(x)` |
+| `useCallback(fn, [deps])` | `function fn() { ... }` |
+| `useEffect(() => { ... }, [deps])` | `$effect(() => { ... })` |
+| `useMemo(() => val, [deps])` | `let val = $derived(...)` |
+| `useRef(null)` | `let el = $state<El \| null>(null)` + `bind:this={el}` |
+| `useContext(Ctx)` | `import { store } from '$lib/state/...'` |
+| `className="x"` | `class="x"` or `class={['x', cond && 'y']}` |
+| `Link href="/x"` | `<a href="/x">` |
+| `use(params)` | `page.params` via `$app/state` |
+| `useRouter().push(x)` | `goto(x)` via `$app/navigation` |
+| `"use client"` | Not needed |
+| `@/lib/foo` | `$lib/foo` |
+| `key={id}` | `{#key id}...{/key}` |
 
 ## Key Conventions
 
@@ -124,20 +153,19 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 - Play page accepts `?level=random` or `?level=basic` query param to skip the level selector
 - Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
 - Board state is immutable — new `BoardState` created per move, never mutated
-- Chess piece SVGs live in `public/pieces/` named `{color}{piece}.svg` (e.g., `wR.svg`, `bN.svg`)
-- Path alias: `@/*` maps to `src/*`
-- Tailwind CSS 4 for styling
+- Chess piece SVGs live in `static/pieces/` named `{color}{piece}.svg` (e.g., `wR.svg`, `bN.svg`)
 - No backend/database — all state is client-side localStorage
 - Obstacle pieces on puzzles are white pawns (so they can't be captured by the player's white piece)
 - Puzzle `setup` accepts either a `PiecePlacement[]` array or a FEN string
 - FEN strings auto-extract castling rights and en passant square from fields 3-4
-- This codebase is designed to be hand-maintained by a human chess teacher — prefer simple, readable puzzle formats
-- Avoid `eslint-disable` comments — fix the root cause instead
+- This codebase is designed to be hand-maintained by a human chess teacher — prefer simple, readable formats
+- Avoid `eslint-disable` and `svelte-ignore` comments — fix the root cause instead
 
 ## Workflow
 
 - After completing a task, always offer to commit and push so Vercel can deploy
 - Run `npm run build` before committing to catch errors early
+- Run `npx svelte-check` to catch type errors that the build doesn't flag
 - The user often makes hand-edits to puzzle files while Claude works — always `git diff --stat` before committing and include their changed files
 - When pushing fails due to remote changes, `git pull --rebase` then push again
 - Do NOT try to programmatically verify checkmate positions — push and let the user test in-browser
@@ -146,14 +174,13 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 ## Puzzle Authoring Notes
 
 - The user is a chess teacher — puzzle accuracy matters. When creating checkmate puzzles, carefully trace all king escape squares
-- Claude can help with puzzle infrastructure (multi-move support, opponent responses, UI) but the user should verify chess positions for tactical correctness
+- Claude can help with puzzle infrastructure (multi-move support, opponent responses, arrows, UI) but the user should verify chess positions for tactical correctness
 - Tactics puzzles use arrows (not target stars) to show tactical relationships, and `opponentResponses` for multi-move sequences
 - Subcategories can be marked `comingSoon: true` in CATEGORIES to show as grayed-out placeholders
 - Checkmate categories: Queen Takes f7, Queen-Bishop Battery, Lolli's Mate, Smothered Mate, Back Rank Mate, Rook Ladder, Queen & King, Mate in 1, Mate in 2
 - Tactics categories: Pins, Skewers, Forks, Removing the Defender, Discovered Attacks — all have Lichess practice puzzles
 - Puzzle IDs use a prefix matching their category (e.g., `tactics-pin-01`, `checkmate-qb-01`, `lichess-fork-01`)
-- Blindfold categories: Color of Square, Same Diagonal, Knight Routes, Who's Guarding Whom
-- Endings categories: KPK (King + Pawn vs King with bitbase)
+- Blindfold trainers all use standalone localStorage keys (not puzzle progress system)
 
 ## Opening Trainer Notes
 
@@ -165,8 +192,8 @@ Vercel auto-deploys on `git push` — no manual deployment steps needed.
 ## Bot System (`src/lib/logic/bot.ts`)
 
 - Two levels: `"random"` (any legal move) and `"basic"` (one-ply evaluation)
-- Basic bot scores each legal move by: captures (trade up), checkmate delivery (+1000), checkmate defense (-500 if move allows opponent mate-in-1), piece safety (avoid hanging pieces), check bonus, center control, castling, pawn advancement
+- Basic bot scores each legal move by: captures (trade up), checkmate delivery (+1000), checkmate defense (-500 if move allows opponent mate-in-1), piece safety, check bonus, center control, castling, pawn advancement
 - No search tree — single pass over legal moves, runs instantly on Chromebooks
-- `useGame(botLevel)` in `use-game.ts` accepts the level; `GameShell` passes it through
+- `createGameState(botLevel)` in `use-game.svelte.ts` creates the game state factory; `GameShell` passes it through
 - Play page (`/play`) shows a level selector before starting the game
 - Adding new levels: add to `BotLevel` type, handle in `pickBotMove()`. Depth-2 minimax would be the natural next step (~900 positions, still fast)

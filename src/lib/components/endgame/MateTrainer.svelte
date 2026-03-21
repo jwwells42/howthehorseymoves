@@ -19,12 +19,16 @@
 
   let { type }: Props = $props();
 
-  const info = ENDGAME_INFO[type];
-  const storageKey = `endings-${type}-best-stars`;
+  let info = $derived(ENDGAME_INFO[type]);
+  let storageKey = $derived(`endings-${type}-best-stars`);
 
   /* ── State ────────────────────────────────────── */
 
-  let board = $state<BoardState>(createBoardState(generatePosition(type)));
+  function newBoard() {
+    return createBoardState(generatePosition(type));
+  }
+
+  let board = $state<BoardState>(newBoard());
   let selectedSquare = $state<SquareId | null>(null);
   let result = $state<'playing' | 'won'>('playing');
   let mistakes = $state(0);
@@ -169,7 +173,7 @@
   /* ── Reset ────────────────────────────────────── */
 
   function reset() {
-    board = createBoardState(generatePosition(type));
+    board = newBoard();
     selectedSquare = null;
     result = 'playing';
     mistakes = 0;

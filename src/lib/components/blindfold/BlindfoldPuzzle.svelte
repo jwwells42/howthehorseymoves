@@ -29,10 +29,10 @@
     return { pieces: newPieces };
   }
 
-  let phase: Phase = $state('idle');
+  let phase = $state<Phase>('idle');
   let puzzleIdx = $state(0);
-  let board: BoardState | null = $state(null);
-  let selectedSquare: SquareId | null = $state(null);
+  let board = $state<BoardState | null>(null);
+  let selectedSquare = $state<SquareId | null>(null);
   let correct = $state(0);
   let total = $state(0);
   let bestStars = $state(0);
@@ -156,7 +156,7 @@
 
   {:else if (phase === 'solved' || phase === 'wrong') && board}
     <div class="center-panel">
-      <p class="result-text" class:result-correct={phase === 'solved'} class:result-wrong={phase === 'wrong'}>
+      <p class={['result-text', phase === 'solved' && 'result-correct', phase === 'wrong' && 'result-wrong']}>
         {phase === 'solved' ? 'Checkmate!' : 'Not checkmate!'}
       </p>
       <div class="info-text">{correct}/{total} correct</div>

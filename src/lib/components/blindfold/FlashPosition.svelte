@@ -77,11 +77,11 @@
 
   type Phase = 'idle' | 'showing' | 'placing' | 'result' | 'done';
 
-  let phase: Phase = $state('idle');
+  let phase = $state<Phase>('idle');
   let levelIdx = $state(0);
-  let position: PiecePlacement[] = $state([]);
-  let placed: PiecePlacement[] = $state([]);
-  let selectedPiece: { piece: PieceKind; color: PieceColor } | null = $state(null);
+  let position = $state<PiecePlacement[]>([]);
+  let placed = $state<PiecePlacement[]>([]);
+  let selectedPiece = $state<{ piece: PieceKind; color: PieceColor } | null>(null);
   let round = $state(0);
   let totalCorrect = $state(0);
   let totalPieces = $state(0);
@@ -119,7 +119,8 @@
 
   function handleBoardClick(e: MouseEvent) {
     if (phase !== 'placing' || !selectedPiece) return;
-    const svg = e.currentTarget as SVGSVGElement;
+    const target = e.currentTarget as HTMLElement;
+    const svg = target.querySelector('svg') ?? target;
     const rect = svg.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width * BOARD_PX;
     const y = (e.clientY - rect.top) / rect.height * BOARD_PX;
@@ -218,12 +219,10 @@
         A position flashes briefly. Then place the pieces from memory! {ROUNDS} rounds.
       </p>
       <div class="level-picker">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="level-label">Difficulty:</label>
+        <span class="level-label">Difficulty:</span>
         {#each LEVELS as l, i}
           <button
-            class="level-btn"
-            class:level-active={levelIdx === i}
+            class={['level-btn', levelIdx === i && 'level-active']}
             onclick={() => { levelIdx = i; }}
           >
             {l.label}
@@ -249,8 +248,7 @@
   {:else if phase === 'showing'}
     <div class="center-col">
       <div class="round-label">Round {round}/{ROUNDS} &mdash; Memorize!</div>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg">
+      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Chess position to memorize">
         {#each Array(8) as _, ri}
           {#each Array(8) as _, fi}
             <rect
@@ -280,8 +278,7 @@
       <div class="round-label">Round {round}/{ROUNDS}</div>
       <p class="result-count">{correctSquares.size}/{position.length} correct</p>
       <div class="muted-xs">Correct answer:</div>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg">
+      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Correct chess position">
         {#each Array(8) as _, ri}
           {#each Array(8) as _, fi}
             <rect
@@ -313,12 +310,14 @@
     <div class="placing-col">
       <div class="round-label">Round {round}/{ROUNDS} &mdash; Place from memory!</div>
 
-      <div class="board-wrapper">
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_no_noninteractive_element_interactions -->
+      <button
+        class="board-wrapper board-btn"
+        aria-label="Chess board — click to place pieces"
+        onclick={handleBoardClick}
+      >
         <svg
           viewBox="0 0 {BOARD_PX} {BOARD_PX}"
           class="board-svg clickable"
-          onclick={handleBoardClick}
         >
           {#each Array(8) as _, ri}
             {#each Array(8) as _, fi}
@@ -342,14 +341,13 @@
             />
           {/each}
         </svg>
-      </div>
+      </button>
 
       <div class="tray">
         {#each TRAY_PIECES as p}
           {@const isSelected = selectedPiece?.piece === p.piece && selectedPiece?.color === p.color}
           <button
-            class="tray-btn"
-            class:tray-selected={isSelected}
+            class={['tray-btn', isSelected && 'tray-selected']}
             onclick={() => { selectedPiece = isSelected ? null : p; }}
           >
             <img src="/pieces/{p.color}{p.piece}.svg" alt="{p.color}{p.piece}" class="tray-img" />
@@ -492,6 +490,13 @@
 
   .board-wrapper {
     position: relative;
+  }
+
+  .board-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
   }
 
   .studying {

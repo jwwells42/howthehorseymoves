@@ -3,7 +3,7 @@
   import { getOpening } from '$lib/openings';
   import OpeningTrainer from '$lib/components/opening/OpeningTrainer.svelte';
 
-  let id = $derived(page.params.id);
+  let id = $derived(page.params.id ?? '');
   let opening = $derived(getOpening(id));
 </script>
 

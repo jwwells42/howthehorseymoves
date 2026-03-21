@@ -69,17 +69,17 @@
     return isLight ? LIGHT : DARK;
   }
 
-  let gameState: 'idle' | 'playing' | 'done' = $state('idle');
+  let gameState = $state<'idle' | 'playing' | 'done'>('idle');
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
   let target = $state(randomSquare());
   let input = $state('');
-  let entered: string[] = $state([]);
-  let error: string | null = $state(null);
+  let entered = $state<string[]>([]);
+  let error = $state<string | null>(null);
   let bestScore = $state(0);
   let bestStars = $state(0);
-  let history: Attempt[] = $state([]);
-  let inputEl: HTMLInputElement | null = $state(null);
+  let history = $state<Attempt[]>([]);
+  let inputEl = $state<HTMLInputElement | null>(null);
 
   let timerRef: ReturnType<typeof setInterval> | null = null;
 

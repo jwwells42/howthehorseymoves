@@ -81,13 +81,13 @@
 
   /* ── Reactive state ────────────────────────────────────── */
 
-  let board: BoardState = $state({ pieces: new Map() });
-  let selectedSquare: SquareId | null = $state(null);
-  let solved: boolean = $state(false);
-  let wrongMoveSquare: SquareId | null = $state(null);
-  let feedbackMessage: string | null = $state(null);
-  let bestStars: number = $state(0);
-  let done: boolean = $state(false);
+  let board = $state<BoardState>({ pieces: new Map() });
+  let selectedSquare = $state<SquareId | null>(null);
+  let solved = $state(false);
+  let wrongMoveSquare = $state<SquareId | null>(null);
+  let feedbackMessage = $state<string | null>(null);
+  let bestStars = $state(0);
+  let done = $state(false);
 
   const playerColor: PieceColor = 'w';
 

@@ -114,16 +114,16 @@
     return isLight ? LIGHT : DARK;
   }
 
-  let gameState: 'idle' | 'playing' | 'done' = $state('idle');
+  let gameState = $state<'idle' | 'playing' | 'done'>('idle');
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
   let question = $state(generateQuestion());
   let input = $state('');
-  let flash: 'correct' | 'wrong' | null = $state(null);
+  let flash = $state<'correct' | 'wrong' | null>(null);
   let bestScore = $state(0);
   let bestStars = $state(0);
-  let history: Attempt[] = $state([]);
-  let inputEl: HTMLInputElement | null = $state(null);
+  let history = $state<Attempt[]>([]);
+  let inputEl = $state<HTMLInputElement | null>(null);
 
   let timerRef: ReturnType<typeof setInterval> | null = null;
   let flashTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -328,7 +328,7 @@
 
     <div class="question-area">
       <img src={PIECE_ICONS[question.piece]} alt={PIECE_NAMES[question.piece]} class="piece-img" />
-      <div class="square-display" class:flash-correct={flash === 'correct'} class:flash-wrong={flash === 'wrong'}>
+      <div class={['square-display', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}>
         {question.square}
       </div>
       <div class="question-label">How many squares?</div>

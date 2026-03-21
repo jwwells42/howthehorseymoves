@@ -47,14 +47,14 @@
 
   type GameState = 'idle' | 'playing' | 'done';
 
-  let gameState: GameState = $state('idle');
+  let gameState = $state<GameState>('idle');
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
   let target = $state(randomSquare());
-  let flash: 'correct' | 'wrong' | null = $state(null);
+  let flash = $state<'correct' | 'wrong' | null>(null);
   let bestScore = $state(0);
   let bestStars = $state(0);
-  let history: Attempt[] = $state([]);
+  let history = $state<Attempt[]>([]);
 
   let timerRef: ReturnType<typeof setInterval> | null = null;
   let flashRef: ReturnType<typeof setTimeout> | null = null;
@@ -172,9 +172,7 @@
     </div>
 
     <div
-      class="target-square"
-      class:flash-correct={flash === 'correct'}
-      class:flash-wrong={flash === 'wrong'}
+      class={['target-square', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}
     >
       {target}
     </div>

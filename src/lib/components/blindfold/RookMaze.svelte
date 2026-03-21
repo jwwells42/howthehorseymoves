@@ -110,13 +110,13 @@
     return [f * S + S / 2, (7 - r) * S + S / 2];
   }
 
-  let puzzle: Puzzle = $state(generatePuzzle());
-  let route: string[] = $state([]);
+  let puzzle = $state<Puzzle>(generatePuzzle());
+  let route = $state<string[]>([]);
   let input = $state('');
-  let error: string | null = $state(null);
-  let result: 'playing' | 'won' = $state('playing');
-  let inputEl: HTMLInputElement | undefined = $state(undefined);
-  let newRouteEl: HTMLButtonElement | undefined = $state(undefined);
+  let error = $state<string | null>(null);
+  let result = $state<'playing' | 'won'>('playing');
+  let inputEl = $state<HTMLInputElement | undefined>(undefined);
+  let newRouteEl = $state<HTMLButtonElement | undefined>(undefined);
 
   let currentSquare = $derived(route.length > 0 ? route[route.length - 1] : puzzle.start);
   let moveCount = $derived(route.length);
@@ -195,7 +195,7 @@
     {#each route as sq}
       <span class="route-step">
         <span class="route-arrow">&rarr;</span>
-        <span class="route-square" class:route-target={sq === puzzle.target}>{sq}</span>
+        <span class={['route-square', sq === puzzle.target && 'route-target']}>{sq}</span>
       </span>
     {/each}
     {#if result === 'playing'}

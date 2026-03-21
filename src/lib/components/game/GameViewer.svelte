@@ -26,7 +26,7 @@
   let testDragFrom = $state<SquareId | null>(null);
 
   // Move list scroll container
-  let moveListEl: HTMLDivElement | undefined = $state(undefined);
+  let moveListEl = $state<HTMLDivElement | undefined>(undefined);
 
   // Derived board position
   let board = $derived(testMode ? parsed.positions[testMoveIdx] : parsed.positions[currentMove]);
@@ -115,8 +115,7 @@
   // --- Scroll current move into view ---
   $effect(() => {
     if (testMode) return;
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    currentMove; // track dependency
+    void currentMove; // track dependency
     if (!moveListEl) return;
     const highlighted = moveListEl.querySelector("[data-active='true']") as HTMLElement | null;
     if (!highlighted) return;
@@ -371,8 +370,7 @@
           {#each movePairs as pair, i}
             <span class="move-num">{pair.num}.</span>
             <button
-              class="move-btn"
-              class:move-active={currentMove === i * 2 + 1}
+              class={['move-btn', currentMove === i * 2 + 1 && 'move-active']}
               data-active={currentMove === i * 2 + 1}
               onclick={() => { currentMove = i * 2 + 1; }}
             >
@@ -380,8 +378,7 @@
             </button>
             {#if pair.black}
               <button
-                class="move-btn"
-                class:move-active={currentMove === i * 2 + 2}
+                class={['move-btn', currentMove === i * 2 + 2 && 'move-active']}
                 data-active={currentMove === i * 2 + 2}
                 onclick={() => { currentMove = i * 2 + 2; }}
               >

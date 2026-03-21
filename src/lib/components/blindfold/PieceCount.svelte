@@ -117,16 +117,16 @@
 
   type Phase = 'idle' | 'flash' | 'answer' | 'done';
 
-  let phase: Phase = $state('idle');
-  let challenge: Challenge = $state(generateChallenge());
+  let phase = $state<Phase>('idle');
+  let challenge = $state<Challenge>(generateChallenge());
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
   let input = $state('');
-  let flash: 'correct' | 'wrong' | null = $state(null);
+  let flash = $state<'correct' | 'wrong' | null>(null);
   let bestScore = $state(0);
   let bestStars = $state(0);
-  let history: Attempt[] = $state([]);
-  let inputEl: HTMLInputElement | undefined = $state(undefined);
+  let history = $state<Attempt[]>([]);
+  let inputEl = $state<HTMLInputElement | undefined>(undefined);
 
   let flashTimeout: ReturnType<typeof setTimeout> | null = null;
   let showTimerRef: ReturnType<typeof setTimeout> | null = null;
@@ -303,8 +303,7 @@
         <span>{timeLeft}s</span>
       </div>
       <div class="memorize-label">Memorize...</div>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="0 0 320 320" class="flash-board">
+      <svg viewBox="0 0 320 320" class="flash-board" role="img" aria-label="Chess position to memorize">
         {#each Array(8) as _, ri}
           {#each Array(8) as _, fi}
             <rect x={fi * 40} y={ri * 40} width={40} height={40}
@@ -332,9 +331,7 @@
         <span>{timeLeft}s</span>
       </div>
 
-      <div class="question"
-        class:flash-correct={flash === 'correct'}
-        class:flash-wrong={flash === 'wrong'}
+      <div class={['question', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}
       >
         {QUESTION_LABELS[challenge.questionType]}
       </div>

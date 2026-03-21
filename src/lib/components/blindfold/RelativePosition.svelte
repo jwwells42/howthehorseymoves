@@ -84,14 +84,14 @@
     'below-right': '\u2198',
   };
 
-  let gameState: 'idle' | 'playing' | 'done' = $state('idle');
+  let gameState = $state<'idle' | 'playing' | 'done'>('idle');
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
-  let question: Question = $state(generateQuestion());
-  let flash: 'correct' | 'wrong' | null = $state(null);
+  let question = $state<Question>(generateQuestion());
+  let flash = $state<'correct' | 'wrong' | null>(null);
   let bestScore = $state(0);
   let bestStars = $state(0);
-  let history: Attempt[] = $state([]);
+  let history = $state<Attempt[]>([]);
 
   let timerRef: ReturnType<typeof setInterval> | null = null;
   let flashTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -228,7 +228,7 @@
         <div class="question-label">
           Where is <span class="bold">{question.sq2}</span> from <span class="bold">{question.sq1}</span>?
         </div>
-        <div class="question-main" class:flash-correct={flash === 'correct'} class:flash-wrong={flash === 'wrong'}>
+        <div class={['question-main', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}>
           {question.sq1} &rarr; {question.sq2}
         </div>
       </div>

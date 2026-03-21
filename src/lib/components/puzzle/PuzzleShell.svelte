@@ -23,13 +23,13 @@
   // Compute en passant pawn slide animation
   let pawnSlideData = $derived.by(() => {
     const ep = puzzle.enPassantSquare;
-    if (!ep) return null;
+    if (!ep) return undefined;
     const [epFile, epRank] = squareToCoords(ep);
     const pawnRank = epRank === 2 ? 3 : 4;
     const startRank = epRank === 2 ? 1 : 6;
     const pawnSq = coordsToSquare(epFile, pawnRank);
     const startSq = coordsToSquare(epFile, startRank);
-    if (!pawnSq || !startSq) return null;
+    if (!pawnSq || !startSq) return undefined;
     return { from: startSq, to: pawnSq };
   });
 

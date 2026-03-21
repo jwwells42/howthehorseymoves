@@ -30,8 +30,8 @@
 
   let { type }: Props = $props();
 
-  const info = ENDGAME_INFO[type];
-  const storageKey = `blindfold-mate-${type}-best-stars`;
+  let info = $derived(ENDGAME_INFO[type]);
+  let storageKey = $derived(`blindfold-mate-${type}-best-stars`);
 
   /* ── Input parsing (standard algebraic notation) ── */
 
@@ -255,11 +255,11 @@
           type="button"
           role="switch"
           aria-checked={hideHistory}
-          class="toggle-track"
-          class:active={hideHistory}
+          aria-label="Hide move list"
+          class={['toggle-track', hideHistory && 'active']}
           onclick={() => hideHistory = !hideHistory}
         >
-          <span class="toggle-thumb" class:active={hideHistory}></span>
+          <span class={['toggle-thumb', hideHistory && 'active']}></span>
         </button>
         Hide move list (harder)
       </label>

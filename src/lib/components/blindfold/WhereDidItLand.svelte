@@ -156,8 +156,8 @@
 
   const ROUNDS = 10;
 
-  let phase: 'idle' | 'playing' | 'feedback' | 'done' = $state('idle');
-  let question: Question | null = $state(null);
+  let phase = $state<'idle' | 'playing' | 'feedback' | 'done'>('idle');
+  let question = $state<Question | null>(null);
   let input = $state('');
   let correct = $state(0);
   let total = $state(0);
@@ -165,7 +165,7 @@
   let isCorrect = $state(false);
   let bestStars = $state(0);
 
-  let inputEl: HTMLInputElement | null = $state(null);
+  let inputEl = $state<HTMLInputElement | null>(null);
 
   onMount(() => {
     bestStars = parseInt(localStorage.getItem('blindfold-landed-best-stars') ?? '0', 10);
@@ -247,7 +247,7 @@
     {@const colorName = question.askColor === 'w' ? 'white' : 'black'}
     <div class="center-col">
       <div class="round-label">Round {round}/{ROUNDS}</div>
-      <p class="feedback-text" class:correct-text={isCorrect} class:wrong-text={!isCorrect}>
+      <p class={['feedback-text', isCorrect && 'correct-text', !isCorrect && 'wrong-text']}>
         {isCorrect ? 'Correct!' : 'Wrong!'}
       </p>
       <p class="muted">

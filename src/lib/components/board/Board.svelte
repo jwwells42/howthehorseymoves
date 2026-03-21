@@ -66,8 +66,8 @@
     safeSquares,
   }: Props = $props();
 
-  let svgEl: SVGSVGElement | undefined = $state(undefined);
-  let drag: DragState | null = $state(null);
+  let svgEl = $state<SVGSVGElement | undefined>(undefined);
+  let drag = $state<DragState | null>(null);
 
   let allHighlightedMoves = $derived(drag ? dragValidMoves : validMoves);
 
@@ -175,11 +175,13 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <svg
   bind:this={svgEl}
   viewBox="0 0 {BOARD_SIZE} {BOARD_SIZE}"
   class="board-svg"
+  role="application"
+  aria-label="Chess board"
+  tabindex="-1"
   onpointermove={handlePointerMove}
   onpointerup={handlePointerUp}
 >
@@ -196,10 +198,13 @@
       {@const isWrongMove = sq === wrongMoveSquare}
       {@const isDanger = dangerSquares?.includes(sq)}
       {@const fill = isWrongMove ? WRONG_MOVE_COLOR : isSelected ? SELECTED_COLOR : isPawnSlideSquare ? LAST_MOVE_COLOR : isLight ? LIGHT : DARK}
-      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
       <g
         onclick={() => handleSquareClick(sq)}
+        onkeydown={() => {}}
         onpointerdown={(e) => handlePointerDown(e, sq)}
+        role="button"
+        tabindex="-1"
+        aria-label={sq}
         class="square"
       >
         <rect

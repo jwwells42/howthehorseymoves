@@ -42,17 +42,17 @@
 
   type Phase = 'idle' | 'sighted' | 'blind' | 'solved' | 'wrong';
 
-  let phase: Phase = $state('idle');
+  let phase = $state<Phase>('idle');
   let puzzleIdx = $state(0);
   let delayMoves = $state(0);
-  let originalBoard: BoardState | null = $state(null);
-  let currentBoard: BoardState | null = $state(null);
+  let originalBoard = $state<BoardState | null>(null);
+  let currentBoard = $state<BoardState | null>(null);
   let answer = $state('');
-  let delayedMoves: DelayedMove[] = $state([]);
+  let delayedMoves = $state<DelayedMove[]>([]);
   let correct = $state(0);
   let total = $state(0);
   let bestStars = $state(0);
-  let selectedSquare: SquareId | null = $state(null);
+  let selectedSquare = $state<SquareId | null>(null);
 
   let showTimerRef: ReturnType<typeof setTimeout> | null = null;
 
@@ -186,8 +186,7 @@
         {#each [0, 1, 2] as n}
           <button
             onclick={() => { delayMoves = n; }}
-            class="delay-btn"
-            class:delay-active={delayMoves === n}
+            class={['delay-btn', delayMoves === n && 'delay-active']}
           >
             {n}
           </button>
@@ -217,7 +216,7 @@
 
   {:else if (phase === 'solved' || phase === 'wrong') && currentBoard}
     <div class="center-panel">
-      <p class="result-text" class:result-correct={phase === 'solved'} class:result-wrong={phase === 'wrong'}>
+      <p class={['result-text', phase === 'solved' && 'result-correct', phase === 'wrong' && 'result-wrong']}>
         {phase === 'solved' ? 'Checkmate!' : 'Not checkmate \u2014 try to remember the position!'}
       </p>
       <div class="info-text">{correct}/{total} correct</div>

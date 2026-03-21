@@ -79,15 +79,15 @@
   let isSingleStage = $derived(singleStageIndex >= 0);
   let stages = $derived(isSingleStage ? [SETUP_STAGES[singleStageIndex]] : SETUP_STAGES);
 
-  let phase: Phase = $state('idle');
+  let phase = $state<Phase>('idle');
   let stageIndex = $state(0);
-  let placed: Set<SquareId> = $state(new Set());
+  let placed = $state<Set<SquareId>>(new Set());
   let mistakes = $state(0);
-  let wrongSquare: SquareId | null = $state(null);
-  let selectedPiece: PieceKind | null = $state(null);
+  let wrongSquare = $state<SquareId | null>(null);
+  let selectedPiece = $state<PieceKind | null>(null);
   let bestStars = $state(0);
-  let trayDrag: TrayDrag | null = $state(null);
-  let boardEl: HTMLDivElement | undefined = $state(undefined);
+  let trayDrag = $state<TrayDrag | null>(null);
+  let boardEl = $state<HTMLDivElement | undefined>(undefined);
 
   let storageKey = $derived(isSingleStage
     ? `setup-${stageSlug}-best-stars`
@@ -287,9 +287,11 @@
   </div>
 {:else}
   <!-- Playing -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="playing-container"
+    role="application"
+    aria-label="Piece placement area"
+    tabindex="-1"
     onpointermove={handleContainerPointerMove}
     onpointerup={handleContainerPointerUp}
   >
@@ -335,10 +337,8 @@
         {#if hasBackRankRemaining}
           <div class="tray-grid">
             {#each backRankRemaining as p (p.square)}
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <button
-                class="tray-piece"
-                class:selected={selectedPiece === p.piece}
+                class={['tray-piece', selectedPiece === p.piece && 'selected']}
                 onclick={() => { selectedPiece = p.piece; }}
                 onpointerdown={(e) => handleTrayPointerDown(e, p.piece)}
               >
@@ -350,10 +350,8 @@
         {#if hasPawnRemaining}
           <div class="tray-grid">
             {#each pawnRemaining as p (p.square)}
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <button
-                class="tray-piece"
-                class:selected={selectedPiece === p.piece}
+                class={['tray-piece', selectedPiece === p.piece && 'selected']}
                 onclick={() => { selectedPiece = p.piece; }}
                 onpointerdown={(e) => handleTrayPointerDown(e, p.piece)}
               >

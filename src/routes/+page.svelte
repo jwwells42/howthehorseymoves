@@ -127,8 +127,8 @@
   <div class="grid">
     {#each PIECES as piece, idx}
       {@const stats = getPieceStats(piece.key)}
-      <a href="/learn/{piece.key}" class="card" class:up-next={piece.key === upNextPieceKey}>
-        <div class="step-badge" class:complete={stats.completedPuzzles > 0 && stats.completedPuzzles === stats.totalPuzzles}>
+      <a href="/learn/{piece.key}" class={['card', piece.key === upNextPieceKey && 'up-next']}>
+        <div class={['step-badge', stats.completedPuzzles > 0 && stats.completedPuzzles === stats.totalPuzzles && 'complete']}>
           {#if stats.completedPuzzles > 0 && stats.completedPuzzles === stats.totalPuzzles}
             &#10003;
           {:else}
@@ -150,7 +150,7 @@
 
     <!-- The Board card -->
     <a href="/board" class="card">
-      <div class="step-badge" class:complete={coordStars > 0}>
+      <div class={['step-badge', coordStars > 0 && 'complete']}>
         {#if coordStars > 0}&#10003;{:else}{PIECES.length + 1}{/if}
       </div>
       <div class="card-header">
@@ -165,7 +165,7 @@
 
     <!-- How to Win card -->
     <a href="/learn/how-to-win" class="card">
-      <div class="step-badge" class:complete={howToWinStars > 0}>
+      <div class={['step-badge', howToWinStars > 0 && 'complete']}>
         {#if howToWinStars > 0}&#10003;{:else}{PIECES.length + 2}{/if}
       </div>
       <div class="card-header">
@@ -179,8 +179,8 @@
     </a>
 
     <!-- Play a Game card -->
-    <a href="/play?level=random" class="card" class:up-next={!allBasicsDone && upNextPieceKey === null}>
-      <div class="step-badge" class:complete={allBasicsDone}>
+    <a href="/play?level=random" class={['card', !allBasicsDone && upNextPieceKey === null && 'up-next']}>
+      <div class={['step-badge', allBasicsDone && 'complete']}>
         {#if allBasicsDone}&#10003;{:else}{PIECES.length + 3}{/if}
       </div>
       <div class="card-header">
@@ -225,7 +225,7 @@
     </div>
   {/if}
 
-  <div class="grid" class:hidden={!allBasicsDone && !showIntermediate}>
+  <div class={['grid', !allBasicsDone && !showIntermediate && 'hidden']}>
     {#each intermediateCats as cat}
       {@const stats = getCategoryStats(cat)}
       <a href="/learn/{cat.key}" class="card">
@@ -262,7 +262,7 @@
     </div>
   {/if}
 
-  <div class="grid" class:hidden={!allBasicsDone && !showAdvanced}>
+  <div class={['grid', !allBasicsDone && !showAdvanced && 'hidden']}>
     {#each advancedCats as cat}
       {@const stats = getCategoryStats(cat)}
       <a href="/learn/{cat.key}" class="card">

@@ -219,7 +219,7 @@
     {#each route as sq, i}
       <span class="route-step">
         <span class="route-arrow">&rarr;</span>
-        <span class="route-sq" class:target-reached={sq === puzzle.target}>{sq}</span>
+        <span class={['route-sq', sq === puzzle.target && 'target-reached']}>{sq}</span>
       </span>
     {/each}
     {#if result === 'playing'}
@@ -251,8 +251,7 @@
       <StarRating {stars} size="lg" />
 
       <!-- Post-game board -->
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="{-14} {-2} {B + 28} {B + 16}" class="gauntlet-board">
+      <svg viewBox="{-14} {-2} {B + 28} {B + 16}" class="gauntlet-board" role="img" aria-label="Knight route on chess board">
         {#each Array(8) as _, i}
           <text x={-6} y={(7 - i) * S + S / 2 + 3}
             text-anchor="middle" font-size="8" fill="#888" class="label">{i + 1}</text>

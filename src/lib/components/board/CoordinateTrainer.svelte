@@ -35,12 +35,12 @@
 
   type GameState = 'idle' | 'playing' | 'done';
 
-  let gameState: GameState = $state('idle');
-  let target: SquareId = $state(randomSquare());
+  let gameState = $state<GameState>('idle');
+  let target = $state<SquareId>(randomSquare());
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
-  let flashSquare: SquareId | null = $state(null);
-  let flashColor: string = $state('');
+  let flashSquare = $state<SquareId | null>(null);
+  let flashColor = $state('');
   let bestScore = $state(0);
   let bestStars = $state(0);
 
@@ -154,9 +154,9 @@
       <div class="final-score">{score}</div>
       <StarRating stars={scoreToStars(score)} size="lg" />
       <div class="thresholds done-thresholds">
-        <span class="threshold" class:achieved={score >= 3}><StarRating stars={1} size="sm" /> 3</span>
-        <span class="threshold" class:achieved={score >= 5}><StarRating stars={2} size="sm" /> 5</span>
-        <span class="threshold" class:achieved={score >= 10}><StarRating stars={3} size="sm" /> 10</span>
+        <span class={['threshold', score >= 3 && 'achieved']}><StarRating stars={1} size="sm" /> 3</span>
+        <span class={['threshold', score >= 5 && 'achieved']}><StarRating stars={2} size="sm" /> 5</span>
+        <span class={['threshold', score >= 10 && 'achieved']}><StarRating stars={3} size="sm" /> 10</span>
       </div>
       {#if bestScore > 0}
         <p class="best">Best: {bestScore} <StarRating stars={bestStars} size="sm" /></p>
@@ -167,11 +167,13 @@
   {/if}
 
   <div class="board-wrapper">
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <svg
       viewBox="0 0 {BOARD_SIZE} {BOARD_SIZE}"
       class="board-svg"
       xmlns="http://www.w3.org/2000/svg"
+      role="application"
+      aria-label="Chess board"
+      tabindex="-1"
     >
       {#each FILES as file, fi}
         {#each DISPLAY_RANKS as rank, ri}
@@ -180,7 +182,6 @@
           {@const y = ri * SQUARE_SIZE}
           {@const fill =
             flashSquare === sq ? flashColor : squareColor(fi, ri)}
-          <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
           <rect
             {x}
             {y}
@@ -188,6 +189,10 @@
             height={SQUARE_SIZE}
             {fill}
             onclick={() => handleSquareClick(sq)}
+            onkeydown={() => {}}
+            role="button"
+            tabindex="-1"
+            aria-label={sq}
             style="cursor: {gameState === 'playing' ? 'pointer' : 'default'}"
           />
         {/each}

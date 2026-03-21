@@ -31,7 +31,8 @@
 
   let lineIdx = $state(0);
   let moveIdx = $state(0);
-  let board = $state(startBoard);
+  function initialBoard() { return startBoard; }
+  let board = $state(initialBoard());
   let phase = $state<Phase>('learn');
   let selectedSquare = $state<SquareId | null>(null);
   let wrongMoveSquare = $state<SquareId | null>(null);
@@ -294,15 +295,13 @@
       {#each moveDisplay as pair}
         <span class="move-pair">
           <span class="move-num">{pair.num}.</span>
-          <span class="move" class:played={moveIdx > pair.whiteIdx} class:current={moveIdx === pair.whiteIdx}>
+          <span class={['move', moveIdx > pair.whiteIdx && 'played', moveIdx === pair.whiteIdx && 'current']}>
             {pair.white}
           </span>
           {#if pair.black}
             {' '}
             <span
-              class="move"
-              class:played={pair.blackIdx !== undefined && moveIdx > pair.blackIdx}
-              class:current={pair.blackIdx !== undefined && moveIdx === pair.blackIdx}
+              class={['move', pair.blackIdx !== undefined && moveIdx > pair.blackIdx && 'played', pair.blackIdx !== undefined && moveIdx === pair.blackIdx && 'current']}
             >
               {pair.black}
             </span>

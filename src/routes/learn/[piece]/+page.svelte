@@ -30,7 +30,7 @@
   import GuardingGame from '$lib/components/blindfold/GuardingGame.svelte';
   import BlindfoldMate from '$lib/components/blindfold/BlindfoldMate.svelte';
 
-  let piece = $derived(page.params.piece);
+  let piece = $derived(page.params.piece ?? '');
 
   // Endgame positions
   const ENDGAME_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[] }> = {
@@ -70,7 +70,7 @@
     'blindfold-gauntlet': KnightGauntlet,
     'blindfold-guarding': GuardingGame,
   };
-  let blindfoldComponent = $derived(BLINDFOLD_ROUTES[piece]);
+  let BlindfoldComponent = $derived(BLINDFOLD_ROUTES[piece]);
 
   // Category page
   let category = $derived(getCategory(piece));
@@ -122,7 +122,7 @@
   <!-- Mate conversion trainer (KQK, KRRK, etc.) -->
   <main class="page">
     <a href="/learn/endings" class="back-link">&larr; Back to endings</a>
-    <MateTrainer type={mateEndgameMatch[1]} />
+    <MateTrainer type={mateEndgameMatch[1] as MateEndgameType} />
   </main>
 {:else if piece === 'how-to-win'}
   <!-- How to Win hub page -->
@@ -158,7 +158,7 @@
   </main>
 {:else if howToWinMatch}
   <!-- How to Win section page (check/checkmate/stalemate) -->
-  {@const section = howToWinMatch[1]}
+  {@const section = howToWinMatch[1] as HowToWinSection}
   {@const sectionInfo = HOW_TO_WIN_SECTIONS.find(s => s.key === section)}
   {@const steps = getSectionSteps(section)}
   <main class="page">
@@ -198,17 +198,17 @@
       </div>
     {/if}
   </main>
-{:else if blindfoldComponent}
+{:else if BlindfoldComponent}
   <!-- Blindfold trainer -->
-  <main class="page" class:blindfold-page={piece !== 'blindfold-guarding'} class:blindfold-wide={piece === 'blindfold-guarding'}>
+  <main class={['page', piece !== 'blindfold-guarding' && 'blindfold-page', piece === 'blindfold-guarding' && 'blindfold-wide']}>
     <a href="/learn/blindfold" class="back-link">&larr; Back to blindfold</a>
-    <svelte:component this={blindfoldComponent} />
+    <BlindfoldComponent />
   </main>
 {:else if blindfoldMateMatch}
   <!-- Blindfold mate trainer -->
   <main class="page blindfold-page">
     <a href="/learn/blindfold" class="back-link">&larr; Back to blindfold</a>
-    <BlindfoldMate type={blindfoldMateMatch[1]} />
+    <BlindfoldMate type={blindfoldMateMatch[1] as MateEndgameType} />
   </main>
 {:else if category}
   <!-- Category page with subcategories -->

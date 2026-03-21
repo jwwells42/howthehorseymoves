@@ -78,12 +78,12 @@
   }
 
   let puzzle = $state(generatePair());
-  let route: string[] = $state([]);
+  let route = $state<string[]>([]);
   let input = $state('');
-  let error: string | null = $state(null);
-  let result: 'playing' | 'won' = $state('playing');
-  let inputEl: HTMLInputElement | null = $state(null);
-  let newRouteEl: HTMLButtonElement | null = $state(null);
+  let error = $state<string | null>(null);
+  let result = $state<'playing' | 'won'>('playing');
+  let inputEl = $state<HTMLInputElement | null>(null);
+  let newRouteEl = $state<HTMLButtonElement | null>(null);
 
   let currentSquare = $derived(route.length > 0 ? route[route.length - 1] : puzzle.start);
   let moveCount = $derived(route.length);
@@ -148,7 +148,7 @@
     {#each route as sq}
       <span class="route-step">
         <span class="route-arrow">&rarr;</span>
-        <span class="route-sq" class:route-target={sq === puzzle.target}>{sq}</span>
+        <span class={['route-sq', sq === puzzle.target && 'route-target']}>{sq}</span>
       </span>
     {/each}
     {#if result === 'playing'}
@@ -180,8 +180,7 @@
       <StarRating stars={stars} size="lg" />
 
       <!-- Route board SVG -->
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="-14 -2 {RB + 28} {RB + 16}" class="route-svg">
+      <svg viewBox="-14 -2 {RB + 28} {RB + 16}" class="route-svg" role="img" aria-label="Knight route on chess board">
         {#each Array(8) as _, i}
           <text x={-6} y={(7 - i) * RS + RS / 2 + 3}
             text-anchor="middle" font-size="8" fill="#888">{i + 1}</text>

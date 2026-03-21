@@ -117,14 +117,14 @@
     return isLight ? LIGHT : DARK;
   }
 
-  let gameState: 'idle' | 'playing' | 'done' = $state('idle');
+  let gameState = $state<'idle' | 'playing' | 'done'>('idle');
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
-  let question: Question = $state(generateQuestion());
-  let flash: 'correct' | 'wrong' | null = $state(null);
+  let question = $state<Question>(generateQuestion());
+  let flash = $state<'correct' | 'wrong' | null>(null);
   let bestScore = $state(0);
   let bestStars = $state(0);
-  let history: Attempt[] = $state([]);
+  let history = $state<Attempt[]>([]);
 
   let timerRef: ReturnType<typeof setInterval> | null = null;
   let flashTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -324,7 +324,7 @@
         alt={PIECE_NAMES[question.piece]}
         class="piece-img"
       />
-      <div class="square-display" class:flash-correct={flash === 'correct'} class:flash-wrong={flash === 'wrong'}>
+      <div class={['square-display', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}>
         {question.from} &rarr; {question.to}
       </div>
       <div class="question-label">

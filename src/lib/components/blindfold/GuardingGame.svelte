@@ -258,8 +258,7 @@
 
       <!-- Actual positions board -->
       <div class="board-label">Actual positions</div>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="{-14} {-2} {BD + 28} {BD + 16}" class="board-svg">
+      <svg viewBox="{-14} {-2} {BD + 28} {BD + 16}" class="board-svg" role="img" aria-label="Actual piece positions">
         {#each Array(8) as _, i}
           <text x={-6} y={(7 - i) * SQ + SQ / 2 + 4}
             text-anchor="middle" font-size="9" fill="#888" class="label">{i + 1}</text>
@@ -315,8 +314,7 @@
           {#if moves.length > 0}
             <div class="board-label">Board (original positions)</div>
           {/if}
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <svg viewBox="{-14} {-2} {BD + 28} {BD + 16}" class="board-svg board-lg">
+          <svg viewBox="{-14} {-2} {BD + 28} {BD + 16}" class="board-svg board-lg" role="img" aria-label="Chess board with piece positions">
             {#each Array(8) as _, i}
               <text x={-6} y={(7 - i) * SQ + SQ / 2 + 4}
                 text-anchor="middle" font-size="9" fill="#888" class="label">{i + 1}</text>

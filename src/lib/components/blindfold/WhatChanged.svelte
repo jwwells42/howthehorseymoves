@@ -85,9 +85,9 @@
 
   type Phase = 'idle' | 'showing' | 'guessing' | 'feedback' | 'done';
 
-  let phase: Phase = $state('idle');
+  let phase = $state<Phase>('idle');
   let level = $state(4);
-  let challenge: Challenge | null = $state(null);
+  let challenge = $state<Challenge | null>(null);
   let input = $state('');
   let correct = $state(0);
   let total = $state(0);
@@ -95,7 +95,7 @@
   let isCorrect = $state(false);
   let bestStars = $state(0);
 
-  let inputEl: HTMLInputElement | null = $state(null);
+  let inputEl = $state<HTMLInputElement | null>(null);
   let showTimerRef: ReturnType<typeof setTimeout> | null = null;
 
   onMount(() => {
@@ -177,12 +177,10 @@
         Memorize a position, then identify what moved. {ROUNDS} rounds &mdash; type the square something moved to (or from).
       </p>
       <div class="level-picker">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="level-label">Pieces:</label>
+        <span class="level-label">Pieces:</span>
         {#each [4, 6, 8] as n}
           <button
-            class="level-btn"
-            class:level-active={level === n}
+            class={['level-btn', level === n && 'level-active']}
             onclick={() => { level = n; }}
           >
             {n}
@@ -208,8 +206,7 @@
   {:else if phase === 'showing' && challenge}
     <div class="center-col">
       <div class="round-label">Round {round}/{ROUNDS} &mdash; Memorize this position!</div>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg">
+      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Chess position to memorize">
         {#each Array(8) as _, ri}
           {#each Array(8) as _, fi}
             <rect
@@ -237,8 +234,7 @@
   {:else if phase === 'guessing' && challenge}
     <div class="center-col">
       <div class="round-label">Round {round}/{ROUNDS} &mdash; What moved?</div>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg">
+      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Chess position after move">
         {#each Array(8) as _, ri}
           {#each Array(8) as _, fi}
             <rect
@@ -279,12 +275,11 @@
   {:else if phase === 'feedback' && challenge}
     <div class="center-col">
       <div class="round-label">Round {round}/{ROUNDS}</div>
-      <p class="feedback-text" class:correct-text={isCorrect} class:wrong-text={!isCorrect}>
+      <p class={['feedback-text', isCorrect && 'correct-text', !isCorrect && 'wrong-text']}>
         {isCorrect ? 'Correct!' : 'Wrong!'}
       </p>
       <p class="muted-sm">{challenge.answer}</p>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg">
+      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Chess position showing the move">
         {#each Array(8) as _, ri}
           {#each Array(8) as _, fi}
             <rect
