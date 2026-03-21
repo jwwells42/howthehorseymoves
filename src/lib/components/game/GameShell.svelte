@@ -121,36 +121,34 @@
       />
     </div>
 
-    {#if game.moveHistory.length > 0}
-      <div class="move-panel">
-        <div class="move-list" bind:this={moveListEl}>
-          <div class="move-grid">
-            {#each movePairs as pair, i}
-              <span class="move-num">{pair.num}.</span>
+    <div class="move-panel">
+      <div class="move-list" bind:this={moveListEl}>
+        <div class="move-grid">
+          {#each movePairs as pair, i}
+            <span class="move-num">{pair.num}.</span>
+            <button
+              class={['move-btn', reviewIndex === i * 2 + 1 && 'move-active']}
+              onclick={() => goToMove(i * 2 + 1)}
+            >
+              {pair.white}
+            </button>
+            {#if pair.black}
               <button
-                class={['move-btn', reviewIndex === i * 2 + 1 && 'move-active']}
-                onclick={() => goToMove(i * 2 + 1)}
+                class={['move-btn', reviewIndex === i * 2 + 2 && 'move-active']}
+                onclick={() => goToMove(i * 2 + 2)}
               >
-                {pair.white}
+                {pair.black}
               </button>
-              {#if pair.black}
-                <button
-                  class={['move-btn', reviewIndex === i * 2 + 2 && 'move-active']}
-                  onclick={() => goToMove(i * 2 + 2)}
-                >
-                  {pair.black}
-                </button>
-              {:else}
-                <span></span>
-              {/if}
-            {/each}
-          </div>
+            {:else}
+              <span></span>
+            {/if}
+          {/each}
         </div>
-        {#if isReviewing}
-          <button class="back-btn" onclick={exitReview}>Back to game</button>
-        {/if}
       </div>
-    {/if}
+      {#if isReviewing}
+        <button class="back-btn" onclick={exitReview}>Back to game</button>
+      {/if}
+    </div>
   </div>
 
   {#if game.result !== 'playing'}
@@ -206,6 +204,7 @@
     position: relative;
     width: 100%;
     max-width: 560px;
+    flex-shrink: 0;
     display: flex;
     justify-content: center;
   }
