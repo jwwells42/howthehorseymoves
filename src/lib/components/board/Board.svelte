@@ -42,6 +42,7 @@
     playableColors?: PieceColor[];
     dangerSquares?: SquareId[];
     safeSquares?: SquareId[];
+    obstacles?: SquareId[];
   }
 
   let {
@@ -64,6 +65,7 @@
     playableColors,
     dangerSquares,
     safeSquares,
+    obstacles,
   }: Props = $props();
 
   let svgEl = $state<SVGSVGElement | undefined>(undefined);
@@ -315,15 +317,34 @@
     {#if !(drag && sq === drag.from)}
       {@const [fx, fy] = squareToCoords(sq)}
       {@const slideStyle = getSlideStyle(sq, piece)}
-      <image
-        href="/pieces/{color}{piece}.svg"
-        x={fx * SQUARE_SIZE + 5}
-        y={fy * SQUARE_SIZE + 5}
-        width={SQUARE_SIZE - 10}
-        height={SQUARE_SIZE - 10}
-        class="no-pointer"
-        style={slideStyle}
-      />
+      {#if obstacles?.includes(sq)}
+        {@const bx = fx * SQUARE_SIZE + 12}
+        {@const by = fy * SQUARE_SIZE + 12}
+        {@const bw = SQUARE_SIZE - 24}
+        {@const bh = SQUARE_SIZE - 24}
+        <g class="no-pointer">
+          <rect x={bx} y={by} width={bw} height={bh} rx="4" fill="#a8a29e" stroke="#78716c" stroke-width="1.5"/>
+          <line x1={bx} y1={by + bh * 0.33} x2={bx + bw} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
+          <line x1={bx} y1={by + bh * 0.66} x2={bx + bw} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
+          <line x1={bx + bw * 0.33} y1={by} x2={bx + bw * 0.33} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
+          <line x1={bx + bw * 0.66} y1={by} x2={bx + bw * 0.66} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
+          <line x1={bx + bw * 0.17} y1={by + bh * 0.33} x2={bx + bw * 0.17} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
+          <line x1={bx + bw * 0.5} y1={by + bh * 0.33} x2={bx + bw * 0.5} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
+          <line x1={bx + bw * 0.83} y1={by + bh * 0.33} x2={bx + bw * 0.83} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
+          <line x1={bx + bw * 0.33} y1={by + bh * 0.66} x2={bx + bw * 0.33} y2={by + bh} stroke="#78716c" stroke-width="1"/>
+          <line x1={bx + bw * 0.66} y1={by + bh * 0.66} x2={bx + bw * 0.66} y2={by + bh} stroke="#78716c" stroke-width="1"/>
+        </g>
+      {:else}
+        <image
+          href="/pieces/{color}{piece}.svg"
+          x={fx * SQUARE_SIZE + 5}
+          y={fy * SQUARE_SIZE + 5}
+          width={SQUARE_SIZE - 10}
+          height={SQUARE_SIZE - 10}
+          class="no-pointer"
+          style={slideStyle}
+        />
+      {/if}
     {/if}
   {/each}
 

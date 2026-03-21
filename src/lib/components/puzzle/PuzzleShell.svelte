@@ -45,6 +45,19 @@
       : getValidMoves(p.piece, dragFrom, ps.board, 'w');
   });
 
+  // In reach-target puzzles, white pawns are obstacles (rendered as walls)
+  let obstacles = $derived.by(() => {
+    if (puzzle.mode === 'checkmate' || puzzle.mode === 'checkmate-bot') return [];
+    if (puzzle.piece === 'P') return [];
+    const result: SquareId[] = [];
+    for (const [sq, p] of ps.board.pieces) {
+      if (p.color === 'w' && p.piece !== puzzle.piece) {
+        result.push(sq);
+      }
+    }
+    return result;
+  });
+
   function onDragStart(sq: SquareId) { dragFrom = sq; }
   function onDragEnd() { dragFrom = null; }
 </script>
@@ -81,6 +94,7 @@
       wrongMoveSquare={ps.wrongMoveSquare}
       opponentSlide={ps.opponentSlide}
       arrows={ps.moveCount === 0 ? puzzle.arrows : undefined}
+      {obstacles}
     />
     {#if ps.isComplete}
       <SuccessOverlay stars={ps.stars} {onNext} onRetry={ps.reset} {nextLabel} />
