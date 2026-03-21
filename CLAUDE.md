@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run dev          # Dev server at localhost:5173
 npm run build        # Production build
-npx svelte-check     # TypeScript + Svelte diagnostics
+npm run check        # TypeScript + Svelte diagnostics (svelte-kit sync + svelte-check)
 ```
 
 No test framework is configured.
@@ -72,7 +72,7 @@ No test framework is configured.
 - `/games`, `/games/[gameId]` — Model game viewer
 - `/openings`, `/openings/[id]` — Opening repertoire trainer
 - `/play` — Play vs computer
-- `/about` — Privacy, COPPA, credits, license
+- `/about` — Privacy, COPPA, credits, license, administrator info
 
 ### Lichess Puzzles (`src/lib/puzzles/lichess-*.ts`)
 - Practice puzzles sourced from the Lichess puzzle database (CC0 public domain)
@@ -165,7 +165,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 
 - After completing a task, always offer to commit and push so Vercel can deploy
 - Run `npm run build` before committing to catch errors early
-- Run `npx svelte-check` to catch type errors that the build doesn't flag
+- Run `npm run check` to catch type errors and Svelte warnings that the build doesn't flag
 - The user often makes hand-edits to puzzle files while Claude works — always `git diff --stat` before committing and include their changed files
 - When pushing fails due to remote changes, `git pull --rebase` then push again
 - Do NOT try to programmatically verify checkmate positions — push and let the user test in-browser

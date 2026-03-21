@@ -8,9 +8,12 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 
 ## What it does
 
-- **Basics** — progressive puzzles for each piece (rook, bishop, queen, king, knight, pawn), plus castling, en passant, and a timed coordinate trainer
+- **Basics** — progressive puzzles for each piece (rook, bishop, queen, king, knight, pawn), plus castling, en passant, a timed coordinate trainer, and a piece placement trainer
+- **How to Win** — guided lesson covering check, checkmate, and stalemate with interactive practice
 - **Checkmate patterns** — back rank, rook ladder, queen-bishop battery, knight on f7, Lolli's mate, queen & king endgames, smothered mate
 - **Tactics** — pins, skewers, forks, removing the defender, discovered attacks (hand-authored instruction + Lichess practice puzzles)
+- **Endings** — King + Pawn vs King (bitbase-powered perfect defense) and mate conversion (KQK, KRRK, KRK, KBBK)
+- **Blindfold training** — 19 visualization exercises: color of square, same diagonal, knight routes, piece reachability, flash position, move counting, and more
 - **Play vs computer** — random bot and basic bot (one-ply evaluation)
 - **Openings** — learn opening repertoires move by move with arrow hints
 - **Model games** — step through famous games with annotations, plus a test mode to reproduce games from memory
@@ -22,9 +25,9 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
+npm run dev      # http://localhost:5173
 npm run build    # production build
-npm run lint     # eslint
+npm run check    # svelte-check (TypeScript + Svelte diagnostics)
 ```
 
 Requires Node.js 18+.
@@ -65,8 +68,8 @@ Requires Node.js 18+.
 
 ## Tech stack
 
-- Next.js 16 + React 19 + TypeScript (strict)
-- Tailwind CSS 4
+- SvelteKit + Svelte 5 (runes mode) + TypeScript (strict)
+- Scoped CSS (no Tailwind)
 - SVG chess board with drag-and-drop
 - No backend — everything runs client-side
 - Deployed on Vercel (free tier)
