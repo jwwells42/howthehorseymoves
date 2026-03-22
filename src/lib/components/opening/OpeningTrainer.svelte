@@ -51,6 +51,11 @@
   let isPlayerTurn = $derived(moveIdx < currentLine.length && currentLine[moveIdx].colorPlayed === playerColor);
   let atEnd = $derived(moveIdx >= currentLine.length);
 
+  let currentComment = $derived.by(() => {
+    if (moveIdx === 0 || waiting) return undefined;
+    return currentLine[moveIdx - 1].comment;
+  });
+
   let arrows = $derived.by((): Arrow[] | undefined => {
     if (atEnd || !isPlayerTurn || waiting) return undefined;
     if (phase === 'learn' || showHint) {
@@ -313,6 +318,12 @@
     {/if}
   </div>
 
+  {#if currentComment}
+    <div class="comment-box">
+      <p>{currentComment}</p>
+    </div>
+  {/if}
+
   <div class="move-list">
     <div class="moves">
       {#each moveDisplay as pair}
@@ -369,6 +380,20 @@
     gap: 1rem;
     font-size: 0.875rem;
     color: var(--text-faint);
+  }
+
+  .comment-box {
+    border-radius: 0.5rem;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    padding: 0.75rem 1rem;
+    width: 100%;
+    max-width: 28rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-height: 8rem;
+    overflow-y: auto;
   }
 
   .board-wrapper {

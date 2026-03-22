@@ -13,6 +13,7 @@ export interface OpeningMove {
   promotion?: PieceKind;
   boardAfter: BoardState;
   colorPlayed: PieceColor;
+  comment?: string;
   children: OpeningMove[];
 }
 
@@ -57,9 +58,12 @@ function tokenizeOpeningPgn(pgn: string): string[] {
       while (i < pgn.length && pgn[i] === " ") i++;
       continue;
     }
-    // Comments {text} — skip
+    // Comments {text} — preserve as tokens prefixed with "{"
     if (ch === "{") {
+      const start = i + 1;
       while (i < pgn.length && pgn[i] !== "}") i++;
+      const raw = pgn.slice(start, i).replace(/\[%[^\]]*\]/g, "").trim();
+      if (raw) tokens.push("{" + raw);
       i++;
       continue;
     }
@@ -108,7 +112,11 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
 
   for (let ti = 0; ti < tokens.length; ti++) {
     const token = tokens[ti];
-    if (token === "(") {
+    if (token.startsWith("{")) {
+      if (state.parentNode) {
+        state.parentNode.comment = token.slice(1);
+      }
+    } else if (token === "(") {
       stack.push({ savedState: { ...state }, savedLMP: { ...lastMoveParent } });
       state = { ...lastMoveParent };
     } else if (token === ")") {
@@ -119,7 +127,7 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
       lastMoveParent = { ...state };
       const resolved = parseSan(token, state.board, state.color);
       if (!resolved.from) {
-        const nearby = tokens.slice(Math.max(0, ti - 4), ti + 3).join(" ");
+        const nearby = tokens.slice(Math.max(0, ti - 4), ti + 3).filter(t => !t.startsWith("{")).join(" ");
         throw new Error(`"${token}" (token ${ti + 1}/${tokens.length}, ${state.color === "w" ? "White" : "Black"} to play) — no legal piece found. Context: ...${nearby}...`);
       }
       const newBoard = applyMove(state.board, resolved.from, resolved.to, resolved.promotion);
