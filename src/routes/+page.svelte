@@ -335,7 +335,7 @@
         <img src="/pieces/wQ.svg" alt="Puzzle Creator" class="card-icon" />
         <h3>Puzzle Creator</h3>
       </div>
-      <p class="card-desc">Build and test your own puzzles.</p>
+      <p class="card-desc">Place pieces and generate FEN strings for new puzzles.</p>
       <div class="card-footer">&nbsp;</div>
     </a>
   </div>
