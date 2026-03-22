@@ -820,6 +820,16 @@
   .comment-area {
     margin-top: 0.75rem;
     min-height: 3rem;
+    max-height: 6rem;
+    overflow-y: auto;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+  }
+
+  .comment-area:has(.comment-text) {
+    border-color: var(--card-border);
+    background: var(--card-bg);
+    padding: 0.5rem 0.75rem;
   }
 
   .comment-text {
@@ -827,7 +837,6 @@
     color: var(--text-muted);
     font-style: italic;
     text-align: center;
-    padding: 0 0.5rem;
     margin: 0;
     line-height: 1.5;
   }
