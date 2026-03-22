@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import { type SquareId } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
@@ -13,7 +12,7 @@
     findBranchPoint,
   } from '$lib/openings';
 
-  type Phase = 'learn' | 'practice';
+  type Phase = 'setup' | 'learn' | 'practice';
 
   interface Props {
     opening: Opening;
@@ -33,11 +32,17 @@
   let startBoard = $derived(parsed.tree.startBoard);
   let lines = $derived(parsed.lines);
 
+  // === Setup state ===
+  let deselectedLines = $state<Set<number>>(new Set());
+  let activeLines = $derived(lines.filter((_, i) => !deselectedLines.has(i)));
+  let canStart = $derived(activeLines.length > 0);
+
+  // === Drill state ===
   let lineIdx = $state(0);
   let moveIdx = $state(0);
   function initialBoard() { return startBoard; }
   let board = $state(initialBoard());
-  let phase = $state<Phase>('learn');
+  let phase = $state<Phase>('setup');
   let selectedSquare = $state<SquareId | null>(null);
   let wrongMoveSquare = $state<SquareId | null>(null);
   let showHint = $state(false);
@@ -47,17 +52,17 @@
   let allDone = $state(false);
   let dragFrom = $state<SquareId | null>(null);
 
-  let currentLine = $derived(lines[lineIdx]);
+  let currentLine = $derived(phase !== 'setup' && activeLines.length > 0 ? activeLines[lineIdx] : lines[0]);
   let isPlayerTurn = $derived(moveIdx < currentLine.length && currentLine[moveIdx].colorPlayed === playerColor);
   let atEnd = $derived(moveIdx >= currentLine.length);
 
   let currentComment = $derived.by(() => {
-    if (moveIdx === 0 || waiting) return undefined;
+    if (phase === 'setup' || moveIdx === 0 || waiting) return undefined;
     return currentLine[moveIdx - 1].comment;
   });
 
   let arrows = $derived.by((): Arrow[] | undefined => {
-    if (atEnd || !isPlayerTurn || waiting) return undefined;
+    if (phase === 'setup' || atEnd || !isPlayerTurn || waiting) return undefined;
     if (phase === 'learn' || showHint) {
       const move = currentLine[moveIdx];
       return [{ from: move.from, to: move.to, color: '#15803d' }];
@@ -66,14 +71,14 @@
   });
 
   let validMoves = $derived.by(() => {
-    if (!selectedSquare || waiting || atEnd || !isPlayerTurn) return [];
+    if (phase === 'setup' || !selectedSquare || waiting || atEnd || !isPlayerTurn) return [];
     const p = board.pieces.get(selectedSquare);
     if (!p || p.color !== playerColor) return [];
     return getLegalMoves(selectedSquare, board, playerColor);
   });
 
   let dragMoves = $derived.by(() => {
-    if (!dragFrom || waiting || atEnd || !isPlayerTurn) return [];
+    if (phase === 'setup' || !dragFrom || waiting || atEnd || !isPlayerTurn) return [];
     const p = board.pieces.get(dragFrom);
     if (!p || p.color !== playerColor) return [];
     return getLegalMoves(dragFrom, board, playerColor);
@@ -94,6 +99,91 @@
     }
     return pairs;
   });
+
+  // === Setup helpers ===
+
+  function toggleLine(idx: number) {
+    const next = new Set(deselectedLines);
+    if (next.has(idx)) next.delete(idx);
+    else next.add(idx);
+    deselectedLines = next;
+  }
+
+  function selectAll() { deselectedLines = new Set(); }
+  function selectNone() { deselectedLines = new Set(lines.map((_, i) => i)); }
+
+  function formatLinePreview(line: OpeningLine): string {
+    const parts: string[] = [];
+    for (let i = 0; i < Math.min(line.length, 12); i++) {
+      if (line[i].colorPlayed === 'w') {
+        parts.push(`${Math.floor(i / 2) + 1}.`);
+      }
+      parts.push(line[i].san);
+    }
+    if (line.length > 12) parts.push('...');
+    return parts.join(' ');
+  }
+
+  // === Drill control ===
+
+  function startDrilling(mode: 'learn' | 'practice') {
+    if (!canStart) return;
+    phase = mode;
+    lineIdx = 0;
+    moveIdx = 0;
+    board = startBoard;
+    lineComplete = false;
+    allDone = false;
+    selectedSquare = null;
+    wrongMoveSquare = null;
+    showHint = false;
+    waiting = false;
+    opponentSlide = null;
+    maybeAutoPlayOpponent();
+  }
+
+  function backToSetup() {
+    phase = 'setup';
+    lineIdx = 0;
+    moveIdx = 0;
+    board = startBoard;
+    lineComplete = false;
+    allDone = false;
+    selectedSquare = null;
+    wrongMoveSquare = null;
+    showHint = false;
+    waiting = false;
+    opponentSlide = null;
+  }
+
+  function toggleMode() {
+    phase = phase === 'learn' ? 'practice' : 'learn';
+    showHint = false;
+  }
+
+  function jumpToLine(targetIdx: number) {
+    if (targetIdx < 0 || targetIdx >= activeLines.length) return;
+    const targetLine = activeLines[targetIdx];
+    const bp = lineIdx < activeLines.length ? findBranchPoint(activeLines[lineIdx], targetLine) : 0;
+    const newBoard = bp > 0 ? targetLine[bp - 1].boardAfter : startBoard;
+
+    lineIdx = targetIdx;
+    moveIdx = bp;
+    board = newBoard;
+    lineComplete = false;
+    allDone = false;
+    selectedSquare = null;
+    wrongMoveSquare = null;
+    showHint = false;
+    waiting = false;
+    opponentSlide = null;
+
+    if (bp < targetLine.length && targetLine[bp].colorPlayed !== playerColor) {
+      setTimeout(() => autoPlayOpponent(bp, targetLine), 400);
+    }
+  }
+
+  // === Drill logic ===
 
   function autoPlayOpponent(idx: number, line: OpeningLine) {
     if (idx >= line.length) return;
@@ -123,22 +213,18 @@
   }
 
   function maybeAutoPlayOpponent() {
-    const line = lines[lineIdx];
+    const line = activeLines[lineIdx];
     if (moveIdx < line.length && line[moveIdx].colorPlayed !== playerColor) {
       setTimeout(() => autoPlayOpponent(moveIdx, line), 400);
     }
   }
 
-  onMount(() => {
-    maybeAutoPlayOpponent();
-  });
-
   function advanceLine() {
     lineComplete = false;
     selectedSquare = null;
 
-    if (lineIdx + 1 < lines.length) {
-      const nextLine = lines[lineIdx + 1];
+    if (lineIdx + 1 < activeLines.length) {
+      const nextLine = activeLines[lineIdx + 1];
       const bp = findBranchPoint(currentLine, nextLine);
       const newBoard = bp > 0 ? nextLine[bp - 1].boardAfter : startBoard;
 
@@ -150,11 +236,7 @@
         setTimeout(() => autoPlayOpponent(bp, nextLine), 400);
       }
     } else if (phase === 'learn') {
-      phase = 'practice';
-      lineIdx = 0;
-      moveIdx = 0;
-      board = startBoard;
-      maybeAutoPlayOpponent();
+      allDone = true;
     } else {
       allDone = true;
       if (opening.id !== 'custom') {
@@ -189,7 +271,7 @@
   }
 
   function handleSquareClick(sq: SquareId) {
-    if (waiting || atEnd || lineComplete) return;
+    if (phase === 'setup' || waiting || atEnd || lineComplete) return;
     if (!isPlayerTurn) return;
 
     if (!selectedSquare) {
@@ -219,7 +301,7 @@
   }
 
   function handleDrop(from: SquareId, to: SquareId) {
-    if (waiting || atEnd || lineComplete || !isPlayerTurn || from === to) return;
+    if (phase === 'setup' || waiting || atEnd || lineComplete || !isPlayerTurn || from === to) return;
     const p = board.pieces.get(from);
     if (!p || p.color !== playerColor) return;
     const moves = getLegalMoves(from, board, playerColor);
@@ -234,121 +316,179 @@
   function onDragEnd() {
     dragFrom = null;
   }
-
-  function reset() {
-    lineIdx = 0;
-    moveIdx = 0;
-    board = startBoard;
-    phase = 'learn';
-    selectedSquare = null;
-    wrongMoveSquare = null;
-    showHint = false;
-    opponentSlide = null;
-    waiting = false;
-    lineComplete = false;
-    allDone = false;
-    maybeAutoPlayOpponent();
-  }
 </script>
 
-<div class="trainer">
-  <div class="header">
-    <h2>{opening.name}</h2>
-    <p class="description">{opening.description}</p>
-  </div>
-
-  <div class="info-row">
-    <span>Line {lineIdx + 1} of {lines.length}</span>
-    <span>{phase === 'learn' ? 'Learning' : 'Practicing'}</span>
-  </div>
-
-  <div class="board-wrapper">
-    <Board
-      {board}
-      {selectedSquare}
-      {validMoves}
-      targets={[]}
-      reachedTargets={[]}
-      dragValidMoves={dragMoves}
-      onSquareClick={handleSquareClick}
-      onDrop={handleDrop}
-      {onDragStart}
-      {onDragEnd}
-      {wrongMoveSquare}
-      {opponentSlide}
-      {arrows}
-      {flipped}
-      playableColors={[playerColor]}
-    />
-    {#if allDone}
-      <div class="done-overlay">
-        <div class="done-content">
-          <div class="done-check">&#10003;</div>
-          <p class="done-title">Lines mastered!</p>
-          <button class="btn" onclick={reset}>
-            Practice again
-          </button>
-        </div>
-      </div>
-    {/if}
-  </div>
-
-  <div class="status">
-    {#if lineComplete && !allDone}
-      <div class="line-complete">
-        <span class="complete-text">Line complete!</span>
-        <button class="btn btn-sm" onclick={advanceLine}>
-          {#if lineIdx + 1 < lines.length}
-            Next variation
-          {:else if phase === 'learn'}
-            Practice
-          {:else}
-            Finish
-          {/if}
-        </button>
-      </div>
-    {/if}
-    {#if !lineComplete && !allDone && isPlayerTurn && !waiting}
-      <span class="muted">
-        {phase === 'learn' ? 'Follow the arrow' : 'Your move'}
-      </span>
-    {/if}
-    {#if !lineComplete && !allDone && !isPlayerTurn && !waiting && !atEnd}
-      <span class="muted">Opponent is thinking...</span>
-    {/if}
-  </div>
-
-  {#if currentComment}
-    <div class="comment-box">
-      <p>{currentComment}</p>
+{#if phase === 'setup'}
+  <div class="trainer">
+    <div class="header">
+      <h2>{opening.name}</h2>
+      {#if opening.description}
+        <p class="description">{opening.description}</p>
+      {/if}
     </div>
-  {/if}
 
-  <div class="move-list">
-    <div class="moves">
-      {#each moveDisplay as pair}
-        <span class="move-pair">
-          <span class="move-num">{pair.num}.</span>
-          <span class={['move', moveIdx > pair.whiteIdx && 'played', moveIdx === pair.whiteIdx && 'current']}>
-            {pair.white}
-          </span>
-          {#if pair.black}
-            {' '}
-            <span
-              class={['move', pair.blackIdx !== undefined && moveIdx > pair.blackIdx && 'played', pair.blackIdx !== undefined && moveIdx === pair.blackIdx && 'current']}
-            >
-              {pair.black}
-            </span>
-          {/if}
-        </span>
+    <div class="setup-summary">
+      {lines.length} line{lines.length === 1 ? '' : 's'} found
+      {#if activeLines.length < lines.length}
+        &middot; {activeLines.length} selected
+      {/if}
+    </div>
+
+    <div class="setup-controls">
+      <button class="btn btn-sm" onclick={selectAll}>All</button>
+      <button class="btn btn-sm" onclick={selectNone}>None</button>
+    </div>
+
+    <div class="line-list">
+      {#each lines as line, i}
+        <label class="line-item">
+          <input
+            type="checkbox"
+            checked={!deselectedLines.has(i)}
+            onchange={() => toggleLine(i)}
+          />
+          <span class="line-num">{i + 1}.</span>
+          <span class="line-preview">{formatLinePreview(line)}</span>
+        </label>
       {/each}
     </div>
-  </div>
 
-  <button class="btn" onclick={reset}>
-    Start over
-  </button>
-</div>
+    <div class="setup-actions">
+      <button class="btn" onclick={() => startDrilling('learn')} disabled={!canStart}>
+        Start learning
+      </button>
+      <button class="btn btn-secondary" onclick={() => startDrilling('practice')} disabled={!canStart}>
+        Start practicing
+      </button>
+    </div>
+  </div>
+{:else}
+  <div class="trainer">
+    <div class="header">
+      <h2>{opening.name}</h2>
+    </div>
+
+    <div class="info-row">
+      <button
+        class="nav-btn"
+        onclick={() => jumpToLine(lineIdx - 1)}
+        disabled={lineIdx === 0 || waiting}
+        aria-label="Previous line"
+      >&lsaquo;</button>
+      <span>Line {lineIdx + 1} of {activeLines.length}</span>
+      <button
+        class="nav-btn"
+        onclick={() => jumpToLine(lineIdx + 1)}
+        disabled={lineIdx >= activeLines.length - 1 || waiting}
+        aria-label="Next line"
+      >&rsaquo;</button>
+      <span class="mode-sep">&middot;</span>
+      <span class={['mode-badge', phase]}>{phase === 'learn' ? 'Learning' : 'Practicing'}</span>
+      <button class="btn btn-sm" onclick={toggleMode}>
+        {phase === 'learn' ? 'Practice' : 'Learn'}
+      </button>
+    </div>
+
+    <div class="board-wrapper">
+      <Board
+        {board}
+        {selectedSquare}
+        {validMoves}
+        targets={[]}
+        reachedTargets={[]}
+        dragValidMoves={dragMoves}
+        onSquareClick={handleSquareClick}
+        onDrop={handleDrop}
+        {onDragStart}
+        {onDragEnd}
+        {wrongMoveSquare}
+        {opponentSlide}
+        {arrows}
+        {flipped}
+        playableColors={[playerColor]}
+      />
+      {#if allDone}
+        <div class="done-overlay">
+          <div class="done-content">
+            {#if phase === 'learn'}
+              <div class="done-check">&#10003;</div>
+              <p class="done-title">Lines learned!</p>
+              <button class="btn" onclick={() => startDrilling('practice')}>
+                Practice now
+              </button>
+              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
+                Back to setup
+              </button>
+            {:else}
+              <div class="done-check">&#10003;</div>
+              <p class="done-title">Lines mastered!</p>
+              <button class="btn" onclick={() => startDrilling('practice')}>
+                Practice again
+              </button>
+              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
+                Back to setup
+              </button>
+            {/if}
+          </div>
+        </div>
+      {/if}
+    </div>
+
+    <div class="status">
+      {#if lineComplete && !allDone}
+        <div class="line-complete">
+          <span class="complete-text">Line complete!</span>
+          <button class="btn btn-sm" onclick={advanceLine}>
+            {#if lineIdx + 1 < activeLines.length}
+              Next variation
+            {:else}
+              Finish
+            {/if}
+          </button>
+        </div>
+      {/if}
+      {#if !lineComplete && !allDone && isPlayerTurn && !waiting}
+        <span class="muted">
+          {phase === 'learn' ? 'Follow the arrow' : 'Your move'}
+        </span>
+      {/if}
+      {#if !lineComplete && !allDone && !isPlayerTurn && !waiting && !atEnd}
+        <span class="muted">Opponent is thinking...</span>
+      {/if}
+    </div>
+
+    {#if currentComment}
+      <div class="comment-box">
+        <p>{currentComment}</p>
+      </div>
+    {/if}
+
+    <div class="move-list">
+      <div class="moves">
+        {#each moveDisplay as pair}
+          <span class="move-pair">
+            <span class="move-num">{pair.num}.</span>
+            <span class={['move', moveIdx > pair.whiteIdx && 'played', moveIdx === pair.whiteIdx && 'current']}>
+              {pair.white}
+            </span>
+            {#if pair.black}
+              {' '}
+              <span
+                class={['move', pair.blackIdx !== undefined && moveIdx > pair.blackIdx && 'played', pair.blackIdx !== undefined && moveIdx === pair.blackIdx && 'current']}
+              >
+                {pair.black}
+              </span>
+            {/if}
+          </span>
+        {/each}
+      </div>
+    </div>
+
+    <button class="btn btn-secondary" onclick={backToSetup}>
+      Back to setup
+    </button>
+  </div>
+{/if}
 
 <style>
   .trainer {
@@ -375,26 +515,118 @@
     color: var(--text-muted);
   }
 
+  /* === Setup === */
+
+  .setup-summary {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .setup-controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .line-list {
+    width: 100%;
+    max-width: 32rem;
+    max-height: 20rem;
+    overflow-y: auto;
+    border: 1px solid var(--card-border);
+    border-radius: 0.5rem;
+    background: var(--card-bg);
+  }
+
+  .line-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--card-border);
+    line-height: 1.4;
+  }
+
+  .line-item:last-child {
+    border-bottom: none;
+  }
+
+  .line-item:hover {
+    background: var(--btn-bg);
+  }
+
+  .line-item input[type="checkbox"] {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+
+  .line-num {
+    color: var(--text-faint);
+    flex-shrink: 0;
+    min-width: 1.5rem;
+  }
+
+  .line-preview {
+    color: var(--text-muted);
+    word-break: break-word;
+  }
+
+  .setup-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  /* === Drill info row === */
+
   .info-row {
     display: flex;
-    gap: 1rem;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.875rem;
+    color: var(--text-faint);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav-btn {
+    background: var(--btn-bg);
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1.125rem;
+    line-height: 1;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    transition: background 0.15s;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    background: var(--btn-hover);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .mode-sep {
     color: var(--text-faint);
   }
 
-  .comment-box {
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    padding: 0.75rem 1rem;
-    width: 100%;
-    max-width: 28rem;
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-    max-height: 8rem;
-    overflow-y: auto;
+  .mode-badge {
+    font-weight: 500;
   }
+
+  .mode-badge.learn {
+    color: #60a5fa;
+  }
+
+  .mode-badge.practice {
+    color: #fbbf24;
+  }
+
+  /* === Board === */
 
   .board-wrapper {
     position: relative;
@@ -415,17 +647,39 @@
 
   .done-content {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
   }
 
   .done-check {
     font-size: 2.5rem;
-    margin-bottom: 0.5rem;
   }
 
   .done-title {
     font-size: 1.125rem;
     font-weight: bold;
-    margin-bottom: 0.75rem;
+  }
+
+  .done-btn {
+    margin-top: 0.25rem;
+  }
+
+  /* === Status & comments === */
+
+  .comment-box {
+    border-radius: 0.5rem;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    padding: 0.75rem 1rem;
+    width: 100%;
+    max-width: 28rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-height: 8rem;
+    overflow-y: auto;
   }
 
   .status {
@@ -449,6 +703,8 @@
   .muted {
     color: var(--text-muted);
   }
+
+  /* === Move list === */
 
   .move-list {
     border-radius: 0.5rem;
@@ -487,6 +743,8 @@
     font-weight: bold;
   }
 
+  /* === Buttons === */
+
   .btn {
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
@@ -498,11 +756,26 @@
     transition: background 0.15s;
   }
 
-  .btn:hover {
+  .btn:hover:not(:disabled) {
     background: var(--btn-hover);
   }
 
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--card-border);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--btn-bg);
+  }
+
   .btn-sm {
-    padding: 0.375rem 1rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
   }
 </style>
