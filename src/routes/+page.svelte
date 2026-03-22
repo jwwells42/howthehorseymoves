@@ -329,6 +329,15 @@
       <p class="card-desc">Study famous games move by move.</p>
       <div class="card-footer">&nbsp;</div>
     </a>
+
+    <a href="/editor" class="card">
+      <div class="card-header">
+        <img src="/pieces/wQ.svg" alt="Puzzle Creator" class="card-icon" />
+        <h3>Puzzle Creator</h3>
+      </div>
+      <p class="card-desc">Build and test your own puzzles.</p>
+      <div class="card-footer">&nbsp;</div>
+    </a>
   </div>
 
   <!-- Footer -->
