@@ -37,12 +37,17 @@ export interface Opening {
 function tokenizeOpeningPgn(pgn: string): string[] {
   const tokens: string[] = [];
   let i = 0;
+  let hasMoves = false;
   while (i < pgn.length) {
     const ch = pgn[i];
     if (ch === " " || ch === "\n" || ch === "\r" || ch === "\t") { i++; continue; }
     if (ch === "(" || ch === ")") { tokens.push(ch); i++; continue; }
-    // PGN headers [Tag "value"] — skip entire line
+    // PGN headers [Tag "value"] — skip, but emit reset between games
     if (ch === "[") {
+      if (hasMoves) {
+        tokens.push("|");
+        hasMoves = false;
+      }
       while (i < pgn.length && pgn[i] !== "]") i++;
       i++;
       continue;
@@ -84,6 +89,7 @@ function tokenizeOpeningPgn(pgn: string): string[] {
       const token = pgn.slice(start, i);
       if (/^(1-0|0-1|\*)$/.test(token)) continue;
       if (token.startsWith("1/2")) continue;
+      hasMoves = true;
       tokens.push(token);
       continue;
     }
@@ -112,7 +118,11 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
 
   for (let ti = 0; ti < tokens.length; ti++) {
     const token = tokens[ti];
-    if (token.startsWith("{")) {
+    if (token === "|") {
+      state = { parentNode: null, board: startBoard, color: "w" };
+      lastMoveParent = { ...state };
+      stack.length = 0;
+    } else if (token.startsWith("{")) {
       if (state.parentNode) {
         state.parentNode.comment = token.slice(1);
       }
