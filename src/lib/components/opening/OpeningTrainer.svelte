@@ -40,6 +40,7 @@
   // === Drill state ===
   let lineIdx = $state(0);
   let moveIdx = $state(0);
+  let maxReachedIdx = $state(0);
   function initialBoard() { return startBoard; }
   let board = $state(initialBoard());
   let phase = $state<Phase>('setup');
@@ -51,18 +52,20 @@
   let lineComplete = $state(false);
   let allDone = $state(false);
   let dragFrom = $state<SquareId | null>(null);
+  let browsing = $derived(moveIdx < maxReachedIdx);
+  let atFrontier = $derived(moveIdx >= maxReachedIdx);
 
   let currentLine = $derived(phase !== 'setup' && activeLines.length > 0 ? activeLines[lineIdx] : lines[0]);
   let isPlayerTurn = $derived(moveIdx < currentLine.length && currentLine[moveIdx].colorPlayed === playerColor);
   let atEnd = $derived(moveIdx >= currentLine.length);
 
   let currentComment = $derived.by(() => {
-    if (phase === 'setup' || moveIdx === 0 || waiting) return undefined;
+    if (phase === 'setup' || moveIdx === 0) return undefined;
     return currentLine[moveIdx - 1].comment;
   });
 
   let arrows = $derived.by((): Arrow[] | undefined => {
-    if (phase === 'setup' || atEnd || !isPlayerTurn || waiting) return undefined;
+    if (phase === 'setup' || atEnd || !isPlayerTurn || waiting || browsing) return undefined;
     if (phase === 'learn' || showHint) {
       const move = currentLine[moveIdx];
       return [{ from: move.from, to: move.to, color: '#15803d' }];
@@ -71,14 +74,14 @@
   });
 
   let validMoves = $derived.by(() => {
-    if (phase === 'setup' || !selectedSquare || waiting || atEnd || !isPlayerTurn) return [];
+    if (phase === 'setup' || !selectedSquare || waiting || atEnd || !isPlayerTurn || browsing) return [];
     const p = board.pieces.get(selectedSquare);
     if (!p || p.color !== playerColor) return [];
     return getLegalMoves(selectedSquare, board, playerColor);
   });
 
   let dragMoves = $derived.by(() => {
-    if (phase === 'setup' || !dragFrom || waiting || atEnd || !isPlayerTurn) return [];
+    if (phase === 'setup' || !dragFrom || waiting || atEnd || !isPlayerTurn || browsing) return [];
     const p = board.pieces.get(dragFrom);
     if (!p || p.color !== playerColor) return [];
     return getLegalMoves(dragFrom, board, playerColor);
@@ -91,8 +94,8 @@
       const b = currentLine[i + 1];
       pairs.push({
         num: Math.floor(i / 2) + 1,
-        white: w.san,
-        black: b?.san,
+        white: w.san + (w.nag ?? ''),
+        black: b ? b.san + (b.nag ?? '') : undefined,
         whiteIdx: i,
         blackIdx: b ? i + 1 : undefined,
       });
@@ -118,7 +121,7 @@
       if (line[i].colorPlayed === 'w') {
         parts.push(`${Math.floor(i / 2) + 1}.`);
       }
-      parts.push(line[i].san);
+      parts.push(line[i].san + (line[i].nag ?? ''));
     }
     if (line.length > 12) parts.push('...');
     return parts.join(' ');
@@ -131,6 +134,7 @@
     phase = mode;
     lineIdx = 0;
     moveIdx = 0;
+    maxReachedIdx = 0;
     board = startBoard;
     lineComplete = false;
     allDone = false;
@@ -146,6 +150,7 @@
     phase = 'setup';
     lineIdx = 0;
     moveIdx = 0;
+    maxReachedIdx = 0;
     board = startBoard;
     lineComplete = false;
     allDone = false;
@@ -169,6 +174,7 @@
 
     lineIdx = targetIdx;
     moveIdx = bp;
+    maxReachedIdx = bp;
     board = newBoard;
     lineComplete = false;
     allDone = false;
@@ -201,6 +207,7 @@
       board = move.boardAfter;
       const nextIdx = idx + 1;
       moveIdx = nextIdx;
+      if (nextIdx > maxReachedIdx) maxReachedIdx = nextIdx;
 
       setTimeout(() => {
         opponentSlide = null;
@@ -230,6 +237,7 @@
 
       lineIdx = lineIdx + 1;
       moveIdx = bp;
+      maxReachedIdx = bp;
       board = newBoard;
 
       if (bp < nextLine.length && nextLine[bp].colorPlayed !== playerColor) {
@@ -256,6 +264,7 @@
       wrongMoveSquare = null;
       const nextIdx = moveIdx + 1;
       moveIdx = nextIdx;
+      if (nextIdx > maxReachedIdx) maxReachedIdx = nextIdx;
 
       if (nextIdx >= currentLine.length) {
         lineComplete = true;
@@ -272,6 +281,11 @@
 
   function handleSquareClick(sq: SquareId) {
     if (phase === 'setup' || waiting || atEnd || lineComplete) return;
+    // If browsing, snap back to frontier on any click
+    if (browsing) {
+      navigateTo(maxReachedIdx);
+      return;
+    }
     if (!isPlayerTurn) return;
 
     if (!selectedSquare) {
@@ -301,7 +315,12 @@
   }
 
   function handleDrop(from: SquareId, to: SquareId) {
-    if (phase === 'setup' || waiting || atEnd || lineComplete || !isPlayerTurn || from === to) return;
+    if (phase === 'setup' || waiting || atEnd || lineComplete || from === to) return;
+    if (browsing) {
+      navigateTo(maxReachedIdx);
+      return;
+    }
+    if (!isPlayerTurn) return;
     const p = board.pieces.get(from);
     if (!p || p.color !== playerColor) return;
     const moves = getLegalMoves(from, board, playerColor);
@@ -316,7 +335,56 @@
   function onDragEnd() {
     dragFrom = null;
   }
+
+  // === Move list navigation ===
+
+  function navigateTo(idx: number) {
+    if (waiting || phase === 'setup') return;
+    if (idx < 0 || idx > currentLine.length) return;
+    // In practice mode, can only navigate to already-seen moves
+    if (phase === 'practice' && idx > maxReachedIdx) return;
+
+    moveIdx = idx;
+    board = idx > 0 ? currentLine[idx - 1].boardAfter : startBoard;
+    selectedSquare = null;
+    wrongMoveSquare = null;
+    showHint = false;
+    opponentSlide = null;
+  }
+
+  function goBack() {
+    navigateTo(moveIdx - 1);
+  }
+
+  function goForward() {
+    if (moveIdx < maxReachedIdx) {
+      navigateTo(moveIdx + 1);
+    }
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (phase === 'setup') return;
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      goBack();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      goForward();
+    }
+  }
+
+  // Auto-scroll active move into view
+  let moveListEl = $state<HTMLDivElement | null>(null);
+  $effect(() => {
+    if (!moveListEl) return;
+    const active = moveListEl.querySelector('.move.current');
+    if (active) {
+      active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  });
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 {#if phase === 'setup'}
   <div class="trainer">
@@ -447,12 +515,12 @@
           </button>
         </div>
       {/if}
-      {#if !lineComplete && !allDone && isPlayerTurn && !waiting}
+      {#if !lineComplete && !allDone && atFrontier && isPlayerTurn && !waiting}
         <span class="muted">
           {phase === 'learn' ? 'Follow the arrow' : 'Your move'}
         </span>
       {/if}
-      {#if !lineComplete && !allDone && !isPlayerTurn && !waiting && !atEnd}
+      {#if !lineComplete && !allDone && atFrontier && !isPlayerTurn && !waiting && !atEnd}
         <span class="muted">Opponent is thinking...</span>
       {/if}
     </div>
@@ -463,26 +531,34 @@
       </div>
     {/if}
 
-    <div class="move-list">
+    <div class="move-list" bind:this={moveListEl}>
       <div class="moves">
         {#each moveDisplay as pair}
+          {@const whiteReached = maxReachedIdx > pair.whiteIdx}
+          {@const blackReached = pair.blackIdx !== undefined && maxReachedIdx > pair.blackIdx}
           {@const whitePlayed = moveIdx > pair.whiteIdx}
           {@const blackPlayed = pair.blackIdx !== undefined && moveIdx > pair.blackIdx}
-          {@const hideWhite = phase === 'practice' && !whitePlayed}
-          {@const hideBlack = phase === 'practice' && !blackPlayed}
-          {#if phase === 'learn' || whitePlayed || moveIdx === pair.whiteIdx || blackPlayed}
+          {@const hideWhite = phase === 'practice' && !whiteReached}
+          {@const hideBlack = phase === 'practice' && !blackReached}
+          {#if phase === 'learn' || whiteReached || maxReachedIdx === pair.whiteIdx || blackReached}
             <span class="move-pair">
               <span class="move-num">{pair.num}.</span>
-              <span class={['move', whitePlayed && 'played', moveIdx === pair.whiteIdx && 'current']}>
+              <button
+                class={['move', whitePlayed && 'played', moveIdx === pair.whiteIdx + 1 && 'current']}
+                onclick={() => navigateTo(pair.whiteIdx + 1)}
+                disabled={hideWhite}
+              >
                 {hideWhite ? '...' : pair.white}
-              </span>
+              </button>
               {#if pair.black}
                 {' '}
-                <span
-                  class={['move', blackPlayed && 'played', pair.blackIdx !== undefined && moveIdx === pair.blackIdx && 'current']}
+                <button
+                  class={['move', blackPlayed && 'played', pair.blackIdx !== undefined && moveIdx === pair.blackIdx + 1 && 'current']}
+                  onclick={() => pair.blackIdx !== undefined && navigateTo(pair.blackIdx + 1)}
+                  disabled={hideBlack}
                 >
                   {hideBlack ? '...' : pair.black}
-                </span>
+                </button>
               {/if}
             </span>
           {/if}
@@ -738,6 +814,21 @@
 
   .move {
     color: var(--text-faint);
+    background: none;
+    border: none;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  .move:hover:not(:disabled) {
+    background: var(--btn-bg);
+  }
+
+  .move:disabled {
+    cursor: default;
   }
 
   .move.played {
@@ -747,6 +838,7 @@
   .move.current {
     color: var(--foreground);
     font-weight: bold;
+    background: var(--btn-bg);
   }
 
   /* === Buttons === */

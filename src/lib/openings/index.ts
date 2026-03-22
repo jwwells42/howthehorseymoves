@@ -13,6 +13,7 @@ export interface OpeningMove {
   promotion?: PieceKind;
   boardAfter: BoardState;
   colorPlayed: PieceColor;
+  nag?: string;
   comment?: string;
   children: OpeningMove[];
 }
@@ -30,6 +31,26 @@ export interface Opening {
   description: string;
   color: PieceColor;
   pgn: string;
+}
+
+// === NAG display ===
+
+const TEXT_TO_NAG: Record<string, number> = {
+  "!": 1, "?": 2, "!!": 3, "??": 4, "!?": 5, "?!": 6,
+};
+
+const NAG_DISPLAY: Record<number, string> = {
+  1: "!", 2: "?", 3: "!!", 4: "??", 5: "!?", 6: "?!",
+  10: "=", 11: "=", 13: "\u221e", // ∞ unclear
+  14: "\u2a72", 15: "\u2a71", // ⩲ ⩱ slight advantage
+  16: "\u00b1", 17: "\u2213", // ± ∓ clear advantage
+  18: "+-", 19: "-+",         // decisive
+  22: "\u2a00",               // ⨀ zugzwang
+  146: "N",                   // novelty
+};
+
+export function nagToSymbol(n: number): string {
+  return NAG_DISPLAY[n] ?? `$${n}`;
 }
 
 // === Tokenizer ===
@@ -67,19 +88,28 @@ function tokenizeOpeningPgn(pgn: string): string[] {
     if (ch === "{") {
       const start = i + 1;
       while (i < pgn.length && pgn[i] !== "}") i++;
-      const raw = pgn.slice(start, i).replace(/\[%[^\]]*\]/g, "").trim();
+      const raw = pgn.slice(start, i)
+        .replace(/\[%[^\]]*\]/g, "")
+        .replace(/\$(\d+)/g, (_, n) => nagToSymbol(parseInt(n, 10)))
+        .trim();
       if (raw) tokens.push("{" + raw);
       i++;
       continue;
     }
-    // NAGs — skip (! ? !! ?? !? ?! and numeric $1 $2 etc.)
+    // NAGs — emit as tokens (text form: ! ? !! ?? !? ?!, numeric: $1 $2 etc.)
     if (ch === "!" || ch === "?") {
+      const start = i;
       while (i < pgn.length && (pgn[i] === "!" || pgn[i] === "?")) i++;
+      const text = pgn.slice(start, i);
+      const n = TEXT_TO_NAG[text];
+      if (n !== undefined) tokens.push("$" + n);
       continue;
     }
     if (ch === "$") {
+      const start = i;
       i++;
       while (i < pgn.length && pgn[i] >= "0" && pgn[i] <= "9") i++;
+      tokens.push(pgn.slice(start, i));
       continue;
     }
     // SAN move or result
@@ -122,6 +152,11 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
       state = { parentNode: null, board: startBoard, color: "w" };
       lastMoveParent = { ...state };
       stack.length = 0;
+    } else if (token.startsWith("$")) {
+      const n = parseInt(token.slice(1), 10);
+      if (state.parentNode) {
+        state.parentNode.nag = nagToSymbol(n);
+      }
     } else if (token.startsWith("{")) {
       if (state.parentNode) {
         state.parentNode.comment = token.slice(1);

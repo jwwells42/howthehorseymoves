@@ -57,6 +57,20 @@ function parseArrows(comment: string): { text: string; arrows: Arrow[] } {
   return { text, arrows };
 }
 
+/** Map numeric NAG ($1–$146) to display symbol. */
+const NAG_DISPLAY: Record<number, string> = {
+  1: "!", 2: "?", 3: "!!", 4: "??", 5: "!?", 6: "?!",
+  10: "=", 11: "=", 13: "\u221e",
+  14: "\u2a72", 15: "\u2a71",
+  16: "\u00b1", 17: "\u2213",
+  18: "+-", 19: "-+",
+  22: "\u2a00", 146: "N",
+};
+
+function numericNagToSymbol(n: number): string {
+  return NAG_DISPLAY[n] ?? `$${n}`;
+}
+
 /** Tokenize PGN into annotated tokens, preserving comments and NAGs. */
 function tokenizePgn(pgn: string): AnnotatedToken[] {
   const tokens: AnnotatedToken[] = [];
@@ -64,8 +78,8 @@ function tokenizePgn(pgn: string): AnnotatedToken[] {
   // Strip variations (parenthesized)
   let cleaned = pgn.replace(/\([^)]*\)/g, "");
 
-  // Walk through, extracting SAN tokens + trailing NAGs + trailing comments
-  const re = /(\{[^}]*\})|([a-hKQRBNO][a-h1-8xO#+=-]*[1-8QRBN]?)([!?]{1,2})?/g;
+  // Walk through, extracting SAN tokens + trailing NAGs + trailing comments + numeric NAGs
+  const re = /(\{[^}]*\})|(\$\d+)|([a-hKQRBNO][a-h1-8xO#+=-]*[1-8QRBN]?)([!?]{1,2})?/g;
   let pendingComment: string | undefined;
   let pendingArrows: Arrow[] | undefined;
   let m: RegExpExecArray | null;
@@ -73,7 +87,9 @@ function tokenizePgn(pgn: string): AnnotatedToken[] {
   while ((m = re.exec(cleaned)) !== null) {
     // Comment block
     if (m[1]) {
-      const raw = m[1].slice(1, -1).trim();
+      const raw = m[1].slice(1, -1)
+        .replace(/\$(\d+)/g, (_, n) => numericNagToSymbol(parseInt(n, 10)))
+        .trim();
       const { text, arrows } = parseArrows(raw);
       pendingComment = text || undefined;
       pendingArrows = arrows.length > 0 ? arrows : undefined;
@@ -88,13 +104,22 @@ function tokenizePgn(pgn: string): AnnotatedToken[] {
       continue;
     }
 
+    // Numeric NAG ($1, $14, etc.) — attach to previous token
+    if (m[2]) {
+      const n = parseInt(m[2].slice(1), 10);
+      if (tokens.length > 0) {
+        tokens[tokens.length - 1].nag = numericNagToSymbol(n);
+      }
+      continue;
+    }
+
     // SAN token
-    const san = m[2];
+    const san = m[3];
     // Skip move numbers, results
     if (/^\d+\./.test(san)) continue;
     if (/^(1-0|0-1|1\/2-1\/2|\*)$/.test(san)) continue;
 
-    const nag = m[3] || undefined;
+    const nag = m[4] || undefined;
     tokens.push({ san, nag });
   }
 
