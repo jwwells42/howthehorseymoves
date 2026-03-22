@@ -311,17 +311,27 @@
         {@const by = fy * SQUARE_SIZE + 12}
         {@const bw = SQUARE_SIZE - 24}
         {@const bh = SQUARE_SIZE - 24}
+        {@const rowH = bh / 3}
+        {@const mortar = "#8b7355"}
+        {@const brickColors = ["#b5543a", "#c4604a", "#a84e36", "#bf5c42", "#c96850", "#ab5038", "#be5a40", "#c26248", "#b05340"]}
         <g class="no-pointer">
-          <rect x={bx} y={by} width={bw} height={bh} rx="4" fill="#a8a29e" stroke="#78716c" stroke-width="1.5"/>
-          <line x1={bx} y1={by + bh * 0.33} x2={bx + bw} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
-          <line x1={bx} y1={by + bh * 0.66} x2={bx + bw} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
-          <line x1={bx + bw * 0.33} y1={by} x2={bx + bw * 0.33} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
-          <line x1={bx + bw * 0.66} y1={by} x2={bx + bw * 0.66} y2={by + bh * 0.33} stroke="#78716c" stroke-width="1"/>
-          <line x1={bx + bw * 0.17} y1={by + bh * 0.33} x2={bx + bw * 0.17} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
-          <line x1={bx + bw * 0.5} y1={by + bh * 0.33} x2={bx + bw * 0.5} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
-          <line x1={bx + bw * 0.83} y1={by + bh * 0.33} x2={bx + bw * 0.83} y2={by + bh * 0.66} stroke="#78716c" stroke-width="1"/>
-          <line x1={bx + bw * 0.33} y1={by + bh * 0.66} x2={bx + bw * 0.33} y2={by + bh} stroke="#78716c" stroke-width="1"/>
-          <line x1={bx + bw * 0.66} y1={by + bh * 0.66} x2={bx + bw * 0.66} y2={by + bh} stroke="#78716c" stroke-width="1"/>
+          <!-- Mortar background -->
+          <rect x={bx} y={by} width={bw} height={bh} rx="4" fill={mortar}/>
+          <!-- Row 1: 3 bricks -->
+          <rect x={bx + 1.5} y={by + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[0]}/>
+          <rect x={bx + bw * 0.33 + 1.5} y={by + 1.5} width={bw * 0.34 - 3} height={rowH - 3} rx="2" fill={brickColors[1]}/>
+          <rect x={bx + bw * 0.67 + 1.5} y={by + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[2]}/>
+          <!-- Row 2: 3 bricks, offset -->
+          <rect x={bx + 1.5} y={by + rowH + 1.5} width={bw * 0.17 - 2} height={rowH - 3} rx="2" fill={brickColors[3]}/>
+          <rect x={bx + bw * 0.17 + 1.5} y={by + rowH + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[4]}/>
+          <rect x={bx + bw * 0.5 + 1.5} y={by + rowH + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[5]}/>
+          <rect x={bx + bw * 0.83 + 1.5} y={by + rowH + 1.5} width={bw * 0.17 - 2} height={rowH - 3} rx="2" fill={brickColors[6]}/>
+          <!-- Row 3: 3 bricks -->
+          <rect x={bx + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[7]}/>
+          <rect x={bx + bw * 0.33 + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.34 - 3} height={rowH - 3} rx="2" fill={brickColors[8]}/>
+          <rect x={bx + bw * 0.67 + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[0]}/>
+          <!-- Outer border -->
+          <rect x={bx} y={by} width={bw} height={bh} rx="4" fill="none" stroke="#6b5740" stroke-width="1.5"/>
         </g>
       {:else}
         <image
