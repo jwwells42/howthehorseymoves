@@ -525,11 +525,11 @@
       {/if}
     </div>
 
-    {#if currentComment}
-      <div class="comment-box">
-        <p>{currentComment}</p>
-      </div>
-    {/if}
+    <div class="comment-area">
+      {#if currentComment}
+        <p class="comment-text">{currentComment}</p>
+      {/if}
+    </div>
 
     <div class="move-list" bind:this={moveListEl}>
       <div class="moves">
@@ -750,18 +750,17 @@
 
   /* === Status & comments === */
 
-  .comment-box {
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    padding: 0.75rem 1rem;
+  .comment-area {
     width: 100%;
     max-width: 28rem;
+    min-height: 3rem;
+  }
+
+  .comment-text {
     font-size: 0.875rem;
     color: var(--text-muted);
+    font-style: italic;
     line-height: 1.5;
-    max-height: 8rem;
-    overflow-y: auto;
   }
 
   .status {
