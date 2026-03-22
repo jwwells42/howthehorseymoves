@@ -23,8 +23,8 @@
         error = 'No moves found in this PGN.';
         return;
       }
-    } catch {
-      error = 'Could not parse this PGN. Check the move notation.';
+    } catch (e) {
+      error = `Could not parse this PGN: ${e instanceof Error ? e.message : String(e)}`;
       return;
     }
     activeOpening = {
