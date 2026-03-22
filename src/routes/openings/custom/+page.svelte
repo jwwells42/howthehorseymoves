@@ -92,9 +92,7 @@
 <style>
   .page {
     min-height: 100vh;
-    padding: 1.5rem;
-    max-width: 42rem;
-    margin: 0 auto;
+    padding: 1rem;
   }
 
   .back-link, .back-btn {
