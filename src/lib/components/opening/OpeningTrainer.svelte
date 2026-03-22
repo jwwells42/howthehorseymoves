@@ -466,20 +466,26 @@
     <div class="move-list">
       <div class="moves">
         {#each moveDisplay as pair}
-          <span class="move-pair">
-            <span class="move-num">{pair.num}.</span>
-            <span class={['move', moveIdx > pair.whiteIdx && 'played', moveIdx === pair.whiteIdx && 'current']}>
-              {pair.white}
-            </span>
-            {#if pair.black}
-              {' '}
-              <span
-                class={['move', pair.blackIdx !== undefined && moveIdx > pair.blackIdx && 'played', pair.blackIdx !== undefined && moveIdx === pair.blackIdx && 'current']}
-              >
-                {pair.black}
+          {@const whitePlayed = moveIdx > pair.whiteIdx}
+          {@const blackPlayed = pair.blackIdx !== undefined && moveIdx > pair.blackIdx}
+          {@const hideWhite = phase === 'practice' && !whitePlayed}
+          {@const hideBlack = phase === 'practice' && !blackPlayed}
+          {#if phase === 'learn' || whitePlayed || moveIdx === pair.whiteIdx || blackPlayed}
+            <span class="move-pair">
+              <span class="move-num">{pair.num}.</span>
+              <span class={['move', whitePlayed && 'played', moveIdx === pair.whiteIdx && 'current']}>
+                {hideWhite ? '...' : pair.white}
               </span>
-            {/if}
-          </span>
+              {#if pair.black}
+                {' '}
+                <span
+                  class={['move', blackPlayed && 'played', pair.blackIdx !== undefined && moveIdx === pair.blackIdx && 'current']}
+                >
+                  {hideBlack ? '...' : pair.black}
+                </span>
+              {/if}
+            </span>
+          {/if}
         {/each}
       </div>
     </div>
