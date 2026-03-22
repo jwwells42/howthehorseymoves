@@ -106,7 +106,8 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
   let lastMoveParent: ParseState = { ...state };
   const stack: { savedState: ParseState; savedLMP: ParseState }[] = [];
 
-  for (const token of tokens) {
+  for (let ti = 0; ti < tokens.length; ti++) {
+    const token = tokens[ti];
     if (token === "(") {
       stack.push({ savedState: { ...state }, savedLMP: { ...lastMoveParent } });
       state = { ...lastMoveParent };
@@ -118,10 +119,8 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
       lastMoveParent = { ...state };
       const resolved = parseSan(token, state.board, state.color);
       if (!resolved.from) {
-        const idx = tokens.indexOf(token);
-        const moveNum = Math.floor(tokens.slice(0, idx).filter(t => t !== "(" && t !== ")").length / 2) + 1;
-        const preview = tokens.slice(0, Math.min(idx + 3, tokens.length)).join(" ");
-        throw new Error(`"${token}" (move ${moveNum}, ${state.color === "w" ? "White" : "Black"} to play) — no legal piece found. Tokens so far: [${preview}]`);
+        const nearby = tokens.slice(Math.max(0, ti - 4), ti + 3).join(" ");
+        throw new Error(`"${token}" (token ${ti + 1}/${tokens.length}, ${state.color === "w" ? "White" : "Black"} to play) — no legal piece found. Context: ...${nearby}...`);
       }
       const newBoard = applyMove(state.board, resolved.from, resolved.to, resolved.promotion);
 
