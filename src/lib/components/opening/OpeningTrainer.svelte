@@ -61,7 +61,11 @@
 
   let currentComment = $derived.by(() => {
     if (phase === 'setup' || moveIdx === 0) return undefined;
-    return currentLine[moveIdx - 1].comment;
+    // Show the most recent comment at or before current position
+    for (let i = moveIdx - 1; i >= 0; i--) {
+      if (currentLine[i].comment) return currentLine[i].comment;
+    }
+    return undefined;
   });
 
   let arrows = $derived.by((): Arrow[] | undefined => {
@@ -437,147 +441,153 @@
     </div>
   </div>
 {:else}
-  <div class="trainer">
-    <div class="header">
-      <h2>{opening.name}</h2>
-    </div>
+  <div class="drill-layout">
+    <!-- Board side -->
+    <div class="board-side">
+      <div class="info-row">
+        <button
+          class="nav-btn"
+          onclick={() => jumpToLine(lineIdx - 1)}
+          disabled={lineIdx === 0 || waiting}
+          aria-label="Previous line"
+        >&lsaquo;</button>
+        <span>Line {lineIdx + 1} of {activeLines.length}</span>
+        <button
+          class="nav-btn"
+          onclick={() => jumpToLine(lineIdx + 1)}
+          disabled={lineIdx >= activeLines.length - 1 || waiting}
+          aria-label="Next line"
+        >&rsaquo;</button>
+        <span class="mode-sep">&middot;</span>
+        <span class={['mode-badge', phase]}>{phase === 'learn' ? 'Learning' : 'Practicing'}</span>
+        <button class="btn btn-sm" onclick={toggleMode}>
+          {phase === 'learn' ? 'Practice' : 'Learn'}
+        </button>
+      </div>
 
-    <div class="info-row">
-      <button
-        class="nav-btn"
-        onclick={() => jumpToLine(lineIdx - 1)}
-        disabled={lineIdx === 0 || waiting}
-        aria-label="Previous line"
-      >&lsaquo;</button>
-      <span>Line {lineIdx + 1} of {activeLines.length}</span>
-      <button
-        class="nav-btn"
-        onclick={() => jumpToLine(lineIdx + 1)}
-        disabled={lineIdx >= activeLines.length - 1 || waiting}
-        aria-label="Next line"
-      >&rsaquo;</button>
-      <span class="mode-sep">&middot;</span>
-      <span class={['mode-badge', phase]}>{phase === 'learn' ? 'Learning' : 'Practicing'}</span>
-      <button class="btn btn-sm" onclick={toggleMode}>
-        {phase === 'learn' ? 'Practice' : 'Learn'}
-      </button>
-    </div>
-
-    <div class="board-wrapper">
-      <Board
-        {board}
-        {selectedSquare}
-        {validMoves}
-        targets={[]}
-        reachedTargets={[]}
-        dragValidMoves={dragMoves}
-        onSquareClick={handleSquareClick}
-        onDrop={handleDrop}
-        {onDragStart}
-        {onDragEnd}
-        {wrongMoveSquare}
-        {opponentSlide}
-        {arrows}
-        {flipped}
-        playableColors={[playerColor]}
-      />
-      {#if allDone}
-        <div class="done-overlay">
-          <div class="done-content">
-            {#if phase === 'learn'}
-              <div class="done-check">&#10003;</div>
-              <p class="done-title">Lines learned!</p>
-              <button class="btn" onclick={() => startDrilling('practice')}>
-                Practice now
-              </button>
-              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
-                Back to setup
-              </button>
-            {:else}
-              <div class="done-check">&#10003;</div>
-              <p class="done-title">Lines mastered!</p>
-              <button class="btn" onclick={() => startDrilling('practice')}>
-                Practice again
-              </button>
-              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
-                Back to setup
-              </button>
-            {/if}
+      <div class="board-wrapper">
+        <Board
+          {board}
+          {selectedSquare}
+          {validMoves}
+          targets={[]}
+          reachedTargets={[]}
+          dragValidMoves={dragMoves}
+          onSquareClick={handleSquareClick}
+          onDrop={handleDrop}
+          {onDragStart}
+          {onDragEnd}
+          {wrongMoveSquare}
+          {opponentSlide}
+          {arrows}
+          {flipped}
+          playableColors={[playerColor]}
+        />
+        {#if allDone}
+          <div class="done-overlay">
+            <div class="done-content">
+              {#if phase === 'learn'}
+                <div class="done-check">&#10003;</div>
+                <p class="done-title">Lines learned!</p>
+                <button class="btn" onclick={() => startDrilling('practice')}>
+                  Practice now
+                </button>
+                <button class="btn btn-secondary done-btn" onclick={backToSetup}>
+                  Back to setup
+                </button>
+              {:else}
+                <div class="done-check">&#10003;</div>
+                <p class="done-title">Lines mastered!</p>
+                <button class="btn" onclick={() => startDrilling('practice')}>
+                  Practice again
+                </button>
+                <button class="btn btn-secondary done-btn" onclick={backToSetup}>
+                  Back to setup
+                </button>
+              {/if}
+            </div>
           </div>
-        </div>
-      {/if}
-    </div>
+        {/if}
+      </div>
 
-    <div class="status">
-      {#if lineComplete && !allDone}
-        <div class="line-complete">
-          <span class="complete-text">Line complete!</span>
-          <button class="btn btn-sm" onclick={advanceLine}>
-            {#if lineIdx + 1 < activeLines.length}
-              Next variation
-            {:else}
-              Finish
-            {/if}
-          </button>
-        </div>
-      {/if}
-      {#if !lineComplete && !allDone && atFrontier && isPlayerTurn && !waiting}
-        <span class="muted">
-          {phase === 'learn' ? 'Follow the arrow' : 'Your move'}
-        </span>
-      {/if}
-      {#if !lineComplete && !allDone && atFrontier && !isPlayerTurn && !waiting && !atEnd}
-        <span class="muted">Opponent is thinking...</span>
-      {/if}
-    </div>
-
-    <div class="comment-area">
-      {#if currentComment}
-        <p class="comment-text">{currentComment}</p>
-      {/if}
-    </div>
-
-    <div class="move-list" bind:this={moveListEl}>
-      <div class="move-grid">
-        {#each moveDisplay as pair}
-          {@const whiteReached = maxReachedIdx > pair.whiteIdx}
-          {@const blackReached = pair.blackIdx !== undefined && maxReachedIdx > pair.blackIdx}
-          {@const whitePlayed = moveIdx > pair.whiteIdx}
-          {@const blackPlayed = pair.blackIdx !== undefined && moveIdx > pair.blackIdx}
-          {@const hideWhite = phase === 'practice' && !whiteReached}
-          {@const hideBlack = phase === 'practice' && !blackReached}
-          {@const whiteActive = moveIdx === pair.whiteIdx + 1}
-          {@const blackActive = pair.blackIdx !== undefined && moveIdx === pair.blackIdx + 1}
-          {#if phase === 'learn' || whiteReached || maxReachedIdx === pair.whiteIdx || blackReached}
-            <span class="move-num">{pair.num}.</span>
-            <button
-              class={['move-btn', whitePlayed && 'move-played', whiteActive && 'move-active']}
-              data-active={whiteActive}
-              onclick={() => navigateTo(pair.whiteIdx + 1)}
-              disabled={hideWhite}
-            >
-              {hideWhite ? '...' : pair.white}
+      <div class="status">
+        {#if lineComplete && !allDone}
+          <div class="line-complete">
+            <span class="complete-text">Line complete!</span>
+            <button class="btn btn-sm" onclick={advanceLine}>
+              {#if lineIdx + 1 < activeLines.length}
+                Next variation
+              {:else}
+                Finish
+              {/if}
             </button>
-            {#if pair.black}
-              <button
-                class={['move-btn', blackPlayed && 'move-played', blackActive && 'move-active']}
-                data-active={blackActive}
-                onclick={() => pair.blackIdx !== undefined && navigateTo(pair.blackIdx + 1)}
-                disabled={hideBlack}
-              >
-                {hideBlack ? '...' : pair.black}
-              </button>
-            {:else}
-              <span></span>
-            {/if}
-          {/if}
-        {/each}
+          </div>
+        {/if}
+        {#if !lineComplete && !allDone && atFrontier && isPlayerTurn && !waiting}
+          <span class="muted">
+            {phase === 'learn' ? 'Follow the arrow' : 'Your move'}
+          </span>
+        {/if}
+        {#if !lineComplete && !allDone && atFrontier && !isPlayerTurn && !waiting && !atEnd}
+          <span class="muted">Opponent is thinking...</span>
+        {/if}
+      </div>
+
+      <div class="comment-area">
+        {#if currentComment}
+          <p class="comment-text">{currentComment}</p>
+        {/if}
       </div>
     </div>
 
-    <button class="btn btn-secondary" onclick={backToSetup}>
-      Back to setup
-    </button>
+    <!-- Move list side -->
+    <div class="move-list-side">
+      <div class="drill-info">
+        <span class="drill-opening-name">{opening.name}</span>
+      </div>
+
+      <div class="move-list" bind:this={moveListEl}>
+        <div class="move-grid">
+          {#each moveDisplay as pair}
+            {@const whiteReached = maxReachedIdx > pair.whiteIdx}
+            {@const blackReached = pair.blackIdx !== undefined && maxReachedIdx > pair.blackIdx}
+            {@const whitePlayed = moveIdx > pair.whiteIdx}
+            {@const blackPlayed = pair.blackIdx !== undefined && moveIdx > pair.blackIdx}
+            {@const hideWhite = phase === 'practice' && !whiteReached}
+            {@const hideBlack = phase === 'practice' && !blackReached}
+            {@const whiteActive = moveIdx === pair.whiteIdx + 1}
+            {@const blackActive = pair.blackIdx !== undefined && moveIdx === pair.blackIdx + 1}
+            {#if phase === 'learn' || whiteReached || maxReachedIdx === pair.whiteIdx || blackReached}
+              <span class="move-num">{pair.num}.</span>
+              <button
+                class={['move-btn', whitePlayed && 'move-played', whiteActive && 'move-active']}
+                data-active={whiteActive}
+                onclick={() => navigateTo(pair.whiteIdx + 1)}
+                disabled={hideWhite}
+              >
+                {hideWhite ? '...' : pair.white}
+              </button>
+              {#if pair.black}
+                <button
+                  class={['move-btn', blackPlayed && 'move-played', blackActive && 'move-active']}
+                  data-active={blackActive}
+                  onclick={() => pair.blackIdx !== undefined && navigateTo(pair.blackIdx + 1)}
+                  disabled={hideBlack}
+                >
+                  {hideBlack ? '...' : pair.black}
+                </button>
+              {:else}
+                <span></span>
+              {/if}
+            {/if}
+          {/each}
+        </div>
+      </div>
+
+      <button class="btn btn-secondary btn-back" onclick={backToSetup}>
+        Back to setup
+      </button>
+    </div>
   </div>
 {/if}
 
@@ -604,6 +614,54 @@
 
   .description {
     color: var(--text-muted);
+  }
+
+  /* === Drill layout (board + move list side-by-side) === */
+
+  .drill-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: flex-start;
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    .drill-layout {
+      flex-direction: row;
+    }
+  }
+
+  .board-side {
+    flex: 1;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .move-list-side {
+    width: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    .move-list-side {
+      width: 14rem;
+    }
+  }
+
+  .drill-info {
+    margin-bottom: 0.5rem;
+  }
+
+  .drill-opening-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .btn-back {
+    margin-top: 0.75rem;
+    width: 100%;
   }
 
   /* === Setup === */
@@ -677,7 +735,7 @@
     font-size: 0.875rem;
     color: var(--text-faint);
     flex-wrap: wrap;
-    justify-content: center;
+    margin-bottom: 0.5rem;
   }
 
   .nav-btn {
@@ -760,8 +818,7 @@
   /* === Status & comments === */
 
   .comment-area {
-    width: 100%;
-    max-width: 28rem;
+    margin-top: 0.75rem;
     min-height: 3rem;
   }
 
@@ -777,7 +834,7 @@
 
   .status {
     font-size: 0.875rem;
-    text-align: center;
+    margin-top: 0.75rem;
     min-height: 2rem;
   }
 
@@ -804,8 +861,6 @@
     border: 1px solid var(--card-border);
     background: var(--card-bg);
     padding: 0.75rem;
-    width: 100%;
-    max-width: 28rem;
     max-height: 400px;
     overflow-y: auto;
   }
