@@ -40,27 +40,43 @@ function tokenizeOpeningPgn(pgn: string): string[] {
     const ch = pgn[i];
     if (ch === " " || ch === "\n" || ch === "\r" || ch === "\t") { i++; continue; }
     if (ch === "(" || ch === ")") { tokens.push(ch); i++; continue; }
+    // PGN headers [Tag "value"] — skip entire line
+    if (ch === "[") {
+      while (i < pgn.length && pgn[i] !== "]") i++;
+      i++;
+      continue;
+    }
+    // Semicolon line comments — skip to end of line
+    if (ch === ";") {
+      while (i < pgn.length && pgn[i] !== "\n") i++;
+      continue;
+    }
     // Move numbers (digits + dots) — skip
     if (ch >= "0" && ch <= "9") {
       while (i < pgn.length && (pgn[i] >= "0" && pgn[i] <= "9" || pgn[i] === ".")) i++;
       while (i < pgn.length && pgn[i] === " ") i++;
       continue;
     }
-    // Comments — skip
+    // Comments {text} — skip
     if (ch === "{") {
       while (i < pgn.length && pgn[i] !== "}") i++;
       i++;
       continue;
     }
-    // NAGs — skip
+    // NAGs — skip (! ? !! ?? !? ?! and numeric $1 $2 etc.)
     if (ch === "!" || ch === "?") {
       while (i < pgn.length && (pgn[i] === "!" || pgn[i] === "?")) i++;
+      continue;
+    }
+    if (ch === "$") {
+      i++;
+      while (i < pgn.length && pgn[i] >= "0" && pgn[i] <= "9") i++;
       continue;
     }
     // SAN move or result
     if ((ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z")) {
       const start = i;
-      while (i < pgn.length && pgn[i] !== " " && pgn[i] !== "(" && pgn[i] !== ")" && pgn[i] !== "{") i++;
+      while (i < pgn.length && pgn[i] !== " " && pgn[i] !== "\n" && pgn[i] !== "\r" && pgn[i] !== "(" && pgn[i] !== ")" && pgn[i] !== "{" && pgn[i] !== "!" && pgn[i] !== "?" && pgn[i] !== "$") i++;
       const token = pgn.slice(start, i);
       if (/^(1-0|0-1|\*)$/.test(token)) continue;
       if (token.startsWith("1/2")) continue;
