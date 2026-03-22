@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import { type SquareId } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
@@ -19,6 +20,9 @@
   }
 
   let { opening }: Props = $props();
+
+  let playerColor = $derived(opening.color);
+  let flipped = $derived(playerColor === 'b');
 
   let parsed = $derived.by(() => {
     const tree = parseOpeningPgn(opening.pgn);
@@ -44,11 +48,11 @@
   let dragFrom = $state<SquareId | null>(null);
 
   let currentLine = $derived(lines[lineIdx]);
-  let isWhiteTurn = $derived(moveIdx < currentLine.length && currentLine[moveIdx].colorPlayed === 'w');
+  let isPlayerTurn = $derived(moveIdx < currentLine.length && currentLine[moveIdx].colorPlayed === playerColor);
   let atEnd = $derived(moveIdx >= currentLine.length);
 
   let arrows = $derived.by((): Arrow[] | undefined => {
-    if (atEnd || !isWhiteTurn || waiting) return undefined;
+    if (atEnd || !isPlayerTurn || waiting) return undefined;
     if (phase === 'learn' || showHint) {
       const move = currentLine[moveIdx];
       return [{ from: move.from, to: move.to, color: '#15803d' }];
@@ -57,17 +61,17 @@
   });
 
   let validMoves = $derived.by(() => {
-    if (!selectedSquare || waiting || atEnd || !isWhiteTurn) return [];
+    if (!selectedSquare || waiting || atEnd || !isPlayerTurn) return [];
     const p = board.pieces.get(selectedSquare);
-    if (!p || p.color !== 'w') return [];
-    return getLegalMoves(selectedSquare, board, 'w');
+    if (!p || p.color !== playerColor) return [];
+    return getLegalMoves(selectedSquare, board, playerColor);
   });
 
   let dragMoves = $derived.by(() => {
-    if (!dragFrom || waiting || atEnd || !isWhiteTurn) return [];
+    if (!dragFrom || waiting || atEnd || !isPlayerTurn) return [];
     const p = board.pieces.get(dragFrom);
-    if (!p || p.color !== 'w') return [];
-    return getLegalMoves(dragFrom, board, 'w');
+    if (!p || p.color !== playerColor) return [];
+    return getLegalMoves(dragFrom, board, playerColor);
   });
 
   let moveDisplay = $derived.by(() => {
@@ -86,15 +90,16 @@
     return pairs;
   });
 
-  function autoPlayBlack(idx: number, line: OpeningLine) {
+  function autoPlayOpponent(idx: number, line: OpeningLine) {
     if (idx >= line.length) return;
     const move = line[idx];
+    const movedPiece = board.pieces.get(move.from);
     waiting = true;
 
     setTimeout(() => {
       opponentSlide = {
-        piece: 'P',
-        color: 'b',
+        piece: movedPiece?.piece ?? 'P',
+        color: move.colorPlayed,
         from: move.from,
         to: move.to,
       };
@@ -112,6 +117,17 @@
     }, 300);
   }
 
+  function maybeAutoPlayOpponent() {
+    const line = lines[lineIdx];
+    if (moveIdx < line.length && line[moveIdx].colorPlayed !== playerColor) {
+      setTimeout(() => autoPlayOpponent(moveIdx, line), 400);
+    }
+  }
+
+  onMount(() => {
+    maybeAutoPlayOpponent();
+  });
+
   function advanceLine() {
     lineComplete = false;
     selectedSquare = null;
@@ -125,21 +141,25 @@
       moveIdx = bp;
       board = newBoard;
 
-      if (bp < nextLine.length && nextLine[bp].colorPlayed === 'b') {
-        setTimeout(() => autoPlayBlack(bp, nextLine), 400);
+      if (bp < nextLine.length && nextLine[bp].colorPlayed !== playerColor) {
+        setTimeout(() => autoPlayOpponent(bp, nextLine), 400);
       }
     } else if (phase === 'learn') {
       phase = 'practice';
       lineIdx = 0;
       moveIdx = 0;
       board = startBoard;
+      maybeAutoPlayOpponent();
     } else {
       allDone = true;
+      if (opening.id !== 'custom') {
+        try { localStorage.setItem(`opening-${opening.id}-complete`, 'true'); } catch {}
+      }
     }
   }
 
-  function executeWhiteMove(from: SquareId, to: SquareId) {
-    if (atEnd || !isWhiteTurn || waiting) return;
+  function executePlayerMove(from: SquareId, to: SquareId) {
+    if (atEnd || !isPlayerTurn || waiting) return;
 
     const expected = currentLine[moveIdx];
     if (from === expected.from && to === expected.to) {
@@ -152,8 +172,8 @@
 
       if (nextIdx >= currentLine.length) {
         lineComplete = true;
-      } else if (currentLine[nextIdx].colorPlayed === 'b') {
-        autoPlayBlack(nextIdx, currentLine);
+      } else if (currentLine[nextIdx].colorPlayed !== playerColor) {
+        autoPlayOpponent(nextIdx, currentLine);
       }
     } else {
       wrongMoveSquare = to;
@@ -165,11 +185,11 @@
 
   function handleSquareClick(sq: SquareId) {
     if (waiting || atEnd || lineComplete) return;
-    if (!isWhiteTurn) return;
+    if (!isPlayerTurn) return;
 
     if (!selectedSquare) {
       const p = board.pieces.get(sq);
-      if (p && p.color === 'w') selectedSquare = sq;
+      if (p && p.color === playerColor) selectedSquare = sq;
       return;
     }
 
@@ -179,27 +199,27 @@
     }
 
     const target = board.pieces.get(sq);
-    if (target && target.color === 'w') {
+    if (target && target.color === playerColor) {
       selectedSquare = sq;
       return;
     }
 
-    const moves = getLegalMoves(selectedSquare, board, 'w');
+    const moves = getLegalMoves(selectedSquare, board, playerColor);
     if (!moves.includes(sq)) {
       selectedSquare = null;
       return;
     }
 
-    executeWhiteMove(selectedSquare, sq);
+    executePlayerMove(selectedSquare, sq);
   }
 
   function handleDrop(from: SquareId, to: SquareId) {
-    if (waiting || atEnd || lineComplete || !isWhiteTurn || from === to) return;
+    if (waiting || atEnd || lineComplete || !isPlayerTurn || from === to) return;
     const p = board.pieces.get(from);
-    if (!p || p.color !== 'w') return;
-    const moves = getLegalMoves(from, board, 'w');
+    if (!p || p.color !== playerColor) return;
+    const moves = getLegalMoves(from, board, playerColor);
     if (!moves.includes(to)) return;
-    executeWhiteMove(from, to);
+    executePlayerMove(from, to);
   }
 
   function onDragStart(sq: SquareId) {
@@ -222,6 +242,7 @@
     waiting = false;
     lineComplete = false;
     allDone = false;
+    maybeAutoPlayOpponent();
   }
 </script>
 
@@ -251,6 +272,8 @@
       {wrongMoveSquare}
       {opponentSlide}
       {arrows}
+      {flipped}
+      playableColors={[playerColor]}
     />
     {#if allDone}
       <div class="done-overlay">
@@ -280,12 +303,12 @@
         </button>
       </div>
     {/if}
-    {#if !lineComplete && !allDone && isWhiteTurn && !waiting}
+    {#if !lineComplete && !allDone && isPlayerTurn && !waiting}
       <span class="muted">
         {phase === 'learn' ? 'Follow the arrow' : 'Your move'}
       </span>
     {/if}
-    {#if !lineComplete && !allDone && !isWhiteTurn && !waiting && !atEnd}
+    {#if !lineComplete && !allDone && !isPlayerTurn && !waiting && !atEnd}
       <span class="muted">Opponent is thinking...</span>
     {/if}
   </div>

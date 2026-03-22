@@ -43,6 +43,7 @@
     playableColors?: PieceColor[];
     highlights?: SquareHighlight[];
     obstacles?: SquareId[];
+    flipped?: boolean;
   }
 
   let {
@@ -65,10 +66,19 @@
     playableColors,
     highlights,
     obstacles,
+    flipped = false,
   }: Props = $props();
 
   let svgEl = $state<SVGSVGElement | undefined>(undefined);
   let drag = $state<DragState | null>(null);
+
+  let displayRanks = $derived(flipped ? [...RANKS].reverse() : RANKS);
+  let displayFiles = $derived(flipped ? [...FILES].reverse() : FILES);
+
+  function sqToXY(sq: SquareId): [number, number] {
+    const [fx, fy] = squareToCoords(sq);
+    return flipped ? [7 - fx, 7 - fy] : [fx, fy];
+  }
 
   let allHighlightedMoves = $derived(drag ? dragValidMoves : validMoves);
 
@@ -82,10 +92,11 @@
   }
 
   function svgToSquare(x: number, y: number): SquareId | null {
-    const file = Math.floor(x / SQUARE_SIZE);
-    const rank = Math.floor(y / SQUARE_SIZE);
-    if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
-    return `${FILES[file]}${RANKS[rank]}` as SquareId;
+    let fi = Math.floor(x / SQUARE_SIZE);
+    let ri = Math.floor(y / SQUARE_SIZE);
+    if (fi < 0 || fi > 7 || ri < 0 || ri > 7) return null;
+    if (flipped) { fi = 7 - fi; ri = 7 - ri; }
+    return `${FILES[fi]}${RANKS[ri]}` as SquareId;
   }
 
   function handlePointerDown(e: PointerEvent, sq: SquareId) {
@@ -131,11 +142,11 @@
   function getSlideStyle(sq: SquareId, piece: PieceKind): string | undefined {
     if (readOnly) return undefined;
 
-    const [fx, fy] = squareToCoords(sq);
+    const [fx, fy] = sqToXY(sq);
 
     // En passant pawn slide
     if (pawnSlide && sq === pawnSlide.to && piece === 'P') {
-      const [fromFx, fromFy] = squareToCoords(pawnSlide.from);
+      const [fromFx, fromFy] = sqToXY(pawnSlide.from);
       const dx = (fromFx - fx) * SQUARE_SIZE;
       const dy = (fromFy - fy) * SQUARE_SIZE;
       return `--slide-x: ${dx}px; --slide-y: ${dy}px; animation: pawn-slide 0.4s ease-out 0.3s backwards;`;
@@ -143,7 +154,7 @@
 
     // Opponent response slide
     if (opponentSlide && sq === opponentSlide.to) {
-      const [fromFx, fromFy] = squareToCoords(opponentSlide.from);
+      const [fromFx, fromFy] = sqToXY(opponentSlide.from);
       const dx = (fromFx - fx) * SQUARE_SIZE;
       const dy = (fromFy - fy) * SQUARE_SIZE;
       return `--slide-x: ${dx}px; --slide-y: ${dy}px; animation: pawn-slide 0.4s ease-out forwards;`;
@@ -153,8 +164,8 @@
   }
 
   function getArrowPath(arrow: Arrow) {
-    const [fx, fy] = squareToCoords(arrow.from);
-    const [tx, ty] = squareToCoords(arrow.to);
+    const [fx, fy] = sqToXY(arrow.from);
+    const [tx, ty] = sqToXY(arrow.to);
     const x1 = fx * SQUARE_SIZE + SQUARE_SIZE / 2;
     const y1 = fy * SQUARE_SIZE + SQUARE_SIZE / 2;
     const x2 = tx * SQUARE_SIZE + SQUARE_SIZE / 2;
@@ -187,8 +198,8 @@
   onpointerup={handlePointerUp}
 >
   <!-- Squares -->
-  {#each RANKS as rank, ri}
-    {#each FILES as file, fi}
+  {#each displayRanks as rank, ri}
+    {#each displayFiles as file, fi}
       {@const sq = `${file}${rank}` as SquareId}
       {@const isLight = (fi + ri) % 2 === 0}
       {@const isSelected = sq === selectedSquare || (drag !== null && sq === drag.from)}
@@ -277,7 +288,7 @@
 
   <!-- Valid move indicators -->
   {#each allHighlightedMoves as sq}
-    {@const [fx, fy] = squareToCoords(sq)}
+    {@const [fx, fy] = sqToXY(sq)}
     {@const occupant = board.pieces.get(sq)}
     {@const isTarget = targets.includes(sq)}
     {#if occupant}
@@ -304,7 +315,7 @@
   <!-- Pieces -->
   {#each [...board.pieces.entries()] as [sq, { piece, color }]}
     {#if !(drag && sq === drag.from)}
-      {@const [fx, fy] = squareToCoords(sq)}
+      {@const [fx, fy] = sqToXY(sq)}
       {@const slideStyle = getSlideStyle(sq, piece)}
       {#if obstacles?.includes(sq)}
         {@const bx = fx * SQUARE_SIZE + 12}
@@ -350,7 +361,7 @@
   <!-- Stars on top of target pieces -->
   {#each targets as sq}
     {#if !reachedTargets.includes(sq) && board.pieces.has(sq)}
-      {@const [fx, fy] = squareToCoords(sq)}
+      {@const [fx, fy] = sqToXY(sq)}
       <text
         x={fx * SQUARE_SIZE + SQUARE_SIZE / 2}
         y={fy * SQUARE_SIZE + SQUARE_SIZE / 2 + 18}

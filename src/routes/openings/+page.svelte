@@ -1,5 +1,21 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { OPENINGS } from '$lib/openings';
+
+  let whiteOpenings = $derived(OPENINGS.filter(o => o.color === 'w'));
+  let blackOpenings = $derived(OPENINGS.filter(o => o.color === 'b'));
+
+  let completedIds = $state<Set<string>>(new Set());
+
+  onMount(() => {
+    const completed = new Set<string>();
+    for (const opening of OPENINGS) {
+      if (localStorage.getItem(`opening-${opening.id}-complete`) === 'true') {
+        completed.add(opening.id);
+      }
+    }
+    completedIds = completed;
+  });
 </script>
 
 <main class="page">
@@ -8,15 +24,44 @@
   <h1>Opening Repertoire</h1>
   <p class="subtitle">Learn opening lines move by move.</p>
 
+  <h2 class="section-title">Play as White</h2>
   <div class="list">
-    {#each OPENINGS as opening}
+    {#each whiteOpenings as opening}
       <a href="/openings/{opening.id}" class="card">
         <div>
           <h3>{opening.name}</h3>
           <p class="card-desc">{opening.description}</p>
         </div>
+        {#if completedIds.has(opening.id)}
+          <span class="check">&#10003;</span>
+        {/if}
       </a>
     {/each}
+  </div>
+
+  <h2 class="section-title">Play as Black</h2>
+  <div class="list">
+    {#each blackOpenings as opening}
+      <a href="/openings/{opening.id}" class="card">
+        <div>
+          <h3>{opening.name}</h3>
+          <p class="card-desc">{opening.description}</p>
+        </div>
+        {#if completedIds.has(opening.id)}
+          <span class="check">&#10003;</span>
+        {/if}
+      </a>
+    {/each}
+  </div>
+
+  <h2 class="section-title">Custom</h2>
+  <div class="list">
+    <a href="/openings/custom" class="card">
+      <div>
+        <h3>Paste your own PGN</h3>
+        <p class="card-desc">Drill any opening — paste PGN from your coach or from Lichess.</p>
+      </div>
+    </a>
   </div>
 </main>
 
@@ -50,10 +95,18 @@
     margin-bottom: 2rem;
   }
 
+  .section-title {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+    color: var(--text-muted);
+  }
+
   .list {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    margin-bottom: 2rem;
   }
 
   .card {
@@ -79,5 +132,12 @@
   .card-desc {
     font-size: 0.875rem;
     color: var(--text-muted);
+  }
+
+  .check {
+    color: #4ade80;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-left: 1rem;
   }
 </style>
