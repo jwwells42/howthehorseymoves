@@ -118,8 +118,10 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
       lastMoveParent = { ...state };
       const resolved = parseSan(token, state.board, state.color);
       if (!resolved.from) {
-        const moveNum = Math.floor(tokens.slice(0, tokens.indexOf(token)).filter(t => t !== "(" && t !== ")").length / 2) + 1;
-        throw new Error(`"${token}" (around move ${moveNum}, ${state.color === "w" ? "White" : "Black"} to play) — no legal piece can make this move`);
+        const idx = tokens.indexOf(token);
+        const moveNum = Math.floor(tokens.slice(0, idx).filter(t => t !== "(" && t !== ")").length / 2) + 1;
+        const preview = tokens.slice(0, Math.min(idx + 3, tokens.length)).join(" ");
+        throw new Error(`"${token}" (move ${moveNum}, ${state.color === "w" ? "White" : "Black"} to play) — no legal piece found. Tokens so far: [${preview}]`);
       }
       const newBoard = applyMove(state.board, resolved.from, resolved.to, resolved.promotion);
 
