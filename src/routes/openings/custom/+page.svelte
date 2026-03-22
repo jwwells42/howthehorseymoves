@@ -50,7 +50,7 @@
     {/key}
   </main>
 {:else}
-  <main class="page">
+  <main class="page page-form">
     <a href="/openings" class="back-link">&larr; Back to openings</a>
 
     <h1>Paste your own PGN</h1>
@@ -93,6 +93,12 @@
   .page {
     min-height: 100vh;
     padding: 1rem;
+  }
+
+  .page-form {
+    padding: 1.5rem;
+    max-width: 42rem;
+    margin: 0 auto;
   }
 
   .back-link, .back-btn {
