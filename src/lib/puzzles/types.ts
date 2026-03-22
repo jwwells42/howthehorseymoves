@@ -16,6 +16,7 @@ export interface RoutePuzzle extends PuzzleBase {
   stars: SquareId[];
   starThresholds: { three: number; two: number; one: number };
   arrows?: Arrow[];
+  threats?: true;
 }
 
 export interface TacticPuzzle extends PuzzleBase {

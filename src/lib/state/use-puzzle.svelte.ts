@@ -25,7 +25,24 @@ export function createPuzzleState(puzzle: Puzzle) {
 // Route puzzle state
 // ═══════════════════════════════════════════════
 
+function getAttackSquares(sq: SquareId, p: { piece: PieceKind; color: PieceColor }, currentBoard: BoardState): SquareId[] {
+  if (p.piece === 'P') {
+    // Pawns attack diagonally, not forward
+    const [px, py] = squareToCoords(sq);
+    const dir = p.color === 'w' ? -1 : 1;
+    const attacks: SquareId[] = [];
+    for (const dx of [-1, 1]) {
+      const target = coordsToSquare(px + dx, py + dir);
+      if (target) attacks.push(target);
+    }
+    return attacks;
+  }
+  return getValidMoves(p.piece, sq, currentBoard, p.color);
+}
+
 function createRouteState(puzzle: RoutePuzzle) {
+  const wallSet = new Set(puzzle.walls);
+
   function buildBoard(): BoardState {
     const placements = [...puzzle.position];
     for (const sq of puzzle.walls) {
@@ -42,11 +59,48 @@ function createRouteState(puzzle: RoutePuzzle) {
   let currentHintIndex = $state(-1);
   let wrongMoveSquare = $state<SquareId | null>(null);
 
+  // Squares threatened by enemy (black) pieces — only when threats mode is on
+  let dangerSet = $derived.by(() => {
+    if (!puzzle.threats) return new Set<SquareId>();
+    const dangers = new Set<SquareId>();
+    for (const [sq, p] of board.pieces) {
+      if (p.color === 'b') {
+        dangers.add(sq);
+        for (const m of getAttackSquares(sq, p, board)) dangers.add(m);
+      }
+    }
+    return dangers;
+  });
+
+  // Red highlights for attacked squares (exclude walls — they're already blocked)
+  let dangerHighlights = $derived.by(() => {
+    if (!puzzle.threats) return [] as SquareHighlight[];
+    const result: SquareHighlight[] = [];
+    const seen = new Set<SquareId>();
+    for (const [sq, p] of board.pieces) {
+      if (p.color === 'b') {
+        for (const m of getAttackSquares(sq, p, board)) {
+          if (!seen.has(m) && !wallSet.has(m)) {
+            seen.add(m);
+            result.push({ square: m, color: '#dc2626' });
+          }
+        }
+      }
+    }
+    return result;
+  });
+
+  function getFilteredMoves(from: SquareId): SquareId[] {
+    const p = board.pieces.get(from);
+    if (!p || p.color !== 'w' || p.piece !== puzzle.playerPiece) return [];
+    const moves = getValidMoves(p.piece, from, board, 'w');
+    if (!puzzle.threats) return moves;
+    return moves.filter(m => !dangerSet.has(m));
+  }
+
   let validMoves = $derived.by(() => {
     if (!selectedSquare) return [];
-    const p = board.pieces.get(selectedSquare);
-    if (!p || p.color !== 'w' || p.piece !== puzzle.playerPiece) return [];
-    return getValidMoves(p.piece, selectedSquare, board, 'w');
+    return getFilteredMoves(selectedSquare);
   });
 
   function calculateStars(moves: number): number {
@@ -87,9 +141,7 @@ function createRouteState(puzzle: RoutePuzzle) {
       return;
     }
     if (sq === selectedSquare) { selectedSquare = null; return; }
-    const p = board.pieces.get(selectedSquare);
-    if (!p) return;
-    const moves = getValidMoves(p.piece, selectedSquare, board, 'w');
+    const moves = getFilteredMoves(selectedSquare);
     if (!moves.includes(sq)) {
       const target = board.pieces.get(sq);
       if (target && target.color === 'w' && target.piece === puzzle.playerPiece) {
@@ -104,9 +156,7 @@ function createRouteState(puzzle: RoutePuzzle) {
 
   function handleDrop(from: SquareId, to: SquareId) {
     if (isComplete || from === to) return;
-    const p = board.pieces.get(from);
-    if (!p || p.color !== 'w' || p.piece !== puzzle.playerPiece) return;
-    const moves = getValidMoves(p.piece, from, board, 'w');
+    const moves = getFilteredMoves(from);
     if (!moves.includes(to)) return;
     executeMove(from, to);
   }
@@ -140,8 +190,9 @@ function createRouteState(puzzle: RoutePuzzle) {
     get stars() { return stars; },
     get currentHintIndex() { return currentHintIndex; },
     get arrows() { return (puzzle.arrows ?? []) as Arrow[]; },
-    get highlights() { return [] as SquareHighlight[]; },
+    get highlights() { return dangerHighlights; },
     get demoPhase() { return null as 'playing' | 'resetting' | null; },
+    getMovesFrom: getFilteredMoves,
     handleSquareClick,
     handleDrop,
     reset,
@@ -400,6 +451,11 @@ function createTacticState(puzzle: TacticPuzzle) {
     get arrows() { return currentArrows; },
     get highlights() { return currentHighlights; },
     get demoPhase() { return demoPhase; },
+    getMovesFrom(from: SquareId) {
+      const p = board.pieces.get(from);
+      if (!p || p.color !== 'w') return [];
+      return getLegalMoves(from, board, 'w');
+    },
     handleSquareClick,
     handleDrop,
     reset,
@@ -601,6 +657,11 @@ function createConversionState(puzzle: ConversionPuzzle) {
     get arrows() { return [] as Arrow[]; },
     get highlights() { return [] as SquareHighlight[]; },
     get demoPhase() { return null as 'playing' | 'resetting' | null; },
+    getMovesFrom(from: SquareId) {
+      const p = board.pieces.get(from);
+      if (!p || p.color !== 'w') return [];
+      return getLegalMoves(from, board, 'w');
+    },
     handleSquareClick,
     handleDrop,
     reset,

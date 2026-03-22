@@ -25,6 +25,7 @@ import { lichessSkewerPuzzles } from "./lichess-skewers";
 import { lichessRemovingDefenderPuzzles } from "./lichess-removing-defender";
 import { lichessDiscoveredPuzzles } from "./lichess-discovered";
 import { lichessPinPuzzles } from "./lichess-pins";
+import { dangerZonePuzzles } from "./danger-zones";
 
 const puzzleSets: Record<string, PuzzleSet> = {
   rook: { piece: "R", name: "Rook", puzzles: rookPuzzles },
@@ -47,6 +48,7 @@ const puzzleSets: Record<string, PuzzleSet> = {
   "tactics-skewers": { piece: "R", name: "Skewers", puzzles: lichessSkewerPuzzles },
   "tactics-removing-defender": { piece: "R", name: "Removing the Defender", puzzles: lichessRemovingDefenderPuzzles },
   "tactics-discovered": { piece: "N", name: "Discovered Attacks", puzzles: lichessDiscoveredPuzzles },
+  "danger-zones": { piece: "N", name: "Danger Zones", puzzles: dangerZonePuzzles },
 };
 
 export function getPuzzlesForPiece(pieceKey: string): PuzzleSet | undefined {

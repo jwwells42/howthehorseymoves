@@ -6,8 +6,6 @@
   import { createPuzzleState } from '$lib/state/use-puzzle.svelte';
   import type { Puzzle } from '$lib/puzzles/types';
   import type { SquareId } from '$lib/logic/types';
-  import { getValidMoves } from '$lib/logic/moves';
-  import { getLegalMoves } from '$lib/logic/attacks';
 
   interface Props {
     puzzle: Puzzle;
@@ -25,13 +23,7 @@
 
   let dragValidMoves = $derived.by(() => {
     if (!dragFrom) return [];
-    const p = ps.board.pieces.get(dragFrom);
-    if (!p || p.color !== 'w') return [];
-    if (puzzle.type === 'route') {
-      if (p.piece !== puzzle.playerPiece) return [];
-      return getValidMoves(p.piece, dragFrom, ps.board, 'w');
-    }
-    return getLegalMoves(dragFrom, ps.board, 'w');
+    return ps.getMovesFrom(dragFrom);
   });
 
   // Route puzzles render wall pieces as brick walls

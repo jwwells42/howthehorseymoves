@@ -108,7 +108,7 @@
 
   let displayName = $derived(pieceInfo?.name ?? puzzleSet?.name ?? 'Puzzles');
   let displayDescription = $derived(pieceInfo?.description ?? '');
-  let displayIcon = $derived(pieceInfo?.icon ?? '/pieces/wQ.svg');
+  let displayIcon = $derived(pieceInfo?.icon ?? (piece === 'danger-zones' ? '/pieces/bN.svg' : '/pieces/wQ.svg'));
   let puzzleIds = $derived(puzzleSet?.puzzles.map((p) => p.id) ?? []);
 </script>
 

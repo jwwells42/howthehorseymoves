@@ -65,6 +65,8 @@
     });
   }));
 
+  let dzStats = $derived(getPieceStats('danger-zones'));
+
   let intermediateCats = $derived(CATEGORIES.filter(c => INTERMEDIATE_KEYS.includes(c.key)));
   let advancedCats = $derived(CATEGORIES.filter(c => ADVANCED_KEYS.includes(c.key)));
 
@@ -148,10 +150,33 @@
       </a>
     {/each}
 
+    <!-- Danger Zones card -->
+    <a href="/learn/danger-zones" class="card">
+      <div class={['step-badge', dzStats.completedPuzzles > 0 && dzStats.completedPuzzles === dzStats.totalPuzzles && 'complete']}>
+        {#if dzStats.completedPuzzles > 0 && dzStats.completedPuzzles === dzStats.totalPuzzles}
+          &#10003;
+        {:else}
+          {PIECES.length + 1}
+        {/if}
+      </div>
+      <div class="card-header">
+        <div class="danger-icon">
+          <img src="/pieces/bN.svg" alt="Danger" class="danger-piece" />
+        </div>
+        <h3>Danger Zones</h3>
+      </div>
+      <p class="card-desc">Dodge enemy pieces — reach the star without getting eaten!</p>
+      <div class="card-footer">
+        {#if dzStats.completedPuzzles > 0 && dzStats.completedPuzzles === dzStats.totalPuzzles}
+          <StarRating stars={dzStats.bestStars} size="sm" />
+        {/if}
+      </div>
+    </a>
+
     <!-- The Board card -->
     <a href="/board" class="card">
       <div class={['step-badge', coordStars > 0 && 'complete']}>
-        {#if coordStars > 0}&#10003;{:else}{PIECES.length + 1}{/if}
+        {#if coordStars > 0}&#10003;{:else}{PIECES.length + 2}{/if}
       </div>
       <div class="card-header">
         <div class="board-icon">e4</div>
@@ -166,7 +191,7 @@
     <!-- How to Win card -->
     <a href="/learn/how-to-win" class="card">
       <div class={['step-badge', howToWinStars > 0 && 'complete']}>
-        {#if howToWinStars > 0}&#10003;{:else}{PIECES.length + 2}{/if}
+        {#if howToWinStars > 0}&#10003;{:else}{PIECES.length + 3}{/if}
       </div>
       <div class="card-header">
         <img src="/pieces/wK.svg" alt="How to Win" class="card-icon" />
@@ -181,7 +206,7 @@
     <!-- Play a Game card -->
     <a href="/play?level=random" class={['card', !allBasicsDone && upNextPieceKey === null && 'up-next']}>
       <div class={['step-badge', allBasicsDone && 'complete']}>
-        {#if allBasicsDone}&#10003;{:else}{PIECES.length + 3}{/if}
+        {#if allBasicsDone}&#10003;{:else}{PIECES.length + 4}{/if}
       </div>
       <div class="card-header">
         <img src="/pieces/wK.svg" alt="Play" class="card-icon" />
@@ -426,6 +451,22 @@
     justify-content: space-between;
   }
   .stat { font-size: 0.75rem; color: var(--text-faint); }
+
+  .danger-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.25rem;
+    background: rgba(220, 38, 38, 0.2);
+    border: 2px solid rgba(220, 38, 38, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .danger-piece {
+    width: 2rem;
+    height: 2rem;
+  }
 
   .board-icon {
     width: 3rem;
