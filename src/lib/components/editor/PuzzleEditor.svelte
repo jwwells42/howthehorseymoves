@@ -149,17 +149,14 @@
     const t = title || '';
 
     if (mode === 'route') {
-      const setup: string[] = [];
+      const position: string[] = [];
       if (studentSquare) {
-        setup.push(`    { piece: "${studentPiece}", color: "w", square: "${studentSquare}" }`);
-      }
-      for (const obs of obstacles) {
-        setup.push(`    { piece: "P", color: "w", square: "${obs}" }`);
+        position.push(`    { piece: "${studentPiece}", color: "w", square: "${studentSquare}" }`);
       }
 
-      const sol = routeResult ? routeResult.solution.map(s => `"${s}"`).join(', ') : '';
       const moves = routeResult?.moves ?? 0;
-      const tgtStr = targets.map(s => `"${s}"`).join(', ');
+      const wallStr = obstacles.map(s => `"${s}"`).join(', ');
+      const starStr = targets.map(s => `"${s}"`).join(', ');
       const instruction = targets.length === 1
         ? `Reach the star${moves > 0 ? ` in ${moves} move${moves !== 1 ? 's' : ''}` : ''}!`
         : `Collect all the stars!`;
@@ -169,39 +166,37 @@
         : '';
 
       return `{
+  type: "route",
   id: "${id}",
-  piece: "${studentPiece}",
+  playerPiece: "${studentPiece}",
   title: "${t}",
   instruction: "${instruction}",
-  setup: [
-${setup.join(',\n')},
+  position: [
+${position.join(',\n')},
   ],
-  targets: [${tgtStr}],
-  solution: [${sol}],${arrowsLine}
+  walls: [${wallStr}],
+  stars: [${starStr}],${arrowsLine}
   starThresholds: { three: ${moves}, two: ${moves + 1}, one: ${moves + 2} },
 },`;
     } else {
       const fen = toFen(positionPieces);
-      const solArr = posSolution.trim().split(/[\s,]+/).filter(Boolean).map(s => `"${s}"`).join(', ');
-      const tgtArr = posTargets.trim().split(/[\s,]+/).filter(Boolean).map(s => `"${s}"`).join(', ');
 
       const lines = [
         `{`,
+        `  type: "puzzle",`,
         `  id: "${id}",`,
-        `  piece: "${posPlayerPiece}",`,
         `  title: "${t}",`,
         `  instruction: "",`,
-        `  setup: "${fen}",`,
-        `  targets: [${tgtArr}],`,
-        `  solution: [${solArr}],`,
+        `  fen: "${fen}",`,
+        `  pgn: "",`,
       ];
-      if (posMode === 'checkmate') {
-        lines.push(`  mode: "checkmate",`);
-      }
       if (arrows.length > 0) {
-        lines.push(`  arrows: [${arrows.map(a => `{ from: "${a.from}", to: "${a.to}", color: "${a.color}" }`).join(', ')}],`);
+        const calEntries = arrows.map(a => {
+          const colorCode = a.color === '#dc2626' ? 'R' : a.color === '#2563eb' ? 'B' : a.color === '#ca8a04' ? 'Y' : 'G';
+          return `${colorCode}${a.from}${a.to}`;
+        });
+        lines.push(`  // Arrows as PGN annotation: {[%cal ${calEntries.join(',')}]}`);
       }
-      lines.push(`  maxMoves: ${posMaxMoves},`);
       lines.push(`  starThresholds: { three: ${posMaxMoves}, two: ${posMaxMoves + 1}, one: ${posMaxMoves + 2} },`);
       lines.push(`},`);
       return lines.join('\n');

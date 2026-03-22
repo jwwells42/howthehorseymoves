@@ -2,6 +2,7 @@
   import { type BoardState, FILES, RANKS, type SquareId, type PieceKind, type PieceColor, squareToCoords } from '$lib/logic/types';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import type { Arrow } from '$lib/logic/pgn';
+  import type { SquareHighlight } from '$lib/puzzles/parse-moves';
 
   const SQUARE_SIZE = 100;
   const BOARD_SIZE = SQUARE_SIZE * 8;
@@ -40,8 +41,7 @@
     readOnly?: boolean;
     arrows?: Arrow[];
     playableColors?: PieceColor[];
-    dangerSquares?: SquareId[];
-    safeSquares?: SquareId[];
+    highlights?: SquareHighlight[];
     obstacles?: SquareId[];
   }
 
@@ -63,8 +63,7 @@
     readOnly = false,
     arrows,
     playableColors,
-    dangerSquares,
-    safeSquares,
+    highlights,
     obstacles,
   }: Props = $props();
 
@@ -198,7 +197,7 @@
       {@const hasOccupant = board.pieces.has(sq)}
       {@const isPawnSlideSquare = pawnSlide && (sq === pawnSlide.from || sq === pawnSlide.to)}
       {@const isWrongMove = sq === wrongMoveSquare}
-      {@const isDanger = dangerSquares?.includes(sq)}
+      {@const highlight = highlights?.find(h => h.square === sq)}
       {@const fill = isWrongMove ? WRONG_MOVE_COLOR : isSelected ? SELECTED_COLOR : isPawnSlideSquare ? LAST_MOVE_COLOR : isLight ? LIGHT : DARK}
       <g
         onclick={() => handleSquareClick(sq)}
@@ -216,23 +215,13 @@
           height={SQUARE_SIZE}
           {fill}
         />
-        {#if isDanger}
+        {#if highlight}
           <rect
             x={fi * SQUARE_SIZE}
             y={ri * SQUARE_SIZE}
             width={SQUARE_SIZE}
             height={SQUARE_SIZE}
-            fill="rgba(220, 38, 38, 0.35)"
-            class="no-pointer"
-          />
-        {/if}
-        {#if safeSquares?.includes(sq)}
-          <rect
-            x={fi * SQUARE_SIZE}
-            y={ri * SQUARE_SIZE}
-            width={SQUARE_SIZE}
-            height={SQUARE_SIZE}
-            fill="rgba(34, 197, 94, 0.35)"
+            fill={highlight.color + "59"}
             class="no-pointer"
           />
         {/if}

@@ -1,17 +1,14 @@
-import type { Puzzle } from "./types";
+import type { TacticPuzzle } from "./types";
 
 // === Pins ===
-export const pinPuzzles: Puzzle[] = [
+export const pinPuzzles: TacticPuzzle[] = [
   {
     id: "tactics-pin-01",
-    piece: "B",
+    type: "puzzle",
     title: "Pin the Knight",
     instruction: "A pin traps a piece on a line — it can't move without exposing the king. Pin the knight, then capture it!",
-    setup: "8/7k/8/8/8/3n4/6PP/3B2K1 w - - 0 1",
-    targets: ["c2", "d3"],
-    solution: ["c2", "d3"],
-    opponentResponses: [{ from: "h7", to: "h6" }],
-    arrows: [{ from: "c2", to: "h7", color: "#15803d" }],
+    fen: "8/7k/8/8/8/3n4/6PP/3B2K1 w - - 0 1",
+    pgn: "1. Bc2 {[%cal Gc2h7]} Kh6 2. Bxd3",
     hints: [
       "The knight on d3 and king on h7 are on the same diagonal.",
       "If the bishop goes to c2, it pins the knight — moving it exposes the king!",
@@ -21,14 +18,11 @@ export const pinPuzzles: Puzzle[] = [
   },
   {
     id: "tactics-pin-02",
-    piece: "R",
+    type: "puzzle",
     title: "Pin the Bishop",
     instruction: "The rook can pin along files and ranks. Pin the bishop, then take it!",
-    setup: "4k3/8/7n/8/4b3/8/6PP/R5K1 w - - 0 1",
-    targets: ["e1", "e4"],
-    solution: ["e1", "e4"],
-    opponentResponses: [{ from: "e8", to: "d7" }],
-    arrows: [{ from: "e1", to: "e8", color: "#15803d" }],
+    fen: "4k3/8/7n/8/4b3/8/6PP/R5K1 w - - 0 1",
+    pgn: "1. Re1 {[%cal Ge1e8]} Kd7 2. Rxe4",
     hints: [
       "The bishop on e4 and king on e8 are on the same file.",
       "If the rook goes to e1, the bishop is pinned — it can't move!",
@@ -38,36 +32,30 @@ export const pinPuzzles: Puzzle[] = [
   },
   {
     id: "tactics-pin-03",
-    piece: "Q",
+    type: "puzzle",
     title: "Exploit the Pin #1",
     instruction: "The knight is pinned and can't recapture. Take what it was guarding!",
-    setup: "4k3/p4p2/2np4/1B2r2Q/8/8/6PP/6K1 w - - 0 1",
-    targets: ["e5"],
-    solution: ["e5"],
-    arrows: [{ from: "b5", to: "e8", color: "#15803d" }],
+    fen: "4k3/p4p2/2np4/1B2r2Q/8/8/6PP/6K1 w - - 0 1",
+    pgn: "{[%cal Gb5e8]} 1. Qxe5",
     hints: [
       "The bishop on b5 pins the knight on c6 to the king.",
       "The rook on e5 looks defended by the knight — but the knight can't move!",
       "Qxe5 wins the rook for free.",
     ],
     starThresholds: { three: 1, two: 2, one: 3 },
-    strictSolution: true,
   },
   {
     id: "tactics-pin-04",
-    piece: "R",
+    type: "puzzle",
     title: "Exploit the Pin #2",
     instruction: "The pinned knight can't defend its neighbor. Win the free piece!",
-    setup: "4k3/p4p2/2n5/1B6/3b4/8/6PP/3R2K1 w - - 0 1",
-    targets: ["d4"],
-    solution: ["d4"],
-    arrows: [{ from: "b5", to: "e8", color: "#15803d" }],
+    fen: "4k3/p4p2/2n5/1B6/3b4/8/6PP/3R2K1 w - - 0 1",
+    pgn: "{[%cal Gb5e8]} 1. Rxd4",
     hints: [
       "The bishop on b5 pins the knight on c6 to the king.",
       "The bishop on d4 looks defended by the knight — but the knight is pinned!",
       "Rxd4 wins the bishop. The knight can't take back.",
     ],
     starThresholds: { three: 1, two: 2, one: 3 },
-    strictSolution: true,
   },
 ];

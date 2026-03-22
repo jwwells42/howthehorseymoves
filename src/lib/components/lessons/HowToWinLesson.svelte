@@ -327,8 +327,7 @@
         onDragEnd={handleDragEnd}
         {wrongMoveSquare}
         arrows={step.arrows}
-        dangerSquares={step.dangerSquares}
-        safeSquares={step.safeSquares}
+        highlights={step.highlights}
         readOnly={step.type === 'demo'}
         playableColors={['w']}
       />

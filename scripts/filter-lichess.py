@@ -200,34 +200,40 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
     if mate_count > 1:
         return None
 
+    # Generate PGN from moves
+    pgn_board = board.copy()
+    pgn_parts = []
+    move_num = 1
+    for i, uci_str in enumerate(puzzle_moves):
+        move = chess.Move.from_uci(uci_str)
+        san = pgn_board.san(move)
+        is_player = (i % 2 == 0)
+        if is_player:
+            pgn_parts.append(f"{move_num}. {san}")
+        else:
+            pgn_parts.append(san)
+            move_num += 1
+        pgn_board.push(move)
+
+    pgn = " ".join(pgn_parts)
+    white_move_count = len(solution)
+
     # Build the puzzle object
     puzzle_id = f'{config["id_prefix"]}-{idx + 1:02d}'
     title = f'{config["title_prefix"]} #{idx + 1}'
 
     puzzle = {
         "id": puzzle_id,
-        "piece": player_piece_type,
         "title": title,
         "instruction": config["instruction"],
-        "setup": puzzle_fen,
-        "targets": [],
-        "solution": solution,
+        "fen": puzzle_fen,
+        "pgn": pgn,
         "starThresholds": {
-            "three": len(solution),
-            "two": len(solution) + 1,
-            "one": len(solution) + 2,
+            "three": white_move_count,
+            "two": white_move_count + 1,
+            "one": white_move_count + 2,
         },
     }
-
-    if config["mode"] == "checkmate":
-        puzzle["mode"] = "checkmate"
-
-    if opponent_responses:
-        puzzle["opponentResponses"] = opponent_responses
-
-    # Tactical puzzles need strictSolution (all non-checkmate Lichess puzzles)
-    if config["mode"] is None:
-        puzzle["strictSolution"] = True
 
     # Stash rating for post-sort (removed before output)
     puzzle["_rating"] = int(row["Rating"])
@@ -238,42 +244,21 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
 def generate_typescript(puzzles: list[dict], config: dict) -> str:
     """Generate TypeScript file content from puzzle list."""
     lines = []
-    lines.append('import type { Puzzle } from "./types";')
-    lines.append('import type { SquareId } from "../logic/types";')
+    lines.append('import type { TacticPuzzle } from "./types";')
     lines.append("")
-    lines.append(f"export const {config['export_name']}: Puzzle[] = [")
+    lines.append(f"export const {config['export_name']}: TacticPuzzle[] = [")
 
     for p in puzzles:
         lines.append("  {")
+        lines.append(f'    type: "puzzle",')
         lines.append(f'    id: "{p["id"]}",')
-        lines.append(f'    piece: "{p["piece"]}",')
         lines.append(f'    title: "{p["title"]}",')
         lines.append(f'    instruction: "{p["instruction"]}",')
-        lines.append(f'    setup: "{p["setup"]}",')
+        lines.append(f'    fen: "{p["fen"]}",')
+        lines.append(f'    pgn: "{p["pgn"]}",')
 
-        # targets
-        targets_str = ", ".join(f'"{t}"' for t in p["targets"])
-        lines.append(f"    targets: [{targets_str}] as SquareId[],")
-
-        # solution
-        sol_str = ", ".join(f'"{s}"' for s in p["solution"])
-        lines.append(f"    solution: [{sol_str}] as SquareId[],")
-
-        # starThresholds
         st = p["starThresholds"]
         lines.append(f'    starThresholds: {{ three: {st["three"]}, two: {st["two"]}, one: {st["one"]} }},')
-
-        if "mode" in p:
-            lines.append(f'    mode: "{p["mode"]}",')
-
-        if "opponentResponses" in p:
-            or_parts = []
-            for opr in p["opponentResponses"]:
-                or_parts.append(f'{{ from: "{opr["from"]}" as SquareId, to: "{opr["to"]}" as SquareId }}')
-            lines.append(f"    opponentResponses: [{', '.join(or_parts)}],")
-
-        if p.get("strictSolution"):
-            lines.append("    strictSolution: true,")
 
         lines.append("  },")
 

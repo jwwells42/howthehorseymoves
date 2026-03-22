@@ -1,23 +1,14 @@
-import type { Puzzle } from "./types";
+import type { TacticPuzzle, ConversionPuzzle } from "./types";
 
 // === Back Rank Mates ===
-export const backRankMatePuzzles: Puzzle[] = [
+export const backRankMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-br-01",
-    piece: "R",
+    type: "puzzle",
     title: "Classic Back Rank",
     instruction: "The king is trapped behind its own pawns. Deliver checkmate!",
-    setup: [
-      { piece: "K", color: "w", square: "g1" },
-      { piece: "R", color: "w", square: "a2" },
-      { piece: "K", color: "b", square: "h8" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "g7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["a8"],
-    mode: "checkmate",
+    fen: "7k/5ppp/8/8/8/8/R7/6K1 w - - 0 1",
+    pgn: "1. Ra8#",
     hints: [
       "The black king is trapped behind its own pawns on the back rank.",
       "Move the rook to the 8th rank!",
@@ -26,19 +17,11 @@ export const backRankMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-br-02",
-    piece: "Q",
+    type: "puzzle",
     title: "Queen on the Back Rank",
     instruction: "Deliver checkmate with the queen on the back rank!",
-    setup: [
-      { piece: "K", color: "w", square: "f1" },
-      { piece: "Q", color: "w", square: "d1" },
-      { piece: "K", color: "b", square: "h8" },
-      { piece: "P", color: "b", square: "g7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["d8"],
-    mode: "checkmate",
+    fen: "7k/6pp/8/8/8/8/8/3Q1K2 w - - 0 1",
+    pgn: "1. Qd8#",
     hints: [
       "The king is stuck in the corner with pawns blocking escape.",
       "Put the queen on the back rank — d8!",
@@ -47,17 +30,11 @@ export const backRankMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-br-03",
-    piece: "R",
+    type: "puzzle",
     title: "Back Rank with Support",
     instruction: "Deliver checkmate! Your king supports the rook.",
-    setup: [
-      { piece: "K", color: "w", square: "c7" },
-      { piece: "R", color: "w", square: "h1" },
-      { piece: "K", color: "b", square: "a8" },
-    ],
-    targets: [],
-    solution: ["a1"],
-    mode: "checkmate",
+    fen: "k7/2K5/8/8/8/8/8/7R w - - 0 1",
+    pgn: "1. Ra1#",
     hints: [
       "The white king on c7 controls b7 and b8.",
       "Deliver check on the a-file — the king has no escape.",
@@ -66,20 +43,11 @@ export const backRankMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-br-04",
-    piece: "R",
+    type: "puzzle",
     title: "Back Rank from Below",
     instruction: "Deliver checkmate with the rook!",
-    setup: [
-      { piece: "K", color: "w", square: "g1" },
-      { piece: "R", color: "w", square: "d1" },
-      { piece: "K", color: "b", square: "b8" },
-      { piece: "R", color: "b", square: "a7" },
-      { piece: "P", color: "b", square: "b7" },
-      { piece: "P", color: "b", square: "c7" },
-    ],
-    targets: [],
-    solution: ["d8"],
-    mode: "checkmate",
+    fen: "1k6/rpp5/8/8/8/8/8/3R2K1 w - - 0 1",
+    pgn: "1. Rd8#",
     hints: [
       "The pawns on a7, b7, c7 block all the king's escape squares.",
       "Move the rook to the 8th rank!",
@@ -88,17 +56,11 @@ export const backRankMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-br-05",
-    piece: "Q",
+    type: "puzzle",
     title: "Don't Stalemate!",
     instruction: "Checkmate in one — but be careful not to stalemate!",
-    setup: [
-      { piece: "K", color: "w", square: "e7" },
-      { piece: "Q", color: "w", square: "g3" },
-      { piece: "K", color: "b", square: "h8" },
-    ],
-    targets: [],
-    solution: ["g7"],
-    mode: "checkmate",
+    fen: "7k/4K3/8/8/8/6Q1/8/8 w - - 0 1",
+    pgn: "1. Qg7#",
     hints: [
       "If the king has no legal moves AND isn't in check, it's stalemate — a draw!",
       "Don't play Qg6 — the king has no moves but isn't in check. That's stalemate!",
@@ -109,21 +71,20 @@ export const backRankMatePuzzles: Puzzle[] = [
 ];
 
 // === Rook Ladder (multi-move with random bot) ===
-export const rookLadderPuzzles: Puzzle[] = [
+export const rookLadderPuzzles: ConversionPuzzle[] = [
   {
     id: "checkmate-rl-01",
-    piece: "R",
+    type: "conversion",
     title: "Two-Rook Ladder",
     instruction: "Use your two rooks to push the king to the edge and deliver checkmate!",
-    setup: [
+    position: [
       { piece: "K", color: "w", square: "a1" },
       { piece: "R", color: "w", square: "a4" },
       { piece: "R", color: "w", square: "b3" },
       { piece: "K", color: "b", square: "e6" },
     ],
-    targets: [],
-    solution: [],
-    mode: "checkmate-bot",
+    bot: "random",
+    goal: "checkmate",
     hints: [
       "Rooks work as a team — one cuts off a rank, the other gives check on the next rank.",
       "Give check with one rook, then use the other to check on the next rank.",
@@ -133,18 +94,17 @@ export const rookLadderPuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-rl-02",
-    piece: "R",
+    type: "conversion",
     title: "Ladder from the Side",
     instruction: "Push the king to the edge with alternating rook checks!",
-    setup: [
+    position: [
       { piece: "K", color: "w", square: "a1" },
       { piece: "R", color: "w", square: "c1" },
       { piece: "R", color: "w", square: "d2" },
       { piece: "K", color: "b", square: "f5" },
     ],
-    targets: [],
-    solution: [],
-    mode: "checkmate-bot",
+    bot: "random",
+    goal: "checkmate",
     hints: [
       "Cut off the king rank by rank, alternating your rooks.",
       "Give check, then bring the other rook up to the next rank.",
@@ -153,18 +113,17 @@ export const rookLadderPuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-rl-03",
-    piece: "R",
+    type: "conversion",
     title: "Almost There",
     instruction: "The king is near the edge — finish the ladder!",
-    setup: [
+    position: [
       { piece: "K", color: "w", square: "a1" },
       { piece: "R", color: "w", square: "a6" },
       { piece: "R", color: "w", square: "b5" },
       { piece: "K", color: "b", square: "d7" },
     ],
-    targets: [],
-    solution: [],
-    mode: "checkmate-bot",
+    bot: "random",
+    goal: "checkmate",
     hints: [
       "The king is already close to the back rank.",
       "Check with one rook, then deliver the final blow with the other!",
@@ -174,16 +133,14 @@ export const rookLadderPuzzles: Puzzle[] = [
 ];
 
 // === Queen Takes f7 ===
-export const queenF7Puzzles: Puzzle[] = [
+export const queenF7Puzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qf-01",
-    piece: "Q",
+    type: "puzzle",
     title: "The Scholar's Mate",
     instruction: "It's the most famous beginner checkmate. Find Qxf7#!",
-    setup: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K2R w KQkq - 4 4",
-    targets: [],
-    solution: ["f7"],
-    mode: "checkmate",
+    fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K2R w KQkq - 4 4",
+    pgn: "1. Qxf7#",
     hints: [
       "The f7 pawn is only defended by the king.",
       "The queen on h5 can take f7 — and the bishop on c4 supports!",
@@ -193,24 +150,11 @@ export const queenF7Puzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qf-02",
-    piece: "Q",
+    type: "puzzle",
     title: "Battery on f7",
     instruction: "The same pattern as Scholar's Mate — queen takes f7 with bishop support!",
-    setup: [
-      { piece: "K", color: "w", square: "e1" },
-      { piece: "Q", color: "w", square: "h5" },
-      { piece: "B", color: "w", square: "c4" },
-      { piece: "K", color: "b", square: "e8" },
-      { piece: "Q", color: "b", square: "d8" },
-      { piece: "N", color: "b", square: "c6" },
-      { piece: "N", color: "b", square: "f6" },
-      { piece: "P", color: "b", square: "d7" },
-      { piece: "P", color: "b", square: "e5" },
-      { piece: "P", color: "b", square: "f7" },
-    ],
-    targets: [],
-    solution: ["f7"],
-    mode: "checkmate",
+    fen: "3qk3/3p1p2/2n2n2/4p2Q/2B5/8/8/4K3 w - - 0 1",
+    pgn: "1. Qxf7#",
     hints: [
       "The f7 pawn is only defended by the king.",
       "The queen on h5 can take f7 diagonally — and the bishop on c4 supports!",
@@ -220,13 +164,11 @@ export const queenF7Puzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qf-03",
-    piece: "Q",
+    type: "puzzle",
     title: "Knight Guards the Exit",
     instruction: "The knight covers the escape. Find the queen checkmate on f7!",
-    setup: "2brk3/5p2/3p4/4N2Q/8/8/6PP/6K1 w - - 0 1",
-    targets: [],
-    solution: ["f7"],
-    mode: "checkmate",
+    fen: "2brk3/5p2/3p4/4N2Q/8/8/6PP/6K1 w - - 0 1",
+    pgn: "1. Qxf7#",
     hints: [
       "The knight on e5 covers d7 — the king can't flee that way.",
       "The queen on h5 can reach f7 diagonally.",
@@ -237,16 +179,14 @@ export const queenF7Puzzles: Puzzle[] = [
 ];
 
 // === Queen-Bishop Battery ===
-export const qbBatteryPuzzles: Puzzle[] = [
+export const qbBatteryPuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qb-01",
-    piece: "Q",
+    type: "puzzle",
     title: "Battery on g7",
     instruction: "The queen and bishop share the same diagonal. Deliver checkmate!",
-    setup: "5rk1/5ppp/5Q2/8/8/2B5/6PP/6K1 w - - 0 1",
-    targets: [],
-    solution: ["g7"],
-    mode: "checkmate",
+    fen: "5rk1/5ppp/5Q2/8/8/2B5/6PP/6K1 w - - 0 1",
+    pgn: "1. Qxg7#",
     hints: [
       "The bishop on c3 and queen on f6 share the a1-h8 diagonal.",
       "When the queen takes g7, the bishop defends it through the now-open diagonal.",
@@ -256,22 +196,11 @@ export const qbBatteryPuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qb-02",
-    piece: "Q",
+    type: "puzzle",
     title: "Queen-Bishop Diagonal",
     instruction: "The queen and bishop line up on a deadly diagonal. Deliver checkmate!",
-    setup: [
-      { piece: "K", color: "w", square: "g1" },
-      { piece: "Q", color: "w", square: "d3" },
-      { piece: "B", color: "w", square: "b1" },
-      { piece: "K", color: "b", square: "g8" },
-      { piece: "R", color: "b", square: "f8" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "g7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["h7"],
-    mode: "checkmate",
+    fen: "5rk1/5ppp/8/8/8/3Q4/8/1B4K1 w - - 0 1",
+    pgn: "1. Qxh7#",
     hints: [
       "The queen and bishop share the same long diagonal.",
       "When the queen moves to h7, the bishop behind it defends through the cleared diagonal.",
@@ -281,22 +210,11 @@ export const qbBatteryPuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qb-03",
-    piece: "Q",
+    type: "puzzle",
     title: "Battery Strike",
     instruction: "Find the queen move that delivers checkmate with bishop support!",
-    setup: [
-      { piece: "K", color: "w", square: "g1" },
-      { piece: "Q", color: "w", square: "e4" },
-      { piece: "B", color: "w", square: "c2" },
-      { piece: "K", color: "b", square: "g8" },
-      { piece: "R", color: "b", square: "f8" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "g7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["h7"],
-    mode: "checkmate",
+    fen: "5rk1/5ppp/8/8/4Q3/8/2B5/6K1 w - - 0 1",
+    pgn: "1. Qxh7#",
     hints: [
       "The bishop on c2 and queen share a diagonal aimed at h7.",
       "Take on h7 — when the queen moves, the bishop defends through the diagonal!",
@@ -306,13 +224,11 @@ export const qbBatteryPuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qb-04",
-    piece: "Q",
+    type: "puzzle",
     title: "Long Diagonal Mate",
     instruction: "The bishop controls the long diagonal. Find the queen checkmate!",
-    setup: "6k1/5ppp/8/8/8/1B6/6PP/Q5K1 w - - 0 1",
-    targets: [],
-    solution: ["a8"],
-    mode: "checkmate",
+    fen: "6k1/5ppp/8/8/8/1B6/6PP/Q5K1 w - - 0 1",
+    pgn: "1. Qa8#",
     hints: [
       "The bishop on b3 watches the a2-g8 diagonal.",
       "Where can the queen deliver check while the bishop covers escape squares?",
@@ -322,13 +238,11 @@ export const qbBatteryPuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qb-05",
-    piece: "Q",
+    type: "puzzle",
     title: "Dark Diagonal Battery",
     instruction: "The bishop lurks on the long diagonal. Where does the queen strike?",
-    setup: "5rk1/5ppp/8/8/3Q4/8/1B4PP/6K1 w - - 0 1",
-    targets: [],
-    solution: ["g7"],
-    mode: "checkmate",
+    fen: "5rk1/5ppp/8/8/3Q4/8/1B4PP/6K1 w - - 0 1",
+    pgn: "1. Qxg7#",
     hints: [
       "The bishop on b2 controls the long dark diagonal all the way to g7.",
       "The queen on d4 can also reach g7 along that same diagonal.",
@@ -339,24 +253,14 @@ export const qbBatteryPuzzles: Puzzle[] = [
 ];
 
 // === Lolli's Mate ===
-export const lollisMatePuzzles: Puzzle[] = [
+export const lollisMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-lm-01",
-    piece: "Q",
+    type: "puzzle",
     title: "Lolli's Mate",
     instruction: "Deliver the classic Lolli's Mate!",
-    setup: [
-      { piece: "K", color: "w", square: "g1" },
-      { piece: "P", color: "w", square: "f6" },
-      { piece: "Q", color: "w", square: "h6" },
-      { piece: "K", color: "b", square: "g8" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "g6" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["g7"],
-    mode: "checkmate",
+    fen: "6k1/5p1p/5PpQ/8/8/8/8/6K1 w - - 0 1",
+    pgn: "1. Qg7#",
     hints: [
       "The pawn on f6 supports g7 — can the queen get there?",
       "Qg7 delivers check, and the pawn on f6 defends the queen!",
@@ -366,25 +270,11 @@ export const lollisMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-lm-02",
-    piece: "Q",
+    type: "puzzle",
     title: "Lolli's in a Real Game",
     instruction: "Find the checkmate — the classic pattern is hiding in this position!",
-    setup: [
-      { piece: "K", color: "w", square: "g1" },
-      { piece: "P", color: "w", square: "f6" },
-      { piece: "Q", color: "w", square: "h6" },
-      { piece: "R", color: "w", square: "a1" },
-      { piece: "K", color: "b", square: "g8" },
-      { piece: "R", color: "b", square: "a8" },
-      { piece: "N", color: "b", square: "c6" },
-      { piece: "P", color: "b", square: "d7" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "g6" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["g7"],
-    mode: "checkmate",
+    fen: "r5k1/3p1p1p/2n2PpQ/8/8/8/8/R5K1 w - - 0 1",
+    pgn: "1. Qg7#",
     hints: [
       "Ignore the extra pieces — look for the Lolli's Mate pattern!",
       "The key ingredients: queen on h6, pawn on f6, enemy king behind pawns on g8.",
@@ -394,22 +284,11 @@ export const lollisMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-lm-03",
-    piece: "Q",
+    type: "puzzle",
     title: "Don't Be Tempted!",
     instruction: "There's only one move that's checkmate — don't fall for the traps!",
-    setup: [
-      { piece: "K", color: "w", square: "g1" },
-      { piece: "P", color: "w", square: "f6" },
-      { piece: "Q", color: "w", square: "h6" },
-      { piece: "B", color: "w", square: "c4" },
-      { piece: "K", color: "b", square: "g8" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "g6" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["g7"],
-    mode: "checkmate",
+    fen: "6k1/5p1p/5PpQ/8/2B5/8/8/6K1 w - - 0 1",
+    pgn: "1. Qg7#",
     hints: [
       "Bxf7+ and Qxh7+ both look tempting, but neither is checkmate!",
       "After Bxf7+ Kf8, or Qxh7+ Kf8 — the king escapes.",
@@ -420,22 +299,14 @@ export const lollisMatePuzzles: Puzzle[] = [
 ];
 
 // === Queen + King Mates ===
-export const queenKingMatePuzzles: Puzzle[] = [
+export const queenKingMatePuzzles: (TacticPuzzle | ConversionPuzzle)[] = [
   {
     id: "checkmate-qk-01",
-    piece: "Q",
+    type: "puzzle",
     title: "Cornered King",
     instruction: "Deliver checkmate with the queen — your king helps!",
-    setup: [
-      { piece: "K", color: "w", square: "b6" },
-      { piece: "Q", color: "w", square: "a4" },
-      { piece: "R", color: "w", square: "b1" },
-      { piece: "K", color: "b", square: "a8" },
-      { piece: "P", color: "b", square: "a7" },
-    ],
-    targets: [],
-    solution: ["a7"],
-    mode: "checkmate",
+    fen: "k7/p7/1K6/8/Q7/8/8/1R6 w - - 0 1",
+    pgn: "1. Qxa7#",
     hints: [
       "The black king is nearly trapped — the a7 pawn is the key target.",
       "Your king on b6 controls b7. The rook covers the b-file.",
@@ -445,19 +316,11 @@ export const queenKingMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qk-02",
-    piece: "Q",
+    type: "puzzle",
     title: "Queen & King Dance",
     instruction: "Find the one square that delivers checkmate!",
-    setup: [
-      { piece: "K", color: "w", square: "g6" },
-      { piece: "Q", color: "w", square: "e4" },
-      { piece: "K", color: "b", square: "h8" },
-      { piece: "P", color: "b", square: "g7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["e8"],
-    mode: "checkmate",
+    fen: "7k/6pp/6K1/8/4Q3/8/8/8 w - - 0 1",
+    pgn: "1. Qe8#",
     hints: [
       "The black king is boxed in by its own pawns.",
       "The white king covers f7 and g7.",
@@ -467,17 +330,11 @@ export const queenKingMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qk-03",
-    piece: "Q",
+    type: "puzzle",
     title: "Stalemate Trap!",
     instruction: "Checkmate in one — don't stalemate!",
-    setup: [
-      { piece: "K", color: "w", square: "a6" },
-      { piece: "Q", color: "w", square: "b4" },
-      { piece: "K", color: "b", square: "a8" },
-    ],
-    targets: [],
-    solution: ["b7"],
-    mode: "checkmate",
+    fen: "k7/8/K7/8/1Q6/8/8/8 w - - 0 1",
+    pgn: "1. Qb7#",
     hints: [
       "The black king is almost trapped in the corner.",
       "Be careful — some queen moves leave the king with no legal moves but no check (stalemate)!",
@@ -487,17 +344,16 @@ export const queenKingMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qk-04",
-    piece: "Q",
+    type: "conversion",
     title: "Queen vs Lone King",
     instruction: "Use your queen and king together to force checkmate!",
-    setup: [
+    position: [
       { piece: "K", color: "w", square: "d4" },
       { piece: "Q", color: "w", square: "a1" },
       { piece: "K", color: "b", square: "e6" },
     ],
-    targets: [],
-    solution: [],
-    mode: "checkmate-bot",
+    bot: "random",
+    goal: "checkmate",
     hints: [
       "Push the enemy king toward the edge of the board.",
       "Use the queen to cut off ranks or files, then bring your king closer.",
@@ -507,17 +363,16 @@ export const queenKingMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-qk-05",
-    piece: "Q",
+    type: "conversion",
     title: "Corner the King",
     instruction: "Drive the lone king to the corner and deliver checkmate!",
-    setup: [
+    position: [
       { piece: "K", color: "w", square: "c3" },
       { piece: "Q", color: "w", square: "d1" },
       { piece: "K", color: "b", square: "e5" },
     ],
-    targets: [],
-    solution: [],
-    mode: "checkmate-bot",
+    bot: "random",
+    goal: "checkmate",
     hints: [
       "Step 1: Use the queen to restrict the king's movement.",
       "Step 2: Bring your own king closer to support the queen.",
@@ -528,23 +383,14 @@ export const queenKingMatePuzzles: Puzzle[] = [
 ];
 
 // === Smothered Mate ===
-export const smotheredMatePuzzles: Puzzle[] = [
+export const smotheredMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-sm-01",
-    piece: "N",
+    type: "puzzle",
     title: "Knight Strikes f7",
     instruction: "The f7 pawn is weak! Capture it with the knight for checkmate!",
-    setup: [
-      { piece: "K", color: "w", square: "h6" },
-      { piece: "N", color: "w", square: "e5" },
-      { piece: "K", color: "b", square: "h8" },
-      { piece: "R", color: "b", square: "g8" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["f7"],
-    mode: "checkmate",
+    fen: "6rk/5p1p/7K/4N3/8/8/8/8 w - - 0 1",
+    pgn: "1. Nxf7#",
     hints: [
       "The king on h8 is boxed in by its own rook and pawn.",
       "The knight on e5 can jump to f7 — capturing the pawn and giving check!",
@@ -554,20 +400,11 @@ export const smotheredMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-sm-02",
-    piece: "N",
+    type: "puzzle",
     title: "Central Knight Delivers",
     instruction: "Use the centralized knight to deliver checkmate!",
-    setup: [
-      { piece: "K", color: "w", square: "g3" },
-      { piece: "N", color: "w", square: "d6" },
-      { piece: "K", color: "b", square: "h8" },
-      { piece: "R", color: "b", square: "g8" },
-      { piece: "P", color: "b", square: "g7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["f7"],
-    mode: "checkmate",
+    fen: "6rk/6pp/3N4/8/8/6K1/8/8 w - - 0 1",
+    pgn: "1. Nf7#",
     hints: [
       "The king is completely smothered — rook on g8, pawns on g7 and h7.",
       "The knight on d6 can reach f7 — does that give check?",
@@ -577,20 +414,11 @@ export const smotheredMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-sm-03",
-    piece: "N",
+    type: "puzzle",
     title: "Knight from the Flank",
     instruction: "The knight is on the edge — but it can still deliver checkmate!",
-    setup: [
-      { piece: "K", color: "w", square: "h6" },
-      { piece: "N", color: "w", square: "g5" },
-      { piece: "K", color: "b", square: "h8" },
-      { piece: "R", color: "b", square: "g8" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["f7"],
-    mode: "checkmate",
+    fen: "6rk/5p1p/7K/6N1/8/8/8/8 w - - 0 1",
+    pgn: "1. Nxf7#",
     hints: [
       "The king is trapped in the corner by its own pieces.",
       "From g5, the knight can jump to f7 — capturing the pawn!",
@@ -600,22 +428,11 @@ export const smotheredMatePuzzles: Puzzle[] = [
   },
   {
     id: "checkmate-sm-04",
-    piece: "N",
+    type: "puzzle",
     title: "Knight Finds the Spot",
     instruction: "Only one knight move gives checkmate. Find it!",
-    setup: [
-      { piece: "K", color: "w", square: "g1" },
-      { piece: "N", color: "w", square: "d5" },
-      { piece: "K", color: "b", square: "g8" },
-      { piece: "R", color: "b", square: "h8" },
-      { piece: "R", color: "b", square: "f8" },
-      { piece: "P", color: "b", square: "f7" },
-      { piece: "P", color: "b", square: "g7" },
-      { piece: "P", color: "b", square: "h7" },
-    ],
-    targets: [],
-    solution: ["e7"],
-    mode: "checkmate",
+    fen: "5rkr/5ppp/8/3N4/8/8/8/6K1 w - - 0 1",
+    pgn: "1. Ne7#",
     hints: [
       "The king is completely surrounded by its own pieces.",
       "The knight on d5 can go to several squares — which one gives check?",

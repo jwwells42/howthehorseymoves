@@ -1,34 +1,40 @@
 import type { PieceKind, PiecePlacement, SquareId } from "../logic/types";
 import type { Arrow } from "../logic/pgn";
 
-export type PuzzleMode = "reach-target" | "checkmate" | "checkmate-bot";
-
-export interface OpponentResponse {
-  from: SquareId;
-  to: SquareId;
-}
-
-export interface Puzzle {
+interface PuzzleBase {
   id: string;
-  piece: PieceKind;
   title: string;
   instruction: string;
-  /** Board setup — either piece placements array or a FEN string. */
-  setup: PiecePlacement[] | string;
-  targets: SquareId[];
-  solution: SquareId[];
   hints?: string[];
+}
+
+export interface RoutePuzzle extends PuzzleBase {
+  type: "route";
+  playerPiece: PieceKind;
+  position: PiecePlacement[];
+  walls: SquareId[];
+  stars: SquareId[];
   starThresholds: { three: number; two: number; one: number };
-  enPassantSquare?: SquareId;
-  castlingRights?: { K: boolean; Q: boolean; k: boolean; q: boolean };
-  mode?: PuzzleMode;
-  /** Opponent responses between player moves. Length = solution.length - 1. */
-  opponentResponses?: OpponentResponse[];
-  /** Reject any move that doesn't match the next solution step (red flash). */
-  strictSolution?: boolean;
-  /** Arrows drawn on the board to highlight tactical relationships. */
   arrows?: Arrow[];
 }
+
+export interface TacticPuzzle extends PuzzleBase {
+  type: "puzzle";
+  fen: string;
+  pgn: string;
+  demo?: true | string;
+  starThresholds?: { three: number; two: number; one: number };
+}
+
+export interface ConversionPuzzle extends PuzzleBase {
+  type: "conversion";
+  position: PiecePlacement[];
+  bot: "random" | "basic";
+  goal: "checkmate" | "promotion";
+  starThresholds: { three: number; two: number; one: number };
+}
+
+export type Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle;
 
 export interface PuzzleSet {
   piece: PieceKind;

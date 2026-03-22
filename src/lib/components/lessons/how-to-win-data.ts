@@ -1,5 +1,6 @@
 import type { SquareId } from "$lib/logic/types";
 import type { Arrow } from "$lib/logic/pgn";
+import type { SquareHighlight } from "$lib/puzzles/parse-moves";
 
 /* ── Step types ──────────────────────────────────────────── */
 
@@ -12,8 +13,7 @@ export interface LessonStep {
   fen: string;
   type: "demo" | "interactive";
   arrows?: Arrow[];
-  dangerSquares?: SquareId[];
-  safeSquares?: SquareId[];
+  highlights?: SquareHighlight[];
   validation?: ValidationMode;
   isVictory?: boolean;
 }
@@ -114,7 +114,10 @@ const CHECKMATE_STEPS: LessonStep[] = [
     fen: "4R1k1/5ppp/8/8/8/8/8/6K1 b - - 0 1",
     type: "demo",
     arrows: [{ from: "e8" as SquareId, to: "g8" as SquareId, color: "#22c55e" }],
-    dangerSquares: ["f8" as SquareId, "h8" as SquareId],
+    highlights: [
+      { square: "f8" as SquareId, color: "#dc2626" },
+      { square: "h8" as SquareId, color: "#dc2626" },
+    ],
     isVictory: true,
   },
   {
@@ -176,8 +179,12 @@ const STALEMATE_STEPS: LessonStep[] = [
       { from: "b6" as SquareId, to: "b7" as SquareId, color: "#dc2626" },
       { from: "b6" as SquareId, to: "b8" as SquareId, color: "#dc2626" },
     ],
-    dangerSquares: ["a7" as SquareId, "b7" as SquareId, "b8" as SquareId],
-    safeSquares: ["a8" as SquareId],
+    highlights: [
+      { square: "a7" as SquareId, color: "#dc2626" },
+      { square: "b7" as SquareId, color: "#dc2626" },
+      { square: "b8" as SquareId, color: "#dc2626" },
+      { square: "a8" as SquareId, color: "#22c55e" },
+    ],
   },
   {
     slug: "dont-stalemate-1",

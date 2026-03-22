@@ -5,7 +5,7 @@
   import SuccessOverlay from './SuccessOverlay.svelte';
   import { createPuzzleState } from '$lib/state/use-puzzle.svelte';
   import type { Puzzle } from '$lib/puzzles/types';
-  import { type SquareId, squareToCoords, coordsToSquare } from '$lib/logic/types';
+  import type { SquareId } from '$lib/logic/types';
   import { getValidMoves } from '$lib/logic/moves';
   import { getLegalMoves } from '$lib/logic/attacks';
 
@@ -20,42 +20,47 @@
 
   let dragFrom = $state<SquareId | null>(null);
 
-  // Compute en passant pawn slide animation
-  let pawnSlideData = $derived.by(() => {
-    const ep = puzzle.enPassantSquare;
-    if (!ep) return undefined;
-    const [epFile, epRank] = squareToCoords(ep);
-    const pawnRank = epRank === 2 ? 3 : 4;
-    const startRank = epRank === 2 ? 1 : 6;
-    const pawnSq = coordsToSquare(epFile, pawnRank);
-    const startSq = coordsToSquare(epFile, startRank);
-    if (!pawnSq || !startSq) return undefined;
-    return { from: startSq, to: pawnSq };
-  });
-
-  let showPawnSlide = $derived(pawnSlideData && ps.moveCount === 0);
-  let isBotMode = $derived(puzzle.mode === 'checkmate-bot');
+  let isRoute = $derived(puzzle.type === 'route');
+  let isConversion = $derived(puzzle.type === 'conversion');
 
   let dragValidMoves = $derived.by(() => {
     if (!dragFrom) return [];
     const p = ps.board.pieces.get(dragFrom);
-    if (!p || p.color !== 'w' || (!isBotMode && p.piece !== puzzle.piece)) return [];
-    return isBotMode
-      ? getLegalMoves(dragFrom, ps.board, 'w')
-      : getValidMoves(p.piece, dragFrom, ps.board, 'w');
+    if (!p || p.color !== 'w') return [];
+    if (puzzle.type === 'route') {
+      if (p.piece !== puzzle.playerPiece) return [];
+      return getValidMoves(p.piece, dragFrom, ps.board, 'w');
+    }
+    return getLegalMoves(dragFrom, ps.board, 'w');
   });
 
-  // In reach-target puzzles, white pawns are obstacles (rendered as walls)
+  // Route puzzles render wall pieces as brick walls
   let obstacles = $derived.by(() => {
-    if (puzzle.mode === 'checkmate' || puzzle.mode === 'checkmate-bot') return [];
-    if (puzzle.piece === 'P') return [];
+    if (puzzle.type !== 'route') return [];
+    const pp = puzzle.playerPiece;
+    if (pp === 'P') return [];
     const result: SquareId[] = [];
     for (const [sq, p] of ps.board.pieces) {
-      if (p.color === 'w' && p.piece !== puzzle.piece) {
+      if (p.color === 'w' && p.piece !== pp) {
         result.push(sq);
       }
     }
     return result;
+  });
+
+  // Targets (stars) only for route puzzles
+  let targets = $derived(puzzle.type === 'route' ? puzzle.stars : [] as SquareId[]);
+
+  // Draggable piece restriction — route: only playerPiece; others: any white piece
+  let draggablePiece = $derived(puzzle.type === 'route' ? puzzle.playerPiece : undefined);
+
+  // Show move counter for route and conversion
+  let showMoveCounter = $derived(puzzle.type === 'route' || puzzle.type === 'conversion');
+
+  // Star thresholds — always available
+  let thresholds = $derived.by(() => {
+    if (puzzle.type === 'route' || puzzle.type === 'conversion') return puzzle.starThresholds;
+    return puzzle.starThresholds ?? null;
   });
 
   function onDragStart(sq: SquareId) { dragFrom = sq; }
@@ -70,9 +75,9 @@
   </div>
 
   <!-- Move counter -->
-  {#if !puzzle.strictSolution}
+  {#if showMoveCounter && thresholds}
     <div class="move-counter">
-      Moves: {ps.moveCount} / {puzzle.starThresholds.three}
+      Moves: {ps.moveCount} / {thresholds.three}
     </div>
   {/if}
 
@@ -82,18 +87,18 @@
       board={ps.board}
       selectedSquare={ps.selectedSquare}
       validMoves={ps.validMoves}
-      targets={puzzle.arrows || puzzle.strictSolution ? [] : puzzle.targets}
+      {targets}
       reachedTargets={ps.reachedTargets}
       {dragValidMoves}
-      draggablePiece={isBotMode ? undefined : puzzle.piece}
+      {draggablePiece}
       onSquareClick={ps.handleSquareClick}
       onDrop={ps.handleDrop}
       {onDragStart}
       {onDragEnd}
-      pawnSlide={showPawnSlide ? pawnSlideData : undefined}
       wrongMoveSquare={ps.wrongMoveSquare}
       opponentSlide={ps.opponentSlide}
-      arrows={ps.moveCount === 0 ? puzzle.arrows : undefined}
+      arrows={ps.arrows.length > 0 ? ps.arrows : undefined}
+      highlights={ps.highlights.length > 0 ? ps.highlights : undefined}
       {obstacles}
     />
     {#if ps.isComplete}
@@ -123,11 +128,11 @@
   />
 
   <!-- Star thresholds -->
-  {#if !puzzle.strictSolution}
+  {#if showMoveCounter && thresholds}
     <div class="thresholds">
-      <span><StarRating stars={3} size="sm" /> {puzzle.starThresholds.three} moves</span>
-      <span><StarRating stars={2} size="sm" /> {puzzle.starThresholds.two} moves</span>
-      <span><StarRating stars={1} size="sm" /> {puzzle.starThresholds.one} moves</span>
+      <span><StarRating stars={3} size="sm" /> {thresholds.three} moves</span>
+      <span><StarRating stars={2} size="sm" /> {thresholds.two} moves</span>
+      <span><StarRating stars={1} size="sm" /> {thresholds.one} moves</span>
     </div>
   {/if}
 </div>

@@ -1,7 +1,11 @@
 import { type BoardState, type PieceKind, type PieceColor, type SquareId, createBoardState, parseFen, squareToCoords, coordsToSquare } from '$lib/logic/types';
 import { getValidMoves } from '$lib/logic/moves';
-import { isCheckmate, isStalemate, getLegalMoves, getAllLegalMoves } from '$lib/logic/attacks';
-import type { Puzzle, OpponentResponse } from '$lib/puzzles/types';
+import { isCheckmate, isStalemate, getLegalMoves } from '$lib/logic/attacks';
+import { applyMove } from '$lib/logic/pgn';
+import type { Arrow } from '$lib/logic/pgn';
+import type { Puzzle, RoutePuzzle, TacticPuzzle, ConversionPuzzle } from '$lib/puzzles/types';
+import { parsePuzzleMoves, type MoveNode, type SquareHighlight } from '$lib/puzzles/parse-moves';
+import { pickBotMove } from '$lib/logic/bot';
 import { completePuzzle as saveComplete } from '$lib/state/progress-store';
 
 export interface SlideAnimation {
@@ -12,22 +16,22 @@ export interface SlideAnimation {
 }
 
 export function createPuzzleState(puzzle: Puzzle) {
-  const isCheckmateMode = puzzle.mode === 'checkmate';
-  const isBotMode = puzzle.mode === 'checkmate-bot';
-  const isMultiMove = isCheckmateMode && puzzle.opponentResponses && puzzle.opponentResponses.length > 0;
+  if (puzzle.type === 'route') return createRouteState(puzzle);
+  if (puzzle.type === 'puzzle') return createTacticState(puzzle);
+  return createConversionState(puzzle);
+}
 
+// ═══════════════════════════════════════════════
+// Route puzzle state
+// ═══════════════════════════════════════════════
+
+function createRouteState(puzzle: RoutePuzzle) {
   function buildBoard(): BoardState {
-    if (typeof puzzle.setup === 'string') {
-      const { placements, castlingRights, enPassantSquare } = parseFen(puzzle.setup);
-      return createBoardState(placements, {
-        enPassantSquare: puzzle.enPassantSquare ?? enPassantSquare,
-        castlingRights: puzzle.castlingRights ?? castlingRights,
-      });
+    const placements = [...puzzle.position];
+    for (const sq of puzzle.walls) {
+      placements.push({ piece: 'P', color: 'w', square: sq });
     }
-    return createBoardState(puzzle.setup, {
-      enPassantSquare: puzzle.enPassantSquare,
-      castlingRights: puzzle.castlingRights,
-    });
+    return createBoardState(placements);
   }
 
   let board = $state<BoardState>(buildBoard());
@@ -35,9 +39,389 @@ export function createPuzzleState(puzzle: Puzzle) {
   let moveCount = $state(0);
   let reachedTargets = $state<SquareId[]>([]);
   let isComplete = $state(false);
+  let currentHintIndex = $state(-1);
+  let wrongMoveSquare = $state<SquareId | null>(null);
+
+  let validMoves = $derived.by(() => {
+    if (!selectedSquare) return [];
+    const p = board.pieces.get(selectedSquare);
+    if (!p || p.color !== 'w' || p.piece !== puzzle.playerPiece) return [];
+    return getValidMoves(p.piece, selectedSquare, board, 'w');
+  });
+
+  function calculateStars(moves: number): number {
+    const { three, two, one } = puzzle.starThresholds;
+    if (moves <= three) return 3;
+    if (moves <= two) return 2;
+    if (moves <= one) return 1;
+    return 1;
+  }
+
+  let stars = $derived(calculateStars(moveCount));
+
+  function executeMove(from: SquareId, to: SquareId) {
+    const newPieces = new Map(board.pieces);
+    const piece = newPieces.get(from)!;
+    newPieces.delete(from);
+    newPieces.set(to, piece);
+    board = { pieces: newPieces };
+    selectedSquare = null;
+    const newMoveCount = moveCount + 1;
+    moveCount = newMoveCount;
+
+    if (puzzle.stars.includes(to) && !reachedTargets.includes(to)) {
+      const newReached = [...reachedTargets, to];
+      reachedTargets = newReached;
+      if (newReached.length === puzzle.stars.length) {
+        isComplete = true;
+        saveComplete(puzzle.id, calculateStars(newMoveCount), newMoveCount);
+      }
+    }
+  }
+
+  function handleSquareClick(sq: SquareId) {
+    if (isComplete) return;
+    if (!selectedSquare) {
+      const p = board.pieces.get(sq);
+      if (p && p.color === 'w' && p.piece === puzzle.playerPiece) selectedSquare = sq;
+      return;
+    }
+    if (sq === selectedSquare) { selectedSquare = null; return; }
+    const p = board.pieces.get(selectedSquare);
+    if (!p) return;
+    const moves = getValidMoves(p.piece, selectedSquare, board, 'w');
+    if (!moves.includes(sq)) {
+      const target = board.pieces.get(sq);
+      if (target && target.color === 'w' && target.piece === puzzle.playerPiece) {
+        selectedSquare = sq;
+      } else {
+        selectedSquare = null;
+      }
+      return;
+    }
+    executeMove(selectedSquare, sq);
+  }
+
+  function handleDrop(from: SquareId, to: SquareId) {
+    if (isComplete || from === to) return;
+    const p = board.pieces.get(from);
+    if (!p || p.color !== 'w' || p.piece !== puzzle.playerPiece) return;
+    const moves = getValidMoves(p.piece, from, board, 'w');
+    if (!moves.includes(to)) return;
+    executeMove(from, to);
+  }
+
+  function reset() {
+    board = buildBoard();
+    selectedSquare = null;
+    moveCount = 0;
+    reachedTargets = [];
+    isComplete = false;
+    currentHintIndex = -1;
+    wrongMoveSquare = null;
+  }
+
+  function showHint() {
+    if (puzzle.hints && currentHintIndex < puzzle.hints.length - 1) {
+      currentHintIndex = currentHintIndex + 1;
+    }
+  }
+
+  return {
+    get board() { return board; },
+    get selectedSquare() { return selectedSquare; },
+    get validMoves() { return validMoves; },
+    get reachedTargets() { return reachedTargets; },
+    get moveCount() { return moveCount; },
+    get isComplete() { return isComplete; },
+    get stalemateTrigger() { return false; },
+    get wrongMoveSquare() { return wrongMoveSquare; },
+    get opponentSlide() { return null as SlideAnimation | null; },
+    get stars() { return stars; },
+    get currentHintIndex() { return currentHintIndex; },
+    get arrows() { return (puzzle.arrows ?? []) as Arrow[]; },
+    get highlights() { return [] as SquareHighlight[]; },
+    get demoPhase() { return null as 'playing' | 'resetting' | null; },
+    handleSquareClick,
+    handleDrop,
+    reset,
+    showHint,
+  };
+}
+
+// ═══════════════════════════════════════════════
+// Tactic puzzle state (PGN-based)
+// ═══════════════════════════════════════════════
+
+function createTacticState(puzzle: TacticPuzzle) {
+  const tree = parsePuzzleMoves(puzzle.pgn, puzzle.fen);
+
+  const defaultThresholds = {
+    three: tree.whiteMovesCount,
+    two: tree.whiteMovesCount + 1,
+    one: tree.whiteMovesCount + 2,
+  };
+  const thresholds = puzzle.starThresholds ?? defaultThresholds;
+
+  let board = $state<BoardState>(tree.root);
+  let selectedSquare = $state<SquareId | null>(null);
+  let moveCount = $state(0);
+  let isComplete = $state(false);
   let stalemateTrigger = $state(false);
   let currentHintIndex = $state(-1);
-  let solutionStep = $state(0);
+  let wrongMoveSquare = $state<SquareId | null>(null);
+  let opponentSlide = $state<SlideAnimation | null>(null);
+  let waitingForAnimation = $state(false);
+  let currentChildren = $state<MoveNode[]>(tree.children);
+  let currentArrows = $state<Arrow[]>(tree.initialArrows ?? []);
+  let currentHighlights = $state<SquareHighlight[]>(tree.initialHighlights ?? []);
+  let demoPhase = $state<'playing' | 'resetting' | null>(puzzle.demo ? 'playing' : null);
+
+  function calculateStars(moves: number): number {
+    if (moves <= thresholds.three) return 3;
+    if (moves <= thresholds.two) return 2;
+    if (moves <= thresholds.one) return 1;
+    return 1;
+  }
+
+  let stars = $derived(calculateStars(moveCount));
+
+  let validMoves = $derived.by(() => {
+    if (!selectedSquare || demoPhase) return [];
+    const p = board.pieces.get(selectedSquare);
+    if (!p || p.color !== 'w') return [];
+    return getLegalMoves(selectedSquare, board, 'w');
+  });
+
+  function autoPlayOpponent() {
+    if (isComplete || demoPhase) return;
+    if (currentChildren.length === 0) return;
+
+    const nextMove = currentChildren[0];
+    if (nextMove.color !== 'b') return;
+
+    waitingForAnimation = true;
+    setTimeout(() => {
+      const piece = board.pieces.get(nextMove.from);
+      opponentSlide = {
+        piece: piece?.piece ?? 'P',
+        color: 'b',
+        from: nextMove.from,
+        to: nextMove.to,
+      };
+      board = nextMove.boardAfter;
+      currentChildren = nextMove.children;
+      currentArrows = nextMove.arrows ?? [];
+      currentHighlights = nextMove.highlights ?? [];
+
+      setTimeout(() => {
+        opponentSlide = null;
+        waitingForAnimation = false;
+
+        if (currentChildren.length === 0) {
+          isComplete = true;
+          saveComplete(puzzle.id, calculateStars(moveCount), moveCount);
+        } else {
+          autoPlayOpponent();
+        }
+      }, 500);
+    }, 300);
+  }
+
+  // Demo playback
+  function startDemo() {
+    if (!puzzle.demo) return;
+    demoPhase = 'playing';
+
+    const demoTree = puzzle.demo === true
+      ? tree
+      : parsePuzzleMoves(puzzle.demo, puzzle.fen);
+
+    const demoMoves: MoveNode[] = [];
+    let nodes = demoTree.children;
+    while (nodes.length > 0) {
+      demoMoves.push(nodes[0]);
+      nodes = nodes[0].children;
+    }
+
+    let i = 0;
+    function playNext() {
+      if (i >= demoMoves.length) {
+        demoPhase = 'resetting';
+        setTimeout(() => {
+          board = tree.root;
+          currentChildren = tree.children;
+          currentArrows = tree.initialArrows ?? [];
+          currentHighlights = tree.initialHighlights ?? [];
+          opponentSlide = null;
+          waitingForAnimation = false;
+          demoPhase = null;
+          // Auto-play if starts with black
+          if (tree.children.length > 0 && tree.children[0].color === 'b') {
+            autoPlayOpponent();
+          }
+        }, 800);
+        return;
+      }
+
+      const move = demoMoves[i];
+      const piece = board.pieces.get(move.from);
+      opponentSlide = {
+        piece: piece?.piece ?? 'P',
+        color: move.color,
+        from: move.from,
+        to: move.to,
+      };
+      board = move.boardAfter;
+      currentArrows = move.arrows ?? [];
+      currentHighlights = move.highlights ?? [];
+      i++;
+
+      setTimeout(() => {
+        opponentSlide = null;
+        setTimeout(playNext, 200);
+      }, 600);
+    }
+
+    setTimeout(playNext, 500);
+  }
+
+  // Kick off demo or initial auto-play
+  if (puzzle.demo) {
+    setTimeout(() => startDemo(), 100);
+  } else if (tree.children.length > 0 && tree.children[0].color === 'b') {
+    setTimeout(() => autoPlayOpponent(), 100);
+  }
+
+  function executeMove(from: SquareId, to: SquareId) {
+    const match = currentChildren.find(c =>
+      c.color === 'w' && c.from === from && c.to === to
+    );
+
+    if (!match) {
+      wrongMoveSquare = to;
+      selectedSquare = null;
+      setTimeout(() => (wrongMoveSquare = null), 600);
+      return;
+    }
+
+    board = match.boardAfter;
+    selectedSquare = null;
+    const newMoveCount = moveCount + 1;
+    moveCount = newMoveCount;
+    currentChildren = match.children;
+    currentArrows = match.arrows ?? [];
+    currentHighlights = match.highlights ?? [];
+
+    if (match.children.length === 0) {
+      isComplete = true;
+      saveComplete(puzzle.id, calculateStars(newMoveCount), newMoveCount);
+      return;
+    }
+
+    autoPlayOpponent();
+  }
+
+  function handleSquareClick(sq: SquareId) {
+    if (isComplete || waitingForAnimation || demoPhase) return;
+    if (!selectedSquare) {
+      const p = board.pieces.get(sq);
+      if (p && p.color === 'w') selectedSquare = sq;
+      return;
+    }
+    if (sq === selectedSquare) { selectedSquare = null; return; }
+    const p = board.pieces.get(selectedSquare);
+    if (!p) return;
+    const moves = getLegalMoves(selectedSquare, board, 'w');
+    if (!moves.includes(sq)) {
+      const target = board.pieces.get(sq);
+      if (target && target.color === 'w') {
+        selectedSquare = sq;
+      } else {
+        selectedSquare = null;
+      }
+      return;
+    }
+    executeMove(selectedSquare, sq);
+  }
+
+  function handleDrop(from: SquareId, to: SquareId) {
+    if (isComplete || waitingForAnimation || demoPhase || from === to) return;
+    const p = board.pieces.get(from);
+    if (!p || p.color !== 'w') return;
+    const moves = getLegalMoves(from, board, 'w');
+    if (!moves.includes(to)) return;
+    executeMove(from, to);
+  }
+
+  function reset() {
+    board = tree.root;
+    selectedSquare = null;
+    moveCount = 0;
+    isComplete = false;
+    stalemateTrigger = false;
+    currentHintIndex = -1;
+    wrongMoveSquare = null;
+    opponentSlide = null;
+    waitingForAnimation = false;
+    currentChildren = tree.children;
+    currentArrows = tree.initialArrows ?? [];
+    currentHighlights = tree.initialHighlights ?? [];
+
+    if (puzzle.demo) {
+      demoPhase = 'playing';
+      setTimeout(() => startDemo(), 100);
+    } else {
+      demoPhase = null;
+      if (tree.children.length > 0 && tree.children[0].color === 'b') {
+        setTimeout(() => autoPlayOpponent(), 100);
+      }
+    }
+  }
+
+  function showHint() {
+    if (puzzle.hints && currentHintIndex < puzzle.hints.length - 1) {
+      currentHintIndex = currentHintIndex + 1;
+    }
+  }
+
+  return {
+    get board() { return board; },
+    get selectedSquare() { return selectedSquare; },
+    get validMoves() { return validMoves; },
+    get reachedTargets() { return [] as SquareId[]; },
+    get moveCount() { return moveCount; },
+    get isComplete() { return isComplete; },
+    get stalemateTrigger() { return stalemateTrigger; },
+    get wrongMoveSquare() { return wrongMoveSquare; },
+    get opponentSlide() { return opponentSlide; },
+    get stars() { return stars; },
+    get currentHintIndex() { return currentHintIndex; },
+    get arrows() { return currentArrows; },
+    get highlights() { return currentHighlights; },
+    get demoPhase() { return demoPhase; },
+    handleSquareClick,
+    handleDrop,
+    reset,
+    showHint,
+  };
+}
+
+// ═══════════════════════════════════════════════
+// Conversion puzzle state (vs bot)
+// ═══════════════════════════════════════════════
+
+function createConversionState(puzzle: ConversionPuzzle) {
+  function buildBoard(): BoardState {
+    return createBoardState(puzzle.position);
+  }
+
+  let board = $state<BoardState>(buildBoard());
+  let selectedSquare = $state<SquareId | null>(null);
+  let moveCount = $state(0);
+  let isComplete = $state(false);
+  let stalemateTrigger = $state(false);
+  let currentHintIndex = $state(-1);
   let wrongMoveSquare = $state<SquareId | null>(null);
   let opponentSlide = $state<SlideAnimation | null>(null);
   let waitingForAnimation = $state(false);
@@ -46,10 +430,7 @@ export function createPuzzleState(puzzle: Puzzle) {
     if (!selectedSquare) return [];
     const p = board.pieces.get(selectedSquare);
     if (!p || p.color !== 'w') return [];
-    if (!isBotMode && p.piece !== puzzle.piece) return [];
-    return isBotMode
-      ? getLegalMoves(selectedSquare, board, 'w')
-      : getValidMoves(p.piece, selectedSquare, board, 'w');
+    return getLegalMoves(selectedSquare, board, 'w');
   });
 
   function calculateStars(moves: number): number {
@@ -74,7 +455,6 @@ export function createPuzzleState(puzzle: Puzzle) {
       const capturedSq = coordsToSquare(toX, fromY);
       if (capturedSq) pieces.delete(capturedSq);
     }
-
     if (movedPiece.piece === 'K') {
       const [fx] = squareToCoords(from);
       const [tx] = squareToCoords(to);
@@ -94,39 +474,12 @@ export function createPuzzleState(puzzle: Puzzle) {
     }
   }
 
-  function applyOpponentResponse(currentBoard: BoardState, response: OpponentResponse) {
-    const oppPieces = new Map(currentBoard.pieces);
-    const oppPiece = oppPieces.get(response.from);
-    if (!oppPiece) return currentBoard;
-
-    opponentSlide = {
-      piece: oppPiece.piece,
-      color: oppPiece.color,
-      from: response.from,
-      to: response.to,
-    };
-    waitingForAnimation = true;
-
-    oppPieces.delete(response.from);
-    oppPieces.set(response.to, oppPiece);
-    const newBoard: BoardState = { pieces: oppPieces };
-    board = newBoard;
-
-    setTimeout(() => {
-      opponentSlide = null;
-      waitingForAnimation = false;
-    }, 700);
-
-    return newBoard;
-  }
-
   function makeBotMove(currentBoard: BoardState) {
     waitingForAnimation = true;
     setTimeout(() => {
-      const moves = getAllLegalMoves('b', currentBoard);
-      if (moves.length === 0) return;
+      const move = pickBotMove(currentBoard, 'b', puzzle.bot);
+      if (!move) return;
 
-      const move = moves[Math.floor(Math.random() * moves.length)];
       const newPieces = new Map(currentBoard.pieces);
       const piece = newPieces.get(move.from)!;
       newPieces.delete(move.from);
@@ -161,23 +514,10 @@ export function createPuzzleState(puzzle: Puzzle) {
   }
 
   function executeMove(from: SquareId, to: SquareId) {
-    if (isCheckmateMode) {
-      if (isMultiMove) {
-        const expectedTarget = puzzle.solution[solutionStep];
-        if (to !== expectedTarget) {
-          wrongMoveSquare = to;
-          selectedSquare = null;
-          setTimeout(() => (wrongMoveSquare = null), 600);
-          return;
-        }
-      }
-    }
-
     const newPieces = new Map(board.pieces);
     const piece = newPieces.get(from)!;
     newPieces.delete(from);
     newPieces.set(to, piece);
-
     applyMoveEffects(newPieces, from, to, piece);
 
     const newBoard: BoardState = { pieces: newPieces };
@@ -186,140 +526,44 @@ export function createPuzzleState(puzzle: Puzzle) {
     const newMoveCount = moveCount + 1;
     moveCount = newMoveCount;
 
-    if (isBotMode) {
-      if (isCheckmate('b', newBoard)) {
-        isComplete = true;
-        const finalStars = calculateStars(newMoveCount);
-        saveComplete(puzzle.id, finalStars, newMoveCount);
-      } else if (isStalemate('b', newBoard)) {
-        stalemateTrigger = true;
-      } else {
-        makeBotMove(newBoard);
-      }
-    } else if (isCheckmateMode) {
-      const newStep = solutionStep + 1;
-      solutionStep = newStep;
-
-      const isLastMove = newStep >= puzzle.solution.length;
-
-      if (isLastMove || !isMultiMove) {
-        if (isCheckmate('b', newBoard)) {
-          isComplete = true;
-          const finalStars = calculateStars(newMoveCount);
-          saveComplete(puzzle.id, finalStars, newMoveCount);
-        } else if (isStalemate('b', newBoard)) {
-          stalemateTrigger = true;
-        } else if (!isMultiMove) {
-          wrongMoveSquare = to;
-          board = buildBoard();
-          moveCount = newMoveCount - 1;
-          solutionStep = newStep - 1;
-          setTimeout(() => (wrongMoveSquare = null), 600);
-        }
-      } else {
-        const response = puzzle.opponentResponses?.[solutionStep];
-        if (response) {
-          setTimeout(() => {
-            applyOpponentResponse(newBoard, response);
-          }, 300);
-        }
-      }
+    if (puzzle.goal === 'checkmate' && isCheckmate('b', newBoard)) {
+      isComplete = true;
+      saveComplete(puzzle.id, calculateStars(newMoveCount), newMoveCount);
+    } else if (isStalemate('b', newBoard)) {
+      stalemateTrigger = true;
     } else {
-      // Reach-target mode
-      const hasMultiStepSolution = puzzle.solution.length > 1 && puzzle.opponentResponses && puzzle.opponentResponses.length > 0;
-
-      if (hasMultiStepSolution || puzzle.strictSolution) {
-        const expectedTarget = puzzle.solution[solutionStep];
-        if (to !== expectedTarget) {
-          if (isCheckmate('b', newBoard)) {
-            isComplete = true;
-            const finalStars = calculateStars(newMoveCount);
-            saveComplete(puzzle.id, finalStars, newMoveCount);
-            return;
-          }
-          wrongMoveSquare = to;
-          selectedSquare = null;
-          board = buildBoard();
-          moveCount = newMoveCount - 1;
-          setTimeout(() => (wrongMoveSquare = null), 600);
-          return;
-        }
-
-        const newStep = solutionStep + 1;
-        solutionStep = newStep;
-
-        if (puzzle.targets.includes(to) && !reachedTargets.includes(to)) {
-          reachedTargets = [...reachedTargets, to];
-        }
-
-        if (newStep >= puzzle.solution.length) {
-          isComplete = true;
-          const finalStars = calculateStars(newMoveCount);
-          saveComplete(puzzle.id, finalStars, newMoveCount);
-        } else {
-          const response = puzzle.opponentResponses?.[solutionStep];
-          if (response) {
-            setTimeout(() => {
-              applyOpponentResponse(newBoard, response);
-            }, 300);
-          }
-        }
-      } else {
-        // Basic reach-target
-        if (puzzle.targets.includes(to) && !reachedTargets.includes(to)) {
-          const newReached = [...reachedTargets, to];
-          reachedTargets = newReached;
-          if (newReached.length === puzzle.targets.length) {
-            isComplete = true;
-            const finalStars = calculateStars(newMoveCount);
-            saveComplete(puzzle.id, finalStars, newMoveCount);
-          }
-        }
-      }
+      makeBotMove(newBoard);
     }
   }
 
   function handleSquareClick(sq: SquareId) {
     if (isComplete || waitingForAnimation) return;
-
     if (!selectedSquare) {
       const p = board.pieces.get(sq);
-      if (p && p.color === 'w' && (isBotMode || p.piece === puzzle.piece)) {
-        selectedSquare = sq;
-      }
+      if (p && p.color === 'w') selectedSquare = sq;
       return;
     }
-
-    if (sq === selectedSquare) {
-      selectedSquare = null;
-      return;
-    }
-
+    if (sq === selectedSquare) { selectedSquare = null; return; }
     const p = board.pieces.get(selectedSquare);
     if (!p) return;
-    const moves = isBotMode
-      ? getLegalMoves(selectedSquare, board, 'w')
-      : getValidMoves(p.piece, selectedSquare, board, 'w');
+    const moves = getLegalMoves(selectedSquare, board, 'w');
     if (!moves.includes(sq)) {
       const target = board.pieces.get(sq);
-      if (target && target.color === 'w' && (isBotMode || target.piece === puzzle.piece)) {
+      if (target && target.color === 'w') {
         selectedSquare = sq;
       } else {
         selectedSquare = null;
       }
       return;
     }
-
     executeMove(selectedSquare, sq);
   }
 
   function handleDrop(from: SquareId, to: SquareId) {
     if (isComplete || waitingForAnimation || from === to) return;
     const p = board.pieces.get(from);
-    if (!p || p.color !== 'w' || (!isBotMode && p.piece !== puzzle.piece)) return;
-    const moves = isBotMode
-      ? getLegalMoves(from, board, 'w')
-      : getValidMoves(p.piece, from, board, 'w');
+    if (!p || p.color !== 'w') return;
+    const moves = getLegalMoves(from, board, 'w');
     if (!moves.includes(to)) return;
     executeMove(from, to);
   }
@@ -328,11 +572,9 @@ export function createPuzzleState(puzzle: Puzzle) {
     board = buildBoard();
     selectedSquare = null;
     moveCount = 0;
-    reachedTargets = [];
     isComplete = false;
     stalemateTrigger = false;
     currentHintIndex = -1;
-    solutionStep = 0;
     wrongMoveSquare = null;
     opponentSlide = null;
     waitingForAnimation = false;
@@ -348,7 +590,7 @@ export function createPuzzleState(puzzle: Puzzle) {
     get board() { return board; },
     get selectedSquare() { return selectedSquare; },
     get validMoves() { return validMoves; },
-    get reachedTargets() { return reachedTargets; },
+    get reachedTargets() { return [] as SquareId[]; },
     get moveCount() { return moveCount; },
     get isComplete() { return isComplete; },
     get stalemateTrigger() { return stalemateTrigger; },
@@ -356,6 +598,9 @@ export function createPuzzleState(puzzle: Puzzle) {
     get opponentSlide() { return opponentSlide; },
     get stars() { return stars; },
     get currentHintIndex() { return currentHintIndex; },
+    get arrows() { return [] as Arrow[]; },
+    get highlights() { return [] as SquareHighlight[]; },
+    get demoPhase() { return null as 'playing' | 'resetting' | null; },
     handleSquareClick,
     handleDrop,
     reset,
