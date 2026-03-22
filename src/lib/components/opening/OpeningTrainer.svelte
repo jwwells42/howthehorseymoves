@@ -444,27 +444,6 @@
   <div class="drill-layout">
     <!-- Board side -->
     <div class="board-side">
-      <div class="info-row">
-        <button
-          class="nav-btn"
-          onclick={() => jumpToLine(lineIdx - 1)}
-          disabled={lineIdx === 0 || waiting}
-          aria-label="Previous line"
-        >&lsaquo;</button>
-        <span>Line {lineIdx + 1} of {activeLines.length}</span>
-        <button
-          class="nav-btn"
-          onclick={() => jumpToLine(lineIdx + 1)}
-          disabled={lineIdx >= activeLines.length - 1 || waiting}
-          aria-label="Next line"
-        >&rsaquo;</button>
-        <span class="mode-sep">&middot;</span>
-        <span class={['mode-badge', phase]}>{phase === 'learn' ? 'Learning' : 'Practicing'}</span>
-        <button class="btn btn-sm" onclick={toggleMode}>
-          {phase === 'learn' ? 'Practice' : 'Learn'}
-        </button>
-      </div>
-
       <div class="board-wrapper">
         <Board
           {board}
@@ -544,6 +523,26 @@
     <div class="move-list-side">
       <div class="drill-info">
         <span class="drill-opening-name">{opening.name}</span>
+        <div class="info-row">
+          <button
+            class="nav-btn"
+            onclick={() => jumpToLine(lineIdx - 1)}
+            disabled={lineIdx === 0 || waiting}
+            aria-label="Previous line"
+          >&lsaquo;</button>
+          <span>Line {lineIdx + 1} of {activeLines.length}</span>
+          <button
+            class="nav-btn"
+            onclick={() => jumpToLine(lineIdx + 1)}
+            disabled={lineIdx >= activeLines.length - 1 || waiting}
+            aria-label="Next line"
+          >&rsaquo;</button>
+          <span class="mode-sep">&middot;</span>
+          <span class={['mode-badge', phase]}>{phase === 'learn' ? 'Learning' : 'Practicing'}</span>
+          <button class="btn btn-sm" onclick={toggleMode}>
+            {phase === 'learn' ? 'Practice' : 'Learn'}
+          </button>
+        </div>
       </div>
 
       <div class="move-list" bind:this={moveListEl}>
@@ -735,7 +734,7 @@
     font-size: 0.875rem;
     color: var(--text-faint);
     flex-wrap: wrap;
-    margin-bottom: 0.5rem;
+    margin-top: 0.25rem;
   }
 
   .nav-btn {
