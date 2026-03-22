@@ -376,10 +376,16 @@
   // Auto-scroll active move into view
   let moveListEl = $state<HTMLDivElement | null>(null);
   $effect(() => {
+    void moveIdx;
     if (!moveListEl) return;
-    const active = moveListEl.querySelector('.move.current');
-    if (active) {
-      active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const active = moveListEl.querySelector("[data-active='true']") as HTMLElement | null;
+    if (!active) return;
+    const top = active.offsetTop - moveListEl.offsetTop;
+    const bottom = top + active.offsetHeight;
+    if (top < moveListEl.scrollTop) {
+      moveListEl.scrollTop = top;
+    } else if (bottom > moveListEl.scrollTop + moveListEl.clientHeight) {
+      moveListEl.scrollTop = bottom - moveListEl.clientHeight;
     }
   });
 </script>
@@ -532,7 +538,7 @@
     </div>
 
     <div class="move-list" bind:this={moveListEl}>
-      <div class="moves">
+      <div class="move-grid">
         {#each moveDisplay as pair}
           {@const whiteReached = maxReachedIdx > pair.whiteIdx}
           {@const blackReached = pair.blackIdx !== undefined && maxReachedIdx > pair.blackIdx}
@@ -540,27 +546,30 @@
           {@const blackPlayed = pair.blackIdx !== undefined && moveIdx > pair.blackIdx}
           {@const hideWhite = phase === 'practice' && !whiteReached}
           {@const hideBlack = phase === 'practice' && !blackReached}
+          {@const whiteActive = moveIdx === pair.whiteIdx + 1}
+          {@const blackActive = pair.blackIdx !== undefined && moveIdx === pair.blackIdx + 1}
           {#if phase === 'learn' || whiteReached || maxReachedIdx === pair.whiteIdx || blackReached}
-            <span class="move-pair">
-              <span class="move-num">{pair.num}.</span>
+            <span class="move-num">{pair.num}.</span>
+            <button
+              class={['move-btn', whitePlayed && 'move-played', whiteActive && 'move-active']}
+              data-active={whiteActive}
+              onclick={() => navigateTo(pair.whiteIdx + 1)}
+              disabled={hideWhite}
+            >
+              {hideWhite ? '...' : pair.white}
+            </button>
+            {#if pair.black}
               <button
-                class={['move', whitePlayed && 'played', moveIdx === pair.whiteIdx + 1 && 'current']}
-                onclick={() => navigateTo(pair.whiteIdx + 1)}
-                disabled={hideWhite}
+                class={['move-btn', blackPlayed && 'move-played', blackActive && 'move-active']}
+                data-active={blackActive}
+                onclick={() => pair.blackIdx !== undefined && navigateTo(pair.blackIdx + 1)}
+                disabled={hideBlack}
               >
-                {hideWhite ? '...' : pair.white}
+                {hideBlack ? '...' : pair.black}
               </button>
-              {#if pair.black}
-                {' '}
-                <button
-                  class={['move', blackPlayed && 'played', pair.blackIdx !== undefined && moveIdx === pair.blackIdx + 1 && 'current']}
-                  onclick={() => pair.blackIdx !== undefined && navigateTo(pair.blackIdx + 1)}
-                  disabled={hideBlack}
-                >
-                  {hideBlack ? '...' : pair.black}
-                </button>
-              {/if}
-            </span>
+            {:else}
+              <span></span>
+            {/if}
           {/if}
         {/each}
       </div>
@@ -760,6 +769,9 @@
     font-size: 0.875rem;
     color: var(--text-muted);
     font-style: italic;
+    text-align: center;
+    padding: 0 0.5rem;
+    margin: 0;
     line-height: 1.5;
   }
 
@@ -791,53 +803,54 @@
     border-radius: 0.5rem;
     border: 1px solid var(--card-border);
     background: var(--card-bg);
-    padding: 0.75rem 1rem;
+    padding: 0.75rem;
     width: 100%;
     max-width: 28rem;
+    max-height: 400px;
+    overflow-y: auto;
   }
 
-  .moves {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 1rem;
+  .move-grid {
+    display: grid;
+    grid-template-columns: 2rem 1fr 1fr;
+    column-gap: 0.25rem;
+    row-gap: 0.125rem;
     font-size: 0.875rem;
-  }
-
-  .move-pair {
-    white-space: nowrap;
   }
 
   .move-num {
     color: var(--text-faint);
+    text-align: right;
   }
 
-  .move {
-    color: var(--text-faint);
-    background: none;
-    border: none;
-    padding: 0.125rem 0.25rem;
+  .move-btn {
+    text-align: left;
+    padding: 0.125rem 0.375rem;
     border-radius: 0.25rem;
     cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--text-faint);
     font-family: inherit;
     font-size: inherit;
+    transition: background-color 0.15s;
   }
 
-  .move:hover:not(:disabled) {
+  .move-btn:hover:not(:disabled) {
     background: var(--btn-bg);
   }
 
-  .move:disabled {
+  .move-btn:disabled {
     cursor: default;
   }
 
-  .move.played {
+  .move-btn.move-played {
     color: var(--foreground);
   }
 
-  .move.current {
-    color: var(--foreground);
-    font-weight: bold;
-    background: var(--btn-bg);
+  .move-btn.move-active {
+    background: var(--btn-hover);
+    font-weight: 700;
   }
 
   /* === Buttons === */
