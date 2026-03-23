@@ -28,6 +28,7 @@
   import BlindfoldPuzzle from '$lib/components/blindfold/BlindfoldPuzzle.svelte';
   import KnightGauntlet from '$lib/components/blindfold/KnightGauntlet.svelte';
   import GuardingGame from '$lib/components/blindfold/GuardingGame.svelte';
+  import KnightSquares from '$lib/components/blindfold/KnightSquares.svelte';
   import BlindfoldMate from '$lib/components/blindfold/BlindfoldMate.svelte';
 
   let piece = $derived(page.params.piece ?? '');
@@ -69,6 +70,7 @@
     'blindfold-puzzle': BlindfoldPuzzle,
     'blindfold-gauntlet': KnightGauntlet,
     'blindfold-guarding': GuardingGame,
+    'blindfold-knightsquares': KnightSquares,
   };
   let BlindfoldComponent = $derived(BLINDFOLD_ROUTES[piece]);
 
