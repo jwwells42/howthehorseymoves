@@ -7,7 +7,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-rook-bishop-01",
     playerPiece: "R",
     title: "Watch the Diagonal",
-    instruction: "Reach the star — avoid the red squares!",
+    instruction: "Reach the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "R", color: "w", square: "a1" },
@@ -27,7 +27,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-rook-knight-01",
     playerPiece: "R",
     title: "Dodge the Knight",
-    instruction: "Get the rook to the star without being eaten!",
+    instruction: "Get the rook to the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "R", color: "w", square: "a1" },
@@ -47,7 +47,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-bishop-rook-01",
     playerPiece: "B",
     title: "Slip Past the Rook",
-    instruction: "Move the bishop to the star — stay off the rook's lines!",
+    instruction: "Move the bishop to the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "B", color: "w", square: "a1" },
@@ -67,7 +67,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-knight-bishop-01",
     playerPiece: "N",
     title: "Hop Around the Bishop",
-    instruction: "Jump the knight to the star — avoid the diagonals!",
+    instruction: "Jump the knight to the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "N", color: "w", square: "b1" },
@@ -87,7 +87,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-knight-rook-01",
     playerPiece: "N",
     title: "Avoid the Rook",
-    instruction: "Get the knight to the star — don't land on the rook's rank or file!",
+    instruction: "Get the knight to the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "N", color: "w", square: "a1" },
@@ -107,7 +107,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-rook-pawn-01",
     playerPiece: "R",
     title: "Pawn Diagonals",
-    instruction: "Reach the star — pawns attack diagonally!",
+    instruction: "Reach the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "R", color: "w", square: "a1" },
@@ -128,7 +128,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-queen-knight-01",
     playerPiece: "Q",
     title: "Knight Zone",
-    instruction: "Guide the queen to the star — knights are tricky!",
+    instruction: "Guide the queen to the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "Q", color: "w", square: "a1" },
@@ -148,7 +148,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-knight-pawns-01",
     playerPiece: "N",
     title: "Pawn Gauntlet",
-    instruction: "Navigate through the pawn danger zones!",
+    instruction: "Navigate to the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "N", color: "w", square: "a1" },
@@ -169,7 +169,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-bishop-knight-01",
     playerPiece: "B",
     title: "Tight Squeeze",
-    instruction: "Thread the bishop through to the star!",
+    instruction: "Thread the bishop to the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "B", color: "w", square: "a1" },
@@ -189,7 +189,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     id: "danger-rook-queen-01",
     playerPiece: "R",
     title: "Escape the Queen",
-    instruction: "The queen controls a huge area — find a safe path!",
+    instruction: "Reach the star — don't land on a red square!",
     threats: true,
     position: [
       { piece: "R", color: "w", square: "a1" },

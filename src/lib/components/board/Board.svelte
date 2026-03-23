@@ -232,7 +232,7 @@
             y={ri * SQUARE_SIZE}
             width={SQUARE_SIZE}
             height={SQUARE_SIZE}
-            fill={highlight.color + "59"}
+            fill={highlight.color + "99"}
             class="no-pointer"
           />
         {/if}
