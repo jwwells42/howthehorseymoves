@@ -16,7 +16,7 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 - **Blindfold training** — 20 visualization exercises: color of square, same diagonal, knight routes, knight squares, piece reachability, flash position, move counting, and more
 - **Play vs computer** — random bot and basic bot (one-ply evaluation)
 - **Openings** — learn opening repertoires move by move with arrow hints
-- **Model games** — step through famous games with annotations, plus a test mode to reproduce games from memory
+- **Model games** — 13 classical games (Greco through Kasparov) with move-by-move viewer, annotations, variation support, and a test mode to reproduce games from memory
 - **Star ratings** — 1-3 stars based on move efficiency, shown as mastery badges when all puzzles in a set are completed
 - **Sequential unlock** — complete a puzzle to unlock the next one
 - **No accounts** — progress saves to the browser (localStorage)
