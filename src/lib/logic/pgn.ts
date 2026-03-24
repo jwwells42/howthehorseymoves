@@ -235,6 +235,191 @@ export function applyMove(
   return { pieces, castlingRights, enPassantSquare };
 }
 
+// === Tree-based PGN parsing (supports variations) ===
+
+export interface GameNode {
+  san: string;
+  from: SquareId;
+  to: SquareId;
+  promotion?: PieceKind;
+  boardAfter: BoardState;
+  colorPlayed: PieceColor;
+  nag?: string;
+  comment?: string;
+  arrows?: Arrow[];
+  children: GameNode[]; // [0] = main line continuation, [1+] = variations
+}
+
+export interface GameTree {
+  startBoard: BoardState;
+  comment?: string; // comment before first move
+  children: GameNode[]; // [0] = first main line move
+}
+
+/** Tokenize PGN preserving comments (with [%cal] arrows), NAGs, and variation parens. */
+function tokenizeGamePgn(pgn: string): string[] {
+  const tokens: string[] = [];
+  let i = 0;
+  while (i < pgn.length) {
+    const ch = pgn[i];
+    if (ch === " " || ch === "\n" || ch === "\r" || ch === "\t") { i++; continue; }
+    if (ch === "(" || ch === ")") { tokens.push(ch); i++; continue; }
+    // PGN headers [Tag "value"] — skip
+    if (ch === "[" && (i === 0 || pgn[i - 1] !== "%")) {
+      while (i < pgn.length && pgn[i] !== "]") i++;
+      i++;
+      continue;
+    }
+    // Semicolon line comments — skip
+    if (ch === ";") {
+      while (i < pgn.length && pgn[i] !== "\n") i++;
+      continue;
+    }
+    // Move numbers — skip
+    if (ch >= "0" && ch <= "9") {
+      while (i < pgn.length && (pgn[i] >= "0" && pgn[i] <= "9" || pgn[i] === ".")) i++;
+      while (i < pgn.length && pgn[i] === " ") i++;
+      continue;
+    }
+    // Comments {text} — preserve [%cal] arrows, inline NAGs
+    if (ch === "{") {
+      const start = i + 1;
+      while (i < pgn.length && pgn[i] !== "}") i++;
+      const raw = pgn.slice(start, i)
+        .replace(/\$(\d+)/g, (_, n) => numericNagToSymbol(parseInt(n, 10)))
+        .trim();
+      if (raw) tokens.push("{" + raw);
+      i++;
+      continue;
+    }
+    // NAGs — text form
+    if (ch === "!" || ch === "?") {
+      const start = i;
+      while (i < pgn.length && (pgn[i] === "!" || pgn[i] === "?")) i++;
+      const text = pgn.slice(start, i);
+      const NAG_MAP: Record<string, number> = { "!": 1, "?": 2, "!!": 3, "??": 4, "!?": 5, "?!": 6 };
+      const n = NAG_MAP[text];
+      if (n !== undefined) tokens.push("$" + n);
+      continue;
+    }
+    // NAGs — numeric form
+    if (ch === "$") {
+      const start = i;
+      i++;
+      while (i < pgn.length && pgn[i] >= "0" && pgn[i] <= "9") i++;
+      tokens.push(pgn.slice(start, i));
+      continue;
+    }
+    // SAN move or result
+    if ((ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z")) {
+      const start = i;
+      while (i < pgn.length && pgn[i] !== " " && pgn[i] !== "\n" && pgn[i] !== "\r" && pgn[i] !== "(" && pgn[i] !== ")" && pgn[i] !== "{" && pgn[i] !== "!" && pgn[i] !== "?" && pgn[i] !== "$") i++;
+      const token = pgn.slice(start, i);
+      if (/^(1-0|0-1|\*)$/.test(token)) continue;
+      if (token.startsWith("1/2")) continue;
+      tokens.push(token);
+      continue;
+    }
+    i++;
+  }
+  return tokens;
+}
+
+/** Parse PGN into a GameTree with full variation support. */
+export function parseGamePgn(pgn: string, fen?: string): GameTree {
+  const startFen = fen ?? STARTING_FEN;
+  const { placements, castlingRights, enPassantSquare } = parseFen(startFen);
+  const startBoard = createBoardState(placements, { castlingRights, enPassantSquare });
+  const tree: GameTree = { startBoard, children: [] };
+  const tokens = tokenizeGamePgn(pgn);
+
+  interface ParseState {
+    parentNode: GameNode | null;
+    board: BoardState;
+    color: PieceColor;
+  }
+
+  let state: ParseState = { parentNode: null, board: startBoard, color: "w" };
+  let lastMoveParent: ParseState = { ...state };
+  const stack: { savedState: ParseState; savedLMP: ParseState }[] = [];
+
+  for (let ti = 0; ti < tokens.length; ti++) {
+    const token = tokens[ti];
+    if (token.startsWith("$")) {
+      const n = parseInt(token.slice(1), 10);
+      if (state.parentNode) {
+        state.parentNode.nag = numericNagToSymbol(n);
+      }
+    } else if (token.startsWith("{")) {
+      const raw = token.slice(1);
+      const { text, arrows } = parseArrows(raw);
+      if (state.parentNode) {
+        if (text) state.parentNode.comment = text;
+        if (arrows.length > 0) state.parentNode.arrows = arrows;
+      } else {
+        // Comment before first move
+        if (text) tree.comment = text;
+      }
+    } else if (token === "(") {
+      stack.push({ savedState: { ...state }, savedLMP: { ...lastMoveParent } });
+      state = { ...lastMoveParent };
+    } else if (token === ")") {
+      const saved = stack.pop()!;
+      state = saved.savedState;
+      lastMoveParent = saved.savedLMP;
+    } else {
+      lastMoveParent = { ...state };
+      const resolved = parseSan(token, state.board, state.color);
+      const newBoard = applyMove(state.board, resolved.from, resolved.to, resolved.promotion);
+
+      const node: GameNode = {
+        san: token,
+        from: resolved.from,
+        to: resolved.to,
+        promotion: resolved.promotion,
+        boardAfter: newBoard,
+        colorPlayed: state.color,
+        children: [],
+      };
+
+      if (state.parentNode === null) {
+        tree.children.push(node);
+      } else {
+        state.parentNode.children.push(node);
+      }
+
+      state = {
+        parentNode: node,
+        board: newBoard,
+        color: state.color === "w" ? "b" : "w",
+      };
+    }
+  }
+
+  return tree;
+}
+
+/** Walk the main line (children[0] at each level), return flat positions + moves. */
+export function extractMainLine(tree: GameTree): ParsedGame {
+  const positions: BoardState[] = [tree.startBoard];
+  const moves: GameMove[] = [];
+  let node: GameNode | undefined = tree.children[0];
+  while (node) {
+    moves.push({
+      san: node.san,
+      from: node.from,
+      to: node.to,
+      promotion: node.promotion,
+      nag: node.nag,
+      comment: node.comment,
+      arrows: node.arrows,
+    });
+    positions.push(node.boardAfter);
+    node = node.children[0];
+  }
+  return { positions, moves };
+}
+
 /** Parse a full PGN move text into an array of positions and moves. */
 export function parsePgn(pgn: string): ParsedGame {
   const { placements, castlingRights, enPassantSquare } = parseFen(STARTING_FEN);

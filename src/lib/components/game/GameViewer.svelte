@@ -1,24 +1,44 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
-  import { parsePgn } from '$lib/logic/pgn';
+  import { parseGamePgn, extractMainLine } from '$lib/logic/pgn';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
   import type { ModelGame } from '$lib/games/types';
   import type { SquareId, PieceColor } from '$lib/logic/types';
-  import type { Arrow } from '$lib/logic/pgn';
+  import type { Arrow, GameNode } from '$lib/logic/pgn';
 
   const AUTOPLAY_MS = 1200;
 
   let { game }: { game: ModelGame } = $props();
 
-  let parsed = $derived(parsePgn(game.pgn));
-  let totalMoves = $derived(parsed.moves.length);
+  let tree = $derived(parseGamePgn(game.pgn));
+  let flatParsed = $derived(extractMainLine(tree));
+  let totalMoves = $derived(flatParsed.moves.length);
 
-  // Viewer state
-  let currentMove = $state(0);
+  // === Viewer state — path-based navigation ===
+  let currentPath = $state<GameNode[]>([]);
   let isPlaying = $state(false);
+  let pauseOnVariations = $state(false);
 
-  // Test mode state
+  // Current position derived from path
+  let board = $derived(
+    currentPath.length > 0
+      ? currentPath[currentPath.length - 1].boardAfter
+      : tree.startBoard
+  );
+
+  let lastNode = $derived(
+    currentPath.length > 0 ? currentPath[currentPath.length - 1] : null
+  );
+  let currentComment = $derived(
+    currentPath.length === 0 ? tree.comment : lastNode?.comment
+  );
+  let currentArrows = $derived(lastNode?.arrows);
+  let lastMoveSlide = $derived(
+    lastNode ? { from: lastNode.from, to: lastNode.to } : undefined
+  );
+
+  // === Test mode state ===
   let testMode = $state(false);
   let testMoveIdx = $state(0);
   let testSelected = $state<SquareId | null>(null);
@@ -26,43 +46,21 @@
   let testComplete = $state(false);
   let testDragFrom = $state<SquareId | null>(null);
 
-  // Move list scroll container
   let moveListEl = $state<HTMLDivElement | undefined>(undefined);
 
-  // Derived board position
-  let board = $derived(testMode ? parsed.positions[testMoveIdx] : parsed.positions[currentMove]);
-  let lastMove = $derived(currentMove > 0 ? parsed.moves[currentMove - 1] : null);
-  let currentComment = $derived(lastMove?.comment);
-  let currentArrows = $derived(lastMove?.arrows);
-
+  let testBoard = $derived(testMode ? flatParsed.positions[testMoveIdx] : board);
   let testColorToMove: PieceColor = $derived(testMoveIdx % 2 === 0 ? 'w' : 'b');
 
   let testValidMoves = $derived.by(() => {
     if (!testMode || !testSelected || testComplete) return [];
-    return getLegalMoves(testSelected, parsed.positions[testMoveIdx], testColorToMove);
+    return getLegalMoves(testSelected, flatParsed.positions[testMoveIdx], testColorToMove);
   });
 
   let testDragMoves = $derived.by(() => {
     if (!testMode || !testDragFrom || testComplete) return [];
-    return getLegalMoves(testDragFrom, parsed.positions[testMoveIdx], testColorToMove);
+    return getLegalMoves(testDragFrom, flatParsed.positions[testMoveIdx], testColorToMove);
   });
 
-  // Build move pairs for display
-  let movePairs = $derived.by(() => {
-    const pairs: { num: number; white: string; black?: string }[] = [];
-    for (let i = 0; i < totalMoves; i += 2) {
-      const wm = parsed.moves[i];
-      const bm = parsed.moves[i + 1];
-      pairs.push({
-        num: Math.floor(i / 2) + 1,
-        white: wm.san + (wm.nag ?? ''),
-        black: bm ? bm.san + (bm.nag ?? '') : undefined,
-      });
-    }
-    return pairs;
-  });
-
-  // Test mode status text
   let testStatusText = $derived.by(() => {
     if (testComplete) return 'You did it! You reproduced the entire game.';
     const moveNum = Math.floor(testMoveIdx / 2) + 1;
@@ -70,42 +68,75 @@
     return `Move ${moveNum}${isWhiteTurn ? '.' : '...'} ${isWhiteTurn ? 'White' : 'Black'} to play`;
   });
 
-  // Test mode arrows
   let testArrows = $derived(testHintArrow ? [testHintArrow] : undefined);
 
-  // --- Navigation ---
+  // === Navigation ===
   function goForward() {
-    currentMove = Math.min(currentMove + 1, totalMoves);
+    const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+    const children = parent ? parent.children : tree.children;
+    if (children.length > 0) {
+      currentPath = [...currentPath, children[0]];
+    }
   }
 
   function goBack() {
-    currentMove = Math.max(currentMove - 1, 0);
+    if (currentPath.length > 0) {
+      currentPath = currentPath.slice(0, -1);
+    }
   }
 
   function goToStart() {
-    currentMove = 0;
+    currentPath = [];
   }
 
   function goToEnd() {
-    currentMove = totalMoves;
+    let path = [...currentPath];
+    let node = path.length > 0 ? path[path.length - 1] : null;
+    let children = node ? node.children : tree.children;
+    while (children.length > 0) {
+      path.push(children[0]);
+      children = children[0].children;
+    }
+    currentPath = path;
+  }
+
+  function goToNode(path: GameNode[]) {
+    currentPath = path;
   }
 
   function togglePlay() {
     isPlaying = !isPlaying;
   }
 
-  // --- Auto-play ---
+  let canGoForward = $derived.by(() => {
+    const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+    const children = parent ? parent.children : tree.children;
+    return children.length > 0;
+  });
+
+  // === Auto-play ===
   $effect(() => {
     if (testMode) return;
-    if (!isPlaying || currentMove >= totalMoves) return;
+    if (!isPlaying || !canGoForward) {
+      if (!canGoForward) isPlaying = false;
+      return;
+    }
+    // Check if we should pause at variations
+    if (pauseOnVariations) {
+      const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+      const children = parent ? parent.children : tree.children;
+      if (children.length > 1) {
+        isPlaying = false;
+        return;
+      }
+    }
     const timer = setTimeout(() => {
-      currentMove += 1;
-      if (currentMove >= totalMoves) isPlaying = false;
+      goForward();
     }, AUTOPLAY_MS);
     return () => clearTimeout(timer);
   });
 
-  // --- Keyboard controls ---
+  // === Keyboard controls ===
   function handleKeydown(e: KeyboardEvent) {
     if (testMode) return;
     if (e.key === 'ArrowLeft') { e.preventDefault(); goBack(); }
@@ -113,10 +144,10 @@
     else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
   }
 
-  // --- Scroll current move into view ---
+  // === Scroll current move into view ===
   $effect(() => {
     if (testMode) return;
-    void currentMove; // track dependency
+    void currentPath;
     if (!moveListEl) return;
     const highlighted = moveListEl.querySelector("[data-active='true']") as HTMLElement | null;
     if (!highlighted) return;
@@ -129,9 +160,177 @@
     }
   });
 
-  // --- Test mode logic ---
+  // === Move list rendering ===
+  // We need a structure that can render main line in the grid and variations inline.
+  interface MoveListItem {
+    kind: 'move';
+    node: GameNode;
+    path: GameNode[];
+    moveNumber: number;
+    isWhite: boolean;
+  }
+
+  interface VariationItem {
+    kind: 'variation';
+    nodes: { node: GameNode; path: GameNode[]; moveNumber: number; isWhite: boolean }[];
+  }
+
+  type ListItem = MoveListItem | VariationItem;
+
+  let moveListItems = $derived.by(() => {
+    const items: ListItem[] = [];
+    buildMoveList(tree.children, [], 1, true, items, false);
+    return items;
+  });
+
+  function buildMoveList(
+    children: GameNode[],
+    parentPath: GameNode[],
+    moveNumber: number,
+    isWhite: boolean,
+    items: ListItem[],
+    _isVariation: boolean,
+  ) {
+    if (children.length === 0) return;
+
+    const mainChild = children[0];
+    const mainPath = [...parentPath, mainChild];
+
+    items.push({
+      kind: 'move',
+      node: mainChild,
+      path: mainPath,
+      moveNumber,
+      isWhite,
+    });
+
+    // Variations (children[1+])
+    for (let v = 1; v < children.length; v++) {
+      const varNodes: VariationItem['nodes'] = [];
+      let varNode: GameNode | undefined = children[v];
+      let varPath = [...parentPath];
+      let varMoveNum = moveNumber;
+      let varIsWhite = isWhite;
+
+      while (varNode) {
+        varPath = [...varPath, varNode];
+        varNodes.push({
+          node: varNode,
+          path: [...varPath],
+          moveNumber: varMoveNum,
+          isWhite: varIsWhite,
+        });
+        if (!varIsWhite) varMoveNum++;
+        varIsWhite = !varIsWhite;
+        varNode = varNode.children[0];
+      }
+
+      items.push({ kind: 'variation', nodes: varNodes });
+    }
+
+    // Continue main line
+    const nextMoveNum = isWhite ? moveNumber : moveNumber + 1;
+    buildMoveList(mainChild.children, mainPath, nextMoveNum, !isWhite, items, _isVariation);
+  }
+
+  // Check if a node path matches currentPath
+  function isActivePath(path: GameNode[]): boolean {
+    if (path.length !== currentPath.length) return false;
+    for (let i = 0; i < path.length; i++) {
+      if (path[i] !== currentPath[i]) return false;
+    }
+    return true;
+  }
+
+  // Check if a path is "on" the current path (current path passes through it)
+  function isOnCurrentPath(path: GameNode[]): boolean {
+    if (path.length > currentPath.length) return false;
+    for (let i = 0; i < path.length; i++) {
+      if (path[i] !== currentPath[i]) return false;
+    }
+    return true;
+  }
+
+  // Build move pairs for grid rendering from the main line items
+  interface MovePair {
+    num: number;
+    white: { node: GameNode; path: GameNode[] } | null;
+    black: { node: GameNode; path: GameNode[] } | null;
+    variationsAfterWhite: VariationItem[];
+    variationsAfterBlack: VariationItem[];
+  }
+
+  let movePairs = $derived.by(() => {
+    const pairs: MovePair[] = [];
+    let currentPair: MovePair | null = null;
+    const pendingVariations: VariationItem[] = [];
+
+    for (const item of moveListItems) {
+      if (item.kind === 'variation') {
+        pendingVariations.push(item);
+        continue;
+      }
+
+      if (item.isWhite) {
+        // Flush pending variations to previous pair's black
+        if (pendingVariations.length > 0 && currentPair) {
+          currentPair.variationsAfterBlack.push(...pendingVariations.splice(0));
+        }
+        currentPair = {
+          num: item.moveNumber,
+          white: { node: item.node, path: item.path },
+          black: null,
+          variationsAfterWhite: [],
+          variationsAfterBlack: [],
+        };
+        pairs.push(currentPair);
+        // Flush pending variations (e.g., from interrupted black move in a prior variation)
+        if (pendingVariations.length > 0) {
+          // These would be variations after the previous move
+          // Actually they should go to the previous pair
+          const prevPair = pairs.length >= 2 ? pairs[pairs.length - 2] : null;
+          if (prevPair) {
+            prevPair.variationsAfterBlack.push(...pendingVariations.splice(0));
+          } else {
+            pendingVariations.length = 0;
+          }
+        }
+      } else {
+        if (!currentPair) {
+          // Black move without a white move (shouldn't happen in normal games, but handle it)
+          currentPair = {
+            num: item.moveNumber,
+            white: null,
+            black: { node: item.node, path: item.path },
+            variationsAfterWhite: [],
+            variationsAfterBlack: [],
+          };
+          pairs.push(currentPair);
+        } else {
+          // Flush pending variations to after white
+          if (pendingVariations.length > 0) {
+            currentPair.variationsAfterWhite.push(...pendingVariations.splice(0));
+          }
+          currentPair.black = { node: item.node, path: item.path };
+        }
+      }
+    }
+
+    // Flush remaining variations
+    if (pendingVariations.length > 0 && currentPair) {
+      if (currentPair.black) {
+        currentPair.variationsAfterBlack.push(...pendingVariations.splice(0));
+      } else {
+        currentPair.variationsAfterWhite.push(...pendingVariations.splice(0));
+      }
+    }
+
+    return pairs;
+  });
+
+  // === Test mode logic ===
   function advanceTestMove(from: SquareId, to: SquareId) {
-    const expected = parsed.moves[testMoveIdx];
+    const expected = flatParsed.moves[testMoveIdx];
     if (from === expected.from && to === expected.to) {
       testHintArrow = null;
       const next = testMoveIdx + 1;
@@ -145,7 +344,6 @@
       testSelected = null;
       playSound('move');
     } else {
-      // Wrong move — show hint arrow
       testHintArrow = { from: expected.from, to: expected.to, color: '#15803d' };
       testSelected = null;
       playSound('wrong');
@@ -154,7 +352,7 @@
 
   function handleTestClick(sq: SquareId) {
     if (testComplete) return;
-    const currentBoard = parsed.positions[testMoveIdx];
+    const currentBoard = flatParsed.positions[testMoveIdx];
 
     if (!testSelected) {
       const p = currentBoard.pieces.get(sq);
@@ -170,14 +368,12 @@
       return;
     }
 
-    // Clicking another own piece
     const target = currentBoard.pieces.get(sq);
     if (target && target.color === testColorToMove) {
       testSelected = sq;
       return;
     }
 
-    // Try to move
     const legal = getLegalMoves(testSelected, currentBoard, testColorToMove);
     if (!legal.includes(sq)) {
       testSelected = null;
@@ -189,7 +385,7 @@
 
   function handleTestDrop(from: SquareId, to: SquareId) {
     if (testComplete || from === to) return;
-    const currentBoard = parsed.positions[testMoveIdx];
+    const currentBoard = flatParsed.positions[testMoveIdx];
     const p = currentBoard.pieces.get(from);
     if (!p || p.color !== testColorToMove) return;
     const legal = getLegalMoves(from, currentBoard, testColorToMove);
@@ -221,7 +417,7 @@
     testSelected = null;
     testHintArrow = null;
     testComplete = false;
-    currentMove = 0;
+    currentPath = [];
   }
 
   function retryTest() {
@@ -230,14 +426,17 @@
     testHintArrow = null;
   }
 
-  // No-op for viewer mode Board callbacks
   function noop() {}
+
+  function formatVariationSan(node: { node: GameNode; moveNumber: number; isWhite: boolean }): string {
+    const prefix = node.isWhite ? `${node.moveNumber}.` : (node === node ? `${node.moveNumber}...` : '');
+    return `${prefix}${node.node.san}${node.node.nag ?? ''}`;
+  }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
 {#if testMode}
-  <!-- Test mode -->
   <div class="test-wrapper">
     <div class="test-header">
       <h2 class="test-title">Test Mode</h2>
@@ -251,7 +450,7 @@
       </div>
 
       <Board
-        board={board}
+        board={testBoard}
         selectedSquare={testSelected}
         validMoves={testValidMoves}
         targets={[]}
@@ -283,9 +482,7 @@
     </div>
   </div>
 {:else}
-  <!-- Viewer mode -->
   <div class="viewer-layout">
-    <!-- Board side -->
     <div class="board-side">
       <div class="player-label">
         <div class="player-dot player-dot-black"></div>
@@ -303,7 +500,7 @@
         onDrop={noop}
         onDragStart={noop}
         onDragEnd={noop}
-        pawnSlide={lastMove ? { from: lastMove.from, to: lastMove.to } : undefined}
+        pawnSlide={lastMoveSlide}
         readOnly={true}
         arrows={currentArrows}
       />
@@ -313,18 +510,17 @@
         <span class="player-name">{game.white}</span>
       </div>
 
-      <!-- Navigation controls -->
       <div class="nav-controls">
         <button
           class="nav-btn"
           onclick={goToStart}
-          disabled={currentMove === 0}
+          disabled={currentPath.length === 0}
           aria-label="Start"
         >&#x23EE;</button>
         <button
           class="nav-btn"
           onclick={goBack}
-          disabled={currentMove === 0}
+          disabled={currentPath.length === 0}
           aria-label="Back"
         >&#x25C0;</button>
         <button
@@ -335,25 +531,30 @@
         <button
           class="nav-btn"
           onclick={goForward}
-          disabled={currentMove >= totalMoves}
+          disabled={!canGoForward}
           aria-label="Forward"
         >&#x25B6;</button>
         <button
           class="nav-btn"
           onclick={goToEnd}
-          disabled={currentMove >= totalMoves}
+          disabled={!canGoForward}
           aria-label="End"
         >&#x23ED;</button>
       </div>
 
-      <!-- Test button -->
+      <div class="sub-controls">
+        <label class="variation-toggle">
+          <input type="checkbox" bind:checked={pauseOnVariations} />
+          Pause at variations
+        </label>
+      </div>
+
       <div class="test-btn-wrap">
         <button class="btn-test" onclick={startTestMode}>
           Test Yourself
         </button>
       </div>
 
-      <!-- Move comment -->
       <div class="comment-area">
         {#if currentComment}
           <p class="comment-text">{currentComment}</p>
@@ -361,7 +562,6 @@
       </div>
     </div>
 
-    <!-- Move list side -->
     <div class="move-list-side">
       <div class="game-info">
         <span class="game-event">{game.event}</span>
@@ -371,25 +571,57 @@
 
       <div class="move-list" bind:this={moveListEl}>
         <div class="move-grid">
-          {#each movePairs as pair, i}
+          {#each movePairs as pair}
             <span class="move-num">{pair.num}.</span>
-            <button
-              class={['move-btn', currentMove === i * 2 + 1 && 'move-active']}
-              data-active={currentMove === i * 2 + 1}
-              onclick={() => { currentMove = i * 2 + 1; }}
-            >
-              {pair.white}
-            </button>
-            {#if pair.black}
+            {#if pair.white}
               <button
-                class={['move-btn', currentMove === i * 2 + 2 && 'move-active']}
-                data-active={currentMove === i * 2 + 2}
-                onclick={() => { currentMove = i * 2 + 2; }}
+                class={['move-btn', isActivePath(pair.white.path) && 'move-active', isOnCurrentPath(pair.white.path) && !isActivePath(pair.white.path) && 'move-on-path']}
+                data-active={isActivePath(pair.white.path)}
+                onclick={() => goToNode(pair.white!.path)}
               >
-                {pair.black}
+                {pair.white.node.san}{pair.white.node.nag ?? ''}
               </button>
             {:else}
               <span></span>
+            {/if}
+
+            {#if pair.variationsAfterWhite.length > 0}
+              {#if !pair.black}
+                <span></span>
+              {/if}
+              {#each pair.variationsAfterWhite as variation}
+                <span class="variation-row">({#each variation.nodes as vn, vi}{#if vi > 0}{' '}{/if}<button
+                  class={['var-move-btn', isActivePath(vn.path) && 'move-active']}
+                  data-active={isActivePath(vn.path)}
+                  onclick={() => goToNode(vn.path)}
+                >{formatVariationSan(vn)}</button>{/each})</span>
+              {/each}
+            {/if}
+
+            {#if pair.black}
+              {#if pair.variationsAfterWhite.length > 0}
+                <span class="move-num">{pair.num}.</span>
+                <span class="move-ellipsis">...</span>
+              {/if}
+              <button
+                class={['move-btn', isActivePath(pair.black.path) && 'move-active', isOnCurrentPath(pair.black.path) && !isActivePath(pair.black.path) && 'move-on-path']}
+                data-active={isActivePath(pair.black.path)}
+                onclick={() => goToNode(pair.black!.path)}
+              >
+                {pair.black.node.san}{pair.black.node.nag ?? ''}
+              </button>
+            {:else if pair.variationsAfterWhite.length === 0}
+              <span></span>
+            {/if}
+
+            {#if pair.variationsAfterBlack.length > 0}
+              {#each pair.variationsAfterBlack as variation}
+                <span class="variation-row">({#each variation.nodes as vn, vi}{#if vi > 0}{' '}{/if}<button
+                  class={['var-move-btn', isActivePath(vn.path) && 'move-active']}
+                  data-active={isActivePath(vn.path)}
+                  onclick={() => goToNode(vn.path)}
+                >{formatVariationSan(vn)}</button>{/each})</span>
+              {/each}
             {/if}
           {/each}
         </div>
@@ -557,6 +789,26 @@
     padding-right: 1.5rem;
   }
 
+  /* --- Sub controls --- */
+  .sub-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  .variation-toggle {
+    font-size: 0.75rem;
+    color: var(--text-faint, #666);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .variation-toggle input {
+    cursor: pointer;
+  }
+
   /* --- Test yourself button --- */
   .test-btn-wrap {
     display: flex;
@@ -669,11 +921,50 @@
     font-weight: 700;
   }
 
+  .move-on-path {
+    color: var(--foreground, #f0e6cc);
+  }
+
+  .move-ellipsis {
+    color: var(--text-faint, #666);
+    padding: 0.125rem 0.375rem;
+  }
+
   .game-result {
     text-align: center;
     font-size: 0.875rem;
     font-weight: 700;
     color: var(--text-muted, #888);
     margin-top: 0.5rem;
+  }
+
+  /* --- Variation rows --- */
+  .variation-row {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+    color: var(--text-muted, #888);
+    padding: 0.125rem 0.25rem 0.125rem 2.25rem;
+  }
+
+  .var-move-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted, #888);
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0.0625rem 0.125rem;
+    border-radius: 0.125rem;
+    transition: background-color 0.15s;
+  }
+
+  .var-move-btn:hover {
+    background: var(--btn-bg, #2a2a2a);
+    color: inherit;
+  }
+
+  .var-move-btn.move-active {
+    background: var(--btn-hover, #3a3a3a);
+    color: inherit;
+    font-weight: 700;
   }
 </style>
