@@ -3,7 +3,7 @@
   import { CATEGORIES, getPuzzlesForPiece, type CategoryInfo } from '$lib/puzzles';
   import { progressState, getPuzzleProgress } from '$lib/state/progress-store';
 
-  const PRACTICE_KEYS = ['checkmate', 'tactics', 'endings'];
+  const PRACTICE_KEYS = ['checkmate', 'tactics', 'endings', 'advanced-endings'];
   let cats = $derived(CATEGORIES.filter(c => PRACTICE_KEYS.includes(c.key)));
 
   function getSubStats(subKey: string) {

@@ -140,8 +140,23 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "endings-kqk", name: "Queen vs King", description: "Deliver checkmate with King + Queen.", icon: "/pieces/wQ.svg" },
       { key: "endings-krrk", name: "2 Rooks vs King", description: "Deliver checkmate with King + 2 Rooks.", icon: "/pieces/wR.svg" },
       { key: "endings-krk", name: "Rook vs King", description: "Deliver checkmate with King + Rook.", icon: "/pieces/wR.svg" },
+    ],
+  },
+  {
+    key: "advanced-endings",
+    name: "Advanced Endings",
+    description: "Harder endgame techniques and concepts.",
+    icon: "/pieces/wK.svg",
+    subcategories: [
       { key: "endings-kbbk", name: "2 Bishops vs King", description: "Deliver checkmate with King + 2 Bishops.", icon: "/pieces/wB.svg" },
       { key: "endings-kbnk", name: "Bishop + Knight vs King", description: "Deliver checkmate with King + Bishop + Knight.", icon: "/pieces/wN.svg" },
+      { key: "endings-lucena", name: "Lucena Position", description: "Build a bridge to promote your rook pawn.", icon: "/pieces/wR.svg", comingSoon: true },
+      { key: "endings-philidor", name: "Philidor Position", description: "Hold the draw with your rook.", icon: "/pieces/wR.svg", comingSoon: true },
+      { key: "endings-opposition", name: "Opposition", description: "Use your king to control key squares.", icon: "/pieces/wK.svg", comingSoon: true },
+      { key: "endings-zugzwang", name: "Zugzwang", description: "Put your opponent in a position where any move loses.", icon: "/pieces/wK.svg", comingSoon: true },
+      { key: "endings-reti", name: "Réti Study", description: "The king chases two pawns at once.", icon: "/pieces/wK.svg", comingSoon: true },
+      { key: "endings-wrong-bishop", name: "Wrong Bishop", description: "Why a rook pawn + wrong-color bishop is a draw.", icon: "/pieces/wB.svg", comingSoon: true },
+      { key: "endings-pawn-races", name: "Pawn Races", description: "Count tempi — who promotes first?", icon: "/pieces/wP.svg", comingSoon: true },
     ],
   },
   {

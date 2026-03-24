@@ -99,9 +99,11 @@
     }
   });
 
+  const ADVANCED_ENDINGS = ['endings-kbbk', 'endings-kbnk', 'endings-lucena', 'endings-philidor', 'endings-opposition', 'endings-zugzwang', 'endings-reti', 'endings-wrong-bishop', 'endings-pawn-races'];
   let parentCategory = $derived(
     piece.startsWith('checkmate-') ? 'checkmate'
     : piece.startsWith('tactics-') ? 'tactics'
+    : ADVANCED_ENDINGS.includes(piece) ? 'advanced-endings'
     : piece.startsWith('endings-') ? 'endings'
     : piece.startsWith('blindfold-') ? 'blindfold'
     : null

@@ -63,7 +63,7 @@
 
   let dzStats = $derived(getPieceStats('danger-zones'));
 
-  const PRACTICE_KEYS = ['checkmate', 'tactics', 'endings'];
+  const PRACTICE_KEYS = ['checkmate', 'tactics', 'endings', 'advanced-endings'];
   let practiceCats = $derived(CATEGORIES.filter(c => PRACTICE_KEYS.includes(c.key)));
 
   function getCategoryStats(cat: CategoryInfo) {
