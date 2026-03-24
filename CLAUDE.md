@@ -169,6 +169,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - The user often makes hand-edits to puzzle files while Claude works — always `git diff --stat` before committing and include their changed files
 - When pushing fails due to remote changes, `git pull --rebase` then push again
 - Do NOT try to programmatically verify checkmate positions — push and let the user test in-browser
+- Claude generates PGNs from memory and they often contain errors (wrong moves mid-game). Always flag generated PGNs as needing user verification. Major chess databases (chessgames.com, Wikipedia, 365chess) block WebFetch (403), but smaller sites may work. If a PGN fails parsing, diagnose the exact failing move and let the user fix it rather than burning tokens on speculative web searches
 - PGN annotations: `{comments}`, NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`). Lichess color convention: G=green, R=red, Y=yellow, B=blue
 
 ## Puzzle Authoring Notes
