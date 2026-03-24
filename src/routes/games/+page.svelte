@@ -3,7 +3,7 @@
 </script>
 
 <main class="page">
-  <a href="/" class="back-link">&larr; Back to home</a>
+  <a href="/study" class="back-link">&larr; Back to study</a>
 
   <h1 class="title">Model Games</h1>
   <p class="subtitle">Study famous games move by move.</p>

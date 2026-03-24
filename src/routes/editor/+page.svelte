@@ -3,7 +3,7 @@
 </script>
 
 <main class="page">
-  <a href="/" class="back-link">&larr; Back to home</a>
+  <a href="/study" class="back-link">&larr; Back to study</a>
   <PuzzleEditor />
 </main>
 

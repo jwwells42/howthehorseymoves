@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
   import { getPuzzlesForPiece, PIECES, getCategory } from '$lib/puzzles';
@@ -105,8 +106,23 @@
     : piece.startsWith('blindfold-') ? 'blindfold'
     : null
   );
-  let backHref = $derived(parentCategory ? `/learn/${parentCategory}` : '/');
-  let backLabel = $derived(parentCategory ? `Back to ${parentCategory}` : 'Back to home');
+  let backHref = $derived(
+    parentCategory === 'blindfold' ? '/vision'
+    : parentCategory ? `/learn/${parentCategory}`
+    : '/'
+  );
+  let backLabel = $derived(
+    parentCategory === 'blindfold' ? 'Back to vision'
+    : parentCategory ? `Back to ${parentCategory}`
+    : 'Back to home'
+  );
+
+  // Redirect /learn/blindfold to /vision
+  $effect(() => {
+    if (piece === 'blindfold') {
+      goto('/vision', { replaceState: true });
+    }
+  });
 
   let displayName = $derived(pieceInfo?.name ?? puzzleSet?.name ?? 'Puzzles');
   let displayDescription = $derived(pieceInfo?.description ?? '');
@@ -203,19 +219,19 @@
 {:else if BlindfoldComponent}
   <!-- Blindfold trainer -->
   <main class={['page', piece !== 'blindfold-guarding' && 'blindfold-page', piece === 'blindfold-guarding' && 'blindfold-wide']}>
-    <a href="/learn/blindfold" class="back-link">&larr; Back to blindfold</a>
+    <a href="/vision" class="back-link">&larr; Back to vision</a>
     <BlindfoldComponent />
   </main>
 {:else if blindfoldMateMatch}
   <!-- Blindfold mate trainer -->
   <main class="page blindfold-page">
-    <a href="/learn/blindfold" class="back-link">&larr; Back to blindfold</a>
+    <a href="/vision" class="back-link">&larr; Back to vision</a>
     <BlindfoldMate type={blindfoldMateMatch[1] as MateEndgameType} />
   </main>
 {:else if category}
   <!-- Category page with subcategories -->
   <main class="page">
-    <a href="/" class="back-link">&larr; Back to home</a>
+    <a href="/practice" class="back-link">&larr; Back to practice</a>
 
     <div class="page-header">
       <img src={category.icon} alt={category.name} class="header-icon" />

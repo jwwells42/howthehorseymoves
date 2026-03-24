@@ -19,7 +19,7 @@
 </script>
 
 <main class="page">
-  <a href="/" class="back-link">&larr; Back to home</a>
+  <a href="/study" class="back-link">&larr; Back to study</a>
 
   <h1>Opening Repertoire</h1>
   <p class="subtitle">Learn opening lines move by move.</p>
