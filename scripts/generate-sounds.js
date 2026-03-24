@@ -87,11 +87,11 @@ function offset(samples, delaySec) {
   return out;
 }
 
-// Move: wood tap — short noise burst + mid-freq ping
+// Move: soft wooden thud — sine tap, minimal noise
 const moveSound = mix(
-  noise(0.06, 0.4),
-  sine(800, 0.05, 0.3),
-  sine(400, 0.04, 0.15),
+  noise(0.03, 0.12),
+  sine(440, 0.07, 0.35),
+  sine(220, 0.05, 0.2),
 );
 
 // Correct: bright ascending two-note chime (C5 → E5)
