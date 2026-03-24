@@ -6,6 +6,7 @@
 
   let coordStars = $state(0);
   let howToWinStars = $state(0);
+  let showBasics = $state(true);
   let showIntermediate = $state(false);
   let showAdvanced = $state(false);
 
@@ -113,20 +114,21 @@
 
   <!-- Basics -->
   <div class="section-header">
-    <div class="section-title-row">
+    <button class="section-toggle" onclick={() => showBasics = !showBasics}>
       <h2>Basics</h2>
       <div class="divider"></div>
-    </div>
+      <span class="toggle-label">{showBasics ? 'Hide' : 'Show'}</span>
+    </button>
     <p class="section-subtitle">Learn how each piece moves</p>
   </div>
 
-  {#if continueTarget}
+  {#if showBasics && continueTarget}
     <a href="/learn/{continueTarget.piece}/{continueTarget.puzzleId}" class="continue-btn">
       Continue: {continueTarget.label}
     </a>
   {/if}
 
-  <div class="grid">
+  <div class={['grid', !showBasics && 'hidden']}>
     {#each PIECES as piece, idx}
       {@const stats = getPieceStats(piece.key)}
       <a href="/learn/{piece.key}" class={['card', piece.key === upNextPieceKey && 'up-next']}>
@@ -218,7 +220,7 @@
   </div>
 
   <!-- Celebration banner -->
-  {#if allPieces3Star && coordStars >= 3}
+  {#if showBasics && allPieces3Star && coordStars >= 3}
     <div class="celebration">
       <div class="horsey-x">
         <div class="horsey-y">
