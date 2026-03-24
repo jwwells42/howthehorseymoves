@@ -141,6 +141,7 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "endings-krrk", name: "2 Rooks vs King", description: "Deliver checkmate with King + 2 Rooks.", icon: "/pieces/wR.svg" },
       { key: "endings-krk", name: "Rook vs King", description: "Deliver checkmate with King + Rook.", icon: "/pieces/wR.svg" },
       { key: "endings-kbbk", name: "2 Bishops vs King", description: "Deliver checkmate with King + 2 Bishops.", icon: "/pieces/wB.svg" },
+      { key: "endings-kbnk", name: "Bishop + Knight vs King", description: "Deliver checkmate with King + Bishop + Knight.", icon: "/pieces/wN.svg" },
     ],
   },
   {

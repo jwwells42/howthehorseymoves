@@ -21,7 +21,7 @@ import {
 
 /* ── Types ───────────────────────────────────────── */
 
-export type MateEndgameType = "kqk" | "krrk" | "krk" | "kbbk";
+export type MateEndgameType = "kqk" | "krrk" | "krk" | "kbbk" | "kbnk";
 
 export const ENDGAME_INFO: Record<
   MateEndgameType,
@@ -46,6 +46,11 @@ export const ENDGAME_INFO: Record<
     name: "2 Bishops vs King",
     description: "Deliver checkmate with King + 2 Bishops.",
     icon: "/pieces/wB.svg",
+  },
+  kbnk: {
+    name: "Bishop + Knight vs King",
+    description: "Deliver checkmate with King + Bishop + Knight.",
+    icon: "/pieces/wN.svg",
   },
 };
 
@@ -177,6 +182,17 @@ export function generatePosition(type: MateEndgameType): PiecePlacement[] {
         if (!b2) { ok = false; } else {
           used.add(b2);
           whites.push({ piece: "B", color: "w", square: b2 });
+        }
+      }
+    } else if (type === "kbnk") {
+      const b = pickUnused(used);
+      if (!b) { ok = false; } else {
+        used.add(b);
+        whites.push({ piece: "B", color: "w", square: b });
+        const n = pickUnused(used);
+        if (!n) { ok = false; } else {
+          used.add(n);
+          whites.push({ piece: "N", color: "w", square: n });
         }
       }
     }

@@ -48,9 +48,9 @@
   };
 
   let endgame = $derived(ENDGAME_POSITIONS[piece]);
-  let mateEndgameMatch = $derived(piece.match(/^endings-(kqk|krrk|krk|kbbk)$/));
+  let mateEndgameMatch = $derived(piece.match(/^endings-(kqk|krrk|krk|kbbk|kbnk)$/));
   let howToWinMatch = $derived(piece.match(/^how-to-win-(check|checkmate|stalemate)$/));
-  let blindfoldMateMatch = $derived(piece.match(/^blindfold-mate-(kqk|krrk|krk|kbbk)$/));
+  let blindfoldMateMatch = $derived(piece.match(/^blindfold-mate-(kqk|krrk|krk|kbbk|kbnk)$/));
 
   const BLINDFOLD_ROUTES: Record<string, any> = {
     'blindfold-color': ColorOfSquare,
