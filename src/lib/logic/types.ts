@@ -98,3 +98,21 @@ export function parseFen(fen: string): {
 
   return { placements, castlingRights, enPassantSquare };
 }
+
+/** Create a string key for a board position (pieces + castling + en passant + side to move). */
+export function boardToKey(board: BoardState, colorToMove: PieceColor): string {
+  const parts: string[] = [];
+  const sorted = [...board.pieces.entries()].sort(([a], [b]) => a.localeCompare(b));
+  for (const [sq, p] of sorted) {
+    parts.push(`${sq}${p.color}${p.piece}`);
+  }
+  if (board.castlingRights) {
+    const cr = board.castlingRights;
+    parts.push(`c${cr.K ? "K" : ""}${cr.Q ? "Q" : ""}${cr.k ? "k" : ""}${cr.q ? "q" : ""}`);
+  }
+  if (board.enPassantSquare) {
+    parts.push(`e${board.enPassantSquare}`);
+  }
+  parts.push(colorToMove);
+  return parts.join("|");
+}

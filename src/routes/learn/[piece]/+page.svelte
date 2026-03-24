@@ -7,6 +7,7 @@
   import { progressState, isPuzzleUnlocked, getPuzzleProgress } from '$lib/state/progress-store';
   import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
   import MateTrainer from '$lib/components/endgame/MateTrainer.svelte';
+  import DrawTrainer from '$lib/components/endgame/DrawTrainer.svelte';
   import type { MateEndgameType } from '$lib/logic/endgame';
   import type { PiecePlacement } from '$lib/logic/types';
   import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from '$lib/components/lessons/how-to-win-data';
@@ -47,7 +48,24 @@
     },
   };
 
+  // "Hold the draw" endgame positions (student plays Black, bot plays White)
+  const DRAW_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[]; storageKey: string }> = {
+    'endings-philidor': {
+      title: 'Philidor Position',
+      instruction: 'Hold the draw! Keep your rook active.',
+      placements: [
+        { piece: 'K', color: 'w', square: 'e6' },
+        { piece: 'P', color: 'w', square: 'e5' },
+        { piece: 'R', color: 'w', square: 'a1' },
+        { piece: 'K', color: 'b', square: 'e8' },
+        { piece: 'R', color: 'b', square: 'a6' },
+      ],
+      storageKey: 'draw-philidor-best-stars',
+    },
+  };
+
   let endgame = $derived(ENDGAME_POSITIONS[piece]);
+  let drawEndgame = $derived(DRAW_POSITIONS[piece]);
   let mateEndgameMatch = $derived(piece.match(/^endings-(kqk|krrk|krk|kbbk|kbnk)$/));
   let howToWinMatch = $derived(piece.match(/^how-to-win-(check|checkmate|stalemate)$/));
   let blindfoldMateMatch = $derived(piece.match(/^blindfold-mate-(kqk|krrk|krk|kbbk|kbnk)$/));
@@ -143,6 +161,17 @@
   <main class="page">
     <a href="/learn/endings" class="back-link">&larr; Back to endings</a>
     <MateTrainer type={mateEndgameMatch[1] as MateEndgameType} />
+  </main>
+{:else if drawEndgame}
+  <!-- Draw endgame trainer (Philidor, etc.) -->
+  <main class="page">
+    <a href="/learn/advanced-endings" class="back-link">&larr; Back to advanced endings</a>
+    <DrawTrainer
+      title={drawEndgame.title}
+      instruction={drawEndgame.instruction}
+      placements={drawEndgame.placements}
+      storageKey={drawEndgame.storageKey}
+    />
   </main>
 {:else if piece === 'how-to-win'}
   <!-- How to Win hub page -->

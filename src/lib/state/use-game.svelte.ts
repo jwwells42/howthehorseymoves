@@ -1,4 +1,5 @@
 import type { BoardState, PieceKind, PieceColor, SquareId, PiecePlacement } from '$lib/logic/types';
+import { boardToKey } from '$lib/logic/types';
 import { getLegalMoves, isInCheck, isCheckmate, isStalemate } from '$lib/logic/attacks';
 import { pickBotMove, type BotLevel } from '$lib/logic/bot';
 import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
@@ -10,7 +11,7 @@ export interface MoveRecord {
   to: SquareId;
 }
 
-type GameResult = 'playing' | 'checkmate-white' | 'checkmate-black' | 'stalemate';
+type GameResult = 'playing' | 'checkmate-white' | 'checkmate-black' | 'stalemate' | 'threefold';
 
 const STARTING_POSITION: PiecePlacement[] = [
   // White
@@ -120,14 +121,16 @@ function toSan(
 }
 
 export function createGameState(botLevel: BotLevel = 'random') {
-  let board = $state<BoardState>(buildStartingBoard());
+  const startBoard = buildStartingBoard();
+  let board = $state<BoardState>(startBoard);
   let selectedSquare = $state<SquareId | null>(null);
   let result = $state<GameResult>('playing');
   let inCheck = $state(false);
   let botSlide = $state<SlideAnimation | null>(null);
   let waitingForBot = $state(false);
   let moveHistory = $state<MoveRecord[]>([]);
-  let positions = $state<BoardState[]>([buildStartingBoard()]);
+  let positions = $state<BoardState[]>([startBoard]);
+  let positionCounts = $state<Map<string, number>>(new Map([[boardToKey(startBoard, 'w'), 1]]));
 
   let validMoves = $derived.by(() => {
     if (!selectedSquare) return [];
@@ -140,6 +143,12 @@ export function createGameState(botLevel: BotLevel = 'random') {
     }
     if (isStalemate(colorToMove, boardState)) {
       return 'stalemate';
+    }
+    const key = boardToKey(boardState, colorToMove);
+    const count = positionCounts.get(key) ?? 0;
+    positionCounts.set(key, count + 1);
+    if (count + 1 >= 3) {
+      return 'threefold';
     }
     return 'playing';
   }
@@ -350,14 +359,16 @@ export function createGameState(botLevel: BotLevel = 'random') {
   }
 
   function newGame() {
-    board = buildStartingBoard();
+    const fresh = buildStartingBoard();
+    board = fresh;
     selectedSquare = null;
     result = 'playing';
     inCheck = false;
     botSlide = null;
     waitingForBot = false;
     moveHistory = [];
-    positions = [buildStartingBoard()];
+    positions = [fresh];
+    positionCounts = new Map([[boardToKey(fresh, 'w'), 1]]);
   }
 
   return {

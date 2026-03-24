@@ -56,6 +56,7 @@
       case 'checkmate-white': return 'Checkmate \u2014 you win!';
       case 'checkmate-black': return 'Checkmate \u2014 you lose!';
       case 'stalemate': return 'Stalemate \u2014 it\u2019s a draw!';
+      case 'threefold': return 'Threefold repetition \u2014 it\u2019s a draw!';
       default: return null;
     }
   });
