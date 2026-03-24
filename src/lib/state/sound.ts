@@ -22,95 +22,17 @@ export function toggleMuted(): void {
   });
 }
 
-// ── Web Audio synthesis ──────────────────────────
+// ── Audio file playback ──────────────────────────
 
-let ctx: AudioContext | null = null;
-
-function getCtx(): AudioContext | null {
-  try {
-    if (!ctx) {
-      ctx = new AudioContext();
-    }
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-    // Only play if context is running
-    if (ctx.state !== 'running') return null;
-    return ctx;
-  } catch {
-    return null;
-  }
-}
-
-// Warm up the AudioContext on the very first user interaction
-// so subsequent playSound calls have a running context.
-let warmedUp = false;
-function warmUp() {
-  if (warmedUp) return;
-  warmedUp = true;
-  try {
-    if (!ctx) ctx = new AudioContext();
-    if (ctx.state === 'suspended') ctx.resume();
-  } catch { /* ignore */ }
-}
-
-if (typeof document !== 'undefined') {
-  document.addEventListener('pointerdown', warmUp, { once: true });
-  document.addEventListener('keydown', warmUp, { once: true });
-}
-
-function tone(
-  freq: number,
-  duration: number,
-  type: OscillatorType = 'sine',
-  volume = 0.5,
-  delay = 0,
-) {
-  const c = getCtx();
-  if (!c) return;
-  const osc = c.createOscillator();
-  const gain = c.createGain();
-  osc.type = type;
-  osc.frequency.value = freq;
-  const t = c.currentTime + delay;
-  gain.gain.setValueAtTime(volume, t);
-  gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-  osc.connect(gain);
-  gain.connect(c.destination);
-  osc.start(t);
-  osc.stop(t + duration);
-}
-
-const SOUNDS = {
-  move() {
-    // Wood tap
-    tone(600, 0.08, 'triangle', 0.5);
-    tone(300, 0.05, 'square', 0.15, 0.01);
-  },
-  correct() {
-    // Bright two-note chime
-    tone(523, 0.15, 'sine', 0.4);
-    tone(659, 0.2, 'sine', 0.4, 0.12);
-  },
-  wrong() {
-    // Low buzz
-    tone(180, 0.25, 'square', 0.2);
-  },
-  stars() {
-    // Ascending three-note fanfare
-    tone(523, 0.2, 'sine', 0.4);
-    tone(659, 0.2, 'sine', 0.4, 0.15);
-    tone(784, 0.3, 'sine', 0.5, 0.3);
-  },
-};
-
-export type SoundName = keyof typeof SOUNDS;
+export type SoundName = 'move' | 'correct' | 'wrong' | 'stars';
 
 export function playSound(name: SoundName) {
   if (currentMuted) return;
   try {
-    SOUNDS[name]();
+    const audio = new Audio(`/sounds/${name}.wav`);
+    audio.volume = 0.6;
+    audio.play().catch(() => {});
   } catch {
-    // AudioContext not available — silently ignore
+    // Audio not available
   }
 }
