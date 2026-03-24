@@ -26,20 +26,48 @@ export function toggleMuted(): void {
 
 let ctx: AudioContext | null = null;
 
-function getCtx(): AudioContext {
-  if (!ctx) ctx = new AudioContext();
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-  return ctx;
+function getCtx(): AudioContext | null {
+  try {
+    if (!ctx) {
+      ctx = new AudioContext();
+    }
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    // Only play if context is running
+    if (ctx.state !== 'running') return null;
+    return ctx;
+  } catch {
+    return null;
+  }
+}
+
+// Warm up the AudioContext on the very first user interaction
+// so subsequent playSound calls have a running context.
+let warmedUp = false;
+function warmUp() {
+  if (warmedUp) return;
+  warmedUp = true;
+  try {
+    if (!ctx) ctx = new AudioContext();
+    if (ctx.state === 'suspended') ctx.resume();
+  } catch { /* ignore */ }
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', warmUp, { once: true });
+  document.addEventListener('keydown', warmUp, { once: true });
 }
 
 function tone(
   freq: number,
   duration: number,
   type: OscillatorType = 'sine',
-  volume = 0.25,
+  volume = 0.5,
   delay = 0,
 ) {
   const c = getCtx();
+  if (!c) return;
   const osc = c.createOscillator();
   const gain = c.createGain();
   osc.type = type;
@@ -55,24 +83,24 @@ function tone(
 
 const SOUNDS = {
   move() {
-    // Short woody tap
-    tone(800, 0.06, 'triangle', 0.3);
-    tone(400, 0.04, 'square', 0.08, 0.01);
+    // Wood tap
+    tone(600, 0.08, 'triangle', 0.5);
+    tone(300, 0.05, 'square', 0.15, 0.01);
   },
   correct() {
     // Bright two-note chime
-    tone(523, 0.12, 'sine', 0.25);
-    tone(659, 0.18, 'sine', 0.25, 0.1);
+    tone(523, 0.15, 'sine', 0.4);
+    tone(659, 0.2, 'sine', 0.4, 0.12);
   },
   wrong() {
-    // Low gentle buzz
-    tone(180, 0.2, 'square', 0.12);
+    // Low buzz
+    tone(180, 0.25, 'square', 0.2);
   },
   stars() {
     // Ascending three-note fanfare
-    tone(523, 0.15, 'sine', 0.25);
-    tone(659, 0.15, 'sine', 0.25, 0.12);
-    tone(784, 0.25, 'sine', 0.3, 0.24);
+    tone(523, 0.2, 'sine', 0.4);
+    tone(659, 0.2, 'sine', 0.4, 0.15);
+    tone(784, 0.3, 'sine', 0.5, 0.3);
   },
 };
 
