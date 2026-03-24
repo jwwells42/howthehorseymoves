@@ -7,6 +7,7 @@ import type { Puzzle, RoutePuzzle, TacticPuzzle, ConversionPuzzle } from '$lib/p
 import { parsePuzzleMoves, type MoveNode, type SquareHighlight } from '$lib/puzzles/parse-moves';
 import { pickBotMove } from '$lib/logic/bot';
 import { completePuzzle as saveComplete } from '$lib/state/progress-store';
+import { playSound } from '$lib/state/sound';
 
 export interface SlideAnimation {
   piece: PieceKind;
@@ -122,6 +123,7 @@ function createRouteState(puzzle: RoutePuzzle) {
     selectedSquare = null;
     const newMoveCount = moveCount + 1;
     moveCount = newMoveCount;
+    playSound('move');
 
     if (puzzle.stars.includes(to) && !reachedTargets.includes(to)) {
       const newReached = [...reachedTargets, to];
@@ -129,6 +131,7 @@ function createRouteState(puzzle: RoutePuzzle) {
       if (newReached.length === puzzle.stars.length) {
         isComplete = true;
         saveComplete(puzzle.id, calculateStars(newMoveCount), newMoveCount);
+        playSound('stars');
       }
     }
   }
@@ -264,6 +267,7 @@ function createTacticState(puzzle: TacticPuzzle) {
       currentChildren = nextMove.children;
       currentArrows = nextMove.arrows ?? [];
       currentHighlights = nextMove.highlights ?? [];
+      playSound('move');
 
       setTimeout(() => {
         opponentSlide = null;
@@ -272,6 +276,7 @@ function createTacticState(puzzle: TacticPuzzle) {
         if (currentChildren.length === 0) {
           isComplete = true;
           saveComplete(puzzle.id, calculateStars(moveCount), moveCount);
+          playSound('stars');
         } else {
           autoPlayOpponent();
         }
@@ -352,6 +357,7 @@ function createTacticState(puzzle: TacticPuzzle) {
     if (!match) {
       wrongMoveSquare = to;
       selectedSquare = null;
+      playSound('wrong');
       setTimeout(() => (wrongMoveSquare = null), 600);
       return;
     }
@@ -363,10 +369,12 @@ function createTacticState(puzzle: TacticPuzzle) {
     currentChildren = match.children;
     currentArrows = match.arrows ?? [];
     currentHighlights = match.highlights ?? [];
+    playSound('move');
 
     if (match.children.length === 0) {
       isComplete = true;
       saveComplete(puzzle.id, calculateStars(newMoveCount), newMoveCount);
+      playSound('stars');
       return;
     }
 
@@ -550,6 +558,7 @@ function createConversionState(puzzle: ConversionPuzzle) {
 
       const newBoard: BoardState = { pieces: newPieces };
       board = newBoard;
+      playSound('move');
 
       if (isCheckmate('w', newBoard)) {
         setTimeout(() => {
@@ -581,10 +590,12 @@ function createConversionState(puzzle: ConversionPuzzle) {
     selectedSquare = null;
     const newMoveCount = moveCount + 1;
     moveCount = newMoveCount;
+    playSound('move');
 
     if (puzzle.goal === 'checkmate' && isCheckmate('b', newBoard)) {
       isComplete = true;
       saveComplete(puzzle.id, calculateStars(newMoveCount), newMoveCount);
+      playSound('stars');
     } else if (isStalemate('b', newBoard)) {
       stalemateTrigger = true;
     } else {

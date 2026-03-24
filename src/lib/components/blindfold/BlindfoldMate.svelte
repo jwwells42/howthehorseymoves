@@ -4,6 +4,7 @@
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
   import { type BoardState, type SquareId, type PieceKind, createBoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
+  import { playSound } from '$lib/state/sound';
   import type { MateEndgameType } from '$lib/logic/endgame';
   import {
     ENDGAME_INFO,
@@ -188,11 +189,13 @@
     if (!validation.valid) {
       mistakes += 1;
       error = validation.reason ?? 'Invalid move';
+      playSound('wrong');
       return;
     }
 
     error = null;
     const newBoard = applyEndgameMove(board, from, to);
+    playSound('move');
     const whiteNotation = formatMoveNotation(board, from, to, newBoard, 'b');
 
     if (validation.checkmate) {
@@ -206,6 +209,7 @@
         localStorage.setItem(storageKey, s.toString());
         bestStars = s;
       }
+      playSound('stars');
       return;
     }
 

@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
   import {
     type BoardState,
     type SquareId,
@@ -131,6 +132,7 @@
       }
       updateCombinedStars();
       done = true;
+      playSound('stars');
     } else {
       goto(`/learn/how-to-win-${section}/${steps[stepIndex + 1].slug}`);
     }
@@ -156,6 +158,7 @@
         addMistake();
         wrongMoveSquare = to;
         selectedSquare = null;
+        playSound('wrong');
         setTimeout(() => { wrongMoveSquare = null; }, 600);
         return;
       }
@@ -164,6 +167,7 @@
         addMistake();
         wrongMoveSquare = to;
         selectedSquare = null;
+        playSound('wrong');
         setTimeout(() => { wrongMoveSquare = null; }, 600);
         return;
       }
@@ -173,6 +177,7 @@
         wrongMoveSquare = to;
         feedbackMessage = "That's stalemate \u2014 a draw!";
         selectedSquare = null;
+        playSound('wrong');
         setTimeout(() => {
           wrongMoveSquare = null;
           feedbackMessage = null;
@@ -183,6 +188,7 @@
         addMistake();
         wrongMoveSquare = to;
         selectedSquare = null;
+        playSound('wrong');
         setTimeout(() => { wrongMoveSquare = null; }, 600);
         return;
       }
@@ -191,6 +197,7 @@
     board = newBoard;
     selectedSquare = null;
     solved = true;
+    playSound('correct');
   }
 
   /* ── Click & drag handlers ─────────────────────────────── */

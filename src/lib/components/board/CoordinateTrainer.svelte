@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { FILES, RANKS, type SquareId } from '$lib/logic/types';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const SQUARE_SIZE = 100;
   const BOARD_SIZE = SQUARE_SIZE * 8;
@@ -89,6 +90,7 @@
       bestStars = stars;
       localStorage.setItem('coord-best-stars', String(stars));
     }
+    if (stars > 0) playSound('stars');
   }
 
   function handleSquareClick(sq: SquareId) {
@@ -101,9 +103,11 @@
       flashColor = CORRECT_COLOR;
       score += 1;
       target = randomSquare(target);
+      playSound('correct');
     } else {
       flashSquare = sq;
       flashColor = WRONG_COLOR;
+      playSound('wrong');
     }
 
     flashRef = setTimeout(() => {

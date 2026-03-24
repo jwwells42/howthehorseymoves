@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const LIGHT = '#d4c4a0';
   const DARK = '#7a9e6e';
@@ -143,6 +144,7 @@
     }
     totalCorrect += correctCount;
     totalPieces += position.length;
+    playSound(correctCount === position.length ? 'correct' : 'wrong');
     phase = 'result';
   }
 
@@ -154,6 +156,7 @@
         localStorage.setItem('blindfold-flash-best-stars', String(stars));
         bestStars = stars;
       }
+      if (stars > 0) playSound('stars');
       phase = 'done';
       return;
     }

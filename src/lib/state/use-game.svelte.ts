@@ -2,6 +2,7 @@ import type { BoardState, PieceKind, PieceColor, SquareId, PiecePlacement } from
 import { getLegalMoves, isInCheck, isCheckmate, isStalemate } from '$lib/logic/attacks';
 import { pickBotMove, type BotLevel } from '$lib/logic/bot';
 import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
+import { playSound } from '$lib/state/sound';
 
 export interface MoveRecord {
   san: string;
@@ -217,10 +218,12 @@ export function createGameState(botLevel: BotLevel = 'random') {
       moveHistory = [...moveHistory, { san, from: move.from, to: move.to }];
       positions = [...positions, newBoard];
       board = newBoard;
+      playSound('move');
 
       const gameResult = checkGameOver(newBoard, 'w');
       if (gameResult !== 'playing') {
         result = gameResult;
+        if (gameResult === 'checkmate-white') playSound('stars');
       }
       inCheck = gameResult === 'playing' && isInCheck('w', newBoard);
 
@@ -292,11 +295,13 @@ export function createGameState(botLevel: BotLevel = 'random') {
     positions = [...positions, newBoard];
     board = newBoard;
     selectedSquare = null;
+    playSound('move');
 
     const gameResult = checkGameOver(newBoard, 'b');
     if (gameResult !== 'playing') {
       result = gameResult;
       inCheck = false;
+      if (gameResult === 'checkmate-white') playSound('stars');
       return;
     }
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const KNIGHT_OFFSETS: [number, number][] = [
     [-2, -1], [-2, 1], [-1, -2], [-1, 2],
@@ -160,16 +161,19 @@
 
     if (!isValidSquare(sq)) {
       error = 'Not a valid square.';
+      playSound('wrong');
       return;
     }
 
     if (!isKnightMove(currentSquare, sq)) {
       error = `A knight can\u2019t reach ${sq} from ${currentSquare}.`;
+      playSound('wrong');
       return;
     }
 
     if (puzzle.danger.has(sq)) {
       error = `${sq} is attacked by the queen! \u2620`;
+      playSound('wrong');
       return;
     }
 
@@ -178,6 +182,9 @@
 
     if (sq === puzzle.target) {
       result = 'won';
+      playSound('stars');
+    } else {
+      playSound('move');
     }
   }
 

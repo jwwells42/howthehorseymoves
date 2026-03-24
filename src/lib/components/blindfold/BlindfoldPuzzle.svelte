@@ -4,6 +4,7 @@
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
   import { parseFen, createBoardState } from '$lib/logic/types';
   import { isCheckmate, getLegalMoves } from '$lib/logic/attacks';
+  import { playSound } from '$lib/state/sound';
   import type { BoardState, SquareId } from '$lib/logic/types';
 
   const noop = () => {};
@@ -104,9 +105,11 @@
       correct += 1;
       total += 1;
       phase = 'solved';
+      playSound('correct');
     } else {
       total += 1;
       phase = 'wrong';
+      playSound('wrong');
     }
   }
 
@@ -119,6 +122,7 @@
         localStorage.setItem('blindfold-puzzle-best-stars', String(stars));
         bestStars = stars;
       }
+      if (stars >= 1) playSound('stars');
       phase = 'done';
       return;
     }

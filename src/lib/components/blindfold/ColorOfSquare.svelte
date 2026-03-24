@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const GAME_DURATION = 30;
   const ALL_SQUARES: string[] = [];
@@ -99,6 +100,7 @@
     gameState = 'done';
 
     const s = getStars(score);
+    if (s > 0) playSound('stars');
     if (score > bestScore) {
       bestScore = score;
       localStorage.setItem('blindfold-color-best', String(score));
@@ -119,8 +121,10 @@
     if (correct) {
       score += 1;
       flash = 'correct';
+      playSound('correct');
     } else {
       flash = 'wrong';
+      playSound('wrong');
     }
     target = randomSquare();
     flashRef = setTimeout(() => { flash = null; }, 200);

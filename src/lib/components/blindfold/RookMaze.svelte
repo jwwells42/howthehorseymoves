@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const LIGHT = '#d4c4a0';
   const DARK = '#7a9e6e';
@@ -142,21 +143,25 @@
 
     if (!isValidSquare(sq)) {
       error = 'Not a valid square.';
+      playSound('wrong');
       return;
     }
 
     if (!isRookMove(currentSquare, sq)) {
       error = `A rook can\u2019t reach ${sq} from ${currentSquare} \u2014 must share a rank or file.`;
+      playSound('wrong');
       return;
     }
 
     if (puzzle.obstacles.has(sq)) {
       error = `${sq} is blocked by an obstacle!`;
+      playSound('wrong');
       return;
     }
 
     if (isBlocked(currentSquare, sq, puzzle.obstacles)) {
       error = `An obstacle is in the way between ${currentSquare} and ${sq}.`;
+      playSound('wrong');
       return;
     }
 
@@ -164,7 +169,10 @@
     route = [...route, sq];
 
     if (sq === puzzle.target) {
+      playSound('stars');
       result = 'won';
+    } else {
+      playSound('correct');
     }
   }
 

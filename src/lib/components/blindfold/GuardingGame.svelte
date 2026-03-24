@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const PIECE_TYPES = ['Q', 'N', 'R', 'B'] as const;
   type PT = (typeof PIECE_TYPES)[number];
@@ -188,8 +189,10 @@
       streak = s;
       if (s > peakStreak) peakStreak = s;
       persistBest(s);
+      playSound('correct');
     } else {
       streak = 0;
+      playSound('wrong');
     }
     phase = 'feedback';
   }
@@ -206,6 +209,7 @@
   }
 
   function giveUp() {
+    if (doneStars >= 1) playSound('stars');
     phase = 'done';
   }
 

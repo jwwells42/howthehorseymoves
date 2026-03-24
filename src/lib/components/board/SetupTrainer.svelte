@@ -47,6 +47,7 @@
   import { type BoardState, type PieceColor, RANKS } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   function mistakesToStars(m: number): number {
     if (m === 0) return 3;
@@ -168,6 +169,7 @@
     if (!target || target.piece !== pieceType) {
       mistakes += 1;
       wrongSquare = sq;
+      playSound('wrong');
       setTimeout(() => { wrongSquare = null; }, 400);
       return;
     }
@@ -176,6 +178,7 @@
     const newPlaced = new Set(placed);
     newPlaced.add(sq);
     placed = newPlaced;
+    playSound('correct');
 
     // Clear selection if no more of this type remain
     const remainingOfType = stage.piecesToPlace.filter(
@@ -202,6 +205,7 @@
             bestStars = stars;
           }
           phase = 'done';
+          playSound('stars');
         }, 600);
       }
     }

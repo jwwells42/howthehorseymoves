@@ -2,6 +2,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import { parsePgn } from '$lib/logic/pgn';
   import { getLegalMoves } from '$lib/logic/attacks';
+  import { playSound } from '$lib/state/sound';
   import type { ModelGame } from '$lib/games/types';
   import type { SquareId, PieceColor } from '$lib/logic/types';
   import type { Arrow } from '$lib/logic/pgn';
@@ -137,14 +138,17 @@
       if (next >= totalMoves) {
         testMoveIdx = next;
         testComplete = true;
+        playSound('stars');
       } else {
         testMoveIdx = next;
       }
       testSelected = null;
+      playSound('move');
     } else {
       // Wrong move — show hint arrow
       testHintArrow = { from: expected.from, to: expected.to, color: '#15803d' };
       testSelected = null;
+      playSound('wrong');
     }
   }
 

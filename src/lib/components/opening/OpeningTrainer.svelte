@@ -4,6 +4,7 @@
   import { getLegalMoves } from '$lib/logic/attacks';
   import type { Arrow } from '$lib/logic/pgn';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
+  import { playSound } from '$lib/state/sound';
   import {
     type Opening,
     type OpeningLine,
@@ -212,6 +213,7 @@
       const nextIdx = idx + 1;
       moveIdx = nextIdx;
       if (nextIdx > maxReachedIdx) maxReachedIdx = nextIdx;
+      playSound('move');
 
       setTimeout(() => {
         opponentSlide = null;
@@ -269,6 +271,7 @@
       const nextIdx = moveIdx + 1;
       moveIdx = nextIdx;
       if (nextIdx > maxReachedIdx) maxReachedIdx = nextIdx;
+      playSound('move');
 
       if (nextIdx >= currentLine.length) {
         lineComplete = true;
@@ -279,6 +282,7 @@
       wrongMoveSquare = to;
       showHint = true;
       selectedSquare = null;
+      playSound('wrong');
       setTimeout(() => (wrongMoveSquare = null), 600);
     }
   }

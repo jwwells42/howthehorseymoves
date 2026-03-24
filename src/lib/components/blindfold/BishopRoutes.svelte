@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const LIGHT = '#d4c4a0';
   const DARK = '#7a9e6e';
@@ -102,11 +103,13 @@
 
     if (!isValidSquare(sq)) {
       error = 'Not a valid square.';
+      playSound('wrong');
       return;
     }
 
     if (!isBishopMove(currentSquare, sq)) {
       error = `A bishop can\u2019t reach ${sq} from ${currentSquare}.`;
+      playSound('wrong');
       return;
     }
 
@@ -115,14 +118,19 @@
 
     if (sq === puzzle.target) {
       result = 'won';
+      playSound('stars');
+    } else {
+      playSound('correct');
     }
   }
 
   function handleImpossible() {
     if (!puzzle.possible) {
       result = 'correct-impossible';
+      playSound('stars');
     } else {
       error = "It IS possible! They\u2019re on the same color squares.";
+      playSound('wrong');
     }
   }
 

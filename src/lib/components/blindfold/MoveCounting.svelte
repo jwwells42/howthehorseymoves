@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const GAME_DURATION = 30;
   const LIGHT = '#d4c4a0';
@@ -174,6 +175,7 @@
     gameState = 'done';
 
     const s = getStars(score);
+    if (s > 0) playSound('stars');
     if (score > bestScore) {
       localStorage.setItem('blindfold-counting-best', String(score));
       bestScore = score;
@@ -203,8 +205,10 @@
     if (correct) {
       score += 1;
       flash = 'correct';
+      playSound('correct');
     } else {
       flash = 'wrong';
+      playSound('wrong');
     }
     input = '';
     question = generateQuestion();

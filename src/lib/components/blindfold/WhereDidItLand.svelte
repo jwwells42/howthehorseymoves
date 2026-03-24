@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const OPENINGS = [
     { name: 'Italian Game', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5'] },
@@ -194,6 +195,7 @@
     isCorrect = right;
     if (right) correct += 1;
     total += 1;
+    playSound(right ? 'correct' : 'wrong');
     phase = 'feedback';
   }
 
@@ -204,6 +206,7 @@
         localStorage.setItem('blindfold-landed-best-stars', String(stars));
         bestStars = stars;
       }
+      if (stars > 0) playSound('stars');
       phase = 'done';
       return;
     }

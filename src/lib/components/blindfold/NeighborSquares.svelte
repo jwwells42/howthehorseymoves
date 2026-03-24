@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const GAME_DURATION = 30;
   const LIGHT = '#d4c4a0';
@@ -130,6 +131,7 @@
     gameState = 'done';
 
     const s = getStars(score);
+    if (s > 0) playSound('stars');
     if (score > bestScore) {
       localStorage.setItem('blindfold-neighbors-best', String(score));
       bestScore = score;
@@ -165,22 +167,26 @@
 
     if (!isValidSquare(sq)) {
       error = 'Not a valid square.';
+      playSound('wrong');
       return;
     }
 
     if (entered.includes(sq)) {
       error = 'Already entered.';
+      playSound('wrong');
       return;
     }
 
     if (!neighbors.includes(sq)) {
       error = `${sq} is not adjacent to ${target}.`;
+      playSound('wrong');
       return;
     }
 
     error = null;
     const newEntered = [...entered, sq];
     entered = newEntered;
+    playSound('correct');
 
     if (newEntered.length === neighbors.length) {
       advanceToNext(newEntered);

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
 
   const KNIGHT_OFFSETS = [
     [-2, -1], [-2, 1], [-1, -2], [-1, 2],
@@ -107,19 +108,23 @@
 
     if (!isValidSquare(sq)) {
       error = 'Not a valid square.';
+      playSound('wrong');
       return;
     }
 
     if (!isKnightMove(currentSquare, sq)) {
       error = `A knight can\u2019t reach ${sq} from ${currentSquare}.`;
+      playSound('wrong');
       return;
     }
 
     error = null;
     route = [...route, sq];
+    playSound('correct');
 
     if (sq === puzzle.target) {
       result = 'won';
+      playSound('stars');
     }
   }
 

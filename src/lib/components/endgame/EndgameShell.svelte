@@ -1,6 +1,7 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
   import {
     type BoardState,
     type SquareId,
@@ -105,6 +106,7 @@
         to: move.to,
       };
       board = { pieces: newPieces };
+      playSound('move');
 
       setTimeout(() => {
         botSlide = null;
@@ -128,6 +130,7 @@
       selectedSquare = null;
       result = 'won';
       feedback = null;
+      playSound('stars');
       return;
     }
 
@@ -139,12 +142,14 @@
       mistakes += 1;
       feedback = 'That lets black draw \u2014 try again!';
       selectedSquare = null;
+      playSound('wrong');
       return;
     }
 
     board = newBoard;
     selectedSquare = null;
     feedback = null;
+    playSound('move');
     makeBotMove(newBoard);
   }
 

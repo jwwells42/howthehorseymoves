@@ -1,6 +1,7 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import { playSound } from '$lib/state/sound';
   import { type BoardState, type SquareId, createBoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import {
@@ -79,6 +80,7 @@
       };
       const newBoard = applyEndgameMove(currentBoard, move.from, move.to);
       board = newBoard;
+      playSound('move');
       setTimeout(() => {
         botSlide = null;
         waitingForBot = false;
@@ -94,6 +96,7 @@
       mistakes += 1;
       feedback = validation.reason ?? 'Invalid move';
       selectedSquare = null;
+      playSound('wrong');
       return;
     }
 
@@ -101,9 +104,11 @@
     board = newBoard;
     selectedSquare = null;
     feedback = null;
+    playSound('move');
 
     if (validation.checkmate) {
       result = 'won';
+      playSound('stars');
       const s = mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
       const prev = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
       if (s > prev) {
