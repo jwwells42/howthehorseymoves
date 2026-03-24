@@ -2,6 +2,16 @@ import type { ModelGame } from "./types";
 
 export const GAMES: ModelGame[] = [
   {
+    id: "fools-mate",
+    white: "NN",
+    black: "NN",
+    event: "Fool's Mate",
+    year: 1500,
+    result: "0-1",
+    pgn: "1.f3 e5 2.g4 Qh4# 0-1",
+    description: "Fool's Mate — the shortest possible checkmate. White weakens the king's diagonal and Black punishes immediately.",
+  },
+  {
     id: "greco-mate",
     white: "Gioacchino Greco",
     black: "NN",
