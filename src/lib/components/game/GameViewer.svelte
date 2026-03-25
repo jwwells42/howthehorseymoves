@@ -613,13 +613,6 @@
 
 <div class="viewer-layout">
   <div class="board-side">
-    {#if testMode}
-      <div class="test-header">
-        <h2 class="test-title">Test Mode</h2>
-        <p class="test-status">{testStatusText}</p>
-      </div>
-    {/if}
-
     <div class="player-label">
       <div class="player-dot player-dot-black"></div>
       <span class="player-name">{game.black}</span>
@@ -645,18 +638,7 @@
       <span class="player-name">{game.white}</span>
     </div>
 
-    {#if testMode}
-      <div class="test-buttons">
-        {#if testComplete}
-          <button class="btn-try-again" onclick={retryTest}>
-            Try Again
-          </button>
-        {/if}
-        <button class="btn-back-viewer" onclick={exitTestMode}>
-          Back to Viewer
-        </button>
-      </div>
-    {:else}
+    {#if !testMode}
       {#if exploring}
         <div class="explore-indicator">
           <span class="explore-label">Exploring</span>
@@ -719,8 +701,23 @@
     {/if}
   </div>
 
-  {#if !testMode}
-    <div class="move-list-side">
+  <div class="move-list-side">
+    {#if testMode}
+      <div class="test-panel">
+        <h2 class="test-title">Test Mode</h2>
+        <p class="test-status">{testStatusText}</p>
+        <div class="test-buttons">
+          {#if testComplete}
+            <button class="btn-try-again" onclick={retryTest}>
+              Try Again
+            </button>
+          {/if}
+          <button class="btn-back-viewer" onclick={exitTestMode}>
+            Back to Viewer
+          </button>
+        </div>
+      </div>
+    {:else}
       <div class="game-info">
         <span class="game-event">{game.event}</span>
         <span class="game-year">{game.year}</span>
@@ -801,15 +798,15 @@
           <div class="game-result">{game.result}</div>
         {/if}
       </div>
-    </div>
-  {/if}
+    {/if}
+  </div>
 </div>
 
 <style>
   /* --- Test Mode --- */
-  .test-header {
+  .test-panel {
     text-align: center;
-    margin-bottom: 0.5rem;
+    padding: 1rem;
   }
 
   .test-title {
@@ -1111,8 +1108,9 @@
   }
 
   .move-active {
-    background: rgba(34, 197, 94, 0.2);
+    background: rgba(34, 197, 94, 0.25);
     font-weight: 700;
+    border-radius: 0.25rem;
   }
 
   .move-on-path {
