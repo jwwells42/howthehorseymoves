@@ -202,19 +202,19 @@
 
   // === Auto-play ===
   $effect(() => {
+    // Read currentPath so the effect re-runs after each goForward()
+    const pathLen = currentPath.length;
     if (testMode) return;
     if (!isPlaying || !canGoForward) {
       if (!canGoForward) isPlaying = false;
       return;
     }
     // Check if we should pause at variations
-    if (pauseOnVariations) {
-      const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
-      const children = parent ? parent.children : tree.children;
-      if (children.length > 1) {
-        isPlaying = false;
-        return;
-      }
+    const parent = pathLen > 0 ? currentPath[pathLen - 1] : null;
+    const children = parent ? parent.children : tree.children;
+    if (pauseOnVariations && children.length > 1) {
+      isPlaying = false;
+      return;
     }
     const timer = setTimeout(() => {
       goForward();
