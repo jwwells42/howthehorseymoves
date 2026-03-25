@@ -4,7 +4,7 @@
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
   import type { ModelGame } from '$lib/games/types';
-  import type { SquareId, PieceColor } from '$lib/logic/types';
+  import type { SquareId, PieceColor, PieceKind, BoardState } from '$lib/logic/types';
   import type { Arrow, GameNode } from '$lib/logic/pgn';
 
   const AUTOPLAY_MS = 1200;
@@ -34,9 +34,13 @@
     currentPath.length === 0 ? tree.comment : lastNode?.comment
   );
   let currentArrows = $derived(lastNode?.arrows);
-  let lastMoveSlide = $derived(
-    lastNode ? { from: lastNode.from, to: lastNode.to } : undefined
-  );
+  let lastMoveSlide = $derived.by(() => {
+    if (exploring && exploreStack.length > 0) {
+      const last = exploreStack[exploreStack.length - 1];
+      return { from: last.from, to: last.to };
+    }
+    return lastNode ? { from: lastNode.from, to: lastNode.to } : undefined;
+  });
 
   // === Test mode state ===
   let testMode = $state(false);
@@ -45,6 +49,33 @@
   let testHintArrow = $state<Arrow | null>(null);
   let testComplete = $state(false);
   let testDragFrom = $state<SquareId | null>(null);
+
+  // === Exploration ("what if") state ===
+  let exploring = $state(false);
+  let exploreStack = $state<{ board: BoardState; from: SquareId; to: SquareId }[]>([]);
+  let viewerSelected = $state<SquareId | null>(null);
+  let viewerDragFrom = $state<SquareId | null>(null);
+
+  let displayBoard = $derived(
+    exploring && exploreStack.length > 0
+      ? exploreStack[exploreStack.length - 1].board
+      : board
+  );
+
+  let viewerColorToMove = $derived.by((): PieceColor => {
+    const totalMoves = currentPath.length + exploreStack.length;
+    return totalMoves % 2 === 0 ? 'w' : 'b';
+  });
+
+  let viewerValidMoves = $derived.by(() => {
+    if (!viewerSelected || testMode) return [];
+    return getLegalMoves(viewerSelected, displayBoard, viewerColorToMove);
+  });
+
+  let viewerDragMoves = $derived.by(() => {
+    if (!viewerDragFrom || testMode) return [];
+    return getLegalMoves(viewerDragFrom, displayBoard, viewerColorToMove);
+  });
 
   let moveListEl = $state<HTMLDivElement | undefined>(undefined);
 
@@ -71,7 +102,15 @@
   let testArrows = $derived(testHintArrow ? [testHintArrow] : undefined);
 
   // === Navigation ===
+  function exitExplore() {
+    exploring = false;
+    exploreStack = [];
+    viewerSelected = null;
+    viewerDragFrom = null;
+  }
+
   function goForward() {
+    if (exploring) return;
     const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
     const children = parent ? parent.children : tree.children;
     if (children.length > 0) {
@@ -80,16 +119,24 @@
   }
 
   function goBack() {
+    if (exploring) {
+      exploreStack = exploreStack.slice(0, -1);
+      viewerSelected = null;
+      if (exploreStack.length === 0) exploring = false;
+      return;
+    }
     if (currentPath.length > 0) {
       currentPath = currentPath.slice(0, -1);
     }
   }
 
   function goToStart() {
+    exitExplore();
     currentPath = [];
   }
 
   function goToEnd() {
+    exitExplore();
     let path = [...currentPath];
     let node = path.length > 0 ? path[path.length - 1] : null;
     let children = node ? node.children : tree.children;
@@ -101,6 +148,7 @@
   }
 
   function goToNode(path: GameNode[]) {
+    exitExplore();
     currentPath = path;
   }
 
@@ -109,10 +157,13 @@
   }
 
   let canGoForward = $derived.by(() => {
+    if (exploring) return false;
     const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
     const children = parent ? parent.children : tree.children;
     return children.length > 0;
   });
+
+  let canGoBack = $derived(exploring || currentPath.length > 0);
 
   // === Auto-play ===
   $effect(() => {
@@ -139,7 +190,8 @@
   // === Keyboard controls ===
   function handleKeydown(e: KeyboardEvent) {
     if (testMode) return;
-    if (e.key === 'ArrowLeft') { e.preventDefault(); goBack(); }
+    if (e.key === 'Escape' && exploring) { e.preventDefault(); exitExplore(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); goBack(); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); goForward(); }
     else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
   }
@@ -404,6 +456,7 @@
   }
 
   function startTestMode() {
+    exitExplore();
     testMode = true;
     testMoveIdx = 0;
     testSelected = null;
@@ -413,6 +466,7 @@
   }
 
   function exitTestMode() {
+    exitExplore();
     testMode = false;
     testSelected = null;
     testHintArrow = null;
@@ -424,6 +478,104 @@
     testMoveIdx = 0;
     testComplete = false;
     testHintArrow = null;
+  }
+
+  // === Exploration move logic ===
+  function applyExploreMove(b: BoardState, from: SquareId, to: SquareId): BoardState {
+    const pieces = new Map(b.pieces);
+    const piece: { piece: PieceKind; color: PieceColor } = pieces.get(from)!;
+    pieces.delete(from);
+    pieces.set(to, piece);
+
+    if (piece.piece === 'P') {
+      if ((piece.color === 'w' && to[1] === '8') || (piece.color === 'b' && to[1] === '1')) {
+        pieces.set(to, { piece: 'Q', color: piece.color });
+      }
+      if (to === b.enPassantSquare) {
+        const epRank = piece.color === 'w' ? String(parseInt(to[1]) - 1) : String(parseInt(to[1]) + 1);
+        pieces.delete(`${to[0]}${epRank}` as SquareId);
+      }
+    }
+
+    if (piece.piece === 'K') {
+      const df = to.charCodeAt(0) - from.charCodeAt(0);
+      if (Math.abs(df) === 2) {
+        const rank = from[1];
+        if (df > 0) {
+          pieces.delete(`h${rank}` as SquareId);
+          pieces.set(`f${rank}` as SquareId, { piece: 'R', color: piece.color });
+        } else {
+          pieces.delete(`a${rank}` as SquareId);
+          pieces.set(`d${rank}` as SquareId, { piece: 'R', color: piece.color });
+        }
+      }
+    }
+
+    return { pieces };
+  }
+
+  function handleViewerMove(from: SquareId, to: SquareId) {
+    if (!exploring) {
+      // Check if this move matches a child in the game tree
+      const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+      const children = parent ? parent.children : tree.children;
+      const match = children.find(c => c.from === from && c.to === to);
+      if (match) {
+        currentPath = [...currentPath, match];
+        viewerSelected = null;
+        playSound('move');
+        return;
+      }
+    }
+
+    // Enter or extend exploration
+    const curBoard = exploring && exploreStack.length > 0
+      ? exploreStack[exploreStack.length - 1].board
+      : board;
+    const newBoard = applyExploreMove(curBoard, from, to);
+
+    if (!exploring) exploring = true;
+    exploreStack = [...exploreStack, { board: newBoard, from, to }];
+    viewerSelected = null;
+    playSound('move');
+  }
+
+  function handleViewerClick(sq: SquareId) {
+    if (testMode) return;
+
+    if (!viewerSelected) {
+      const p = displayBoard.pieces.get(sq);
+      if (p && p.color === viewerColorToMove) viewerSelected = sq;
+      return;
+    }
+
+    if (sq === viewerSelected) { viewerSelected = null; return; }
+
+    const target = displayBoard.pieces.get(sq);
+    if (target && target.color === viewerColorToMove) { viewerSelected = sq; return; }
+
+    const legal = getLegalMoves(viewerSelected, displayBoard, viewerColorToMove);
+    if (!legal.includes(sq)) { viewerSelected = null; return; }
+
+    handleViewerMove(viewerSelected, sq);
+  }
+
+  function handleViewerDrop(from: SquareId, to: SquareId) {
+    if (testMode || from === to) return;
+    const p = displayBoard.pieces.get(from);
+    if (!p || p.color !== viewerColorToMove) return;
+    const legal = getLegalMoves(from, displayBoard, viewerColorToMove);
+    if (!legal.includes(to)) return;
+    handleViewerMove(from, to);
+  }
+
+  function handleViewerDragStart(sq: SquareId) {
+    if (testMode) return;
+    viewerDragFrom = sq;
+  }
+
+  function handleViewerDragEnd() {
+    viewerDragFrom = null;
   }
 
   function noop() {}
@@ -490,19 +642,19 @@
       </div>
 
       <Board
-        board={board}
-        selectedSquare={null}
-        validMoves={[]}
+        board={displayBoard}
+        selectedSquare={viewerSelected}
+        validMoves={viewerValidMoves}
         targets={[]}
         reachedTargets={[]}
-        dragValidMoves={[]}
-        onSquareClick={noop}
-        onDrop={noop}
-        onDragStart={noop}
-        onDragEnd={noop}
+        dragValidMoves={viewerDragMoves}
+        onSquareClick={handleViewerClick}
+        onDrop={handleViewerDrop}
+        onDragStart={handleViewerDragStart}
+        onDragEnd={handleViewerDragEnd}
         pawnSlide={lastMoveSlide}
-        readOnly={true}
-        arrows={currentArrows}
+        arrows={exploring ? undefined : currentArrows}
+        playableColors={['w', 'b']}
       />
 
       <div class="player-label">
@@ -510,17 +662,24 @@
         <span class="player-name">{game.white}</span>
       </div>
 
+      {#if exploring}
+        <div class="explore-indicator">
+          <span class="explore-label">Exploring</span>
+          <button class="explore-back-btn" onclick={exitExplore}>Back to game</button>
+        </div>
+      {/if}
+
       <div class="nav-controls">
         <button
           class="nav-btn"
           onclick={goToStart}
-          disabled={currentPath.length === 0}
+          disabled={!canGoBack}
           aria-label="Start"
         >&#x23EE;</button>
         <button
           class="nav-btn"
           onclick={goBack}
-          disabled={currentPath.length === 0}
+          disabled={!canGoBack}
           aria-label="Back"
         >&#x25C0;</button>
         <button
@@ -556,7 +715,9 @@
       </div>
 
       <div class="comment-area">
-        {#if currentComment}
+        {#if exploring}
+          <p class="comment-text">Try any move. Arrow left to undo, Esc to return.</p>
+        {:else if currentComment}
           <p class="comment-text">{currentComment}</p>
         {/if}
       </div>
@@ -753,6 +914,40 @@
     .board-side {
       max-width: 560px;
     }
+  }
+
+  /* --- Explore indicator --- */
+  .explore-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    background: rgba(234, 179, 8, 0.1);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+  }
+
+  .explore-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #eab308;
+  }
+
+  .explore-back-btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--card-border, #333);
+    background: var(--card-bg, #1a1a1a);
+    color: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+
+  .explore-back-btn:hover {
+    background: var(--btn-hover, #2a2a2a);
   }
 
   /* --- Nav controls --- */
