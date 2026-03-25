@@ -35,6 +35,7 @@
   );
   let currentArrows = $derived(lastNode?.arrows);
   let lastMoveSlide = $derived.by(() => {
+    if (userMadeLastMove) return undefined;
     if (exploring && exploreStack.length > 0) {
       const last = exploreStack[exploreStack.length - 1];
       return { from: last.from, to: last.to };
@@ -55,6 +56,7 @@
   let exploreStack = $state<{ board: BoardState; from: SquareId; to: SquareId }[]>([]);
   let viewerSelected = $state<SquareId | null>(null);
   let viewerDragFrom = $state<SquareId | null>(null);
+  let userMadeLastMove = $state(false);
 
   let displayBoard = $derived(
     exploring && exploreStack.length > 0
@@ -107,10 +109,12 @@
     exploreStack = [];
     viewerSelected = null;
     viewerDragFrom = null;
+    userMadeLastMove = false;
   }
 
   function goForward() {
     if (exploring) return;
+    userMadeLastMove = false;
     const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
     const children = parent ? parent.children : tree.children;
     if (children.length > 0) {
@@ -119,6 +123,7 @@
   }
 
   function goBack() {
+    userMadeLastMove = false;
     if (exploring) {
       exploreStack = exploreStack.slice(0, -1);
       viewerSelected = null;
@@ -515,6 +520,8 @@
   }
 
   function handleViewerMove(from: SquareId, to: SquareId) {
+    userMadeLastMove = true;
+
     if (!exploring) {
       // Check if this move matches a child in the game tree
       const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;

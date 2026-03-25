@@ -71,6 +71,7 @@
 
   let svgEl = $state<SVGSVGElement | undefined>(undefined);
   let drag = $state<DragState | null>(null);
+  let clickSquare = $state<SquareId | null>(null);
 
   let displayRanks = $derived(flipped ? [...RANKS].reverse() : RANKS);
   let displayFiles = $derived(flipped ? [...FILES].reverse() : FILES);
@@ -99,18 +100,26 @@
     return `${FILES[fi]}${RANKS[ri]}` as SquareId;
   }
 
-  function handlePointerDown(e: PointerEvent, sq: SquareId) {
+  function handlePointerDown(e: PointerEvent) {
     if (readOnly) return;
-    const p = board.pieces.get(sq);
-    if (!p) return;
-    const canPlay = playableColors ? playableColors.includes(p.color) : p.color === 'w';
-    if (!canPlay || (draggablePiece && p.piece !== draggablePiece)) return;
     const svgPt = pointerToSvg(e);
     if (!svgPt) return;
+    const sq = svgToSquare(svgPt.x, svgPt.y);
+    if (!sq) return;
 
-    (e.target as Element).setPointerCapture(e.pointerId);
-    drag = { from: sq, piece: p.piece, color: p.color, x: svgPt.x, y: svgPt.y };
-    onDragStart(sq);
+    const p = board.pieces.get(sq);
+    if (p) {
+      const canPlay = playableColors ? playableColors.includes(p.color) : p.color === 'w';
+      if (canPlay && (!draggablePiece || p.piece === draggablePiece)) {
+        (e.target as Element).setPointerCapture(e.pointerId);
+        drag = { from: sq, piece: p.piece, color: p.color, x: svgPt.x, y: svgPt.y };
+        onDragStart(sq);
+        return;
+      }
+    }
+
+    // Not a draggable piece — track square for click on pointerup
+    clickSquare = sq;
   }
 
   function handlePointerMove(e: PointerEvent) {
@@ -121,22 +130,28 @@
   }
 
   function handlePointerUp(e: PointerEvent) {
-    if (!drag) return;
-    const svgPt = pointerToSvg(e);
-    if (svgPt) {
-      const dropSq = svgToSquare(svgPt.x, svgPt.y);
-      if (dropSq && dropSq !== drag.from) {
-        onDrop(drag.from, dropSq);
-      } else {
-        onSquareClick(drag.from);
+    if (drag) {
+      const svgPt = pointerToSvg(e);
+      if (svgPt) {
+        const dropSq = svgToSquare(svgPt.x, svgPt.y);
+        if (dropSq && dropSq !== drag.from) {
+          onDrop(drag.from, dropSq);
+        } else {
+          onSquareClick(drag.from);
+        }
       }
+      drag = null;
+      onDragEnd();
+    } else if (clickSquare) {
+      const svgPt = pointerToSvg(e);
+      if (svgPt) {
+        const upSq = svgToSquare(svgPt.x, svgPt.y);
+        if (upSq === clickSquare) {
+          onSquareClick(clickSquare);
+        }
+      }
+      clickSquare = null;
     }
-    drag = null;
-    onDragEnd();
-  }
-
-  function handleSquareClick(sq: SquareId) {
-    if (!drag) onSquareClick(sq);
   }
 
   function getSlideStyle(sq: SquareId, piece: PieceKind): string | undefined {
@@ -194,6 +209,7 @@
   role="application"
   aria-label="Chess board"
   tabindex="-1"
+  onpointerdown={handlePointerDown}
   onpointermove={handlePointerMove}
   onpointerup={handlePointerUp}
 >
@@ -211,9 +227,6 @@
       {@const highlight = highlights?.find(h => h.square === sq)}
       {@const fill = isWrongMove ? WRONG_MOVE_COLOR : isSelected ? SELECTED_COLOR : isPawnSlideSquare ? LAST_MOVE_COLOR : isLight ? LIGHT : DARK}
       <g
-        onclick={() => handleSquareClick(sq)}
-        onkeydown={() => {}}
-        onpointerdown={(e) => handlePointerDown(e, sq)}
         role="button"
         tabindex="-1"
         aria-label={sq}
