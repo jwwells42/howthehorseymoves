@@ -756,8 +756,15 @@
               {/each}
             {/if}
 
+            {#if exploring && exploreStack.length > 0 && pair.white && isActivePath(pair.white.path)}
+              <span class="variation-row explore-var">({#each exploreStack as move, i}{@const halfMove = currentPath.length + i}{@const moveNum = Math.floor(halfMove / 2) + 1}{@const isWhite = halfMove % 2 === 0}{#if isWhite}<span class="explore-line-num">{moveNum}.</span>{:else if i === 0}<span class="explore-line-num">{moveNum}...</span>{/if}<button
+                  class={['explore-line-btn', i === exploreStack.length - 1 && 'move-active']}
+                  onclick={() => goToExploreMove(i)}
+                >{move.san}</button>{' '}{/each})</span>
+            {/if}
+
             {#if pair.black}
-              {#if pair.variationsAfterWhite.length > 0}
+              {#if pair.variationsAfterWhite.length > 0 || (exploring && exploreStack.length > 0 && pair.white && isActivePath(pair.white.path))}
                 <span class="move-num">{pair.num}.</span>
                 <span class="move-ellipsis">...</span>
               {/if}
@@ -768,7 +775,7 @@
               >
                 {pair.black.node.san}{pair.black.node.nag ?? ''}
               </button>
-            {:else if pair.variationsAfterWhite.length === 0}
+            {:else if pair.variationsAfterWhite.length === 0 && !(exploring && exploreStack.length > 0 && pair.white && isActivePath(pair.white.path))}
               <span></span>
             {/if}
 
@@ -781,25 +788,17 @@
                 >{formatVariationSan(vn)}</button>{/each})</span>
               {/each}
             {/if}
+
+            {#if exploring && exploreStack.length > 0 && pair.black && isActivePath(pair.black.path)}
+              <span class="variation-row explore-var">({#each exploreStack as move, i}{@const halfMove = currentPath.length + i}{@const moveNum = Math.floor(halfMove / 2) + 1}{@const isWhite = halfMove % 2 === 0}{#if isWhite}<span class="explore-line-num">{moveNum}.</span>{:else if i === 0}<span class="explore-line-num">{moveNum}...</span>{/if}<button
+                  class={['explore-line-btn', i === exploreStack.length - 1 && 'move-active']}
+                  onclick={() => goToExploreMove(i)}
+                >{move.san}</button>{' '}{/each})</span>
+            {/if}
           {/each}
         </div>
         {#if game.result}
           <div class="game-result">{game.result}</div>
-        {/if}
-        {#if exploring && exploreStack.length > 0}
-          <div class="explore-line">
-            <span class="explore-line-label">Exploring:</span>
-            {#each exploreStack as move, i}
-              {@const halfMove = currentPath.length + i}
-              {@const moveNum = Math.floor(halfMove / 2) + 1}
-              {@const isWhite = halfMove % 2 === 0}
-              {#if isWhite}<span class="explore-line-num">{moveNum}.</span>{:else if i === 0}<span class="explore-line-num">{moveNum}...</span>{/if}
-              <button
-                class={['explore-line-btn', i === exploreStack.length - 1 && 'move-active']}
-                onclick={() => goToExploreMove(i)}
-              >{move.san}</button>{' '}
-            {/each}
-          </div>
         {/if}
       </div>
     </div>
@@ -1163,19 +1162,9 @@
     font-weight: 700;
   }
 
-  /* --- Explore line in move list --- */
-  .explore-line {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid rgba(234, 179, 8, 0.3);
-    font-size: 0.8rem;
-    line-height: 1.6;
-  }
-
-  .explore-line-label {
+  /* --- Explore variation inline --- */
+  .explore-var {
     color: #eab308;
-    font-weight: 600;
-    margin-right: 0.25rem;
   }
 
   .explore-line-num {
