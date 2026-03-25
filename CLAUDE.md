@@ -159,6 +159,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - Full basics flow: puzzles (rook→...→pawn) → The Board (Name the Square + Place the Pieces) → How to Win → Play a Game. Each section's completion screen links to the next
 - Play page accepts `?level=random` or `?level=basic` query param to skip the level selector
 - Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
+- The Board must appear at the same size and position on screen at all times within a page. Mode switches (e.g., viewer ↔ test mode) must not cause the board to shift or resize
 - Board state is immutable — new `BoardState` created per move, never mutated
 - Chess piece SVGs live in `static/pieces/` named `{color}{piece}.svg` (e.g., `wR.svg`, `bN.svg`)
 - No backend/database — all state is client-side localStorage

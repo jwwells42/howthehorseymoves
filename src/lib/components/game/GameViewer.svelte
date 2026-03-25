@@ -34,14 +34,6 @@
     currentPath.length === 0 ? tree.comment : lastNode?.comment
   );
   let currentArrows = $derived(lastNode?.arrows);
-  let lastMoveSlide = $derived.by(() => {
-    if (userMadeLastMove) return undefined;
-    if (exploring && exploreStack.length > 0) {
-      const last = exploreStack[exploreStack.length - 1];
-      return { from: last.from, to: last.to };
-    }
-    return lastNode ? { from: lastNode.from, to: lastNode.to } : undefined;
-  });
 
   // === Test mode state ===
   let testMode = $state(false);
@@ -56,7 +48,6 @@
   let exploreStack = $state<{ board: BoardState; from: SquareId; to: SquareId }[]>([]);
   let viewerSelected = $state<SquareId | null>(null);
   let viewerDragFrom = $state<SquareId | null>(null);
-  let userMadeLastMove = $state(false);
 
   let displayBoard = $derived(
     exploring && exploreStack.length > 0
@@ -109,12 +100,12 @@
     exploreStack = [];
     viewerSelected = null;
     viewerDragFrom = null;
-    userMadeLastMove = false;
+
   }
 
   function goForward() {
     if (exploring) return;
-    userMadeLastMove = false;
+
     const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
     const children = parent ? parent.children : tree.children;
     if (children.length > 0) {
@@ -123,7 +114,7 @@
   }
 
   function goBack() {
-    userMadeLastMove = false;
+
     if (exploring) {
       exploreStack = exploreStack.slice(0, -1);
       viewerSelected = null;
@@ -520,7 +511,7 @@
   }
 
   function handleViewerMove(from: SquareId, to: SquareId) {
-    userMadeLastMove = true;
+
 
     if (!exploring) {
       // Check if this move matches a child in the game tree
@@ -595,80 +586,52 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if testMode}
-  <div class="test-wrapper">
-    <div class="test-header">
-      <h2 class="test-title">Test Mode</h2>
-      <p class="test-status">{testStatusText}</p>
+<div class="viewer-layout">
+  <div class="board-side">
+    {#if testMode}
+      <div class="test-header">
+        <h2 class="test-title">Test Mode</h2>
+        <p class="test-status">{testStatusText}</p>
+      </div>
+    {/if}
+
+    <div class="player-label">
+      <div class="player-dot player-dot-black"></div>
+      <span class="player-name">{game.black}</span>
     </div>
 
-    <div class="board-container">
-      <div class="player-label">
-        <div class="player-dot player-dot-black"></div>
-        <span class="player-name">{game.black}</span>
-      </div>
+    <Board
+      board={testMode ? testBoard : displayBoard}
+      selectedSquare={testMode ? testSelected : viewerSelected}
+      validMoves={testMode ? testValidMoves : viewerValidMoves}
+      targets={[]}
+      reachedTargets={[]}
+      dragValidMoves={testMode ? testDragMoves : viewerDragMoves}
+      onSquareClick={testMode ? handleTestClick : handleViewerClick}
+      onDrop={testMode ? handleTestDrop : handleViewerDrop}
+      onDragStart={testMode ? handleTestDragStart : handleViewerDragStart}
+      onDragEnd={testMode ? handleTestDragEnd : handleViewerDragEnd}
+      arrows={testMode ? testArrows : (exploring ? undefined : currentArrows)}
+      playableColors={['w', 'b']}
+    />
 
-      <Board
-        board={testBoard}
-        selectedSquare={testSelected}
-        validMoves={testValidMoves}
-        targets={[]}
-        reachedTargets={[]}
-        dragValidMoves={testDragMoves}
-        onSquareClick={handleTestClick}
-        onDrop={handleTestDrop}
-        onDragStart={handleTestDragStart}
-        onDragEnd={handleTestDragEnd}
-        playableColors={['w', 'b']}
-        arrows={testArrows}
-      />
-
-      <div class="player-label">
-        <div class="player-dot player-dot-white"></div>
-        <span class="player-name">{game.white}</span>
-      </div>
+    <div class="player-label">
+      <div class="player-dot player-dot-white"></div>
+      <span class="player-name">{game.white}</span>
     </div>
 
-    <div class="test-buttons">
-      {#if testComplete}
-        <button class="btn-try-again" onclick={retryTest}>
-          Try Again
+    {#if testMode}
+      <div class="test-buttons">
+        {#if testComplete}
+          <button class="btn-try-again" onclick={retryTest}>
+            Try Again
+          </button>
+        {/if}
+        <button class="btn-back-viewer" onclick={exitTestMode}>
+          Back to Viewer
         </button>
-      {/if}
-      <button class="btn-back-viewer" onclick={exitTestMode}>
-        Back to Viewer
-      </button>
-    </div>
-  </div>
-{:else}
-  <div class="viewer-layout">
-    <div class="board-side">
-      <div class="player-label">
-        <div class="player-dot player-dot-black"></div>
-        <span class="player-name">{game.black}</span>
       </div>
-
-      <Board
-        board={displayBoard}
-        selectedSquare={viewerSelected}
-        validMoves={viewerValidMoves}
-        targets={[]}
-        reachedTargets={[]}
-        dragValidMoves={viewerDragMoves}
-        onSquareClick={handleViewerClick}
-        onDrop={handleViewerDrop}
-        onDragStart={handleViewerDragStart}
-        onDragEnd={handleViewerDragEnd}
-        pawnSlide={lastMoveSlide}
-        arrows={exploring ? undefined : currentArrows}
-        playableColors={['w', 'b']}
-      />
-
-      <div class="player-label">
-        <div class="player-dot player-dot-white"></div>
-        <span class="player-name">{game.white}</span>
-      </div>
-
+    {:else}
       {#if exploring}
         <div class="explore-indicator">
           <span class="explore-label">Exploring</span>
@@ -728,8 +691,10 @@
           <p class="comment-text">{currentComment}</p>
         {/if}
       </div>
-    </div>
+    {/if}
+  </div>
 
+  {#if !testMode}
     <div class="move-list-side">
       <div class="game-info">
         <span class="game-event">{game.event}</span>
@@ -798,22 +763,14 @@
         {/if}
       </div>
     </div>
-  </div>
-{/if}
+  {/if}
+</div>
 
 <style>
   /* --- Test Mode --- */
-  .test-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    max-width: 56rem;
-    margin: 0 auto;
-  }
-
   .test-header {
     text-align: center;
+    margin-bottom: 0.5rem;
   }
 
   .test-title {
@@ -829,7 +786,9 @@
 
   .test-buttons {
     display: flex;
+    justify-content: center;
     gap: 0.75rem;
+    margin-top: 0.75rem;
   }
 
   .btn-try-again {
@@ -887,12 +846,6 @@
   .player-name {
     font-size: 0.875rem;
     color: var(--text-muted, #888);
-  }
-
-  /* --- Board container (shared test/viewer) --- */
-  .board-container {
-    width: 100%;
-    max-width: 560px;
   }
 
   /* --- Viewer layout --- */
