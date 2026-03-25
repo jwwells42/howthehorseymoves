@@ -37,11 +37,13 @@
 
   // === Test mode state ===
   let testMode = $state(false);
-  let testMoveIdx = $state(0);
+  let testMoveIdx = $state(0);       // frontier: how far student has gotten
+  let testViewIdx = $state(0);       // what position is displayed (0..testMoveIdx)
   let testSelected = $state<SquareId | null>(null);
   let testHintArrow = $state<Arrow | null>(null);
   let testComplete = $state(false);
   let testDragFrom = $state<SquareId | null>(null);
+  let testAtFrontier = $derived(testViewIdx === testMoveIdx);
 
   // === Exploration ("what if") state ===
   let exploring = $state(false);
@@ -72,27 +74,32 @@
 
   let moveListEl = $state<HTMLDivElement | undefined>(undefined);
 
-  let testBoard = $derived(testMode ? flatParsed.positions[testMoveIdx] : board);
+  let testBoard = $derived(testMode ? flatParsed.positions[testViewIdx] : board);
   let testColorToMove: PieceColor = $derived(testMoveIdx % 2 === 0 ? 'w' : 'b');
 
   let testValidMoves = $derived.by(() => {
-    if (!testMode || !testSelected || testComplete) return [];
+    if (!testMode || !testAtFrontier || !testSelected || testComplete) return [];
     return getLegalMoves(testSelected, flatParsed.positions[testMoveIdx], testColorToMove);
   });
 
   let testDragMoves = $derived.by(() => {
-    if (!testMode || !testDragFrom || testComplete) return [];
+    if (!testMode || !testAtFrontier || !testDragFrom || testComplete) return [];
     return getLegalMoves(testDragFrom, flatParsed.positions[testMoveIdx], testColorToMove);
   });
 
   let testStatusText = $derived.by(() => {
     if (testComplete) return 'You did it! You reproduced the entire game.';
+    if (!testAtFrontier) {
+      const viewNum = Math.floor(testViewIdx / 2) + 1;
+      const isWhite = testViewIdx % 2 === 0;
+      return `Reviewing move ${viewNum}${isWhite ? '.' : '...'}`;
+    }
     const moveNum = Math.floor(testMoveIdx / 2) + 1;
     const isWhiteTurn = testMoveIdx % 2 === 0;
     return `Move ${moveNum}${isWhiteTurn ? '.' : '...'} ${isWhiteTurn ? 'White' : 'Black'} to play`;
   });
 
-  let testArrows = $derived(testHintArrow ? [testHintArrow] : undefined);
+  let testArrows = $derived(testHintArrow && testAtFrontier ? [testHintArrow] : undefined);
 
   // === Navigation ===
   function exitExplore() {
@@ -104,6 +111,14 @@
   }
 
   function goForward() {
+    if (testMode) {
+      if (testViewIdx < testMoveIdx) {
+        testViewIdx++;
+        testSelected = null;
+        testHintArrow = null;
+      }
+      return;
+    }
     if (exploring) return;
 
     const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
@@ -114,6 +129,14 @@
   }
 
   function goBack() {
+    if (testMode) {
+      if (testViewIdx > 0) {
+        testViewIdx--;
+        testSelected = null;
+        testHintArrow = null;
+      }
+      return;
+    }
 
     if (exploring) {
       exploreStack = exploreStack.slice(0, -1);
@@ -127,11 +150,23 @@
   }
 
   function goToStart() {
+    if (testMode) {
+      testViewIdx = 0;
+      testSelected = null;
+      testHintArrow = null;
+      return;
+    }
     exitExplore();
     currentPath = [];
   }
 
   function goToEnd() {
+    if (testMode) {
+      testViewIdx = testMoveIdx;
+      testSelected = null;
+      testHintArrow = null;
+      return;
+    }
     exitExplore();
     let path = [...currentPath];
     let node = path.length > 0 ? path[path.length - 1] : null;
@@ -153,13 +188,17 @@
   }
 
   let canGoForward = $derived.by(() => {
+    if (testMode) return testViewIdx < testMoveIdx;
     if (exploring) return false;
     const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
     const children = parent ? parent.children : tree.children;
     return children.length > 0;
   });
 
-  let canGoBack = $derived(exploring || currentPath.length > 0);
+  let canGoBack = $derived.by(() => {
+    if (testMode) return testViewIdx > 0;
+    return exploring || currentPath.length > 0;
+  });
 
   // === Auto-play ===
   $effect(() => {
@@ -185,11 +224,10 @@
 
   // === Keyboard controls ===
   function handleKeydown(e: KeyboardEvent) {
-    if (testMode) return;
     if (e.key === 'Escape' && exploring) { e.preventDefault(); exitExplore(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); goBack(); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); goForward(); }
-    else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    else if (e.key === ' ' && !testMode) { e.preventDefault(); togglePlay(); }
   }
 
   // === Scroll current move into view ===
@@ -384,10 +422,12 @@
       const next = testMoveIdx + 1;
       if (next >= totalMoves) {
         testMoveIdx = next;
+        testViewIdx = next;
         testComplete = true;
         playSound('stars');
       } else {
         testMoveIdx = next;
+        testViewIdx = next;
       }
       testSelected = null;
       playSound('move');
@@ -399,7 +439,7 @@
   }
 
   function handleTestClick(sq: SquareId) {
-    if (testComplete) return;
+    if (testComplete || !testAtFrontier) return;
     const currentBoard = flatParsed.positions[testMoveIdx];
 
     if (!testSelected) {
@@ -432,7 +472,7 @@
   }
 
   function handleTestDrop(from: SquareId, to: SquareId) {
-    if (testComplete || from === to) return;
+    if (testComplete || !testAtFrontier || from === to) return;
     const currentBoard = flatParsed.positions[testMoveIdx];
     const p = currentBoard.pieces.get(from);
     if (!p || p.color !== testColorToMove) return;
@@ -455,6 +495,7 @@
     exitExplore();
     testMode = true;
     testMoveIdx = 0;
+    testViewIdx = 0;
     testSelected = null;
     testHintArrow = null;
     testComplete = false;
@@ -472,6 +513,7 @@
 
   function retryTest() {
     testMoveIdx = 0;
+    testViewIdx = 0;
     testComplete = false;
     testHintArrow = null;
   }
@@ -638,59 +680,70 @@
       <span class="player-name">{game.white}</span>
     </div>
 
-    {#if !testMode}
-      {#if exploring}
-        <div class="explore-indicator">
-          <span class="explore-label">Exploring</span>
-          <button class="explore-back-btn" onclick={exitExplore}>Back to game</button>
-        </div>
-      {/if}
-
-      <div class="nav-controls">
-        <button
-          class="nav-btn"
-          onclick={goToStart}
-          disabled={!canGoBack}
-          aria-label="Start"
-        >&#x23EE;</button>
-        <button
-          class="nav-btn"
-          onclick={goBack}
-          disabled={!canGoBack}
-          aria-label="Back"
-        >&#x25C0;</button>
-        <button
-          class="nav-btn nav-btn-wide"
-          onclick={togglePlay}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-        >{isPlaying ? '\u23F8' : '\u25B6'}</button>
-        <button
-          class="nav-btn"
-          onclick={goForward}
-          disabled={!canGoForward}
-          aria-label="Forward"
-        >&#x25B6;</button>
-        <button
-          class="nav-btn"
-          onclick={goToEnd}
-          disabled={!canGoForward}
-          aria-label="End"
-        >&#x23ED;</button>
+    {#if !testMode && exploring}
+      <div class="explore-indicator">
+        <span class="explore-label">Exploring</span>
+        <button class="explore-back-btn" onclick={exitExplore}>Back to game</button>
       </div>
+    {/if}
 
+    <div class="nav-controls">
+      <button
+        class="nav-btn"
+        onclick={goToStart}
+        disabled={!canGoBack}
+        aria-label="Start"
+      >&#x23EE;</button>
+      <button
+        class="nav-btn"
+        onclick={goBack}
+        disabled={!canGoBack}
+        aria-label="Back"
+      >&#x25C0;</button>
+      <button
+        class="nav-btn nav-btn-wide"
+        onclick={togglePlay}
+        disabled={testMode}
+        aria-label={isPlaying ? 'Pause' : 'Play'}
+      >{isPlaying ? '\u23F8' : '\u25B6'}</button>
+      <button
+        class="nav-btn"
+        onclick={goForward}
+        disabled={!canGoForward}
+        aria-label="Forward"
+      >&#x25B6;</button>
+      <button
+        class="nav-btn"
+        onclick={goToEnd}
+        disabled={!canGoForward}
+        aria-label="End"
+      >&#x23ED;</button>
+    </div>
+
+    {#if !testMode}
       <div class="sub-controls">
         <label class="variation-toggle">
           <input type="checkbox" bind:checked={pauseOnVariations} />
           Pause at variations
         </label>
       </div>
+    {:else}
+      <div class="sub-controls"></div>
+    {/if}
 
-      <div class="test-btn-wrap">
+    <div class="test-btn-wrap">
+      {#if testMode}
+        <button class="btn-test" onclick={exitTestMode}>
+          Back to Viewer
+        </button>
+      {:else}
         <button class="btn-test" onclick={startTestMode}>
           Test Yourself
         </button>
-      </div>
+      {/if}
+    </div>
 
+    {#if !testMode}
       <div class="comment-area">
         {#if exploring}
           <p class="comment-text">Try any move. Arrow left to undo, Esc to return.</p>
@@ -704,18 +757,13 @@
   <div class="move-list-side">
     {#if testMode}
       <div class="test-panel">
-        <h2 class="test-title">Test Mode</h2>
+        <h2 class="test-title">Test Yourself</h2>
         <p class="test-status">{testStatusText}</p>
-        <div class="test-buttons">
-          {#if testComplete}
-            <button class="btn-try-again" onclick={retryTest}>
-              Try Again
-            </button>
-          {/if}
-          <button class="btn-back-viewer" onclick={exitTestMode}>
-            Back to Viewer
+        {#if testComplete}
+          <button class="btn-try-again" onclick={retryTest}>
+            Try Again
           </button>
-        </div>
+        {/if}
       </div>
     {:else}
       <div class="game-info">
@@ -820,13 +868,6 @@
     margin: 0;
   }
 
-  .test-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-  }
-
   .btn-try-again {
     padding: 0.5rem 1.25rem;
     background: #16a34a;
@@ -835,25 +876,12 @@
     border-radius: 0.5rem;
     font-weight: 500;
     cursor: pointer;
+    margin-top: 0.75rem;
     transition: background-color 0.15s;
   }
 
   .btn-try-again:hover {
     background: #15803d;
-  }
-
-  .btn-back-viewer {
-    padding: 0.5rem 1.25rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border, #333);
-    background: var(--card-bg, #1a1a1a);
-    color: inherit;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .btn-back-viewer:hover {
-    background: var(--btn-hover, #2a2a2a);
   }
 
   /* --- Player labels --- */
@@ -1108,9 +1136,10 @@
   }
 
   .move-active {
-    background: rgba(34, 197, 94, 0.25);
+    background: rgba(34, 197, 94, 0.35);
     font-weight: 700;
     border-radius: 0.25rem;
+    outline: 1px solid rgba(34, 197, 94, 0.5);
   }
 
   .move-on-path {
