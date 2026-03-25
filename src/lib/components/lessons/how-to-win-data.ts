@@ -4,7 +4,7 @@ import type { SquareHighlight } from "$lib/puzzles/parse-moves";
 
 /* ── Step types ──────────────────────────────────────────── */
 
-export type ValidationMode = "any" | "check" | "checkmate" | "no-stalemate";
+export type ValidationMode = "any" | "capture" | "check" | "checkmate" | "no-stalemate";
 
 export interface LessonStep {
   slug: string;
@@ -76,13 +76,13 @@ const CHECK_STEPS: LessonStep[] = [
     slug: "capture",
     title: "Capture!",
     instruction: "Take the piece that's attacking your king!",
-    fen: "8/8/8/8/8/5n2/4B3/6K1 w - - 0 1",
+    fen: "5rk1/5pp1/8/8/8/6B1/5nPP/6RK w - - 0 1",
     type: "interactive",
     arrows: [
-      { from: "f3" as SquareId, to: "g1" as SquareId, color: "#dc2626" },
-      { from: "e2" as SquareId, to: "f3" as SquareId, color: "#22c55e" },
+      { from: "f2" as SquareId, to: "h1" as SquareId, color: "#dc2626" },
+      { from: "g3" as SquareId, to: "f2" as SquareId, color: "#22c55e" },
     ],
-    validation: "any",
+    validation: "capture",
   },
   {
     slug: "block",

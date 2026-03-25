@@ -153,7 +153,17 @@
     const newBoard = applyMove(board, from, to);
     const validation = step.validation ?? 'any';
 
-    if (validation === 'check') {
+    if (validation === 'capture') {
+      const captured = board.pieces.get(to);
+      if (!captured || captured.color === playerColor) {
+        addMistake();
+        wrongMoveSquare = to;
+        selectedSquare = null;
+        playSound('wrong');
+        setTimeout(() => { wrongMoveSquare = null; }, 600);
+        return;
+      }
+    } else if (validation === 'check') {
       if (!isInCheck('b', newBoard)) {
         addMistake();
         wrongMoveSquare = to;
