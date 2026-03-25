@@ -45,7 +45,7 @@
 
   // === Exploration ("what if") state ===
   let exploring = $state(false);
-  let exploreStack = $state<{ board: BoardState; from: SquareId; to: SquareId }[]>([]);
+  let exploreStack = $state<{ board: BoardState; from: SquareId; to: SquareId; san: string }[]>([]);
   let viewerSelected = $state<SquareId | null>(null);
   let viewerDragFrom = $state<SquareId | null>(null);
 
@@ -477,6 +477,30 @@
   }
 
   // === Exploration move logic ===
+  function moveToSan(b: BoardState, from: SquareId, to: SquareId): string {
+    const piece = b.pieces.get(from);
+    if (!piece) return `${from}${to}`;
+    if (piece.piece === 'K') {
+      const df = to.charCodeAt(0) - from.charCodeAt(0);
+      if (df === 2) return 'O-O';
+      if (df === -2) return 'O-O-O';
+    }
+    const cap = b.pieces.has(to);
+    if (piece.piece === 'P') {
+      const isCapture = from[0] !== to[0];
+      const base = isCapture ? `${from[0]}x${to}` : to;
+      const rank = to[1];
+      if ((piece.color === 'w' && rank === '8') || (piece.color === 'b' && rank === '1')) return `${base}=Q`;
+      return base;
+    }
+    return `${piece.piece}${cap ? 'x' : ''}${to}`;
+  }
+
+  function goToExploreMove(index: number) {
+    exploreStack = exploreStack.slice(0, index + 1);
+    viewerSelected = null;
+  }
+
   function applyExploreMove(b: BoardState, from: SquareId, to: SquareId): BoardState {
     const pieces = new Map(b.pieces);
     const piece: { piece: PieceKind; color: PieceColor } = pieces.get(from)!;
@@ -530,10 +554,11 @@
     const curBoard = exploring && exploreStack.length > 0
       ? exploreStack[exploreStack.length - 1].board
       : board;
+    const san = moveToSan(curBoard, from, to);
     const newBoard = applyExploreMove(curBoard, from, to);
 
     if (!exploring) exploring = true;
-    exploreStack = [...exploreStack, { board: newBoard, from, to }];
+    exploreStack = [...exploreStack, { board: newBoard, from, to, san }];
     viewerSelected = null;
     playSound('move');
   }
@@ -760,6 +785,21 @@
         </div>
         {#if game.result}
           <div class="game-result">{game.result}</div>
+        {/if}
+        {#if exploring && exploreStack.length > 0}
+          <div class="explore-line">
+            <span class="explore-line-label">Exploring:</span>
+            {#each exploreStack as move, i}
+              {@const halfMove = currentPath.length + i}
+              {@const moveNum = Math.floor(halfMove / 2) + 1}
+              {@const isWhite = halfMove % 2 === 0}
+              {#if isWhite}<span class="explore-line-num">{moveNum}.</span>{:else if i === 0}<span class="explore-line-num">{moveNum}...</span>{/if}
+              <button
+                class={['explore-line-btn', i === exploreStack.length - 1 && 'move-active']}
+                onclick={() => goToExploreMove(i)}
+              >{move.san}</button>{' '}
+            {/each}
+          </div>
         {/if}
       </div>
     </div>
@@ -1120,6 +1160,45 @@
   .var-move-btn.move-active {
     background: rgba(34, 197, 94, 0.2);
     color: inherit;
+    font-weight: 700;
+  }
+
+  /* --- Explore line in move list --- */
+  .explore-line {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(234, 179, 8, 0.3);
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  .explore-line-label {
+    color: #eab308;
+    font-weight: 600;
+    margin-right: 0.25rem;
+  }
+
+  .explore-line-num {
+    color: var(--text-faint, #666);
+  }
+
+  .explore-line-btn {
+    background: none;
+    border: none;
+    color: #eab308;
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0.0625rem 0.125rem;
+    border-radius: 0.125rem;
+    transition: background-color 0.15s;
+  }
+
+  .explore-line-btn:hover {
+    background: var(--btn-bg, #2a2a2a);
+  }
+
+  .explore-line-btn.move-active {
+    background: rgba(234, 179, 8, 0.15);
     font-weight: 700;
   }
 </style>
