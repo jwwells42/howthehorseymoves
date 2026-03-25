@@ -21,7 +21,7 @@ No test framework is configured.
 **Three-layer design**: chess logic → state management → Svelte UI.
 
 ### Chess Logic (`src/lib/logic/`)
-- `types.ts` — Core types: `PieceKind`, `PieceColor`, `SquareId` (union of all 64 squares), `BoardState` (Map-based, immutable). FEN parser via `parseFen()`
+- `types.ts` — Core types: `PieceKind`, `PieceColor`, `SquareId` (union of all 64 squares), `BoardState` (Map-based, immutable). FEN parser via `parseFen()`. Position hashing via `boardToKey()` (used for threefold repetition)
 - `moves.ts` — Pure functions for move generation per piece type. Sliding pieces (R/B/Q) use direction arrays; step pieces (K/N) use offset arrays; pawns have special forward/capture/en-passant logic
 - `attacks.ts` — `isSquareAttacked()`, `isInCheck()`, `isCheckmate()`, `isStalemate()`, `getLegalMoves()`, `getAllLegalMoves()`
 - `pgn.ts` — PGN parsers. Flat `parsePgn()` for simple move lists; tree-based `parseGamePgn()` → `GameTree`/`GameNode` with full variation support (`(...)` syntax), comments, NAGs, arrows. `extractMainLine(tree)` flattens to `ParsedGame` for backward compat / test mode. Exports `parseSan()` and `applyMove()` (also used by openings parser). Supports comments (`{text}`), NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`)
@@ -48,7 +48,7 @@ No test framework is configured.
 ### State (`src/lib/state/`)
 - `progress-store.ts` — Svelte writable store, persists to localStorage (`"horsey-progress"`). Sequential unlock: puzzle N requires N-1 completed
 - `use-puzzle.svelte.ts` — State factory for gameplay: board state, move validation, drag-and-drop, star calculation, side-effects, multi-step solution validation
-- `use-game.svelte.ts` — State factory for Play vs Computer: castling, promotion, bot moves
+- `use-game.svelte.ts` — State factory for Play vs Computer: castling, promotion, bot moves, threefold repetition detection via `boardToKey()`
 
 ### Components (`src/lib/components/`)
 - `board/Board.svelte` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations, danger-square overlays. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode). `dangerSquares` prop highlights squares with red semi-transparent overlay
@@ -59,7 +59,8 @@ No test framework is configured.
 - `game/GameShell.svelte` — Play vs Computer wrapper, accepts `botLevel` prop
 - `opening/OpeningTrainer.svelte` — Opening repertoire trainer with learn/practice phases
 - `endgame/EndgameShell.svelte` — KPK bitbase trainer (`src/lib/logic/kpk-bitbase.ts`: 24KB retrograde analysis). Bot plays perfect defense via bitbase; validates student moves must maintain winning evaluation. Win condition: pawn reaches rank 8. Stars: 0 mistakes=3, 1=2, 2+=1
-- `endgame/MateTrainer.svelte` — Mate conversion trainer (KQK, KRRK, KRK, KBBK)
+- `endgame/MateTrainer.svelte` — Mate conversion trainer (KQK, KRRK, KRK, KBBK, KBNK)
+- `endgame/DrawTrainer.svelte` — "Hold the draw" trainer. Student plays Black (defender), bot plays White (attacker). Bot uses simple evaluation (pawn advancement, captures, centralization). Win = draw achieved (stalemate, threefold repetition, 50-move rule). Lose = checkmate or clean promotion (bot promotes and student can't capture). Uses `boardToKey()` for threefold detection
 - `lessons/HowToWinLesson.svelte` + `how-to-win-data.ts` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
 - `blindfold/` — 20 blindfold/visualization trainers, all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, KnightSquares, RelativePosition, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
 

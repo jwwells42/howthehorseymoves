@@ -12,7 +12,7 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 - **How to Win** — guided lesson covering check, checkmate, and stalemate with interactive practice
 - **Checkmate patterns** — back rank, rook ladder, queen-bishop battery, knight on f7, Lolli's mate, queen & king endgames, smothered mate
 - **Tactics** — pins, skewers, forks, removing the defender, discovered attacks (hand-authored instruction + Lichess practice puzzles)
-- **Endings** — King + Pawn vs King (bitbase-powered perfect defense) and mate conversion (KQK, KRRK, KRK, KBBK)
+- **Endings** — King + Pawn vs King (bitbase-powered perfect defense), mate conversion (KQK, KRRK, KRK), and advanced endings (KBBK, KBNK, Philidor "hold the draw" trainer)
 - **Blindfold training** — 20 visualization exercises: color of square, same diagonal, knight routes, knight squares, piece reachability, flash position, move counting, and more
 - **Play vs computer** — random bot and basic bot (one-ply evaluation)
 - **Openings** — learn opening repertoires move by move with arrow hints
@@ -34,20 +34,30 @@ Requires Node.js 18+.
 
 ## Adding content
 
-**Puzzles** live in `src/lib/puzzles/`. Each file exports an array of puzzles. Positions can be defined as piece-by-piece JSON or as a [FEN string](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation):
+**Puzzles** live in `src/lib/puzzles/`. Each file exports an array of puzzles. Three types: `route` (navigate to target squares), `puzzle` (Lichess-style tactics from FEN+PGN), and `conversion` (play against a bot to checkmate or promote):
 
 ```ts
+// Route puzzle — navigate piece to stars, avoid walls
 {
-  id: "my-puzzle-01",
-  piece: "R",
-  title: "Rook Checkmate",
-  instruction: "Deliver checkmate with the rook!",
-  setup: "6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1",
-  targets: [],
-  solution: ["a8"],
-  mode: "checkmate",
-  maxMoves: 1,
-  starThresholds: { three: 1, two: 2, one: 3 },
+  type: "route",
+  id: "rook-01",
+  title: "Rook Path",
+  instruction: "Collect all the stars!",
+  playerPiece: "R",
+  position: [{ piece: "R", color: "w", square: "a1" }],
+  walls: ["d4", "d5"],
+  stars: ["a8", "h1"],
+  starThresholds: { three: 4, two: 6, one: 8 },
+}
+
+// Tactic puzzle — FEN position + PGN solution
+{
+  type: "puzzle",
+  id: "tactics-fork-01",
+  title: "Knight Fork",
+  instruction: "Win material with a fork!",
+  fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+  pgn: "1. Qxf7#",
 }
 ```
 
