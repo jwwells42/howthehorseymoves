@@ -199,9 +199,9 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 
 ## Bot System (`src/lib/logic/bot.ts`)
 
-- Two levels: `"random"` (any legal move) and `"basic"` (one-ply evaluation)
+- Three levels: `"random"` (any legal move), `"basic"` (one-ply evaluation), and `"intermediate"` (depth-2 minimax with alpha-beta pruning)
 - Basic bot scores each legal move by: captures (trade up), checkmate delivery (+1000), checkmate defense (-500 if move allows opponent mate-in-1), piece safety, check bonus, center control, castling, pawn advancement
-- No search tree — single pass over legal moves, runs instantly on Chromebooks
+- Intermediate bot: depth-2 minimax search with alpha-beta pruning. Uses piece-square tables (standard simplified PSTs from Chess Programming Wiki) for static evaluation. Handles promotion, castling, and en passant in move simulation. Captures sorted first for better pruning (~35×35 = ~1,225 positions worst case, typically much less with pruning). Instant on Chromebooks
 - `createGameState(botLevel)` in `use-game.svelte.ts` creates the game state factory; `GameShell` passes it through
 - Play page (`/play`) shows a level selector before starting the game
-- Adding new levels: add to `BotLevel` type, handle in `pickBotMove()`. Depth-2 minimax would be the natural next step (~900 positions, still fast)
+- Adding new levels: add to `BotLevel` type, handle in `pickBotMove()`

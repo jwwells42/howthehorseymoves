@@ -3,7 +3,7 @@
   import GameShell from '$lib/components/game/GameShell.svelte';
   import type { BotLevel } from '$lib/logic/bot';
 
-  const VALID_LEVELS: BotLevel[] = ['random', 'basic'];
+  const VALID_LEVELS: BotLevel[] = ['random', 'basic', 'intermediate'];
 
   let paramLevel = $derived(page.url.searchParams.get('level'));
   let initialLevel = $derived(VALID_LEVELS.includes(paramLevel as BotLevel) ? (paramLevel as BotLevel) : null);
@@ -32,6 +32,10 @@
       <button class="level-card" onclick={() => level = 'basic'}>
         <h3>Basic Bot</h3>
         <p class="level-desc">Captures pieces, avoids blunders, and controls the center.</p>
+      </button>
+      <button class="level-card" onclick={() => level = 'intermediate'}>
+        <h3>Intermediate Bot</h3>
+        <p class="level-desc">Thinks two moves ahead. Plays real chess!</p>
       </button>
     </div>
   </main>
