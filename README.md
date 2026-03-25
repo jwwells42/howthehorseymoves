@@ -13,12 +13,13 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 - **Checkmate patterns** — back rank, rook ladder, queen-bishop battery, knight on f7, Lolli's mate, queen & king endgames, smothered mate
 - **Tactics** — pins, skewers, forks, removing the defender, discovered attacks (hand-authored instruction + Lichess practice puzzles)
 - **Endings** — King + Pawn vs King (bitbase-powered perfect defense), mate conversion (KQK, KRRK, KRK), and advanced endings (KBBK, KBNK, Philidor "hold the draw" trainer)
-- **Blindfold training** — 20 visualization exercises: color of square, same diagonal, knight routes, knight squares, piece reachability, flash position, move counting, and more
+- **Blindfold training** — 24 visualization trainers: color of square, same diagonal, knight routes, knight squares, piece reachability, flash position, move counting, blindfold checkmate, and more
 - **Play vs computer** — random bot and basic bot (one-ply evaluation)
 - **Openings** — learn opening repertoires move by move with arrow hints
-- **Model games** — 13 classical games (Greco through Kasparov) with move-by-move viewer, annotations, variation support, and a test mode to reproduce games from memory
+- **Model games** — 14 classical games (Fool's Mate through Kasparov) with move-by-move viewer, annotations, variation support, and a test mode to reproduce games from memory
 - **Star ratings** — 1-3 stars based on move efficiency, shown as mastery badges when all puzzles in a set are completed
 - **Sequential unlock** — complete a puzzle to unlock the next one
+- **Sound effects** — move, correct, wrong, and star sounds with a mute toggle
 - **No accounts** — progress saves to the browser (localStorage)
 
 ## Running locally

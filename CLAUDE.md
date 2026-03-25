@@ -26,18 +26,19 @@ No test framework is configured.
 - `attacks.ts` — `isSquareAttacked()`, `isInCheck()`, `isCheckmate()`, `isStalemate()`, `getLegalMoves()`, `getAllLegalMoves()`
 - `pgn.ts` — PGN parsers. Flat `parsePgn()` for simple move lists; tree-based `parseGamePgn()` → `GameTree`/`GameNode` with full variation support (`(...)` syntax), comments, NAGs, arrows. `extractMainLine(tree)` flattens to `ParsedGame` for backward compat / test mode. Exports `parseSan()` and `applyMove()` (also used by openings parser). Supports comments (`{text}`), NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`)
 - `bot.ts` — Bot move selection: `pickBotMove(board, color, level)`. `"random"` = any legal move; `"basic"` = one-ply scored evaluation
-- `endgame.ts` — Mate conversion logic for KQK, KRRK, KRK, KBBK endgames
+- `endgame.ts` — Mate conversion logic for KQK, KRRK, KRK, KBBK, KBNK endgames
 
 ### Puzzle System (`src/lib/puzzles/`)
-- `types.ts` — `Puzzle` interface: setup (FEN or placements), targets, solution, star thresholds, hints, arrows, opponent responses
+- `types.ts` — Discriminated union `Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle`:
+  - `RoutePuzzle` (`type: "route"`) — navigate a piece to target stars, avoid walls. Has `playerPiece`, `position`, `walls`, `stars`, `starThresholds`, optional `arrows`/`threats`
+  - `TacticPuzzle` (`type: "puzzle"`) — Lichess-style FEN+PGN tactic. Has `fen`, `pgn`, optional `demo`/`starThresholds`
+  - `ConversionPuzzle` (`type: "conversion"`) — play against a bot to checkmate or promote. Has `position`, `bot`, `goal`, `starThresholds`
 - Per-piece files (`rook.ts`, `bishop.ts`, etc.) + `castling.ts`, `enpassant.ts`, `checkmate.ts`, `tactics.ts`
 - `index.ts` — Registry with `getPuzzlesForPiece()`, `PIECES`, `CATEGORIES` (with `comingSoon` support for subcategories)
-- Three puzzle modes: `"reach-target"` (default), `"checkmate"`, `"checkmate-bot"`
-- Reach-target supports multi-step solutions with `opponentResponses` (for tactics puzzles where the student demonstrates "the point" — e.g., pin then capture). Multi-step validation ONLY activates when `opponentResponses` is present — basic puzzles with multi-entry `solution` arrays use them as hints, not strict enforcement
 
 ### Model Games (`src/lib/games/`)
 - `types.ts` — `ModelGame` interface
-- `index.ts` — 13 classical games (Greco through Kasparov) with PGN strings. Most are unannotated — user annotates via Lichess studies, then pastes PGN with `{comments}` and `[%cal ...]` arrows
+- `index.ts` — 14 classical games (Greco through Kasparov) with PGN strings. Most are unannotated — user annotates via Lichess studies, then pastes PGN with `{comments}` and `[%cal ...]` arrows
 
 ### Opening Trainer (`src/lib/openings/`)
 - `index.ts` — PGN variation parser (`parseOpeningPgn`), line extractor, opening data
@@ -49,6 +50,7 @@ No test framework is configured.
 - `progress-store.ts` — Svelte writable store, persists to localStorage (`"horsey-progress"`). Sequential unlock: puzzle N requires N-1 completed
 - `use-puzzle.svelte.ts` — State factory for gameplay: board state, move validation, drag-and-drop, star calculation, side-effects, multi-step solution validation
 - `use-game.svelte.ts` — State factory for Play vs Computer: castling, promotion, bot moves, threefold repetition detection via `boardToKey()`
+- `sound.ts` — WAV file playback (`/sounds/*.wav`) with mute toggle persisted to localStorage. Four sounds: `move`, `correct`, `wrong`, `stars`. Used by puzzles, game, and endgame trainers
 
 ### Components (`src/lib/components/`)
 - `board/Board.svelte` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations, danger-square overlays. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode). `dangerSquares` prop highlights squares with red semi-transparent overlay
@@ -62,10 +64,13 @@ No test framework is configured.
 - `endgame/MateTrainer.svelte` — Mate conversion trainer (KQK, KRRK, KRK, KBBK, KBNK)
 - `endgame/DrawTrainer.svelte` — "Hold the draw" trainer. Student plays Black (defender), bot plays White (attacker). Bot uses simple evaluation (pawn advancement, captures, centralization). Win = draw achieved (stalemate, threefold repetition, 50-move rule). Lose = checkmate or clean promotion (bot promotes and student can't capture). Uses `boardToKey()` for threefold detection
 - `lessons/HowToWinLesson.svelte` + `how-to-win-data.ts` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
-- `blindfold/` — 20 blindfold/visualization trainers, all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, KnightSquares, RelativePosition, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
+- `blindfold/` — 20 blindfold/visualization components (24 trainers total — BlindfoldMate handles 5 endgame types), all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, KnightSquares, RelativePosition, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
 
 ### Routing (`src/routes/`)
-- `/` — Landing page with three sections: **Basics**, **Intermediate**, **Advanced**
+- `/` — Landing page with four sections: **Basics**, **Practice**, **Study**, **Vision**
+- `/practice` — Practice hub (checkmate, tactics, endings, advanced endings)
+- `/study` — Study hub (openings, model games, puzzle creator)
+- `/vision` — Vision hub (24 blindfold/visualization trainers)
 - `/learn/[piece]` — Puzzle list, category hub, endgame trainers, blindfold trainers, How to Win hub/sections
 - `/learn/[piece]/[puzzleId]` — Individual puzzle or How to Win lesson step
 - `/board` — Board hub; `/board/coordinates` — Coordinate trainer
@@ -73,6 +78,7 @@ No test framework is configured.
 - `/games`, `/games/[gameId]` — Model game viewer
 - `/openings`, `/openings/[id]` — Opening repertoire trainer
 - `/play` — Play vs computer
+- `/editor` — Puzzle creator (place pieces, generate FEN strings)
 - `/about` — Privacy, COPPA, credits, license, administrator info
 
 ### Lichess Puzzles (`src/lib/puzzles/lichess-*.ts`)
@@ -145,7 +151,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 ## Key Conventions
 
 - Many students using this app cannot read yet. All interactive elements (puzzles, lessons, trainers) should be figure-out-able from visual cues alone: arrows, colors, icons, and board state. Text instructions are helpful for those who can read but must not be the only signal. Use universal symbols (trophies, checkmarks, red/green colors) over text labels
-- Landing page has three sections: Basics, Intermediate, Advanced. Intermediate/Advanced collapse behind "Show more" toggle until all basics are complete (not locked — older students can click to reveal). Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
+- Landing page has four sections: Basics, Practice, Study, Vision. Practice/Study/Vision are always visible. Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
 - Basics cards have step numbers (1-9) with green checkmarks when complete, yellow glow + "Start here!"/"Up next!" badge on the first incomplete card
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
 - "Continue" button above Basics grid links directly to the next unsolved puzzle. "Play a Game!" card (step 7) in Basics links to `/play?level=random`

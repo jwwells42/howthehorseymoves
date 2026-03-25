@@ -7,9 +7,10 @@
     <h2>What is this?</h2>
     <div class="prose">
       <p>
-        How The Horsey Moves is a free, open-source chess puzzle trainer designed for young students
+        How The Horsey Moves is a free, open-source chess trainer designed for young students
         in classroom settings. It teaches how each chess piece moves through interactive puzzles,
-        board setup exercises, checkmate practice, and more.
+        board setup exercises, checkmate patterns, tactics, endings, openings, model games,
+        blindfold training, and play against the computer.
       </p>
       <p>
         There are no accounts, no ads, no chat, no memberships, and no data collection.
