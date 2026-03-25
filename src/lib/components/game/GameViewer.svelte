@@ -328,6 +328,17 @@
     return true;
   }
 
+  // Find which move pair / side the explore branches from
+  let exploreBranchKey = $derived.by((): { pairIdx: number; side: 'white' | 'black' } | null => {
+    if (!exploring || exploreStack.length === 0) return null;
+    for (let i = 0; i < movePairs.length; i++) {
+      const pair = movePairs[i];
+      if (pair.white && isActivePath(pair.white.path)) return { pairIdx: i, side: 'white' };
+      if (pair.black && isActivePath(pair.black.path)) return { pairIdx: i, side: 'black' };
+    }
+    return null;
+  });
+
   // Check if a path is "on" the current path (current path passes through it)
   function isOnCurrentPath(path: GameNode[]): boolean {
     if (path.length > currentPath.length) return false;
@@ -774,7 +785,9 @@
 
       <div class="move-list" bind:this={moveListEl}>
         <div class="move-grid">
-          {#each movePairs as pair}
+          {#each movePairs as pair, pairIdx}
+            {@const exploreAfterWhite = exploreBranchKey?.pairIdx === pairIdx && exploreBranchKey.side === 'white'}
+            {@const exploreAfterBlack = exploreBranchKey?.pairIdx === pairIdx && exploreBranchKey.side === 'black'}
             <span class="move-num">{pair.num}.</span>
             {#if pair.white}
               <button
@@ -801,7 +814,7 @@
               {/each}
             {/if}
 
-            {#if exploring && exploreStack.length > 0 && pair.white && isActivePath(pair.white.path)}
+            {#if exploreAfterWhite}
               <span class="variation-row explore-var">({#each exploreStack as move, i}{@const halfMove = currentPath.length + i}{@const moveNum = Math.floor(halfMove / 2) + 1}{@const isWhite = halfMove % 2 === 0}{#if isWhite}<span class="explore-line-num">{moveNum}.</span>{:else if i === 0}<span class="explore-line-num">{moveNum}...</span>{/if}<button
                   class={['explore-line-btn', i === exploreStack.length - 1 && 'move-active']}
                   onclick={() => goToExploreMove(i)}
@@ -809,7 +822,7 @@
             {/if}
 
             {#if pair.black}
-              {#if pair.variationsAfterWhite.length > 0 || (exploring && exploreStack.length > 0 && pair.white && isActivePath(pair.white.path))}
+              {#if pair.variationsAfterWhite.length > 0 || exploreAfterWhite}
                 <span class="move-num">{pair.num}.</span>
                 <span class="move-ellipsis">...</span>
               {/if}
@@ -820,7 +833,7 @@
               >
                 {pair.black.node.san}{pair.black.node.nag ?? ''}
               </button>
-            {:else if pair.variationsAfterWhite.length === 0 && !(exploring && exploreStack.length > 0 && pair.white && isActivePath(pair.white.path))}
+            {:else if pair.variationsAfterWhite.length === 0 && !exploreAfterWhite}
               <span></span>
             {/if}
 
@@ -834,13 +847,20 @@
               {/each}
             {/if}
 
-            {#if exploring && exploreStack.length > 0 && pair.black && isActivePath(pair.black.path)}
+            {#if exploreAfterBlack}
               <span class="variation-row explore-var">({#each exploreStack as move, i}{@const halfMove = currentPath.length + i}{@const moveNum = Math.floor(halfMove / 2) + 1}{@const isWhite = halfMove % 2 === 0}{#if isWhite}<span class="explore-line-num">{moveNum}.</span>{:else if i === 0}<span class="explore-line-num">{moveNum}...</span>{/if}<button
                   class={['explore-line-btn', i === exploreStack.length - 1 && 'move-active']}
                   onclick={() => goToExploreMove(i)}
                 >{move.san}</button>{' '}{/each})</span>
             {/if}
           {/each}
+
+          {#if exploring && exploreStack.length > 0 && !exploreBranchKey}
+            <span class="variation-row explore-var">({#each exploreStack as move, i}{@const halfMove = currentPath.length + i}{@const moveNum = Math.floor(halfMove / 2) + 1}{@const isWhite = halfMove % 2 === 0}{#if isWhite}<span class="explore-line-num">{moveNum}.</span>{:else if i === 0}<span class="explore-line-num">{moveNum}...</span>{/if}<button
+                class={['explore-line-btn', i === exploreStack.length - 1 && 'move-active']}
+                onclick={() => goToExploreMove(i)}
+              >{move.san}</button>{' '}{/each})</span>
+          {/if}
         </div>
         {#if game.result}
           <div class="game-result">{game.result}</div>
