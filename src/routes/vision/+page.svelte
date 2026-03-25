@@ -62,6 +62,7 @@
         { key: 'blindfold-mate-krrk', name: 'Mate: RR vs K', description: 'Deliver checkmate blindfolded with King + 2 Rooks.', icon: '/pieces/wR.svg', storageKey: 'blindfold-mate-krrk-best-stars' },
         { key: 'blindfold-mate-krk', name: 'Mate: R vs K', description: 'Deliver checkmate blindfolded with King + Rook.', icon: '/pieces/wR.svg', storageKey: 'blindfold-mate-krk-best-stars' },
         { key: 'blindfold-mate-kbbk', name: 'Mate: BB vs K', description: 'Deliver checkmate blindfolded with King + 2 Bishops.', icon: '/pieces/wB.svg', storageKey: 'blindfold-mate-kbbk-best-stars' },
+        { key: 'blindfold-mate-kbnk', name: 'Mate: BN vs K', description: 'Deliver checkmate blindfolded with King + Bishop + Knight.', icon: '/pieces/wN.svg', storageKey: 'blindfold-mate-kbnk-best-stars' },
       ],
     },
   ];
