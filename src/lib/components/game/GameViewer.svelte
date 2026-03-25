@@ -1072,7 +1072,7 @@
   }
 
   .move-active {
-    background: var(--btn-hover, #3a3a3a);
+    background: rgba(34, 197, 94, 0.2);
     font-weight: 700;
   }
 
@@ -1118,7 +1118,7 @@
   }
 
   .var-move-btn.move-active {
-    background: var(--btn-hover, #3a3a3a);
+    background: rgba(34, 197, 94, 0.2);
     color: inherit;
     font-weight: 700;
   }
