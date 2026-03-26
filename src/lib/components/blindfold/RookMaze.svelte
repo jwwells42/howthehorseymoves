@@ -70,6 +70,25 @@
     optimal: number;
   }
 
+  /** Squares between two squares on the same rank or file (exclusive). */
+  function squaresBetween(a: string, b: string): string[] {
+    const f1 = a.charCodeAt(0) - 97, r1 = parseInt(a[1]) - 1;
+    const f2 = b.charCodeAt(0) - 97, r2 = parseInt(b[1]) - 1;
+    const sqs: string[] = [];
+    if (f1 === f2) {
+      const step = r2 > r1 ? 1 : -1;
+      for (let r = r1 + step; r !== r2; r += step) {
+        sqs.push(String.fromCharCode(97 + f1) + (r + 1));
+      }
+    } else if (r1 === r2) {
+      const step = f2 > f1 ? 1 : -1;
+      for (let f = f1 + step; f !== f2; f += step) {
+        sqs.push(String.fromCharCode(97 + f) + (r1 + 1));
+      }
+    }
+    return sqs;
+  }
+
   function generatePuzzle(): Puzzle {
     for (;;) {
       const sf = Math.floor(Math.random() * 8);
@@ -82,9 +101,26 @@
       const start = String.fromCharCode(97 + sf) + (sr + 1);
       const target = String.fromCharCode(97 + tf) + (tr + 1);
 
-      const numObs = Math.floor(Math.random() * 4) + 3;
+      // The two direct 2-move corners
+      const corner1 = String.fromCharCode(97 + tf) + (sr + 1); // same rank as start, same file as target
+      const corner2 = String.fromCharCode(97 + sf) + (tr + 1); // same file as start, same rank as target
+
+      // Squares along both direct L-shaped routes (through corner1 and corner2)
+      const path1 = [...squaresBetween(start, corner1), corner1, ...squaresBetween(corner1, target)];
+      const path2 = [...squaresBetween(start, corner2), corner2, ...squaresBetween(corner2, target)];
+      const allPathSquares = [...new Set([...path1, ...path2])].filter(sq => sq !== start && sq !== target);
+
+      if (allPathSquares.length === 0) continue;
+
       const obstacles = new Set<string>();
-      for (let i = 0; i < numObs; i++) {
+
+      // Place at least one obstacle on a direct path square
+      const forced = allPathSquares[Math.floor(Math.random() * allPathSquares.length)];
+      obstacles.add(forced);
+
+      // Add 2-4 more random obstacles
+      const numExtra = Math.floor(Math.random() * 3) + 2;
+      for (let i = 0; i < numExtra; i++) {
         let oSq: string;
         do {
           oSq = String.fromCharCode(97 + Math.floor(Math.random() * 8)) + (Math.floor(Math.random() * 8) + 1);
@@ -93,7 +129,7 @@
       }
 
       const optimal = bfsRookMaze(start, target, obstacles);
-      if (optimal >= 2 && optimal <= 4) {
+      if (optimal >= 3 && optimal <= 4) {
         return { start, target, obstacles, optimal };
       }
     }
