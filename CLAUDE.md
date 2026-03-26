@@ -100,6 +100,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 
 ### State & Reactivity
 - **`$state()`** for reactive variables: `let count = $state(0)`
+- **`$state.raw()`** for arrays/objects where you need reference equality (`===`) on contents. `$state()` deep-proxies contents, so `stateArray[i] === rawObj` is always false. Use `$state.raw()` when the array is replaced wholesale (not mutated in place) and its elements are compared by reference elsewhere (e.g., parsed tree nodes, path arrays). Reassignment is still tracked; only deep property tracking is skipped
 - **Typed state** uses generic syntax: `let items = $state<string[]>([])` — NOT `let items: string[] = $state([])`
 - **`$derived()`** for computed values: `let doubled = $derived(count * 2)`
 - **`$derived.by()`** for complex computations that need a function body

@@ -857,12 +857,6 @@
             {/if}
           {/each}
 
-          {#if exploring && exploreStack.length > 0 && !exploreBranchKey}
-            <span class="variation-row explore-var">({#each exploreStack as move, i}{@const halfMove = currentPath.length + i}{@const moveNum = Math.floor(halfMove / 2) + 1}{@const isWhite = halfMove % 2 === 0}{#if isWhite}<span class="explore-line-num">{moveNum}.</span>{:else if i === 0}<span class="explore-line-num">{moveNum}...</span>{/if}<button
-                class={['explore-line-btn', i === exploreStack.length - 1 && 'move-active']}
-                onclick={() => goToExploreMove(i)}
-              >{move.san}</button>{' '}{/each})</span>
-          {/if}
         </div>
         {#if game.result}
           <div class="game-result">{game.result}</div>
