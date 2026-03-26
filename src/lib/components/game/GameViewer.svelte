@@ -16,7 +16,9 @@
   let totalMoves = $derived(flatParsed.moves.length);
 
   // === Viewer state — path-based navigation ===
-  let currentPath = $state<GameNode[]>([]);
+  // $state.raw avoids deep proxying — needed so GameNode reference equality
+  // works for isActivePath/isOnCurrentPath comparisons with movePairs paths.
+  let currentPath = $state.raw<GameNode[]>([]);
   let isPlaying = $state(false);
   let pauseOnVariations = $state(false);
 
