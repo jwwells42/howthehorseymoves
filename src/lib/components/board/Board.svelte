@@ -135,7 +135,19 @@
       if (svgPt) {
         const dropSq = svgToSquare(svgPt.x, svgPt.y);
         if (dropSq && dropSq !== drag.from) {
+          // Snap the drag preview to the drop square so the piece
+          // stays visible while the board state updates.
+          const [dx, dy] = sqToXY(dropSq);
+          drag = {
+            ...drag,
+            x: dx * SQUARE_SIZE + SQUARE_SIZE / 2,
+            y: dy * SQUARE_SIZE + SQUARE_SIZE / 2,
+          };
           onDrop(drag.from, dropSq);
+          // Clear drag after a microtick so the new board state
+          // renders before the preview disappears.
+          queueMicrotask(() => { drag = null; onDragEnd(); });
+          return;
         } else {
           onSquareClick(drag.from);
         }

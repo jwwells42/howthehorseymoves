@@ -34,27 +34,18 @@ function getCtx(): AudioContext {
   return ctx;
 }
 
-/** Sine tone with exponential decay envelope matching the WAV generator. */
+/** Sine tone with exponential decay envelope matching the WAV generator.
+ *  WAV script uses: env = exp(-t * 8 / duration), i.e. time constant = duration / 8. */
 function sine(freq: number, duration: number, volume: number, delay = 0) {
   const c = getCtx();
   const osc = c.createOscillator();
   const gain = c.createGain();
-  const sr = c.sampleRate;
-  const n = Math.floor(sr * duration);
   const t0 = c.currentTime + delay;
-
-  // Replicate: env = exp(-t * 8 / duration) per sample
-  // Web Audio doesn't have a per-sample exp envelope, but
-  // setValueCurveAtTime lets us supply an exact envelope.
-  const curve = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
-    const t = i / sr;
-    curve[i] = volume * Math.exp(-t * 8 / duration);
-  }
 
   osc.type = 'sine';
   osc.frequency.value = freq;
-  gain.gain.setValueCurveAtTime(curve, t0, duration);
+  gain.gain.setValueAtTime(volume, t0);
+  gain.gain.setTargetAtTime(0.0001, t0, duration / 8);
   osc.connect(gain);
   gain.connect(c.destination);
   osc.start(t0);
