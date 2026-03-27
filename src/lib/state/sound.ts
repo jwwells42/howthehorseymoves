@@ -23,6 +23,8 @@ export function toggleMuted(): void {
 }
 
 // ── Web Audio synthesis ──────────────────────────
+// Matches the WAV generation script (scripts/generate-sounds.js)
+// that produced the sounds used during WAV playback.
 
 let ctx: AudioContext | null = null;
 
@@ -32,43 +34,69 @@ function getCtx(): AudioContext {
   return ctx;
 }
 
-function tone(
-  freq: number,
-  duration: number,
-  type: OscillatorType = 'sine',
-  volume = 0.25,
-  delay = 0,
-) {
+/** Sine tone with exponential decay envelope matching the WAV generator. */
+function sine(freq: number, duration: number, volume: number, delay = 0) {
   const c = getCtx();
   const osc = c.createOscillator();
   const gain = c.createGain();
-  osc.type = type;
+  const sr = c.sampleRate;
+  const n = Math.floor(sr * duration);
+  const t0 = c.currentTime + delay;
+
+  // Replicate: env = exp(-t * 8 / duration) per sample
+  // Web Audio doesn't have a per-sample exp envelope, but
+  // setValueCurveAtTime lets us supply an exact envelope.
+  const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const t = i / sr;
+    curve[i] = volume * Math.exp(-t * 8 / duration);
+  }
+
+  osc.type = 'sine';
   osc.frequency.value = freq;
-  const t = c.currentTime + delay;
-  gain.gain.setValueAtTime(volume, t);
-  gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+  gain.gain.setValueCurveAtTime(curve, t0, duration);
   osc.connect(gain);
   gain.connect(c.destination);
-  osc.start(t);
-  osc.stop(t + duration);
+  osc.start(t0);
+  osc.stop(t0 + duration);
+}
+
+/** Noise burst with exponential decay (for the move "tap" sound). */
+function noiseBurst(duration: number, volume: number) {
+  const c = getCtx();
+  const sr = c.sampleRate;
+  const n = Math.floor(sr * duration);
+  const buffer = c.createBuffer(1, n, sr);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < n; i++) {
+    const t = i / sr;
+    const env = Math.exp(-t * 15 / duration);
+    data[i] = (Math.random() * 2 - 1) * volume * env;
+  }
+  const source = c.createBufferSource();
+  source.buffer = buffer;
+  source.connect(c.destination);
+  source.start(c.currentTime);
 }
 
 const SOUNDS = {
   move() {
-    tone(800, 0.06, 'triangle', 0.3);
-    tone(400, 0.04, 'square', 0.08, 0.01);
+    noiseBurst(0.06, 0.4);
+    sine(800, 0.05, 0.3);
+    sine(400, 0.04, 0.15);
   },
   correct() {
-    tone(523, 0.12, 'sine', 0.25);
-    tone(659, 0.18, 'sine', 0.25, 0.1);
+    sine(523, 0.15, 0.45);
+    sine(659, 0.2, 0.45, 0.1);
   },
   wrong() {
-    tone(180, 0.2, 'square', 0.12);
+    sine(180, 0.25, 0.35);
+    sine(220, 0.2, 0.15);
   },
   stars() {
-    tone(523, 0.15, 'sine', 0.25);
-    tone(659, 0.15, 'sine', 0.25, 0.12);
-    tone(784, 0.25, 'sine', 0.3, 0.24);
+    sine(523, 0.2, 0.4);
+    sine(659, 0.2, 0.4, 0.15);
+    sine(784, 0.35, 0.5, 0.3);
   },
 };
 
