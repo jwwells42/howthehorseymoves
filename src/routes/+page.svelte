@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
-  import { PIECES, CATEGORIES, getPuzzlesForPiece, type CategoryInfo } from '$lib/puzzles';
+  import { PIECES, getPuzzlesForPiece } from '$lib/puzzles';
   import { progressState, getPuzzleProgress } from '$lib/state/progress-store';
 
   let coordStars = $state(0);
@@ -62,26 +62,6 @@
   }));
 
   let dzStats = $derived(getPieceStats('danger-zones'));
-
-  const PRACTICE_KEYS = ['checkmate', 'tactics', 'endings', 'advanced-endings'];
-  let practiceCats = $derived(CATEGORIES.filter(c => PRACTICE_KEYS.includes(c.key)));
-
-  function getCategoryStats(cat: CategoryInfo) {
-    let total = 0;
-    let completed = 0;
-    if ($progressState.loaded) {
-      for (const sub of cat.subcategories) {
-        const puzzleSet = getPuzzlesForPiece(sub.key);
-        if (puzzleSet) {
-          total += puzzleSet.puzzles.length;
-          for (const p of puzzleSet.puzzles) {
-            if (getPuzzleProgress(p.id)?.completed) completed++;
-          }
-        }
-      }
-    }
-    return { total, completed };
-  }
 
   function getPieceStats(pieceKey: string) {
     const puzzleSet = getPuzzlesForPiece(pieceKey);
@@ -227,89 +207,32 @@
     </div>
   {/if}
 
-  <!-- Practice -->
-  <div class="section-header">
-    <div class="section-title-row">
-      <h2>Practice</h2>
-      <div class="divider"></div>
-      <a href="/practice" class="see-all">See all &rarr;</a>
-    </div>
-    <p class="section-subtitle">Checkmate patterns, tactics, and endings</p>
-  </div>
-
-  <div class="grid">
-    {#each practiceCats as cat}
-      {@const stats = getCategoryStats(cat)}
-      <a href="/learn/{cat.key}" class="card">
-        <div class="card-header">
-          <img src={cat.icon} alt={cat.name} class="card-icon" />
-          <h3>{cat.name}</h3>
-        </div>
-        <p class="card-desc">{cat.description}</p>
-        <div class="card-footer-split">
-          <span class="stat">{stats.completed}/{stats.total} puzzles</span>
-          <span class="stat">{cat.subcategories.length} {cat.subcategories.length === 1 ? 'topic' : 'topics'}</span>
-        </div>
-      </a>
-    {/each}
-  </div>
-
-  <!-- Study -->
-  <div class="section-header">
-    <div class="section-title-row">
-      <h2>Study</h2>
-      <div class="divider"></div>
-      <a href="/study" class="see-all">See all &rarr;</a>
-    </div>
-    <p class="section-subtitle">Openings, model games, and puzzle creation</p>
-  </div>
-
-  <div class="grid">
-    <a href="/openings" class="card">
+  <!-- Hub links -->
+  <div class="hub-grid">
+    <a href="/practice" class="card hub-card">
       <div class="card-header">
-        <img src="/pieces/wP.svg" alt="Openings" class="card-icon" />
-        <h3>Openings</h3>
+        <img src="/pieces/wQ.svg" alt="Practice" class="card-icon" />
+        <h3>Practice</h3>
       </div>
-      <p class="card-desc">Learn opening lines move by move.</p>
+      <p class="card-desc">Checkmate patterns, tactics, and endings.</p>
       <div class="card-footer">&nbsp;</div>
     </a>
 
-    <a href="/games" class="card">
+    <a href="/study" class="card hub-card">
       <div class="card-header">
-        <img src="/pieces/bK.svg" alt="Model Games" class="card-icon" />
-        <h3>Model Games</h3>
+        <img src="/pieces/bK.svg" alt="Study" class="card-icon" />
+        <h3>Study</h3>
       </div>
-      <p class="card-desc">Study famous games move by move.</p>
+      <p class="card-desc">Openings, model games, and puzzle creation.</p>
       <div class="card-footer">&nbsp;</div>
     </a>
 
-    <a href="/editor" class="card">
-      <div class="card-header">
-        <img src="/pieces/wQ.svg" alt="Puzzle Creator" class="card-icon" />
-        <h3>Puzzle Creator</h3>
-      </div>
-      <p class="card-desc">Place pieces and generate FEN strings for new puzzles.</p>
-      <div class="card-footer">&nbsp;</div>
-    </a>
-  </div>
-
-  <!-- Vision -->
-  <div class="section-header">
-    <div class="section-title-row">
-      <h2>Vision</h2>
-      <div class="divider"></div>
-      <a href="/vision" class="see-all">See all &rarr;</a>
-    </div>
-    <p class="section-subtitle">Blindfold and visualization trainers</p>
-  </div>
-
-  <div class="grid">
-    <a href="/vision" class="card vision-card">
+    <a href="/vision" class="card hub-card">
       <div class="card-header">
         <img src="/pieces/wN.svg" alt="Vision" class="card-icon" />
-        <h3>Blindfold Training</h3>
+        <h3>Vision</h3>
       </div>
-      <p class="card-desc">24 trainers to build your mental board vision — from square colors to blindfold checkmate.</p>
+      <p class="card-desc">Blindfold and visualization trainers.</p>
       <div class="card-footer">&nbsp;</div>
     </a>
   </div>
@@ -344,13 +267,6 @@
     margin-bottom: 1rem;
   }
   .section-header:first-of-type { margin-top: 0; }
-  .section-title-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.25rem;
-  }
-  .section-title-row h2 { font-size: 1.125rem; font-weight: bold; white-space: nowrap; }
   .section-subtitle { font-size: 0.875rem; color: var(--text-faint); }
   .divider { flex: 1; border-top: 1px solid rgba(240, 230, 204, 0.15); }
 
@@ -367,8 +283,6 @@
     padding: 0;
   }
   .toggle-label { font-size: 0.75rem; color: var(--text-faint); white-space: nowrap; }
-  .see-all { font-size: 0.75rem; color: var(--text-faint); white-space: nowrap; transition: color 0.15s; }
-  .see-all:hover { color: var(--foreground); }
 
   /* Continue button */
   .continue-btn {
@@ -394,6 +308,15 @@
   @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
   .hidden { display: none; }
+
+  /* Hub links */
+  .hub-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 2.5rem;
+  }
+  @media (max-width: 639px) { .hub-grid { grid-template-columns: 1fr; } }
 
   /* Cards */
   .card {
@@ -429,12 +352,6 @@
     flex: 1;
   }
   .card-footer { font-size: 0.75rem; color: var(--text-faint); }
-  .card-footer-split {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .stat { font-size: 0.75rem; color: var(--text-faint); }
 
   .danger-icon {
     width: 3rem;
