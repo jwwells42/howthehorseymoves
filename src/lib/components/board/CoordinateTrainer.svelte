@@ -251,20 +251,27 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
   }
 
   .board-wrapper {
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    max-width: min(90vw, calc(90vh - 8rem));
-    aspect-ratio: 1;
-    touch-action: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .board-svg {
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: 1;
     display: block;
     border-radius: 4px;
+    touch-action: none;
   }
 
   .label {
@@ -277,14 +284,14 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
-    max-width: min(90vw, calc(90vh - 8rem));
+    flex-shrink: 0;
     font-size: 1.25rem;
     font-weight: bold;
   }
 
   .timer-bar-track {
     width: 100%;
-    max-width: min(90vw, calc(90vh - 8rem));
+    flex-shrink: 0;
     height: 8px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 4px;

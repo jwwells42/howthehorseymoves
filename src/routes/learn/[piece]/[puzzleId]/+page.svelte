@@ -75,10 +75,17 @@
 {/if}
 
 <style>
-  .page { max-height: 100dvh; overflow: hidden; padding: 1rem; }
+  .page {
+    height: calc(100dvh - 3rem);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow: hidden;
+  }
   .lesson-page { padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
   .center { text-align: center; padding: 1.5rem; max-width: 56rem; margin: 0 auto; }
   .back-link {
+    flex-shrink: 0;
     font-size: 0.875rem;
     color: var(--text-muted);
     display: inline-block;

@@ -135,18 +135,19 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     max-width: 42rem;
-    max-height: 100dvh;
-    overflow: hidden;
     margin: 0 auto;
   }
-  .header { text-align: center; }
+  .header { flex-shrink: 0; text-align: center; }
   .title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
   .instruction { color: var(--text-muted); }
   .move-counter { font-size: 0.875rem; color: var(--text-faint); }
-  .board-wrapper { position: relative; width: 100%; display: flex; justify-content: center; }
+  .board-wrapper { position: relative; width: 100%; display: flex; justify-content: center; flex: 1; min-height: 0; align-items: center; }
   .stalemate-warning {
+    flex-shrink: 0;
     background: rgba(127, 29, 29, 0.4);
     border: 1px solid rgba(239, 68, 68, 0.5);
     border-radius: 0.5rem;
@@ -165,6 +166,7 @@
     cursor: pointer;
   }
   .hint-box {
+    flex-shrink: 0;
     background: rgba(120, 53, 15, 0.4);
     border: 1px solid rgba(245, 158, 11, 0.5);
     border-radius: 0.5rem;
@@ -173,6 +175,7 @@
     font-size: 0.875rem;
   }
   .thresholds {
+    flex-shrink: 0;
     display: flex;
     gap: 1rem;
     font-size: 0.75rem;

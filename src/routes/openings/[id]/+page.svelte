@@ -23,9 +23,11 @@
 
 <style>
   .page {
-    max-height: 100dvh;
-    overflow: hidden;
+    height: calc(100dvh - 3rem);
+    display: flex;
+    flex-direction: column;
     padding: 1rem;
+    overflow: hidden;
   }
 
   .center {
@@ -33,6 +35,7 @@
   }
 
   .back-link {
+    flex-shrink: 0;
     font-size: 0.875rem;
     color: var(--text-muted);
     display: inline-block;

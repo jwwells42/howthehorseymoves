@@ -468,14 +468,15 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     max-width: 42rem;
-    max-height: 100dvh;
-    overflow: hidden;
     margin: 0 auto;
   }
 
   .header {
+    flex-shrink: 0;
     text-align: center;
   }
 
@@ -495,9 +496,13 @@
     width: 100%;
     display: flex;
     justify-content: center;
+    flex: 1;
+    min-height: 0;
+    align-items: center;
   }
 
   .feedback {
+    flex-shrink: 0;
     color: #f87171;
     font-size: 0.875rem;
     font-weight: 500;
@@ -505,6 +510,7 @@
   }
 
   .result {
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;

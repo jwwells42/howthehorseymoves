@@ -165,14 +165,15 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
     max-width: 72rem;
-    max-height: 100dvh;
-    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     margin: 0 auto;
   }
 
   .header {
+    flex-shrink: 0;
     text-align: center;
   }
 
@@ -192,6 +193,8 @@
     flex-direction: column;
     gap: 1rem;
     width: 100%;
+    flex: 1;
+    min-height: 0;
     align-items: center;
   }
 
@@ -207,8 +210,10 @@
     position: relative;
     width: 100%;
     flex: 1;
+    min-height: 0;
     display: flex;
     justify-content: center;
+    align-items: center;
   }
 
   .move-panel {
@@ -230,8 +235,16 @@
     border: 1px solid var(--card-border, #333);
     background: var(--card-bg, #1a1a1a);
     padding: 0.5rem;
-    max-height: 360px;
+    max-height: 8rem;
     overflow-y: auto;
+  }
+
+  @media (min-width: 768px) {
+    .move-list {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+    }
   }
 
   .move-grid {

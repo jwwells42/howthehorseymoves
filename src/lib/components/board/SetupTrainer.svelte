@@ -432,10 +432,10 @@
     flex-direction: column;
     gap: 1.5rem;
     max-width: 72rem;
-    max-height: 100dvh;
-    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     margin: 0 auto;
-    padding: 1rem;
   }
   @media (min-width: 1024px) {
     .setup-layout {
@@ -446,6 +446,7 @@
 
   .board-side {
     flex: 1;
+    min-height: 0;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -453,6 +454,7 @@
   }
 
   .stage-info {
+    flex-shrink: 0;
     text-align: center;
   }
   .stage-title {
@@ -476,9 +478,11 @@
   }
   .board-wrapper {
     flex: 1;
+    min-height: 0;
     width: 100%;
     display: flex;
     justify-content: center;
+    align-items: center;
   }
 
   /* Piece tray */
