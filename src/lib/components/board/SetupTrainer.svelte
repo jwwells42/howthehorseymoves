@@ -37,13 +37,14 @@
     { slug: 'bishops', label: 'Bishops', description: 'Place the two bishops on their starting squares.', instruction: 'Place the white bishops!', icon: '/pieces/wB.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'B') },
     { slug: 'king', label: 'King', description: 'Place the king on its starting square.', instruction: 'Place the white king!', icon: '/pieces/wK.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'K') },
     { slug: 'queen', label: 'Queen', description: 'Place the queen on its starting square.', instruction: 'Place the white queen!', icon: '/pieces/wQ.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'Q') },
-    { slug: 'pawns', label: 'Pawns', description: 'Place all eight pawns on the second rank.', instruction: 'Place all the white pawns!', icon: '/pieces/wP.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'P') },
+    { slug: 'pawns', label: 'Pawns', description: 'Place all eight pawns on the second rank.', instruction: 'Place the white pawns!', icon: '/pieces/wP.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'P') },
     { slug: 'full', label: 'Full Setup', description: 'Set up all 16 white pieces from scratch.', instruction: 'Set up all the white pieces!', icon: '/pieces/wK.svg', piecesToPlace: [...WHITE_PIECES] },
   ];
 </script>
 
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import { type BoardState, type PieceColor, RANKS } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
@@ -57,8 +58,6 @@
 
   const noop = () => {};
 
-  type Phase = 'idle' | 'playing' | 'done';
-
   interface TrayDrag {
     piece: PieceKind;
     x: number;
@@ -66,39 +65,47 @@
   }
 
   interface Props {
-    /** If provided, play only this single stage (not sequential). */
-    stageSlug?: string;
-    /** Label for the "next" button on done screen in single-stage mode. */
-    nextLabel?: string;
-    /** URL for the "next" button on done screen in single-stage mode. */
-    nextHref?: string;
+    stageSlug: string;
   }
 
-  let { stageSlug, nextLabel, nextHref }: Props = $props();
+  let { stageSlug }: Props = $props();
 
-  let singleStageIndex = $derived(stageSlug ? SETUP_STAGES.findIndex(s => s.slug === stageSlug) : -1);
-  let isSingleStage = $derived(singleStageIndex >= 0);
-  let stages = $derived(isSingleStage ? [SETUP_STAGES[singleStageIndex]] : SETUP_STAGES);
+  let stageIndex = $derived(SETUP_STAGES.findIndex(s => s.slug === stageSlug));
+  let stage = $derived(stageIndex >= 0 ? SETUP_STAGES[stageIndex] : SETUP_STAGES[0]);
 
-  let phase = $state<Phase>('idle');
-  let stageIndex = $state(0);
+  let phase = $state<'playing' | 'done'>('playing');
   let placed = $state<Set<SquareId>>(new Set());
   let mistakes = $state(0);
   let wrongSquare = $state<SquareId | null>(null);
   let selectedPiece = $state<PieceKind | null>(null);
-  let bestStars = $state(0);
   let trayDrag = $state<TrayDrag | null>(null);
   let boardEl = $state<HTMLDivElement | undefined>(undefined);
 
-  let storageKey = $derived(isSingleStage
-    ? `setup-${stageSlug}-best-stars`
-    : 'setup-best-stars');
+  // Per-stage stars from localStorage
+  let allStageStars = $state<Record<string, number>>({});
 
   onMount(() => {
-    bestStars = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
+    const stars: Record<string, number> = {};
+    for (const s of SETUP_STAGES) {
+      stars[s.slug] = parseInt(
+        localStorage.getItem(`setup-${s.slug}-best-stars`) ?? '0',
+        10
+      );
+    }
+    allStageStars = stars;
   });
 
-  let stage = $derived(stages[stageIndex]);
+  // Reset state when stage changes via URL
+  $effect(() => {
+    // Read stageSlug to track it
+    void stageSlug;
+    phase = 'playing';
+    placed = new Set();
+    mistakes = 0;
+    selectedPiece = null;
+    wrongSquare = null;
+    trayDrag = null;
+  });
 
   // Check if this stage has only one piece type
   let pieceTypes = $derived.by(() => {
@@ -190,24 +197,23 @@
 
     // Stage complete?
     if (newPlaced.size === stage.piecesToPlace.length) {
-      if (stageIndex < stages.length - 1) {
-        setTimeout(() => {
-          stageIndex += 1;
-          placed = new Set();
-          selectedPiece = null;
-        }, 600);
-      } else {
-        setTimeout(() => {
-          const stars = mistakesToStars(mistakes);
-          const prev = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
-          if (stars > prev) {
-            localStorage.setItem(storageKey, stars.toString());
-            bestStars = stars;
-          }
+      setTimeout(() => {
+        const stars = mistakesToStars(mistakes);
+        const key = `setup-${stage.slug}-best-stars`;
+        const prev = parseInt(localStorage.getItem(key) ?? '0', 10);
+        if (stars > prev) {
+          localStorage.setItem(key, stars.toString());
+        }
+        allStageStars = { ...allStageStars, [stage.slug]: Math.max(stars, prev) };
+        playSound('stars');
+
+        // Advance to next stage or show done
+        if (stageIndex < SETUP_STAGES.length - 1) {
+          goto(`/setup/${SETUP_STAGES[stageIndex + 1].slug}`);
+        } else {
           phase = 'done';
-          playSound('stars');
-        }, 600);
-      }
+        }
+      }, 600);
     }
   }
 
@@ -239,38 +245,14 @@
     trayDrag = null;
   }
 
-  function startGame() {
-    phase = 'playing';
-    stageIndex = 0;
-    placed = new Set();
-    mistakes = 0;
-    selectedPiece = null;
-    trayDrag = null;
+  function restart() {
+    goto(`/setup/rooks`);
   }
 
   let doneStars = $derived(mistakesToStars(mistakes));
 </script>
 
-{#if phase === 'idle'}
-  <!-- Idle screen -->
-  <div class="screen">
-    <div class="screen-text">
-      <h2>Place the Pieces</h2>
-      <p class="muted">Put each piece on its starting square.</p>
-      {#if !isSingleStage}
-        <p class="faint small">7 stages — from individual pieces to the full setup!</p>
-      {/if}
-    </div>
-    {#if bestStars > 0}
-      <div class="best-row">
-        <span class="faint small">Best:</span>
-        <StarRating stars={bestStars} size="sm" />
-      </div>
-    {/if}
-    <button class="start-btn" onclick={startGame}>Start</button>
-  </div>
-{:else if phase === 'done'}
-  <!-- Done screen -->
+{#if phase === 'done'}
   <div class="screen">
     <div class="screen-text">
       <div class="tada">&#127881;</div>
@@ -283,88 +265,104 @@
     </div>
     <StarRating stars={doneStars} size="lg" />
     <div class="btn-row">
-      <button class="btn-secondary" onclick={startGame}>Play Again</button>
-      <a href={nextHref ?? '/play?level=random'} class="btn-primary">
-        {nextLabel ?? (isSingleStage ? 'Back to Stages' : 'Play a Game!')}
-      </a>
+      <button class="btn-secondary" onclick={restart}>Play Again</button>
+      <a href="/play?level=random" class="btn-primary">Play a Game!</a>
     </div>
   </div>
 {:else}
-  <!-- Playing -->
   <div
-    class="playing-container"
+    class="setup-layout"
     role="application"
     aria-label="Piece placement area"
     tabindex="-1"
     onpointermove={handleContainerPointerMove}
     onpointerup={handleContainerPointerUp}
   >
-    <!-- Stage info -->
-    <div class="stage-info">
-      {#if !isSingleStage}
-        <div class="faint stage-count">
-          Stage {stageIndex + 1} of {stages.length}
+    <!-- Board side -->
+    <div class="board-side">
+      <div class="stage-info">
+        <h2 class="stage-title">{stage.instruction}</h2>
+        <p class="faint small">
+          {#if mistakes > 0}{mistakes} mistake{mistakes === 1 ? '' : 's'} &middot; {/if}
+          {placed.size}/{stage.piecesToPlace.length} placed
+        </p>
+      </div>
+
+      <div class="board-tray-row">
+        <div bind:this={boardEl} class="board-wrapper">
+          <Board
+            {board}
+            selectedSquare={null}
+            validMoves={[]}
+            targets={[]}
+            reachedTargets={[]}
+            dragValidMoves={[]}
+            onSquareClick={handleSquareClick}
+            onDrop={noop as (from: SquareId, to: SquareId) => void}
+            onDragStart={noop as (sq: SquareId) => void}
+            onDragEnd={noop}
+            wrongMoveSquare={wrongSquare}
+            readOnly
+          />
         </div>
-      {/if}
-      <h2 class="stage-title">{stage.instruction}</h2>
-      <p class="faint small">
-        {#if mistakes > 0}{mistakes} mistake{mistakes === 1 ? '' : 's'} &middot; {/if}
-        {placed.size}/{stage.piecesToPlace.length} placed
-      </p>
+
+        <!-- Piece tray -->
+        <div class="tray">
+          <div class="tray-label">
+            {isSingleType ? 'Click or drag' : 'Pick & place'}
+          </div>
+          {#if hasBackRankRemaining}
+            <div class="tray-grid">
+              {#each backRankRemaining as p (p.square)}
+                <button
+                  class={['tray-piece', selectedPiece === p.piece && 'selected']}
+                  onclick={() => { selectedPiece = p.piece; }}
+                  onpointerdown={(e) => handleTrayPointerDown(e, p.piece)}
+                >
+                  <img src="/pieces/w{p.piece}.svg" alt={p.piece} class="tray-img" />
+                </button>
+              {/each}
+            </div>
+          {/if}
+          {#if hasPawnRemaining}
+            <div class="tray-grid">
+              {#each pawnRemaining as p (p.square)}
+                <button
+                  class={['tray-piece', selectedPiece === p.piece && 'selected']}
+                  onclick={() => { selectedPiece = p.piece; }}
+                  onpointerdown={(e) => handleTrayPointerDown(e, p.piece)}
+                >
+                  <img src="/pieces/w{p.piece}.svg" alt={p.piece} class="tray-img" />
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
     </div>
 
-    <!-- Board + Tray side by side -->
-    <div class="board-tray-row">
-      <!-- Board -->
-      <div bind:this={boardEl} class="board-wrapper">
-        <Board
-          {board}
-          selectedSquare={null}
-          validMoves={[]}
-          targets={[]}
-          reachedTargets={[]}
-          dragValidMoves={[]}
-          onSquareClick={handleSquareClick}
-          onDrop={noop as (from: SquareId, to: SquareId) => void}
-          onDragStart={noop as (sq: SquareId) => void}
-          onDragEnd={noop}
-          wrongMoveSquare={wrongSquare}
-          readOnly
-        />
+    <!-- Stage list sidebar -->
+    <div class="stage-list-side">
+      <div class="stage-list">
+        {#each SETUP_STAGES as s, idx}
+          {@const stars = allStageStars[s.slug] ?? 0}
+          {@const isCurrent = s.slug === stageSlug}
+          <a
+            href="/setup/{s.slug}"
+            class={['stage-item', isCurrent && 'active']}
+          >
+            <span class="stage-num">{idx + 1}.</span>
+            <img src={s.icon} alt={s.label} class="stage-icon" />
+            <span class="stage-name">{s.label}</span>
+            {#if stars > 0}
+              <span class="stage-stars">
+                <StarRating {stars} size="sm" />
+              </span>
+            {/if}
+          </a>
+        {/each}
       </div>
-
-      <!-- Piece tray -->
-      <div class="tray">
-        <div class="tray-label">
-          {isSingleType ? 'Click or drag' : 'Pick & place'}
-        </div>
-        {#if hasBackRankRemaining}
-          <div class="tray-grid">
-            {#each backRankRemaining as p (p.square)}
-              <button
-                class={['tray-piece', selectedPiece === p.piece && 'selected']}
-                onclick={() => { selectedPiece = p.piece; }}
-                onpointerdown={(e) => handleTrayPointerDown(e, p.piece)}
-              >
-                <img src="/pieces/w{p.piece}.svg" alt={p.piece} class="tray-img" />
-              </button>
-            {/each}
-          </div>
-        {/if}
-        {#if hasPawnRemaining}
-          <div class="tray-grid">
-            {#each pawnRemaining as p (p.square)}
-              <button
-                class={['tray-piece', selectedPiece === p.piece && 'selected']}
-                onclick={() => { selectedPiece = p.piece; }}
-                onpointerdown={(e) => handleTrayPointerDown(e, p.piece)}
-              >
-                <img src="/pieces/w{p.piece}.svg" alt={p.piece} class="tray-img" />
-              </button>
-            {/each}
-          </div>
-        {/if}
-      </div>
+      <a href="/" class="back-link">&larr; Back to home</a>
     </div>
 
     <!-- Drag ghost -->
@@ -380,7 +378,7 @@
 {/if}
 
 <style>
-  /* ── Screens (idle / done) ─── */
+  /* ── Done screen ─── */
   .screen {
     display: flex;
     flex-direction: column;
@@ -402,25 +400,6 @@
   .faint { color: var(--text-faint); }
   .small { font-size: 0.875rem; }
   .tada { font-size: 3rem; margin-bottom: 0.75rem; }
-
-  .best-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    border-radius: 0.75rem;
-    background: #16a34a;
-    color: white;
-    font-weight: bold;
-    font-size: 1.125rem;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .start-btn:hover { background: #15803d; }
 
   .btn-row {
     display: flex;
@@ -447,22 +426,33 @@
   }
   .btn-primary:hover { background: #15803d; }
 
-  /* ── Playing ─── */
-  .playing-container {
+  /* ── Layout (matches GameViewer / OpeningTrainer) ─── */
+  .setup-layout {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    max-width: 48rem;
+    gap: 1.5rem;
+    max-width: 56rem;
     margin: 0 auto;
+    padding: 1rem;
   }
+  @media (min-width: 1024px) {
+    .setup-layout {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
+
+  .board-side {
+    flex: 1;
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
   .stage-info {
     text-align: center;
-  }
-  .stage-count {
-    font-size: 0.75rem;
-    margin-bottom: 0.25rem;
   }
   .stage-title {
     font-size: 1.25rem;
@@ -556,6 +546,68 @@
     height: 100%;
     pointer-events: none;
   }
+
+  /* ── Stage list sidebar ─── */
+  .stage-list-side {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  @media (min-width: 1024px) {
+    .stage-list-side {
+      width: 14rem;
+    }
+  }
+
+  .stage-list {
+    border-radius: 0.5rem;
+    border: 1px solid var(--card-border, #333);
+    background: var(--card-bg, #1a1a1a);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .stage-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: background 0.1s;
+  }
+  .stage-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .stage-item.active {
+    background: rgba(250, 204, 21, 0.12);
+  }
+
+  .stage-num {
+    color: var(--text-faint);
+    font-size: 0.75rem;
+    min-width: 1.25rem;
+  }
+  .stage-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .stage-name {
+    flex: 1;
+  }
+  .stage-stars {
+    margin-left: auto;
+  }
+
+  .back-link {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    padding: 0.25rem 0.625rem;
+  }
+  .back-link:hover { color: var(--foreground); }
 
   /* Drag ghost */
   .drag-ghost {

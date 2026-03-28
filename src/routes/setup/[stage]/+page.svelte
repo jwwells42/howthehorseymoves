@@ -7,11 +7,10 @@
   let stageExists = $derived(SETUP_STAGES.some(s => s.slug === stageSlug));
 </script>
 
-{#if stageExists}
-  <main class="page">
-    <a href="/setup" class="back-link">&larr; Back to stages</a>
-    <SetupTrainer {stageSlug} nextLabel="Back to Stages" nextHref="/setup" />
-  </main>
+{#if stageExists && stageSlug}
+  {#key stageSlug}
+    <SetupTrainer {stageSlug} />
+  {/key}
 {:else}
   <main class="page center">
     <h1>Stage not found</h1>
@@ -27,13 +26,6 @@
     margin: 0 auto;
   }
   .center { text-align: center; }
-  .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    display: inline-block;
-    margin-bottom: 1rem;
-  }
-  .back-link:hover { color: var(--foreground); }
   .muted-link { color: var(--text-muted); }
   .muted-link:hover { text-decoration: underline; }
 </style>
