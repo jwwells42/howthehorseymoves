@@ -304,6 +304,10 @@
     transition: width 1s linear, background 0.5s;
   }
 
+  @media (max-height: 480px) {
+    .trainer { gap: 0.25rem; }
+  }
+
   /* Start / Done screens */
   .start-screen,
   .done-screen {

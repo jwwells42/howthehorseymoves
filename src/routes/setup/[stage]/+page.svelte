@@ -23,9 +23,7 @@
     height: calc(100dvh - 3rem);
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
-    max-width: 48rem;
-    margin: 0 auto;
+    padding: 1rem;
     overflow: hidden;
   }
   .center { text-align: center; }

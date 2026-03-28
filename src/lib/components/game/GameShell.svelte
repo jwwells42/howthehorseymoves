@@ -172,6 +172,11 @@
     margin: 0 auto;
   }
 
+  @media (max-height: 480px) {
+    .game-shell { gap: 0.25rem; }
+    .header { display: none; }
+  }
+
   .header {
     flex-shrink: 0;
     text-align: center;

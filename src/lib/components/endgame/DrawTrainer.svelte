@@ -471,8 +471,11 @@
     flex: 1;
     min-height: 0;
     width: 100%;
-    max-width: 42rem;
-    margin: 0 auto;
+  }
+
+  @media (max-height: 480px) {
+    .draw-trainer { gap: 0.25rem; }
+    .header { display: none; }
   }
 
   .header {

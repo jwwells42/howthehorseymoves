@@ -138,14 +138,16 @@
     flex: 1;
     min-height: 0;
     width: 100%;
-    max-width: 42rem;
-    margin: 0 auto;
   }
   .header { flex-shrink: 0; text-align: center; }
   .title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
   .instruction { color: var(--text-muted); }
   .move-counter { font-size: 0.875rem; color: var(--text-faint); }
   .board-wrapper { position: relative; width: 100%; display: flex; justify-content: center; flex: 1; min-height: 0; align-items: center; }
+  @media (max-height: 480px) {
+    .shell { gap: 0.25rem; }
+    .header { display: none; }
+  }
   .stalemate-warning {
     flex-shrink: 0;
     background: rgba(127, 29, 29, 0.4);
