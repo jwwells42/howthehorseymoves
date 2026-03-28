@@ -137,6 +137,8 @@
     gap: 1rem;
     padding: 1rem;
     max-width: 42rem;
+    max-height: 100dvh;
+    overflow: hidden;
     margin: 0 auto;
   }
   .header { text-align: center; }

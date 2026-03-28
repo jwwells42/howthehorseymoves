@@ -432,6 +432,8 @@
     flex-direction: column;
     gap: 1.5rem;
     max-width: 72rem;
+    max-height: 100dvh;
+    overflow: hidden;
     margin: 0 auto;
     padding: 1rem;
   }

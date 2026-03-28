@@ -935,6 +935,8 @@
     gap: 1.5rem;
     align-items: flex-start;
     max-width: 72rem;
+    max-height: 100dvh;
+    overflow: hidden;
     margin: 0 auto;
   }
 
