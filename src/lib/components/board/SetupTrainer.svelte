@@ -433,7 +433,9 @@
     gap: 1.5rem;
     max-width: 56rem;
     margin: 0 auto;
-    padding: 1rem;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
   }
   @media (min-width: 1024px) {
     .setup-layout {
@@ -445,7 +447,7 @@
   .board-side {
     flex: 1;
     width: 100%;
-    max-width: 560px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -453,6 +455,7 @@
 
   .stage-info {
     text-align: center;
+    flex-shrink: 0;
   }
   .stage-title {
     font-size: 1.25rem;

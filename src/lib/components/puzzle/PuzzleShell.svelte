@@ -135,15 +135,19 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
-    max-width: 42rem;
-    margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
   }
-  .header { text-align: center; }
+  .header { text-align: center; flex-shrink: 0; }
   .title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
   .instruction { color: var(--text-muted); }
-  .move-counter { font-size: 0.875rem; color: var(--text-faint); }
-  .board-wrapper { position: relative; width: 100%; display: flex; justify-content: center; }
+  .move-counter { font-size: 0.875rem; color: var(--text-faint); flex-shrink: 0; }
+  .board-wrapper { position: relative; flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; width: 100%; }
+  @media (max-height: 480px) {
+    .shell { gap: 0.25rem; }
+    .header { display: none; }
+  }
   .stalemate-warning {
     background: rgba(127, 29, 29, 0.4);
     border: 1px solid rgba(239, 68, 68, 0.5);
@@ -152,6 +156,7 @@
     color: #fca5a5;
     font-size: 0.875rem;
     text-align: center;
+    flex-shrink: 0;
   }
   .stalemate-retry {
     margin-left: 0.5rem;
@@ -169,12 +174,14 @@
     padding: 0.5rem 1rem;
     color: #fcd34d;
     font-size: 0.875rem;
+    flex-shrink: 0;
   }
   .thresholds {
     display: flex;
     gap: 1rem;
     font-size: 0.75rem;
     color: var(--text-faint);
+    flex-shrink: 0;
   }
   .thresholds span {
     display: inline-flex;

@@ -906,6 +906,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.25rem;
+    flex-shrink: 0;
   }
 
   .player-dot {
@@ -936,6 +937,9 @@
     align-items: flex-start;
     max-width: 56rem;
     margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
   }
 
   @media (min-width: 1024px) {
@@ -947,12 +951,14 @@
   .board-side {
     flex: 1;
     width: 100%;
-    max-width: 560px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   @media (min-width: 1024px) {
     .board-side {
-      max-width: 560px;
+      max-width: none;
     }
   }
 
@@ -967,6 +973,7 @@
     border-radius: 0.5rem;
     background: rgba(234, 179, 8, 0.1);
     border: 1px solid rgba(234, 179, 8, 0.3);
+    flex-shrink: 0;
   }
 
   .explore-label {
@@ -997,6 +1004,7 @@
     justify-content: center;
     gap: 0.5rem;
     margin-top: 0.75rem;
+    flex-shrink: 0;
   }
 
   .nav-btn {
@@ -1029,6 +1037,7 @@
     display: flex;
     justify-content: center;
     margin-top: 0.5rem;
+    flex-shrink: 0;
   }
 
   .variation-toggle {
@@ -1049,6 +1058,7 @@
     display: flex;
     justify-content: center;
     margin-top: 0.75rem;
+    flex-shrink: 0;
   }
 
   .btn-test {
@@ -1071,6 +1081,7 @@
   .comment-area {
     margin-top: 0.75rem;
     min-height: 3rem;
+    flex-shrink: 0;
   }
 
   .comment-text {
@@ -1090,6 +1101,10 @@
   @media (min-width: 1024px) {
     .move-list-side {
       width: 14rem;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
   }
 
@@ -1118,8 +1133,16 @@
     border: 1px solid var(--card-border, #333);
     background: var(--card-bg, #1a1a1a);
     padding: 0.75rem;
-    max-height: 400px;
+    max-height: 8rem;
     overflow-y: auto;
+  }
+
+  @media (min-width: 1024px) {
+    .move-list {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+    }
   }
 
   .move-grid {

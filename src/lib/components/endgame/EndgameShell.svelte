@@ -270,13 +270,14 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
-    max-width: 42rem;
-    margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
   }
 
   .header {
     text-align: center;
+    flex-shrink: 0;
   }
 
   .title {
@@ -292,9 +293,12 @@
 
   .board-wrap {
     position: relative;
+    flex: 1;
+    min-height: 0;
     width: 100%;
     display: flex;
     justify-content: center;
+    align-items: center;
   }
 
   .feedback {
@@ -302,6 +306,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     margin: 0;
+    flex-shrink: 0;
   }
 
   .result {
@@ -310,6 +315,12 @@
     align-items: center;
     gap: 0.75rem;
     animation: fade-in 0.3s ease-out;
+    flex-shrink: 0;
+  }
+
+  @media (max-height: 480px) {
+    .endgame-shell { gap: 0.25rem; }
+    .header { display: none; }
   }
 
   .result-text {

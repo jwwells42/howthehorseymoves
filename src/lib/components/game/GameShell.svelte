@@ -165,13 +165,16 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
     max-width: 56rem;
     margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
   }
 
   .header {
     text-align: center;
+    flex-shrink: 0;
   }
 
   .title {
@@ -191,12 +194,14 @@
     gap: 1rem;
     width: 100%;
     align-items: center;
+    flex: 1;
+    min-height: 0;
   }
 
   @media (min-width: 768px) {
     .main-area {
       flex-direction: row;
-      align-items: flex-start;
+      align-items: stretch;
       justify-content: center;
     }
   }
@@ -204,10 +209,11 @@
   .board-wrap {
     position: relative;
     width: 100%;
-    max-width: 560px;
-    flex-shrink: 0;
+    flex: 1;
+    min-height: 0;
     display: flex;
     justify-content: center;
+    align-items: center;
   }
 
   .move-panel {
@@ -221,6 +227,7 @@
     .move-panel {
       width: 12rem;
       flex-shrink: 0;
+      min-height: 0;
     }
   }
 
@@ -229,8 +236,16 @@
     border: 1px solid var(--card-border, #333);
     background: var(--card-bg, #1a1a1a);
     padding: 0.5rem;
-    max-height: 360px;
+    max-height: 8rem;
     overflow-y: auto;
+  }
+
+  @media (min-width: 768px) {
+    .move-list {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+    }
   }
 
   .move-grid {
@@ -292,6 +307,7 @@
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.15s;
+    flex-shrink: 0;
   }
 
   .new-game-btn:hover {

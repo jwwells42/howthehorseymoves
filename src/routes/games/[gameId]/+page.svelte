@@ -21,7 +21,10 @@
 
 <style>
   .page {
-    min-height: 100vh;
+    height: calc(100dvh - 3rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     padding: 1rem;
   }
 
@@ -38,6 +41,7 @@
     display: inline-block;
     margin-bottom: 1rem;
     margin-left: 1rem;
+    flex-shrink: 0;
   }
 
   .back-link:hover {

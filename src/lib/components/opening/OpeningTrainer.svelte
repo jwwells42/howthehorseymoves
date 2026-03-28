@@ -629,7 +629,9 @@
     align-items: flex-start;
     max-width: 56rem;
     margin: 0 auto;
-    padding: 1rem;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
   }
 
   @media (min-width: 1024px) {
@@ -641,7 +643,9 @@
   .board-side {
     flex: 1;
     width: 100%;
-    max-width: 560px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   .move-list-side {
@@ -651,6 +655,10 @@
   @media (min-width: 1024px) {
     .move-list-side {
       width: 14rem;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
   }
 
@@ -740,6 +748,7 @@
     color: var(--text-faint);
     flex-wrap: wrap;
     margin-top: 0.25rem;
+    flex-shrink: 0;
   }
 
   .nav-btn {
@@ -783,9 +792,12 @@
 
   .board-wrapper {
     position: relative;
+    flex: 1;
+    min-height: 0;
     width: 100%;
     display: flex;
     justify-content: center;
+    align-items: center;
   }
 
   .done-overlay {
@@ -828,6 +840,7 @@
     overflow-y: auto;
     border-radius: 0.5rem;
     border: 1px solid transparent;
+    flex-shrink: 0;
   }
 
   .comment-area:has(.comment-text) {
@@ -849,6 +862,7 @@
     font-size: 0.875rem;
     margin-top: 0.75rem;
     min-height: 2rem;
+    flex-shrink: 0;
   }
 
   .line-complete {
@@ -874,8 +888,16 @@
     border: 1px solid var(--card-border);
     background: var(--card-bg);
     padding: 0.75rem;
-    max-height: 400px;
+    max-height: 8rem;
     overflow-y: auto;
+  }
+
+  @media (min-width: 1024px) {
+    .move-list {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+    }
   }
 
   .move-grid {

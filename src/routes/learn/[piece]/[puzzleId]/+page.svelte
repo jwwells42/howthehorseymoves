@@ -75,15 +75,22 @@
 {/if}
 
 <style>
-  .page { min-height: 100vh; padding: 1rem; }
-  .lesson-page { padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
-  .center { text-align: center; padding: 1.5rem; max-width: 56rem; margin: 0 auto; }
+  .page {
+    height: calc(100dvh - 3rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 1rem;
+  }
+  .lesson-page { padding: 1.5rem; max-width: 42rem; margin: 0 auto; overflow: auto; }
+  .center { text-align: center; padding: 1.5rem; max-width: 56rem; margin: 0 auto; overflow: auto; }
   .back-link {
     font-size: 0.875rem;
     color: var(--text-muted);
     display: inline-block;
     margin-bottom: 0.5rem;
     margin-left: 1rem;
+    flex-shrink: 0;
   }
   .back-link:hover { color: var(--foreground); }
   .muted-link { color: var(--text-muted); }
