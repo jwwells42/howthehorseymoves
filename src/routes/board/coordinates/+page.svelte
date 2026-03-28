@@ -11,7 +11,7 @@
 </main>
 
 <style>
-  .page { min-height: 100vh; padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
+  .page { max-height: 100dvh; overflow: hidden; padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
   .back-link { font-size: 0.875rem; color: var(--text-muted); display: inline-block; margin-bottom: 1rem; }
   .back-link:hover { color: var(--foreground); }
   .header { text-align: center; margin-bottom: 1.5rem; }

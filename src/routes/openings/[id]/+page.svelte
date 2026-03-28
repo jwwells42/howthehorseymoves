@@ -23,7 +23,8 @@
 
 <style>
   .page {
-    min-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
     padding: 1rem;
   }
 

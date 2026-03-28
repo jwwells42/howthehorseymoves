@@ -75,7 +75,7 @@
 {/if}
 
 <style>
-  .page { min-height: 100vh; padding: 1rem; }
+  .page { max-height: 100dvh; overflow: hidden; padding: 1rem; }
   .lesson-page { padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
   .center { text-align: center; padding: 1.5rem; max-width: 56rem; margin: 0 auto; }
   .back-link {
