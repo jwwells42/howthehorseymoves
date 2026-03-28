@@ -431,7 +431,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-width: 56rem;
+    max-width: 72rem;
     margin: 0 auto;
     padding: 1rem;
   }
@@ -445,7 +445,6 @@
   .board-side {
     flex: 1;
     width: 100%;
-    max-width: 560px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;

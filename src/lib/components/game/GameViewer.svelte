@@ -934,7 +934,7 @@
     flex-direction: column;
     gap: 1.5rem;
     align-items: flex-start;
-    max-width: 56rem;
+    max-width: 72rem;
     margin: 0 auto;
   }
 
@@ -947,13 +947,6 @@
   .board-side {
     flex: 1;
     width: 100%;
-    max-width: 560px;
-  }
-
-  @media (min-width: 1024px) {
-    .board-side {
-      max-width: 560px;
-    }
   }
 
   /* --- Explore indicator --- */

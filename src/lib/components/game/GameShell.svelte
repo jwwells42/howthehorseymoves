@@ -166,7 +166,7 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    max-width: 56rem;
+    max-width: 72rem;
     margin: 0 auto;
   }
 
@@ -204,8 +204,7 @@
   .board-wrap {
     position: relative;
     width: 100%;
-    max-width: 560px;
-    flex-shrink: 0;
+    flex: 1;
     display: flex;
     justify-content: center;
   }
