@@ -436,8 +436,8 @@
 
 <style>
   .board-svg {
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    max-width: min(90vw, calc(90vh - 8rem));
     aspect-ratio: 1;
     touch-action: none;
   }

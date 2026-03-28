@@ -934,10 +934,7 @@
     flex-direction: column;
     gap: 1.5rem;
     align-items: flex-start;
-    max-width: 72rem;
-    flex: 1;
-    min-height: 0;
-    width: 100%;
+    max-width: 56rem;
     margin: 0 auto;
   }
 
@@ -950,9 +947,13 @@
   .board-side {
     flex: 1;
     width: 100%;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
+    max-width: 560px;
+  }
+
+  @media (min-width: 1024px) {
+    .board-side {
+      max-width: 560px;
+    }
   }
 
   /* --- Explore indicator --- */
@@ -991,7 +992,6 @@
 
   /* --- Nav controls --- */
   .nav-controls {
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1090,10 +1090,6 @@
   @media (min-width: 1024px) {
     .move-list-side {
       width: 14rem;
-      align-self: stretch;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
     }
   }
 
@@ -1122,16 +1118,8 @@
     border: 1px solid var(--card-border, #333);
     background: var(--card-bg, #1a1a1a);
     padding: 0.75rem;
-    max-height: 8rem;
+    max-height: 400px;
     overflow-y: auto;
-  }
-
-  @media (min-width: 1024px) {
-    .move-list {
-      flex: 1;
-      min-height: 0;
-      max-height: none;
-    }
   }
 
   .move-grid {

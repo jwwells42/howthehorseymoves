@@ -20,11 +20,10 @@
 
 <style>
   .page {
-    height: calc(100dvh - 3rem);
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    overflow: hidden;
+    min-height: 100vh;
+    padding: 1.5rem;
+    max-width: 48rem;
+    margin: 0 auto;
   }
   .center { text-align: center; }
   .muted-link { color: var(--text-muted); }

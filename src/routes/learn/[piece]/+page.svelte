@@ -152,19 +152,19 @@
 
 {#if endgame}
   <!-- Endgame trainer (e.g. KPK) -->
-  <main class="board-page">
+  <main class="page">
     <a href="/learn/endings" class="back-link">&larr; Back to endings</a>
     <EndgameShell title={endgame.title} instruction={endgame.instruction} placements={endgame.placements} />
   </main>
 {:else if mateEndgameMatch}
   <!-- Mate conversion trainer (KQK, KRRK, etc.) -->
-  <main class="board-page">
+  <main class="page">
     <a href="/learn/endings" class="back-link">&larr; Back to endings</a>
     <MateTrainer type={mateEndgameMatch[1] as MateEndgameType} />
   </main>
 {:else if drawEndgame}
   <!-- Draw endgame trainer (Philidor, etc.) -->
-  <main class="board-page">
+  <main class="page">
     <a href="/learn/advanced-endings" class="back-link">&larr; Back to advanced endings</a>
     <DrawTrainer
       title={drawEndgame.title}
@@ -249,13 +249,13 @@
   </main>
 {:else if BlindfoldComponent}
   <!-- Blindfold trainer -->
-  <main class={['board-page', piece !== 'blindfold-guarding' && 'blindfold-page', piece === 'blindfold-guarding' && 'blindfold-wide']}>
+  <main class={['page', piece !== 'blindfold-guarding' && 'blindfold-page', piece === 'blindfold-guarding' && 'blindfold-wide']}>
     <a href="/vision" class="back-link">&larr; Back to vision</a>
     <BlindfoldComponent />
   </main>
 {:else if blindfoldMateMatch}
   <!-- Blindfold mate trainer -->
-  <main class="board-page blindfold-page">
+  <main class="page blindfold-page">
     <a href="/vision" class="back-link">&larr; Back to vision</a>
     <BlindfoldMate type={blindfoldMateMatch[1] as MateEndgameType} />
   </main>
@@ -360,9 +360,8 @@
 
 <style>
   .page { min-height: 100vh; padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
-  .board-page { height: calc(100dvh - 3rem); display: flex; flex-direction: column; padding: 1rem; overflow: hidden; }
   .center { text-align: center; }
-  .back-link { flex-shrink: 0; font-size: 0.875rem; color: var(--text-muted); display: inline-block; margin-bottom: 1rem; }
+  .back-link { font-size: 0.875rem; color: var(--text-muted); display: inline-block; margin-bottom: 1rem; }
   .back-link:hover { color: var(--foreground); }
   .muted { color: var(--text-muted); }
   .muted-link { color: var(--text-muted); }

@@ -468,18 +468,12 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    flex: 1;
-    min-height: 0;
-    width: 100%;
-  }
-
-  @media (max-height: 480px) {
-    .draw-trainer { gap: 0.25rem; }
-    .header { display: none; }
+    padding: 1rem;
+    max-width: 42rem;
+    margin: 0 auto;
   }
 
   .header {
-    flex-shrink: 0;
     text-align: center;
   }
 
@@ -499,13 +493,9 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    flex: 1;
-    min-height: 0;
-    align-items: center;
   }
 
   .feedback {
-    flex-shrink: 0;
     color: #f87171;
     font-size: 0.875rem;
     font-weight: 500;
@@ -513,7 +503,6 @@
   }
 
   .result {
-    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
