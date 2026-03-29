@@ -433,10 +433,16 @@
     gap: 1.5rem;
     max-width: 56rem;
     margin: 0 auto;
-    flex: 1;
-    min-height: 0;
     width: 100%;
   }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .setup-layout {
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
   @media (min-width: 1024px) {
     .setup-layout {
       flex-direction: row;
@@ -447,10 +453,15 @@
   .board-side {
     flex: 1;
     width: 100%;
-    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-side {
+      min-height: 0;
+    }
   }
 
   .stage-info {
@@ -477,10 +488,17 @@
     }
   }
   .board-wrapper {
-    flex: 1;
     width: 100%;
     display: flex;
     justify-content: center;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-wrapper {
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+    }
   }
 
   /* Piece tray */

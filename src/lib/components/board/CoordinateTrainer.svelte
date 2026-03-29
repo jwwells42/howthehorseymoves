@@ -251,26 +251,43 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    flex: 1;
-    min-height: 0;
     width: 100%;
   }
 
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .trainer {
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
   .board-wrapper {
-    flex: 1;
-    min-height: 0;
     width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-wrapper {
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+    }
   }
 
   .board-svg {
     width: 100%;
-    max-height: 100%;
+    max-height: 80dvh;
     aspect-ratio: 1;
     display: block;
     border-radius: 4px;
+    touch-action: none;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-svg {
+      max-height: 100%;
+    }
   }
 
   .label {

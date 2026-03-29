@@ -437,9 +437,15 @@
 <style>
   .board-svg {
     width: 100%;
-    max-height: 100%;
+    max-height: 80dvh;
     aspect-ratio: 1;
     touch-action: none;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-svg {
+      max-height: 100%;
+    }
   }
   .square {
     cursor: pointer;

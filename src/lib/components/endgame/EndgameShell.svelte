@@ -270,9 +270,14 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    flex: 1;
-    min-height: 0;
     width: 100%;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .endgame-shell {
+      flex: 1;
+      min-height: 0;
+    }
   }
 
   .header {
@@ -293,12 +298,17 @@
 
   .board-wrap {
     position: relative;
-    flex: 1;
-    min-height: 0;
     width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-wrap {
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+    }
   }
 
   .feedback {

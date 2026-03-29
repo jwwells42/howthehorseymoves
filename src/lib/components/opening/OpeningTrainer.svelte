@@ -629,9 +629,14 @@
     align-items: flex-start;
     max-width: 56rem;
     margin: 0 auto;
-    flex: 1;
-    min-height: 0;
     width: 100%;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .drill-layout {
+      flex: 1;
+      min-height: 0;
+    }
   }
 
   @media (min-width: 1024px) {
@@ -643,9 +648,14 @@
   .board-side {
     flex: 1;
     width: 100%;
-    min-height: 0;
     display: flex;
     flex-direction: column;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-side {
+      min-height: 0;
+    }
   }
 
   .move-list-side {
@@ -658,6 +668,11 @@
       align-self: stretch;
       display: flex;
       flex-direction: column;
+    }
+  }
+
+  @media (min-width: 1024px) and (min-height: 32rem) {
+    .move-list-side {
       min-height: 0;
     }
   }
@@ -792,12 +807,17 @@
 
   .board-wrapper {
     position: relative;
-    flex: 1;
-    min-height: 0;
     width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-wrapper {
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+    }
   }
 
   .done-overlay {
@@ -892,7 +912,7 @@
     overflow-y: auto;
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 1024px) and (min-height: 32rem) {
     .move-list {
       flex: 1;
       min-height: 0;

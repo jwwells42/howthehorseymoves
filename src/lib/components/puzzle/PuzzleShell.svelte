@@ -135,15 +135,36 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    flex: 1;
-    min-height: 0;
     width: 100%;
   }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .shell {
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
   .header { text-align: center; flex-shrink: 0; }
   .title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
   .instruction { color: var(--text-muted); }
   .move-counter { font-size: 0.875rem; color: var(--text-faint); flex-shrink: 0; }
-  .board-wrapper { position: relative; flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; width: 100%; }
+
+  .board-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-wrapper {
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+    }
+  }
+
   @media (max-height: 480px) {
     .shell { gap: 0.25rem; }
     .header { display: none; }

@@ -21,11 +21,17 @@
 
 <style>
   .page {
-    height: calc(100dvh - 3rem);
+    min-height: calc(100dvh - 3rem);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     padding: 1rem;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .page {
+      height: calc(100dvh - 3rem);
+      overflow: hidden;
+    }
   }
 
   .center {

@@ -76,11 +76,17 @@
 
 <style>
   .page {
-    height: calc(100dvh - 3rem);
+    min-height: calc(100dvh - 3rem);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     padding: 1rem;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .page {
+      height: calc(100dvh - 3rem);
+      overflow: hidden;
+    }
   }
   .lesson-page { padding: 1.5rem; max-width: 42rem; margin: 0 auto; overflow: auto; }
   .center { text-align: center; padding: 1.5rem; max-width: 56rem; margin: 0 auto; overflow: auto; }

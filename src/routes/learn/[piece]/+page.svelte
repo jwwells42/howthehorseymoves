@@ -361,12 +361,17 @@
 <style>
   .page { min-height: 100vh; padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
   .board-page {
-    height: calc(100dvh - 3rem);
-    min-height: 0;
+    min-height: calc(100dvh - 3rem);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     max-width: none;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-page {
+      height: calc(100dvh - 3rem);
+      overflow: hidden;
+    }
   }
   .center { text-align: center; }
   .back-link { font-size: 0.875rem; color: var(--text-muted); display: inline-block; margin-bottom: 1rem; flex-shrink: 0; }

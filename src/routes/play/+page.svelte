@@ -50,11 +50,17 @@
 
 <style>
   .page {
-    height: calc(100dvh - 3rem);
+    min-height: calc(100dvh - 3rem);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     padding: 1.5rem;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .page {
+      height: calc(100dvh - 3rem);
+      overflow: hidden;
+    }
   }
   .back-link {
     font-size: 0.875rem; color: var(--text-muted); display: inline-block;

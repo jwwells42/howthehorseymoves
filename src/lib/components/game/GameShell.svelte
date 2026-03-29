@@ -167,9 +167,14 @@
     gap: 1rem;
     max-width: 56rem;
     margin: 0 auto;
-    flex: 1;
-    min-height: 0;
     width: 100%;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .game-shell {
+      flex: 1;
+      min-height: 0;
+    }
   }
 
   .header {
@@ -194,8 +199,13 @@
     gap: 1rem;
     width: 100%;
     align-items: center;
-    flex: 1;
-    min-height: 0;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .main-area {
+      flex: 1;
+      min-height: 0;
+    }
   }
 
   @media (min-width: 768px) {
@@ -209,11 +219,16 @@
   .board-wrap {
     position: relative;
     width: 100%;
-    flex: 1;
-    min-height: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-wrap {
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+    }
   }
 
   .move-panel {
@@ -227,6 +242,11 @@
     .move-panel {
       width: 12rem;
       flex-shrink: 0;
+    }
+  }
+
+  @media (min-width: 768px) and (min-height: 32rem) {
+    .move-panel {
       min-height: 0;
     }
   }
@@ -240,7 +260,7 @@
     overflow-y: auto;
   }
 
-  @media (min-width: 768px) {
+  @media (min-width: 768px) and (min-height: 32rem) {
     .move-list {
       flex: 1;
       min-height: 0;
