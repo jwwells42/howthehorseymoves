@@ -11,7 +11,7 @@ export interface MoveRecord {
   to: SquareId;
 }
 
-type GameResult = 'playing' | 'checkmate-white' | 'checkmate-black' | 'stalemate' | 'threefold';
+type GameResult = 'playing' | 'checkmate-white' | 'checkmate-black' | 'stalemate' | 'threefold' | 'fifty-move' | 'insufficient-material';
 
 const STARTING_POSITION: PiecePlacement[] = [
   // White
@@ -42,14 +42,34 @@ function buildStartingBoard(): BoardState {
   return { pieces, castlingRights: { K: true, Q: true, k: true, q: true } };
 }
 
-/** Auto-promote pawn to queen if it reaches the last rank. */
-function applyPromotion(pieces: Map<SquareId, { piece: PieceKind; color: PieceColor }>, sq: SquareId) {
+/** Promote pawn if it reached the last rank. */
+function applyPromotion(pieces: Map<SquareId, { piece: PieceKind; color: PieceColor }>, sq: SquareId, promoteTo: PieceKind = 'Q') {
   const p = pieces.get(sq);
   if (!p || p.piece !== 'P') return;
   const rank = sq[1];
   if ((p.color === 'w' && rank === '8') || (p.color === 'b' && rank === '1')) {
-    pieces.set(sq, { piece: 'Q', color: p.color });
+    pieces.set(sq, { piece: promoteTo, color: p.color });
   }
+}
+
+/** Check if position has insufficient mating material. */
+function isInsufficientMaterial(board: BoardState): boolean {
+  const nonKings: { piece: PieceKind; color: PieceColor; square: SquareId }[] = [];
+  for (const [sq, p] of board.pieces) {
+    if (p.piece !== 'K') nonKings.push({ piece: p.piece, color: p.color, square: sq });
+  }
+  // K vs K
+  if (nonKings.length === 0) return true;
+  // K+B vs K or K+N vs K
+  if (nonKings.length === 1 && (nonKings[0].piece === 'B' || nonKings[0].piece === 'N')) return true;
+  // K+B vs K+B with same-colored bishops (opposite-color bishops can technically mate)
+  if (nonKings.length === 2 &&
+      nonKings[0].piece === 'B' && nonKings[1].piece === 'B' &&
+      nonKings[0].color !== nonKings[1].color) {
+    const sqColor = (sq: SquareId) => ((sq.charCodeAt(0) - 97) + parseInt(sq[1])) % 2;
+    return sqColor(nonKings[0].square) === sqColor(nonKings[1].square);
+  }
+  return false;
 }
 
 /** Generate SAN (Standard Algebraic Notation) for a move. */
@@ -59,6 +79,7 @@ function toSan(
   to: SquareId,
   color: PieceColor,
   boardAfter: BoardState,
+  promotionPiece?: PieceKind,
 ): string {
   const piece = boardBefore.pieces.get(from)!;
   const kind = piece.piece;
@@ -105,11 +126,11 @@ function toSan(
   if (isCapture) san += 'x';
   san += to;
 
-  // Promotion (auto-queen)
+  // Promotion
   if (kind === 'P') {
     const rank = to[1];
     if ((color === 'w' && rank === '8') || (color === 'b' && rank === '1')) {
-      san += '=Q';
+      san += `=${promotionPiece ?? 'Q'}`;
     }
   }
 
@@ -131,6 +152,8 @@ export function createGameState(botLevel: BotLevel = 'random') {
   let moveHistory = $state<MoveRecord[]>([]);
   let positions = $state<BoardState[]>([startBoard]);
   let positionCounts = $state<Map<string, number>>(new Map([[boardToKey(startBoard, 'w'), 1]]));
+  let halfmoveClock = $state(0);
+  let pendingPromotion = $state<{ from: SquareId; to: SquareId } | null>(null);
 
   let validMoves = $derived.by(() => {
     if (!selectedSquare) return [];
@@ -150,6 +173,12 @@ export function createGameState(botLevel: BotLevel = 'random') {
     if (count + 1 >= 3) {
       return 'threefold';
     }
+    if (halfmoveClock >= 100) {
+      return 'fifty-move';
+    }
+    if (isInsufficientMaterial(boardState)) {
+      return 'insufficient-material';
+    }
     return 'playing';
   }
 
@@ -162,6 +191,7 @@ export function createGameState(botLevel: BotLevel = 'random') {
 
       const newPieces = new Map(currentBoard.pieces);
       const piece = newPieces.get(move.from)!;
+      const botCapture = !!currentBoard.pieces.get(move.to) || (piece.piece === 'P' && move.to === currentBoard.enPassantSquare);
       newPieces.delete(move.from);
       newPieces.set(move.to, piece);
       applyPromotion(newPieces, move.to);
@@ -222,6 +252,13 @@ export function createGameState(botLevel: BotLevel = 'random') {
         to: move.to,
       };
 
+      // Update halfmove clock
+      if (piece.piece === 'P' || botCapture) {
+        halfmoveClock = 0;
+      } else {
+        halfmoveClock = halfmoveClock + 1;
+      }
+
       const newBoard: BoardState = { pieces: newPieces, castlingRights: rights, enPassantSquare };
       const san = toSan(currentBoard, move.from, move.to, 'b', newBoard);
       moveHistory = [...moveHistory, { san, from: move.from, to: move.to }];
@@ -243,12 +280,28 @@ export function createGameState(botLevel: BotLevel = 'random') {
     }, 400);
   }
 
-  function executeMove(from: SquareId, to: SquareId) {
+  function executeMove(from: SquareId, to: SquareId, promotionPiece?: PieceKind) {
+    const piece = board.pieces.get(from)!;
+
+    // Detect promotion — ask user for piece choice
+    if (piece.piece === 'P' && !promotionPiece) {
+      const rank = to[1];
+      if ((piece.color === 'w' && rank === '8') || (piece.color === 'b' && rank === '1')) {
+        pendingPromotion = { from, to };
+        selectedSquare = null;
+        return;
+      }
+    }
+
+    const isCapture = !!board.pieces.get(to) || (piece.piece === 'P' && to === board.enPassantSquare);
+
     const newPieces = new Map(board.pieces);
-    const piece = newPieces.get(from)!;
     newPieces.delete(from);
-    newPieces.set(to, piece);
-    applyPromotion(newPieces, to);
+    if (promotionPiece) {
+      newPieces.set(to, { piece: promotionPiece, color: piece.color });
+    } else {
+      newPieces.set(to, piece);
+    }
 
     // Handle castling rook movement
     if (piece.piece === 'K') {
@@ -298,8 +351,15 @@ export function createGameState(botLevel: BotLevel = 'random') {
       if (from === 'h8' || to === 'h8') rights.k = false;
     }
 
+    // Update halfmove clock
+    if (piece.piece === 'P' || isCapture) {
+      halfmoveClock = 0;
+    } else {
+      halfmoveClock = halfmoveClock + 1;
+    }
+
     const newBoard: BoardState = { pieces: newPieces, castlingRights: rights, enPassantSquare };
-    const san = toSan(board, from, to, 'w', newBoard);
+    const san = toSan(board, from, to, 'w', newBoard, promotionPiece);
     moveHistory = [...moveHistory, { san, from, to }];
     positions = [...positions, newBoard];
     board = newBoard;
@@ -318,8 +378,15 @@ export function createGameState(botLevel: BotLevel = 'random') {
     makeBotMove(newBoard);
   }
 
+  function completePromotion(promoteTo: PieceKind) {
+    if (!pendingPromotion) return;
+    const { from, to } = pendingPromotion;
+    pendingPromotion = null;
+    executeMove(from, to, promoteTo);
+  }
+
   function handleSquareClick(sq: SquareId) {
-    if (result !== 'playing' || waitingForBot) return;
+    if (result !== 'playing' || waitingForBot || pendingPromotion) return;
 
     if (!selectedSquare) {
       const p = board.pieces.get(sq);
@@ -350,7 +417,7 @@ export function createGameState(botLevel: BotLevel = 'random') {
   }
 
   function handleDrop(from: SquareId, to: SquareId) {
-    if (result !== 'playing' || waitingForBot || from === to) return;
+    if (result !== 'playing' || waitingForBot || pendingPromotion || from === to) return;
     const p = board.pieces.get(from);
     if (!p || p.color !== 'w') return;
     const legal = getLegalMoves(from, board, 'w');
@@ -369,6 +436,8 @@ export function createGameState(botLevel: BotLevel = 'random') {
     moveHistory = [];
     positions = [fresh];
     positionCounts = new Map([[boardToKey(fresh, 'w'), 1]]);
+    halfmoveClock = 0;
+    pendingPromotion = null;
   }
 
   return {
@@ -381,8 +450,10 @@ export function createGameState(botLevel: BotLevel = 'random') {
     get waitingForBot() { return waitingForBot; },
     get moveHistory() { return moveHistory; },
     get positions() { return positions; },
+    get pendingPromotion() { return pendingPromotion; },
     handleSquareClick,
     handleDrop,
+    completePromotion,
     newGame,
   };
 }

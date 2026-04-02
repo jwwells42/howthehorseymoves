@@ -673,20 +673,22 @@
       <span class="player-name">{game.black}</span>
     </div>
 
-    <Board
-      board={testMode ? testBoard : displayBoard}
-      selectedSquare={testMode ? testSelected : viewerSelected}
-      validMoves={testMode ? testValidMoves : viewerValidMoves}
-      targets={[]}
-      reachedTargets={[]}
-      dragValidMoves={testMode ? testDragMoves : viewerDragMoves}
-      onSquareClick={testMode ? handleTestClick : handleViewerClick}
-      onDrop={testMode ? handleTestDrop : handleViewerDrop}
-      onDragStart={testMode ? handleTestDragStart : handleViewerDragStart}
-      onDragEnd={testMode ? handleTestDragEnd : handleViewerDragEnd}
-      arrows={testMode ? testArrows : (exploring ? undefined : currentArrows)}
-      playableColors={['w', 'b']}
-    />
+    <div class="board-wrapper">
+      <Board
+        board={testMode ? testBoard : displayBoard}
+        selectedSquare={testMode ? testSelected : viewerSelected}
+        validMoves={testMode ? testValidMoves : viewerValidMoves}
+        targets={[]}
+        reachedTargets={[]}
+        dragValidMoves={testMode ? testDragMoves : viewerDragMoves}
+        onSquareClick={testMode ? handleTestClick : handleViewerClick}
+        onDrop={testMode ? handleTestDrop : handleViewerDrop}
+        onDragStart={testMode ? handleTestDragStart : handleViewerDragStart}
+        onDragEnd={testMode ? handleTestDragEnd : handleViewerDragEnd}
+        arrows={testMode ? testArrows : (exploring ? undefined : currentArrows)}
+        playableColors={['w', 'b']}
+      />
+    </div>
 
     <div class="player-label">
       <div class="player-dot player-dot-white"></div>
@@ -969,6 +971,20 @@
   @media (min-width: 1024px) {
     .board-side {
       max-width: none;
+    }
+  }
+
+  .board-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-wrapper {
+      flex: 1;
+      min-height: 0;
+      align-items: center;
     }
   }
 

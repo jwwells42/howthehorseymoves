@@ -207,3 +207,6 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - `createGameState(botLevel)` in `use-game.svelte.ts` creates the game state factory; `GameShell` passes it through
 - Play page (`/play`) shows a level selector before starting the game
 - Adding new levels: add to `BotLevel` type, handle in `pickBotMove()`
+- Promotion: player gets a picker overlay (Q/R/B/N) when pawn reaches last rank; bot auto-promotes to queen
+- Draw detection: stalemate, threefold repetition, 50-move rule (halfmove clock), insufficient material (K vs K, K+B/N vs K, K+B vs K+B same-color bishops). Matches Lichess rules
+- Click-to-move: all interactive board wrappers must use separate `dragFrom` state for drag tracking, keeping `selectedSquare` independent. Never clear `selectedSquare` in `onDragEnd` — that breaks click-click

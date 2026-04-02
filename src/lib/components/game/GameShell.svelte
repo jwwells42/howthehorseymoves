@@ -3,7 +3,7 @@
   import { createGameState } from '$lib/state/use-game.svelte';
   import { getLegalMoves } from '$lib/logic/attacks';
   import type { BotLevel } from '$lib/logic/bot';
-  import type { SquareId } from '$lib/logic/types';
+  import type { SquareId, PieceKind } from '$lib/logic/types';
 
   let { botLevel = 'random' }: { botLevel?: BotLevel } = $props();
 
@@ -27,9 +27,11 @@
   let isReviewing = $derived(reviewIndex !== null);
 
   function onDragStart(sq: SquareId) {
-    if (game.result !== 'playing' || game.waitingForBot || isReviewing) return;
+    if (game.result !== 'playing' || game.waitingForBot || isReviewing || game.pendingPromotion) return;
     dragFrom = sq;
   }
+
+  const PROMO_PIECES: PieceKind[] = ['Q', 'R', 'B', 'N'];
 
   function onDragEnd() {
     dragFrom = null;
@@ -57,6 +59,8 @@
       case 'checkmate-black': return 'Checkmate \u2014 you lose!';
       case 'stalemate': return 'Stalemate \u2014 it\u2019s a draw!';
       case 'threefold': return 'Threefold repetition \u2014 it\u2019s a draw!';
+      case 'fifty-move': return '50-move rule \u2014 it\u2019s a draw!';
+      case 'insufficient-material': return 'Insufficient material \u2014 it\u2019s a draw!';
       default: return null;
     }
   });
@@ -110,16 +114,27 @@
       <Board
         board={displayBoard}
         selectedSquare={isReviewing ? null : game.selectedSquare}
-        validMoves={isReviewing ? [] : game.validMoves}
+        validMoves={isReviewing || game.pendingPromotion ? [] : game.validMoves}
         targets={[]}
         reachedTargets={[]}
-        dragValidMoves={isReviewing ? [] : dragValidMoves}
+        dragValidMoves={isReviewing || game.pendingPromotion ? [] : dragValidMoves}
         onSquareClick={onSquareClick}
         onDrop={onDrop}
         {onDragStart}
         {onDragEnd}
         opponentSlide={isReviewing ? null : game.botSlide}
       />
+      {#if game.pendingPromotion}
+        <div class="promo-overlay">
+          <div class="promo-picker">
+            {#each PROMO_PIECES as p}
+              <button class="promo-btn" onclick={() => game.completePromotion(p)}>
+                <img src="/pieces/w{p}.svg" alt={p} width="60" height="60" />
+              </button>
+            {/each}
+          </div>
+        </div>
+      {/if}
     </div>
 
     <div class="move-panel">
@@ -332,5 +347,49 @@
 
   .new-game-btn:hover {
     background: #15803d;
+  }
+
+  /* Promotion picker */
+  .promo-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.25rem;
+    z-index: 10;
+  }
+
+  .promo-picker {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--card-bg, #1a1a1a);
+    border: 2px solid var(--card-border, #333);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .promo-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    background: var(--btn-bg, #374151);
+    border: 2px solid transparent;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+
+  .promo-btn:hover {
+    background: var(--btn-hover, #4b5563);
+    border-color: #22c55e;
+  }
+
+  .promo-btn img {
+    width: 3.5rem;
+    height: 3.5rem;
   }
 </style>

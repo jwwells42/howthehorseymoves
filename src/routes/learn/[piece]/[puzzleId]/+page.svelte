@@ -88,7 +88,10 @@
       overflow: hidden;
     }
   }
-  .lesson-page { padding: 1.5rem; max-width: 42rem; margin: 0 auto; overflow: auto; }
+  .lesson-page { padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
+  @media (max-height: 480px) {
+    .lesson-page { padding: 0.5rem 1rem; }
+  }
   .center { text-align: center; padding: 1.5rem; max-width: 56rem; margin: 0 auto; overflow: auto; }
   .back-link {
     font-size: 0.875rem;

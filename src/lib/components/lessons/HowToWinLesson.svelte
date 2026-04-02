@@ -212,6 +212,15 @@
 
   /* ── Click & drag handlers ─────────────────────────────── */
 
+  let dragFrom = $state<SquareId | null>(null);
+
+  let dragValidMoves = $derived.by(() => {
+    if (!dragFrom || solved || step?.type === 'demo') return [];
+    const p = board.pieces.get(dragFrom);
+    if (!p || p.color !== playerColor) return [];
+    return getLegalMoves(dragFrom, board, playerColor);
+  });
+
   function handleSquareClick(sq: SquareId) {
     if (solved || !step || step.type === 'demo') return;
 
@@ -242,11 +251,11 @@
   }
 
   function handleDragStart(sq: SquareId) {
-    selectedSquare = sq;
+    dragFrom = sq;
   }
 
   function handleDragEnd() {
-    selectedSquare = null;
+    dragFrom = null;
   }
 
   /* ── Done screen helpers ───────────────────────────────── */
@@ -337,7 +346,7 @@
         {validMoves}
         targets={[]}
         reachedTargets={[]}
-        dragValidMoves={validMoves}
+        {dragValidMoves}
         onSquareClick={handleSquareClick}
         onDrop={handleDrop}
         onDragStart={handleDragStart}
@@ -380,6 +389,14 @@
     padding: 1rem;
     max-width: 42rem;
     margin: 0 auto;
+    width: 100%;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .container {
+      flex: 1;
+      min-height: 0;
+    }
   }
 
   /* Progress bar */
@@ -424,8 +441,17 @@
   /* Board wrapper */
   .board-wrapper {
     width: 100%;
-    max-width: 28rem;
     position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  @media (min-height: 32rem) and (min-width: 32rem) {
+    .board-wrapper {
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+    }
   }
 
   /* Trophy overlay */
