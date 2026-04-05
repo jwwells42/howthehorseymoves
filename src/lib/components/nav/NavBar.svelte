@@ -31,8 +31,7 @@
           || path.startsWith('/openings') || path.startsWith('/games')
           || path.startsWith('/editor');
       case 'Vision':
-        return path === '/vision'
-          || path.startsWith('/learn/blindfold');
+        return path.startsWith('/vision');
       default:
         return false;
     }

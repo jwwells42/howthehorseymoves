@@ -95,7 +95,7 @@
     <h2 class="group-title">{group.title}</h2>
     <div class="trainer-list">
       {#each group.trainers as trainer}
-        <a href="/learn/{trainer.key}" class="trainer-item">
+        <a href="/vision/{trainer.key.replace('blindfold-', '')}" class="trainer-item">
           <div class="trainer-left">
             <img src={trainer.icon} alt={trainer.name} class="trainer-icon" />
             <div>
