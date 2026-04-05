@@ -26,6 +26,44 @@
 
   let isReviewing = $derived(reviewIndex !== null);
 
+  // Navigation
+  let canGoBack = $derived(
+    reviewIndex === null ? game.positions.length > 1 : reviewIndex > 0
+  );
+  let canGoForward = $derived(
+    reviewIndex !== null && reviewIndex < game.positions.length - 1
+  );
+
+  function goBack() {
+    if (reviewIndex === null) {
+      reviewIndex = game.positions.length - 2;
+    } else if (reviewIndex > 0) {
+      reviewIndex--;
+    }
+  }
+
+  function goForward() {
+    if (reviewIndex === null) return;
+    if (reviewIndex >= game.positions.length - 1) {
+      reviewIndex = null;
+    } else {
+      reviewIndex++;
+    }
+  }
+
+  function goToStart() {
+    reviewIndex = 0;
+  }
+
+  function goToEnd() {
+    reviewIndex = null;
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goBack(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); goForward(); }
+  }
+
   function onDragStart(sq: SquareId) {
     if (game.result !== 'playing' || game.waitingForBot || isReviewing || game.pendingPromotion) return;
     dragFrom = sq;
@@ -38,18 +76,12 @@
   }
 
   function onSquareClick(sq: SquareId) {
-    if (isReviewing) {
-      reviewIndex = null;
-      return;
-    }
+    if (isReviewing) return;
     game.handleSquareClick(sq);
   }
 
   function onDrop(from: SquareId, to: SquareId) {
-    if (isReviewing) {
-      reviewIndex = null;
-      return;
-    }
+    if (isReviewing) return;
     game.handleDrop(from, to);
   }
 
@@ -66,7 +98,7 @@
   });
 
   let statusText = $derived.by(() => {
-    if (isReviewing) return 'Reviewing \u2014 click the board to return';
+    if (isReviewing) return 'Reviewing';
     if (resultMessage) return resultMessage;
     if (game.inCheck) return "You're in check!";
     if (game.waitingForBot) return 'Opponent is thinking...';
@@ -87,21 +119,41 @@
     return pairs;
   });
 
-  // Auto-scroll the move list
+  // Which position index is active (for highlighting)
+  let activeIndex = $derived(
+    reviewIndex !== null ? reviewIndex : game.positions.length - 1
+  );
+
+  // Auto-scroll the highlighted move into view
   $effect(() => {
-    void game.moveHistory.length;
+    void activeIndex;
     if (!moveListEl) return;
-    moveListEl.scrollTop = moveListEl.scrollHeight;
+    const highlighted = moveListEl.querySelector("[data-active='true']") as HTMLElement | null;
+    if (!highlighted) return;
+    const top = highlighted.offsetTop - moveListEl.offsetTop;
+    const bottom = top + highlighted.offsetHeight;
+    if (top < moveListEl.scrollTop) {
+      moveListEl.scrollTop = top;
+    } else if (bottom > moveListEl.scrollTop + moveListEl.clientHeight) {
+      moveListEl.scrollTop = bottom - moveListEl.clientHeight;
+    }
   });
 
-  function goToMove(moveIdx: number) {
-    reviewIndex = moveIdx;
+  function goToMove(positionIdx: number) {
+    if (positionIdx >= game.positions.length - 1) {
+      reviewIndex = null;
+    } else {
+      reviewIndex = positionIdx;
+    }
   }
 
-  function exitReview() {
+  function startNewGame() {
     reviewIndex = null;
+    game.newGame();
   }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="game-shell">
   <div class="header">
@@ -143,14 +195,16 @@
           {#each movePairs as pair, i}
             <span class="move-num">{pair.num}.</span>
             <button
-              class={['move-btn', reviewIndex === i * 2 + 1 && 'move-active']}
+              class={['move-btn', activeIndex === i * 2 + 1 && 'move-active']}
+              data-active={activeIndex === i * 2 + 1}
               onclick={() => goToMove(i * 2 + 1)}
             >
               {pair.white}
             </button>
             {#if pair.black}
               <button
-                class={['move-btn', reviewIndex === i * 2 + 2 && 'move-active']}
+                class={['move-btn', activeIndex === i * 2 + 2 && 'move-active']}
+                data-active={activeIndex === i * 2 + 2}
                 onclick={() => goToMove(i * 2 + 2)}
               >
                 {pair.black}
@@ -161,14 +215,38 @@
           {/each}
         </div>
       </div>
-      {#if isReviewing}
-        <button class="back-btn" onclick={exitReview}>Back to game</button>
-      {/if}
     </div>
   </div>
 
+  <div class="nav-controls">
+    <button
+      class="nav-btn"
+      onclick={goToStart}
+      disabled={!canGoBack}
+      aria-label="Start"
+    >&#x23EE;</button>
+    <button
+      class="nav-btn"
+      onclick={goBack}
+      disabled={!canGoBack}
+      aria-label="Back"
+    >&#x25C0;</button>
+    <button
+      class="nav-btn"
+      onclick={goForward}
+      disabled={!canGoForward}
+      aria-label="Forward"
+    >&#x25B6;</button>
+    <button
+      class="nav-btn"
+      onclick={goToEnd}
+      disabled={!canGoForward}
+      aria-label="End"
+    >&#x23ED;</button>
+  </div>
+
   {#if game.result !== 'playing'}
-    <button class="new-game-btn" onclick={game.newGame}>
+    <button class="new-game-btn" onclick={startNewGame}>
       New Game
     </button>
   {/if}
@@ -317,19 +395,32 @@
     font-weight: 700;
   }
 
-  .back-btn {
-    padding: 0.375rem 0.75rem;
-    border-radius: 0.375rem;
-    border: 1px solid var(--card-border, #333);
-    background: var(--card-bg, #1a1a1a);
+  .nav-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .nav-btn {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--btn-bg, #2a2a2a);
     color: inherit;
-    font-size: 0.75rem;
+    border: none;
     cursor: pointer;
+    font-size: 1.125rem;
     transition: background-color 0.15s;
   }
 
-  .back-btn:hover {
-    background: var(--btn-hover, #2a2a2a);
+  .nav-btn:hover:not(:disabled) {
+    background: var(--btn-hover, #3a3a3a);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
   }
 
   .new-game-btn {
