@@ -1,6 +1,6 @@
-import type { RoutePuzzle } from "./types";
+import type { RoutePuzzle, FindMovesPuzzle } from "./types";
 
-export const rookPuzzles: RoutePuzzle[] = [
+export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
   {
     type: "route",
     id: "rook-01",
@@ -197,5 +197,16 @@ export const rookPuzzles: RoutePuzzle[] = [
     stars: ["a6", "f6"],
     hints: ["Capture the knight first.", "Then slide over to capture the bishop on the star."],
     starThresholds: { three: 2, two: 3, one: 4 },
+  },
+  // --- Find All Moves ---
+  {
+    type: "find-moves",
+    id: "rook-16",
+    playerPiece: "R",
+    title: "Find All Moves",
+    instruction: "Click every square the rook can move to!",
+    position: [{ piece: "R", color: "w", square: "d4" }],
+    walls: ["b4", "d7"],
+    starThresholds: { three: 0, two: 2, one: 4 },
   },
 ];

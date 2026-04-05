@@ -1,6 +1,6 @@
-import type { TacticPuzzle } from "./types";
+import type { TacticPuzzle, FindMovesPuzzle } from "./types";
 
-export const enPassantPuzzles: TacticPuzzle[] = [
+export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-01",
@@ -105,5 +105,21 @@ export const enPassantPuzzles: TacticPuzzle[] = [
       "Just push forward to e7 and e8!",
     ],
     starThresholds: { three: 2, two: 3, one: 4 },
+  },
+  // --- Find All Moves (with en passant) ---
+  {
+    type: "find-moves",
+    id: "enpassant-find",
+    playerPiece: "P",
+    title: "Find All Moves",
+    instruction: "The black pawn just moved! Click every square the pawn can move to!",
+    position: [
+      { piece: "P", color: "w", square: "e5" },
+      { piece: "P", color: "b", square: "d6" },
+      { piece: "P", color: "b", square: "f5" },
+    ],
+    walls: [],
+    enPassantSquare: "f6",
+    starThresholds: { three: 0, two: 2, one: 4 },
   },
 ];

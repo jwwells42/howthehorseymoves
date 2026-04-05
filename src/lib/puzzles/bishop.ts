@@ -1,6 +1,6 @@
-import type { RoutePuzzle } from "./types";
+import type { RoutePuzzle, FindMovesPuzzle } from "./types";
 
-export const bishopPuzzles: RoutePuzzle[] = [
+export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
   {
     type: "route",
     id: "bishop-01",
@@ -194,5 +194,16 @@ export const bishopPuzzles: RoutePuzzle[] = [
     stars: ["c3", "f6"],
     hints: ["Both enemies are on the same long diagonal!", "Capture them in order."],
     starThresholds: { three: 2, two: 3, one: 4 },
+  },
+  // --- Find All Moves ---
+  {
+    type: "find-moves",
+    id: "bishop-16",
+    playerPiece: "B",
+    title: "Find All Moves",
+    instruction: "Click every square the bishop can move to!",
+    position: [{ piece: "B", color: "w", square: "e4" }],
+    walls: ["c2", "g6"],
+    starThresholds: { three: 0, two: 2, one: 4 },
   },
 ];

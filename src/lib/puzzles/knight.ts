@@ -1,6 +1,6 @@
-import type { RoutePuzzle } from "./types";
+import type { RoutePuzzle, FindMovesPuzzle } from "./types";
 
-export const knightPuzzles: RoutePuzzle[] = [
+export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
   {
     type: "route",
     id: "knight-01",
@@ -195,5 +195,16 @@ export const knightPuzzles: RoutePuzzle[] = [
     stars: ["b3", "d4"],
     hints: ["The friendly pawns don't block the knight's jumps.", "Capture b3 first, then jump to d4."],
     starThresholds: { three: 2, two: 3, one: 4 },
+  },
+  // --- Find All Moves ---
+  {
+    type: "find-moves",
+    id: "knight-16",
+    playerPiece: "N",
+    title: "Find All Moves",
+    instruction: "Click every square the knight can jump to!",
+    position: [{ piece: "N", color: "w", square: "d5" }],
+    walls: ["c3", "f4"],
+    starThresholds: { three: 0, two: 2, one: 4 },
   },
 ];

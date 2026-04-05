@@ -3,7 +3,7 @@ import { getValidMoves } from '$lib/logic/moves';
 import { isCheckmate, isStalemate, getLegalMoves } from '$lib/logic/attacks';
 import { applyMove } from '$lib/logic/pgn';
 import type { Arrow } from '$lib/logic/pgn';
-import type { Puzzle, RoutePuzzle, TacticPuzzle, ConversionPuzzle } from '$lib/puzzles/types';
+import type { Puzzle, RoutePuzzle, TacticPuzzle, ConversionPuzzle, FindMovesPuzzle } from '$lib/puzzles/types';
 import { parsePuzzleMoves, type MoveNode, type SquareHighlight } from '$lib/puzzles/parse-moves';
 import { pickBotMove } from '$lib/logic/bot';
 import { completePuzzle as saveComplete } from '$lib/state/progress-store';
@@ -19,6 +19,7 @@ export interface SlideAnimation {
 export function createPuzzleState(puzzle: Puzzle) {
   if (puzzle.type === 'route') return createRouteState(puzzle);
   if (puzzle.type === 'puzzle') return createTacticState(puzzle);
+  if (puzzle.type === 'find-moves') return createFindMovesState(puzzle);
   return createConversionState(puzzle);
 }
 
@@ -675,6 +676,110 @@ function createConversionState(puzzle: ConversionPuzzle) {
     },
     handleSquareClick,
     handleDrop,
+    reset,
+    showHint,
+  };
+}
+
+// ═══════════════════════════════════════════════
+// Find-moves puzzle state
+// ═══════════════════════════════════════════════
+
+function createFindMovesState(puzzle: FindMovesPuzzle) {
+  // Build the board from position + walls
+  const placements = [...puzzle.position];
+  for (const w of puzzle.walls) {
+    placements.push({ piece: 'P' as PieceKind, color: 'w' as PieceColor, square: w });
+  }
+  const board = createBoardState(placements, puzzle.enPassantSquare ? { enPassantSquare: puzzle.enPassantSquare } : undefined);
+
+  // Find the player piece square
+  const pieceSquare = puzzle.position.find(p => p.piece === puzzle.playerPiece && p.color === 'w')!.square;
+
+  // Compute all valid destination squares
+  const correctSquares = new Set<SquareId>(getValidMoves(puzzle.playerPiece, pieceSquare, board, 'w'));
+
+  let foundSquares = $state<Set<SquareId>>(new Set());
+  let mistakes = $state(0);
+  let isComplete = $state(false);
+  let wrongMoveSquare = $state<SquareId | null>(null);
+  let currentHintIndex = $state(-1);
+
+  const stars = $derived.by(() => {
+    if (!isComplete) return 0;
+    const { three, two } = puzzle.starThresholds;
+    if (mistakes <= three) return 3;
+    if (mistakes <= two) return 2;
+    return 1;
+  });
+
+  const highlights = $derived.by(() => {
+    const result: SquareHighlight[] = [];
+    for (const sq of foundSquares) {
+      result.push({ square: sq, color: '#22c55e' });
+    }
+    return result;
+  });
+
+  function handleSquareClick(sq: SquareId) {
+    if (isComplete) return;
+    if (sq === pieceSquare) return;
+    if (foundSquares.has(sq)) return;
+
+    if (correctSquares.has(sq)) {
+      const next = new Set(foundSquares);
+      next.add(sq);
+      foundSquares = next;
+      if (next.size === correctSquares.size) {
+        isComplete = true;
+        saveComplete(puzzle.id, stars, mistakes);
+        playSound('stars');
+      } else {
+        playSound('correct');
+      }
+    } else {
+      mistakes++;
+      wrongMoveSquare = sq;
+      playSound('wrong');
+      setTimeout(() => { wrongMoveSquare = null; }, 600);
+    }
+  }
+
+  function reset() {
+    foundSquares = new Set();
+    mistakes = 0;
+    isComplete = false;
+    wrongMoveSquare = null;
+    currentHintIndex = -1;
+  }
+
+  function showHint() {
+    if (puzzle.hints && currentHintIndex < puzzle.hints.length - 1) {
+      currentHintIndex = currentHintIndex + 1;
+    }
+  }
+
+  return {
+    get board() { return board; },
+    get selectedSquare() { return null; },
+    get validMoves() { return [] as SquareId[]; },
+    get reachedTargets() { return [] as SquareId[]; },
+    get moveCount() { return 0; },
+    get isComplete() { return isComplete; },
+    get stalemateTrigger() { return false; },
+    get wrongMoveSquare() { return wrongMoveSquare; },
+    get opponentSlide() { return null as SlideAnimation | null; },
+    get stars() { return stars; },
+    get currentHintIndex() { return currentHintIndex; },
+    get arrows() { return [] as Arrow[]; },
+    get highlights() { return highlights; },
+    get demoPhase() { return null as 'playing' | 'resetting' | null; },
+    get totalCorrect() { return correctSquares.size; },
+    get foundCount() { return foundSquares.size; },
+    get mistakes() { return mistakes; },
+    getMovesFrom() { return [] as SquareId[]; },
+    handleSquareClick,
+    handleDrop(_from: SquareId, _to: SquareId) {},
     reset,
     showHint,
   };

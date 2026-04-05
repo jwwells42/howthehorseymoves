@@ -1,6 +1,6 @@
-import type { RoutePuzzle } from "./types";
+import type { RoutePuzzle, FindMovesPuzzle } from "./types";
 
-export const queenPuzzles: RoutePuzzle[] = [
+export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
   {
     type: "route",
     id: "queen-01",
@@ -198,5 +198,16 @@ export const queenPuzzles: RoutePuzzle[] = [
     stars: ["a8", "h1", "h8"],
     hints: ["Capture the rook, then use the 8th rank.", "The queen's combined powers make this efficient."],
     starThresholds: { three: 3, two: 4, one: 5 },
+  },
+  // --- Find All Moves ---
+  {
+    type: "find-moves",
+    id: "queen-16",
+    playerPiece: "Q",
+    title: "Find All Moves",
+    instruction: "Click every square the queen can move to!",
+    position: [{ piece: "Q", color: "w", square: "d5" }],
+    walls: ["b5", "d2", "f7"],
+    starThresholds: { three: 0, two: 2, one: 4 },
   },
 ];

@@ -5,7 +5,7 @@
   import SuccessOverlay from './SuccessOverlay.svelte';
   import { createPuzzleState } from '$lib/state/use-puzzle.svelte';
   import type { Puzzle } from '$lib/puzzles/types';
-  import type { SquareId } from '$lib/logic/types';
+  import type { PieceKind, SquareId } from '$lib/logic/types';
 
   interface Props {
     puzzle: Puzzle;
@@ -20,15 +20,23 @@
 
   let isRoute = $derived(puzzle.type === 'route');
   let isConversion = $derived(puzzle.type === 'conversion');
+  let isFindMoves = $derived(puzzle.type === 'find-moves');
+
+  // Find-moves specific derived values (safe to access only when isFindMoves is true)
+  let findMovesInfo = $derived.by(() => {
+    if (puzzle.type !== 'find-moves') return null;
+    const s = ps as unknown as { foundCount: number; totalCorrect: number; mistakes: number };
+    return { found: s.foundCount, total: s.totalCorrect, mistakes: s.mistakes };
+  });
 
   let dragValidMoves = $derived.by(() => {
     if (!dragFrom) return [];
     return ps.getMovesFrom(dragFrom);
   });
 
-  // Route puzzles render wall pieces as brick walls
+  // Route and find-moves puzzles render wall pieces as brick walls
   let obstacles = $derived.by(() => {
-    if (puzzle.type !== 'route') return [];
+    if (puzzle.type !== 'route' && puzzle.type !== 'find-moves') return [];
     const pp = puzzle.playerPiece;
     if (pp === 'P') return [];
     const result: SquareId[] = [];
@@ -40,18 +48,21 @@
     return result;
   });
 
-  // Targets (stars) only for route puzzles
+  // Targets (stars) only for route puzzles (not find-moves)
   let targets = $derived(puzzle.type === 'route' ? puzzle.stars : [] as SquareId[]);
 
-  // Draggable piece restriction — route: only playerPiece; others: any white piece
-  let draggablePiece = $derived(puzzle.type === 'route' ? puzzle.playerPiece : undefined);
+  // Draggable piece restriction — route: only playerPiece; find-moves: none (no dragging); others: any white piece
+  let draggablePiece = $derived(
+    puzzle.type === 'find-moves' ? ('_' as PieceKind) :
+    puzzle.type === 'route' ? puzzle.playerPiece : undefined
+  );
 
   // Show move counter for route and conversion
   let showMoveCounter = $derived(puzzle.type === 'route' || puzzle.type === 'conversion');
 
   // Star thresholds — always available
   let thresholds = $derived.by(() => {
-    if (puzzle.type === 'route' || puzzle.type === 'conversion') return puzzle.starThresholds;
+    if (puzzle.type === 'route' || puzzle.type === 'conversion' || puzzle.type === 'find-moves') return puzzle.starThresholds;
     return puzzle.starThresholds ?? null;
   });
 
@@ -67,7 +78,11 @@
   </div>
 
   <!-- Move counter -->
-  {#if showMoveCounter && thresholds}
+  {#if findMovesInfo}
+    <div class="move-counter">
+      {findMovesInfo.found} of {findMovesInfo.total} found{findMovesInfo.mistakes > 0 ? ` · ${findMovesInfo.mistakes} wrong` : ''}
+    </div>
+  {:else if showMoveCounter && thresholds}
     <div class="move-counter">
       Moves: {ps.moveCount} / {thresholds.three}
     </div>
@@ -120,7 +135,13 @@
   />
 
   <!-- Star thresholds -->
-  {#if showMoveCounter && thresholds}
+  {#if isFindMoves && thresholds}
+    <div class="thresholds">
+      <span><StarRating stars={3} size="sm" /> {thresholds.three === 0 ? 'no' : `≤${thresholds.three}`} mistakes</span>
+      <span><StarRating stars={2} size="sm" /> ≤{thresholds.two} mistakes</span>
+      <span><StarRating stars={1} size="sm" /> ≤{thresholds.one} mistakes</span>
+    </div>
+  {:else if showMoveCounter && thresholds}
     <div class="thresholds">
       <span><StarRating stars={3} size="sm" /> {thresholds.three} moves</span>
       <span><StarRating stars={2} size="sm" /> {thresholds.two} moves</span>

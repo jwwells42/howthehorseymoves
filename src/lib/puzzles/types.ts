@@ -35,7 +35,16 @@ export interface ConversionPuzzle extends PuzzleBase {
   starThresholds: { three: number; two: number; one: number };
 }
 
-export type Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle;
+export interface FindMovesPuzzle extends PuzzleBase {
+  type: "find-moves";
+  playerPiece: PieceKind;
+  position: PiecePlacement[];
+  walls: SquareId[];
+  enPassantSquare?: SquareId;
+  starThresholds: { three: number; two: number; one: number };
+}
+
+export type Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle | FindMovesPuzzle;
 
 export interface PuzzleSet {
   piece: PieceKind;

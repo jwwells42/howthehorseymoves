@@ -1,6 +1,6 @@
-import type { RoutePuzzle } from "./types";
+import type { RoutePuzzle, FindMovesPuzzle } from "./types";
 
-export const pawnPuzzles: RoutePuzzle[] = [
+export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
   {
     type: "route",
     id: "pawn-01",
@@ -231,5 +231,16 @@ export const pawnPuzzles: RoutePuzzle[] = [
     stars: ["e3", "d4", "e5", "d6", "e7", "d8"],
     hints: ["Zigzag all the way to the top!", "Capture every enemy on the way."],
     starThresholds: { three: 6, two: 7, one: 8 },
+  },
+  // --- Find All Moves ---
+  {
+    type: "find-moves",
+    id: "pawn-16",
+    playerPiece: "P",
+    title: "Find All Moves",
+    instruction: "Click every square the pawn can move to!",
+    position: [{ piece: "P", color: "w", square: "e2" }],
+    walls: [],
+    starThresholds: { three: 0, two: 2, one: 4 },
   },
 ];
