@@ -32,9 +32,10 @@ export interface CurriculumChapter {
 const SETUP_SLUGS = ['rooks', 'knights', 'bishops', 'king', 'queen', 'pawns', 'full'];
 
 export const CURRICULUM: CurriculumChapter[] = [
+  // ── Ch 1: The Basics ─────────────────────────
   {
-    id: 'piece-movement',
-    title: 'Piece Movement',
+    id: 'basics',
+    title: 'The Basics',
     stops: [
       { id: 'piece-rook', name: 'Rook', icon: '/pieces/wR.svg', href: '/learn/rook', progress: { type: 'puzzle-set', key: 'rook' } },
       { id: 'piece-bishop', name: 'Bishop', icon: '/pieces/wB.svg', href: '/learn/bishop', progress: { type: 'puzzle-set', key: 'bishop' } },
@@ -43,56 +44,34 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'piece-knight', name: 'Knight', icon: '/pieces/wN.svg', href: '/learn/knight', progress: { type: 'puzzle-set', key: 'knight' } },
       { id: 'piece-pawn', name: 'Pawn', icon: '/pieces/wP.svg', href: '/learn/pawn', progress: { type: 'puzzle-set', key: 'pawn' } },
       { id: 'danger-zones', name: 'Danger Zones', icon: '/pieces/bQ.svg', href: '/learn/danger-zones', progress: { type: 'puzzle-set', key: 'danger-zones' } },
-    ],
-  },
-  {
-    id: 'the-board',
-    title: 'The Board',
-    stops: [
-      { id: 'board-coords', name: 'Name the Square', icon: '/pieces/wK.svg', href: '/board/coordinates', progress: { type: 'localStorage', key: 'coord-best-stars' } },
       { id: 'board-setup', name: 'Place the Pieces', icon: '/pieces/wR.svg', href: '/setup', progress: { type: 'localStorage-all', keys: SETUP_SLUGS.map(s => `setup-${s}-best-stars`) } },
-      { id: 'vision-color', name: 'Color of Square', icon: '/pieces/wP.svg', href: '/vision/color', progress: { type: 'localStorage', key: 'blindfold-color-best-stars' } },
-    ],
-  },
-  {
-    id: 'how-to-win',
-    title: 'How to Win',
-    stops: [
+      { id: 'board-coords', name: 'Name the Square', icon: '/pieces/wK.svg', href: '/board/coordinates', progress: { type: 'localStorage', key: 'coord-best-stars' } },
       { id: 'how-to-win', name: 'How to Win', icon: '/pieces/wK.svg', href: '/learn/how-to-win', progress: { type: 'localStorage', key: 'how-to-win-best-stars' } },
+      { id: 'mate-in-1', name: 'Mate in 1', icon: '/pieces/wQ.svg', href: '/learn/checkmate-mate-in-1', progress: { type: 'puzzle-set', key: 'checkmate-mate-in-1' } },
+      { id: 'play-random', name: 'Play vs Random Bot', icon: '/pieces/wN.svg', href: '/play?level=random', progress: { type: 'none' } },
     ],
   },
+
+  // ── Ch 2: First Checkmates ───────────────────
   {
-    id: 'first-game',
-    title: 'First Game',
-    stops: [
-      { id: 'play-bot', name: 'Play vs Bot', icon: '/pieces/wN.svg', href: '/play?level=random', progress: { type: 'none' } },
-    ],
-  },
-  {
-    id: 'board-basics',
-    title: 'Board Basics',
-    stops: [
-      { id: 'vision-rankfile', name: 'Same Rank/File', icon: '/pieces/wR.svg', href: '/vision/rankfile', progress: { type: 'localStorage', key: 'blindfold-rankfile-best-stars' } },
-      { id: 'vision-diagonals', name: 'Same Diagonal', icon: '/pieces/wB.svg', href: '/vision/diagonals', progress: { type: 'localStorage', key: 'blindfold-diagonal-best-stars' } },
-      { id: 'vision-neighbors', name: 'Neighbor Squares', icon: '/pieces/wK.svg', href: '/vision/neighbors', progress: { type: 'localStorage', key: 'blindfold-neighbors-best-stars' } },
-    ],
-  },
-  {
-    id: 'basic-mates',
-    title: 'Basic Mates',
+    id: 'first-checkmates',
+    title: 'First Checkmates',
     stops: [
       { id: 'endings-kqk', name: 'Queen vs King', icon: '/pieces/wQ.svg', href: '/learn/endings-kqk', progress: { type: 'localStorage', key: 'endings-kqk-best-stars' } },
       { id: 'endings-krrk', name: 'Two Rooks vs King', icon: '/pieces/wR.svg', href: '/learn/endings-krrk', progress: { type: 'localStorage', key: 'endings-krrk-best-stars' } },
     ],
   },
+
+  // ── Ch 3: The Moves ──────────────────────────
   {
-    id: 'checkmate-puzzles',
-    title: 'Checkmate Puzzles',
+    id: 'the-moves',
+    title: 'The Moves',
     stops: [
-      { id: 'mate-in-1', name: 'Mate in 1', icon: '/pieces/wQ.svg', href: '/learn/checkmate-mate-in-1', progress: { type: 'puzzle-set', key: 'checkmate-mate-in-1' } },
-      { id: 'mate-in-2', name: 'Mate in 2', icon: '/pieces/wQ.svg', href: '/learn/checkmate-mate-in-2', progress: { type: 'puzzle-set', key: 'checkmate-mate-in-2' } },
+      { id: 'opening-scholars', name: "Scholar's Mate", icon: '/pieces/wQ.svg', href: '/openings/scholars-mate', progress: { type: 'none' } },
     ],
   },
+
+  // ── Ch 4: Checkmate Patterns ─────────────────
   {
     id: 'checkmate-patterns',
     title: 'Checkmate Patterns',
@@ -104,21 +83,14 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'cm-lollis', name: "Lolli's Mate", icon: '/pieces/wQ.svg', href: '/learn/checkmate-lollis', progress: { type: 'puzzle-set', key: 'checkmate-lollis' } },
       { id: 'cm-queen-king', name: 'Queen & King', icon: '/pieces/wQ.svg', href: '/learn/checkmate-queen-king', progress: { type: 'puzzle-set', key: 'checkmate-queen-king' } },
       { id: 'cm-smothered', name: 'Smothered Mate', icon: '/pieces/wN.svg', href: '/learn/checkmate-smothered', progress: { type: 'puzzle-set', key: 'checkmate-smothered' } },
+      { id: 'mate-in-2', name: 'Mate in 2', icon: '/pieces/wQ.svg', href: '/learn/checkmate-mate-in-2', progress: { type: 'puzzle-set', key: 'checkmate-mate-in-2' } },
     ],
   },
-  {
-    id: 'piece-vision',
-    title: 'Piece Vision',
-    stops: [
-      { id: 'vision-counting', name: 'Move Counting', icon: '/pieces/wQ.svg', href: '/vision/counting', progress: { type: 'localStorage', key: 'blindfold-counting-best-stars' } },
-      { id: 'vision-reachability', name: 'Piece Reachability', icon: '/pieces/wN.svg', href: '/vision/reachability', progress: { type: 'localStorage', key: 'blindfold-reachability-best-stars' } },
-      { id: 'vision-knightsquares', name: 'Knight Squares', icon: '/pieces/wN.svg', href: '/vision/knightsquares', progress: { type: 'localStorage', key: 'blindfold-knightsquares-best-stars' } },
-      { id: 'vision-relative', name: 'Relative Position', icon: '/pieces/wP.svg', href: '/vision/relative', progress: { type: 'localStorage', key: 'blindfold-relative-best-stars' } },
-    ],
-  },
+
+  // ── Ch 5: The Tactics ────────────────────────
   {
     id: 'tactics',
-    title: 'Tactics',
+    title: 'The Tactics',
     stops: [
       { id: 'tactics-pins', name: 'Pins', icon: '/pieces/wB.svg', href: '/learn/tactics-pins', progress: { type: 'puzzle-set', key: 'tactics-pins' } },
       { id: 'tactics-forks', name: 'Forks', icon: '/pieces/wN.svg', href: '/learn/tactics-forks', progress: { type: 'puzzle-set', key: 'tactics-forks' } },
@@ -127,23 +99,8 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'tactics-discovered', name: 'Discovered Attacks', icon: '/pieces/wN.svg', href: '/learn/tactics-discovered', progress: { type: 'puzzle-set', key: 'tactics-discovered' } },
     ],
   },
-  {
-    id: 'harder-mates',
-    title: 'Harder Mates',
-    stops: [
-      { id: 'endings-krk', name: 'Rook vs King', icon: '/pieces/wR.svg', href: '/learn/endings-krk', progress: { type: 'localStorage', key: 'endings-krk-best-stars' } },
-    ],
-  },
-  {
-    id: 'route-vision',
-    title: 'Route Vision',
-    stops: [
-      { id: 'vision-knight-routes', name: 'Knight Routes', icon: '/pieces/wN.svg', href: '/vision/knight-routes', progress: { type: 'none' } },
-      { id: 'vision-bishop-routes', name: 'Bishop Routes', icon: '/pieces/wB.svg', href: '/vision/bishop-routes', progress: { type: 'none' } },
-      { id: 'vision-rookmaze', name: 'Rook Maze', icon: '/pieces/wR.svg', href: '/vision/rookmaze', progress: { type: 'none' } },
-      { id: 'vision-gauntlet', name: 'Knight Gauntlet', icon: '/pieces/wN.svg', href: '/vision/gauntlet', progress: { type: 'none' } },
-    ],
-  },
+
+  // ── Ch 6: Pawn Endings ───────────────────────
   {
     id: 'pawn-endings',
     title: 'Pawn Endings',
@@ -152,6 +109,55 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'endings-kpk', name: 'King + Pawn vs King', icon: '/pieces/wP.svg', href: '/learn/endings-kpk', progress: { type: 'none' } },
     ],
   },
+
+  // ── Ch 7: Harder Checkmates ──────────────────
+  {
+    id: 'harder-mates',
+    title: 'Harder Checkmates',
+    stops: [
+      { id: 'endings-krk', name: 'Rook vs King', icon: '/pieces/wR.svg', href: '/learn/endings-krk', progress: { type: 'localStorage', key: 'endings-krk-best-stars' } },
+    ],
+  },
+
+  // ── Ch 8: Expert Checkmates ──────────────────
+  {
+    id: 'expert-mates',
+    title: 'Expert Checkmates',
+    stops: [
+      { id: 'endings-kbbk', name: 'Two Bishops vs King', icon: '/pieces/wB.svg', href: '/learn/endings-kbbk', progress: { type: 'localStorage', key: 'endings-kbbk-best-stars' } },
+      { id: 'endings-kbnk', name: 'Bishop + Knight', icon: '/pieces/wN.svg', href: '/learn/endings-kbnk', progress: { type: 'localStorage', key: 'endings-kbnk-best-stars' } },
+    ],
+  },
+
+  // ── Ch 9: Board Vision ───────────────────────
+  {
+    id: 'board-vision',
+    title: 'Board Vision',
+    stops: [
+      { id: 'vision-color', name: 'Color of Square', icon: '/pieces/wP.svg', href: '/vision/color', progress: { type: 'localStorage', key: 'blindfold-color-best-stars' } },
+      { id: 'vision-rankfile', name: 'Same Rank/File', icon: '/pieces/wR.svg', href: '/vision/rankfile', progress: { type: 'localStorage', key: 'blindfold-rankfile-best-stars' } },
+      { id: 'vision-diagonals', name: 'Same Diagonal', icon: '/pieces/wB.svg', href: '/vision/diagonals', progress: { type: 'localStorage', key: 'blindfold-diagonal-best-stars' } },
+      { id: 'vision-neighbors', name: 'Neighbor Squares', icon: '/pieces/wK.svg', href: '/vision/neighbors', progress: { type: 'localStorage', key: 'blindfold-neighbors-best-stars' } },
+      { id: 'vision-counting', name: 'Move Counting', icon: '/pieces/wQ.svg', href: '/vision/counting', progress: { type: 'localStorage', key: 'blindfold-counting-best-stars' } },
+      { id: 'vision-reachability', name: 'Piece Reachability', icon: '/pieces/wN.svg', href: '/vision/reachability', progress: { type: 'localStorage', key: 'blindfold-reachability-best-stars' } },
+      { id: 'vision-knightsquares', name: 'Knight Squares', icon: '/pieces/wN.svg', href: '/vision/knightsquares', progress: { type: 'localStorage', key: 'blindfold-knightsquares-best-stars' } },
+      { id: 'vision-relative', name: 'Relative Position', icon: '/pieces/wP.svg', href: '/vision/relative', progress: { type: 'localStorage', key: 'blindfold-relative-best-stars' } },
+    ],
+  },
+
+  // ── Ch 10: Routes ────────────────────────────
+  {
+    id: 'routes',
+    title: 'Routes',
+    stops: [
+      { id: 'vision-knight-routes', name: 'Knight Routes', icon: '/pieces/wN.svg', href: '/vision/knight-routes', progress: { type: 'none' } },
+      { id: 'vision-bishop-routes', name: 'Bishop Routes', icon: '/pieces/wB.svg', href: '/vision/bishop-routes', progress: { type: 'none' } },
+      { id: 'vision-rookmaze', name: 'Rook Maze', icon: '/pieces/wR.svg', href: '/vision/rookmaze', progress: { type: 'none' } },
+      { id: 'vision-gauntlet', name: 'Knight Gauntlet', icon: '/pieces/wN.svg', href: '/vision/gauntlet', progress: { type: 'none' } },
+    ],
+  },
+
+  // ── Ch 11: Memory ────────────────────────────
   {
     id: 'memory',
     title: 'Memory',
@@ -162,14 +168,8 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'vision-piececount', name: 'Piece Count', icon: '/pieces/wP.svg', href: '/vision/piececount', progress: { type: 'localStorage', key: 'blindfold-piececount-best-stars' } },
     ],
   },
-  {
-    id: 'expert-mates',
-    title: 'Expert Mates',
-    stops: [
-      { id: 'endings-kbbk', name: 'Two Bishops vs King', icon: '/pieces/wB.svg', href: '/learn/endings-kbbk', progress: { type: 'localStorage', key: 'endings-kbbk-best-stars' } },
-      { id: 'endings-kbnk', name: 'Bishop + Knight', icon: '/pieces/wN.svg', href: '/learn/endings-kbnk', progress: { type: 'localStorage', key: 'endings-kbnk-best-stars' } },
-    ],
-  },
+
+  // ── Ch 12: Mastery ───────────────────────────
   {
     id: 'mastery',
     title: 'Mastery',
