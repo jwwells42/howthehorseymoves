@@ -18,32 +18,29 @@
         <span class="chapter-title">{chapter.title}</span>
       </div>
 
-      <div class="stops">
-        {#each chapter.stops as stop, si}
+      <div class="stop-grid">
+        {#each chapter.stops as stop}
           {@const stars = stopStars[stop.id] ?? 0}
           {@const isNext = stop.id === firstIncompleteId}
           {@const isNone = stop.progress.type === 'none'}
-          <div class="stop-row" class:left={si % 2 === 0} class:right={si % 2 !== 0}>
-            {#if si > 0}
-              <div class="connector" class:completed={stars > 0}></div>
+          <a
+            href={stop.href}
+            id={stop.id}
+            class={['stop', stars > 0 && 'completed', isNext && 'next', isNone && 'no-track']}
+          >
+            {#if isNext}
+              <img src="/pieces/wN.svg" alt="You are here" class="knight-marker" />
             {/if}
-            <a
-              href={stop.href}
-              id={stop.id}
-              class={['stop-link', stars > 0 && 'completed', isNext && 'next', isNone && 'no-track']}
-            >
-              {#if isNext}
-                <img src="/pieces/wN.svg" alt="You are here" class="knight-marker" />
-              {/if}
-              <div class="stop-node">
-                <img src={stop.icon} alt="" class="stop-icon" />
-              </div>
-              <span class="stop-label">{stop.name}</span>
+            <div class="stop-icon-wrap">
+              <img src={stop.icon} alt="" class="stop-icon" />
+            </div>
+            <span class="stop-label">{stop.name}</span>
+            <div class="stop-footer">
               {#if stars > 0}
                 <StarRating {stars} size="sm" />
               {/if}
-            </a>
-          </div>
+            </div>
+          </a>
         {/each}
       </div>
     </div>
@@ -52,13 +49,12 @@
 
 <style>
   .path {
-    max-width: 22rem;
+    max-width: 56rem;
     margin: 0 auto;
-    padding: 0 1rem;
   }
 
   .chapter {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
   }
 
   .chapter-heading {
@@ -66,7 +62,7 @@
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.75rem;
-    padding: 0.5rem 0;
+    padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--card-border);
   }
 
@@ -90,113 +86,86 @@
     color: var(--foreground);
   }
 
-  .stops {
+  .stop-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  @media (min-width: 640px) { .stop-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .stop-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .stop {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 0;
-  }
-
-  .stop-row {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    position: relative;
-  }
-
-  .stop-row.left {
-    align-items: flex-start;
-    padding-left: 1.5rem;
-  }
-
-  .stop-row.right {
-    align-items: flex-end;
-    padding-right: 1.5rem;
-  }
-
-  .connector {
-    width: 2px;
-    height: 1.25rem;
-    background: var(--card-border);
-    align-self: center;
-  }
-
-  .connector.completed {
-    background: #22c55e;
-  }
-
-  .stop-link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
     text-decoration: none;
     color: var(--foreground);
     position: relative;
-    padding: 0.25rem;
-    border-radius: 0.5rem;
-    transition: background 0.15s;
-  }
-
-  .stop-link:hover {
-    background: var(--btn-bg);
-  }
-
-  .stop-node {
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 50%;
-    border: 3px solid var(--card-border);
-    background: var(--card-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     transition: border-color 0.15s, box-shadow 0.15s;
   }
 
-  .stop-link.completed .stop-node {
-    border-color: #22c55e;
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  .stop:hover {
+    border-color: rgba(240, 230, 204, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
-  .stop-link.next .stop-node {
-    border-color: #facc15;
-    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.3);
+  .stop.completed {
+    border-color: rgba(34, 197, 94, 0.4);
   }
 
-  .stop-link.no-track .stop-node {
+  .stop.next {
+    border-color: rgba(250, 204, 21, 0.5);
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.2);
+  }
+
+  .stop.no-track {
     border-style: dashed;
   }
 
+  .stop-icon-wrap {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .stop-icon {
-    width: 2rem;
-    height: 2rem;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 
   .stop-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-align: center;
-    max-width: 6rem;
-    line-height: 1.2;
+    flex: 1;
+    font-size: 0.875rem;
+    line-height: 1.3;
   }
 
-  .stop-link.completed .stop-label {
+  .stop.completed .stop-label {
     color: var(--foreground);
+  }
+
+  .stop-footer {
+    flex-shrink: 0;
   }
 
   .knight-marker {
     position: absolute;
-    top: -1.5rem;
-    width: 1.75rem;
-    height: 1.75rem;
+    top: -0.875rem;
+    right: -0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
     animation: bounce 1.5s ease-in-out infinite;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   }
 
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+    50% { transform: translateY(-5px); }
   }
 </style>
