@@ -297,14 +297,15 @@
         {#if isReached}
           <text
             x={fi * SQUARE_SIZE + SQUARE_SIZE / 2}
-            y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 8}
-            font-size="36"
+            y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 14}
+            font-size="56"
+            font-weight="bold"
             text-anchor="middle"
-            fill="#ffffff"
-            stroke="#2d6a2e"
-            stroke-width="1.5"
+            fill="#4ade80"
+            stroke="#166534"
+            stroke-width="2.5"
             class="no-pointer label"
-            style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3))"
+            style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4))"
           >&#10003;</text>
         {/if}
       </g>

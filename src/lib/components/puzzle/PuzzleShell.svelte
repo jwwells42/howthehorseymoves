@@ -21,6 +21,13 @@
   let isRoute = $derived(puzzle.type === 'route');
   let isConversion = $derived(puzzle.type === 'conversion');
   let isFindMoves = $derived(puzzle.type === 'find-moves');
+  let showFindMovesIntro = $state(false);
+
+  $effect(() => {
+    if (puzzle.type === 'find-moves') {
+      showFindMovesIntro = true;
+    }
+  });
 
   // Find-moves specific derived values (safe to access only when isFindMoves is true)
   let findMovesInfo = $derived.by(() => {
@@ -108,6 +115,15 @@
       highlights={ps.highlights.length > 0 ? ps.highlights : undefined}
       {obstacles}
     />
+    {#if showFindMovesIntro}
+      <div class="find-intro-overlay" role="button" tabindex="0" onclick={() => showFindMovesIntro = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showFindMovesIntro = false; }}>
+        <div class="find-intro-box">
+          <div class="find-intro-icon">&#10003;</div>
+          <p class="find-intro-text">Tap every square this piece can move to!</p>
+          <span class="find-intro-hint">Tap to start</span>
+        </div>
+      </div>
+    {/if}
     {#if ps.isComplete}
       <SuccessOverlay stars={ps.stars} {onNext} onRetry={ps.reset} {nextLabel} />
     {/if}
@@ -229,5 +245,51 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
+  }
+
+  /* Find-moves intro overlay */
+  .find-intro-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    z-index: 10;
+    cursor: pointer;
+    animation: fade-in 0.3s ease-out;
+  }
+  .find-intro-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 2rem;
+  }
+  .find-intro-icon {
+    font-size: 4rem;
+    color: #4ade80;
+    filter: drop-shadow(0 2px 8px rgba(74, 222, 128, 0.5));
+  }
+  .find-intro-text {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    max-width: 16rem;
+  }
+  .find-intro-hint {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.5);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 </style>

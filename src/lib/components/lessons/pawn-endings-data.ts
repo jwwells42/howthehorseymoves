@@ -207,4 +207,15 @@ export const pawnEndingSteps: LessonStep[] = [
     proofMoves: ['Ke8', 'Kc7', 'Ke7', 'd6+', 'Ke8', 'd7+', 'Kf7', 'd8=Q'],
     endState: 'promotion',
   },
+  {
+    type: 'quiz',
+    id: 'pe-guard-03',
+    title: 'Gligoric vs Fischer, 1959',
+    instruction: 'Black to move. Only one move draws — guard the key squares with opposition!',
+    startFen: '2k5/8/8/8/1PK5/8/8/8 b - - 0 1',
+    introMoves: [],
+    answer: 'draw',
+    proofMoves: ['Kb8', 'Kb5', 'Kb7'],
+    endState: 'stalemate',
+  },
 ];
