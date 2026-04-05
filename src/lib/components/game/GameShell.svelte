@@ -85,6 +85,17 @@
     game.handleDrop(from, to);
   }
 
+  let isDraw = $derived(
+    game.result === 'stalemate' || game.result === 'threefold'
+    || game.result === 'fifty-move' || game.result === 'insufficient-material'
+  );
+  let showDrawOverlay = $state(false);
+
+  // Show draw overlay when a draw occurs
+  $effect(() => {
+    if (isDraw) showDrawOverlay = true;
+  });
+
   let resultMessage = $derived.by(() => {
     switch (game.result) {
       case 'checkmate-white': return 'Checkmate \u2014 you win!';
@@ -149,6 +160,7 @@
 
   function startNewGame() {
     reviewIndex = null;
+    showDrawOverlay = false;
     game.newGame();
   }
 </script>
@@ -176,6 +188,16 @@
         {onDragEnd}
         opponentSlide={isReviewing ? null : game.botSlide}
       />
+      {#if game.result === 'checkmate-white' && reviewIndex === null}
+        <div class="result-overlay">
+          <div class="trophy">&#127942;</div>
+        </div>
+      {/if}
+      {#if isDraw && reviewIndex === null && showDrawOverlay}
+        <div class="result-overlay" onclick={() => showDrawOverlay = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showDrawOverlay = false; }} role="button" tabindex="-1">
+          <div class="draw-symbol">&#189;</div>
+        </div>
+      {/if}
       {#if game.pendingPromotion}
         <div class="promo-overlay">
           <div class="promo-picker">
@@ -438,6 +460,39 @@
 
   .new-game-btn:hover {
     background: #15803d;
+  }
+
+  /* Result overlays */
+  .result-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+    animation: fade-in 0.3s ease-out;
+  }
+  .result-overlay[role="button"] {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .trophy {
+    font-size: 6rem;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+    animation: trophy-pop 0.5s ease-out;
+  }
+  .draw-symbol {
+    font-size: 8rem;
+    font-weight: bold;
+    color: #facc15;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    animation: trophy-pop 0.5s ease-out;
+  }
+  @keyframes trophy-pop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); }
   }
 
   /* Promotion picker */

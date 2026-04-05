@@ -7,6 +7,7 @@
   import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
   import MateTrainer from '$lib/components/endgame/MateTrainer.svelte';
   import DrawTrainer from '$lib/components/endgame/DrawTrainer.svelte';
+  import PawnEndingsLesson from '$lib/components/lessons/PawnEndingsLesson.svelte';
   import type { MateEndgameType } from '$lib/logic/endgame';
   import type { PiecePlacement } from '$lib/logic/types';
   import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from '$lib/components/lessons/how-to-win-data';
@@ -116,6 +117,12 @@
       placements={drawEndgame.placements}
       storageKey={drawEndgame.storageKey}
     />
+  </main>
+{:else if piece === 'pawn-endings-lesson'}
+  <!-- Pawn endings quiz lesson (opposition concepts) -->
+  <main class="page board-page">
+    <a href="/" class="back-link">&larr; Back to home</a>
+    <PawnEndingsLesson onNext={() => window.location.href = '/'} />
   </main>
 {:else if piece === 'how-to-win'}
   <!-- How to Win hub page -->

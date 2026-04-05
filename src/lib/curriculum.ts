@@ -148,6 +148,7 @@ export const CURRICULUM: CurriculumChapter[] = [
     id: 'pawn-endings',
     title: 'Pawn Endings',
     stops: [
+      { id: 'pawn-endings-lesson', name: 'Opposition', icon: '/pieces/wK.svg', href: '/learn/pawn-endings-lesson', progress: { type: 'localStorage', key: 'pawn-endings-lesson-best-stars' } },
       { id: 'endings-kpk', name: 'King + Pawn vs King', icon: '/pieces/wP.svg', href: '/learn/endings-kpk', progress: { type: 'none' } },
     ],
   },
