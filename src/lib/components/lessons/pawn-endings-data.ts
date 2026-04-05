@@ -169,4 +169,27 @@ export const pawnEndingSteps: LessonStep[] = [
     proofMoves: ['a5', 'Ka7', 'a6', 'Ka8', 'a7', 'Kb7', 'a8=Q+'],
     endState: 'promotion',
   },
+
+  // ========================================
+  // Section 7: Guard the Entry
+  // ========================================
+  {
+    type: 'diagram',
+    id: 'pe-guard-01',
+    title: 'Guard the Entry!',
+    instruction: 'As the defender, stand in front of the pawn and keep opposition. If the attacker\'s king reaches a key square, the pawn promotes!',
+    fen: '8/4k3/8/3PK3/8/8/8/8 b - - 0 1',
+    keySquares: ['d6', 'e6', 'f6'],
+  },
+  {
+    type: 'quiz',
+    id: 'pe-guard-02',
+    title: 'Giving Away the Entry',
+    instruction: 'Black steps sideways with Kf7 — losing opposition! White marches to the key square d6.',
+    startFen: '8/4k3/8/3PK3/8/8/8/8 b - - 0 1',
+    introMoves: ['Kf7', 'Kd6'],
+    answer: 'white',
+    proofMoves: ['Ke8', 'Kc7', 'Ke7', 'd6+', 'Ke8', 'd7+', 'Kf7', 'd8=Q'],
+    endState: 'promotion',
+  },
 ];
