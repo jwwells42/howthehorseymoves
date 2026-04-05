@@ -17,7 +17,6 @@
   let stepIndex = $state(0);
   let step = $derived(pawnEndingSteps[stepIndex]);
   let totalSteps = pawnEndingSteps.length;
-  let quizCount = pawnEndingSteps.filter(s => s.type === 'quiz').length;
 
   // Quiz state
   let phase = $state<'diagram' | 'intro' | 'asking' | 'wrong' | 'animating' | 'result'>('diagram');
@@ -136,12 +135,21 @@
         setTimeout(() => animateIntro(), 500);
       }
     } else if (onNext) {
-      // Save stars
       const existing = parseInt(localStorage.getItem('pawn-endings-lesson-best-stars') ?? '0', 10);
       if (stars > existing) {
         localStorage.setItem('pawn-endings-lesson-best-stars', String(stars));
       }
       onNext();
+    }
+  }
+
+  function prevStep() {
+    if (stepIndex > 0) {
+      stepIndex--;
+      initStep(pawnEndingSteps[stepIndex]);
+      if (pawnEndingSteps[stepIndex].type === 'quiz') {
+        setTimeout(() => animateIntro(), 500);
+      }
     }
   }
 
@@ -154,6 +162,7 @@
   let allDone = $derived(phase === 'result' && stepIndex === totalSteps - 1);
   let isQuiz = $derived(step.type === 'quiz');
   let quizStep = $derived(step.type === 'quiz' ? step as QuizStep : null);
+  let canGoBack = $derived(stepIndex > 0 && (phase === 'diagram' || phase === 'asking'));
 </script>
 
 <div class="lesson">
@@ -163,14 +172,15 @@
     <p class="progress">{stepIndex + 1} / {totalSteps}</p>
   </div>
 
+  {#if isQuiz}
+    <div class="side-to-move">
+      <div class={['side-dot', sideToMove === 'w' ? 'white' : 'black']}></div>
+      <span class="side-label">{sideToMove === 'w' ? 'White' : 'Black'} to move</span>
+    </div>
+  {/if}
+
   <div class="board-area">
     <div class="board-wrap">
-      {#if isQuiz}
-        <div class="side-indicator top" class:active={sideToMove === 'b'}>
-          <div class="side-square black"></div>
-        </div>
-      {/if}
-
       <Board
         {board}
         selectedSquare={null}
@@ -183,14 +193,7 @@
         onDragStart={() => {}}
         onDragEnd={() => {}}
         {opponentSlide}
-        readOnly
       />
-
-      {#if isQuiz}
-        <div class="side-indicator bottom" class:active={sideToMove === 'w'}>
-          <div class="side-square white"></div>
-        </div>
-      {/if}
 
       <!-- Result overlay -->
       {#if phase === 'result' && quizStep}
@@ -205,14 +208,22 @@
     </div>
   </div>
 
-  <!-- Diagram: just a Next button -->
+  <!-- Diagram: Back + Next buttons -->
   {#if phase === 'diagram'}
-    <button class="btn-primary" onclick={nextStep}>Next</button>
+    <div class="nav-row">
+      {#if canGoBack}
+        <button class="btn-secondary" onclick={prevStep}>Back</button>
+      {/if}
+      <button class="btn-primary" onclick={nextStep}>Next</button>
+    </div>
   {/if}
 
   <!-- Quiz: answer buttons -->
   {#if phase === 'asking' || phase === 'wrong'}
     <div class="question">
+      {#if canGoBack}
+        <button class="back-btn" onclick={prevStep}>&larr; Back</button>
+      {/if}
       <p class="question-text">What will be the result?</p>
       <div class="answer-buttons">
         <button
@@ -273,8 +284,32 @@
 
   .header { text-align: center; flex-shrink: 0; }
   .title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
-  .instruction { color: var(--text-muted); font-size: 0.9rem; }
+  .instruction { color: var(--text-muted); font-size: 0.9rem; max-width: 28rem; }
   .progress { color: var(--text-faint); font-size: 0.75rem; margin-top: 0.25rem; }
+
+  /* Side to move — sits above the board, not overlapping it */
+  .side-to-move {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+  }
+  .side-dot {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 0.15rem;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+  }
+  .side-dot.white { background: #e8e0d0; }
+  .side-dot.black { background: #111; border-color: rgba(255, 255, 255, 0.15); }
+  .side-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
 
   .board-area {
     width: 100%;
@@ -287,26 +322,6 @@
     width: 100%;
     max-width: 500px;
   }
-
-  /* Side to move indicators */
-  .side-indicator {
-    position: absolute;
-    z-index: 5;
-    opacity: 0.3;
-    transition: opacity 0.3s;
-  }
-  .side-indicator.active { opacity: 1; }
-  .side-indicator.top { top: 0.25rem; left: 0.25rem; }
-  .side-indicator.bottom { bottom: 0.25rem; left: 0.25rem; }
-
-  .side-square {
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 0.2rem;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-  }
-  .side-square.white { background: #e8e0d0; }
-  .side-square.black { background: #2a2a2a; }
 
   /* Result overlay */
   .result-overlay {
@@ -336,6 +351,25 @@
     60% { transform: scale(1.2); opacity: 1; }
     100% { transform: scale(1); }
   }
+
+  /* Navigation row */
+  .nav-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .back-btn {
+    display: block;
+    margin-bottom: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0;
+  }
+  .back-btn:hover { color: var(--foreground); }
 
   /* Question area */
   .question {
@@ -383,7 +417,7 @@
     border: 2px solid rgba(255, 255, 255, 0.3);
   }
   .answer-square.white { background: #e8e0d0; }
-  .answer-square.black { background: #2a2a2a; }
+  .answer-square.black { background: #111; border-color: rgba(255, 255, 255, 0.15); }
 
   .draw-icon {
     font-size: 1.5rem;

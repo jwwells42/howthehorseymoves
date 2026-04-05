@@ -16,9 +16,10 @@
     title: string;
     instruction: string;
     placements: PiecePlacement[];
+    onNext?: () => void;
   }
 
-  let { title, instruction, placements }: Props = $props();
+  let { title, instruction, placements, onNext }: Props = $props();
 
   /* ── KPK helpers ──────────────────────────────── */
 
@@ -250,16 +251,16 @@
   {#if result === 'won'}
     <div class="result">
       <StarRating {stars} size="lg" />
-      <p class="result-text">
-        {#if mistakes === 0}
-          Perfect — no mistakes!
-        {:else}
-          {mistakes} mistake{mistakes > 1 ? 's' : ''}
+      <div class="result-buttons">
+        <button class="play-again-btn secondary" onclick={reset}>
+          Play Again
+        </button>
+        {#if onNext}
+          <button class="play-again-btn" onclick={onNext}>
+            Continue
+          </button>
         {/if}
-      </p>
-      <button class="play-again-btn" onclick={reset}>
-        Play Again
-      </button>
+      </div>
     </div>
   {/if}
 </div>
@@ -333,10 +334,9 @@
     .header { display: none; }
   }
 
-  .result-text {
-    font-size: 0.875rem;
-    color: #888;
-    margin: 0;
+  .result-buttons {
+    display: flex;
+    gap: 0.75rem;
   }
 
   .play-again-btn {
@@ -353,6 +353,15 @@
 
   .play-again-btn:hover {
     background: #15803d;
+  }
+
+  .play-again-btn.secondary {
+    background: var(--btn-bg, #2a2a2a);
+    color: var(--foreground, white);
+    border: 1px solid var(--card-border, #333);
+  }
+  .play-again-btn.secondary:hover {
+    background: var(--btn-hover, #3a3a3a);
   }
 
   @keyframes fade-in {

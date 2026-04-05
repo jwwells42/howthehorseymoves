@@ -34,12 +34,15 @@
             <div class="stop-icon-wrap">
               <img src={stop.icon} alt="" class="stop-icon" />
             </div>
-            <span class="stop-label">{stop.name}</span>
-            <div class="stop-footer">
+            <div class="stop-info">
+              <span class="stop-label">{stop.name}</span>
               {#if stars > 0}
                 <StarRating {stars} size="sm" />
               {/if}
             </div>
+            {#if stars > 0}
+              <div class="check-badge">&#10003;</div>
+            {/if}
           </a>
         {/each}
       </div>
@@ -89,7 +92,7 @@
   .stop-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: 0.625rem;
   }
   @media (min-width: 640px) { .stop-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 1024px) { .stop-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -98,60 +101,98 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    padding: 0.875rem 1rem;
+    border-radius: 0.875rem;
+    border: 1px solid rgba(255, 248, 230, 0.08);
+    background: linear-gradient(180deg, rgba(255, 248, 230, 0.06), rgba(255, 248, 230, 0.02));
     text-decoration: none;
     color: var(--foreground);
     position: relative;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
   }
 
   .stop:hover {
-    border-color: rgba(240, 230, 204, 0.3);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    border-color: rgba(212, 165, 74, 0.25);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(212, 165, 74, 0.08);
   }
 
   .stop.completed {
-    border-color: rgba(34, 197, 94, 0.4);
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+  .stop.completed:hover {
+    border-color: rgba(34, 197, 94, 0.5);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(34, 197, 94, 0.15);
   }
 
   .stop.next {
-    border-color: rgba(250, 204, 21, 0.5);
-    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.2);
+    border-color: rgba(250, 204, 21, 0.4);
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.15);
+    animation: next-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes next-glow {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.15); }
+    50% { box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25), 0 0 12px rgba(250, 204, 21, 0.1); }
   }
 
   .stop.no-track {
     border-style: dashed;
+    opacity: 0.85;
   }
 
   .stop-icon-wrap {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 248, 230, 0.08), rgba(255, 248, 230, 0.02));
+    border: 1px solid rgba(255, 248, 230, 0.06);
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .stop:hover .stop-icon-wrap {
+    border-color: rgba(212, 165, 74, 0.15);
+    box-shadow: 0 0 8px rgba(212, 165, 74, 0.1);
+  }
+
+  .stop.completed .stop-icon-wrap {
+    border-color: rgba(34, 197, 94, 0.2);
   }
 
   .stop-icon {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .stop-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
   }
 
   .stop-label {
-    flex: 1;
     font-size: 0.875rem;
     line-height: 1.3;
+    font-weight: 500;
   }
 
-  .stop.completed .stop-label {
-    color: var(--foreground);
-  }
-
-  .stop-footer {
+  .check-badge {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: #16a34a;
+    color: white;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
   }
 
   .knight-marker {

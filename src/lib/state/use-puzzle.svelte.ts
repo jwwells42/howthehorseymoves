@@ -714,11 +714,7 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
   });
 
   const highlights = $derived.by(() => {
-    const result: SquareHighlight[] = [];
-    for (const sq of foundSquares) {
-      result.push({ square: sq, color: '#22c55e' });
-    }
-    return result;
+    return [] as SquareHighlight[];
   });
 
   function handleSquareClick(sq: SquareId) {
@@ -763,7 +759,7 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     get board() { return board; },
     get selectedSquare() { return null; },
     get validMoves() { return [] as SquareId[]; },
-    get reachedTargets() { return [] as SquareId[]; },
+    get reachedTargets() { return [...foundSquares] as SquareId[]; },
     get moveCount() { return 0; },
     get isComplete() { return isComplete; },
     get stalemateTrigger() { return false; },

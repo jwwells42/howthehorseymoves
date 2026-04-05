@@ -98,13 +98,13 @@
 {#if endgame}
   <!-- Endgame trainer (e.g. KPK) -->
   <main class="page board-page">
-    <a href="/learn/endings" class="back-link">&larr; Back to endings</a>
-    <EndgameShell title={endgame.title} instruction={endgame.instruction} placements={endgame.placements} />
+    <a href="/" class="back-link">&larr; Back to home</a>
+    <EndgameShell title={endgame.title} instruction={endgame.instruction} placements={endgame.placements} onNext={() => window.location.href = '/'} />
   </main>
 {:else if mateEndgameMatch}
   <!-- Mate conversion trainer (KQK, KRRK, etc.) -->
   <main class="page board-page">
-    <a href="/learn/endings" class="back-link">&larr; Back to endings</a>
+    <a href="/" class="back-link">&larr; Back to home</a>
     <MateTrainer type={mateEndgameMatch[1] as MateEndgameType} />
   </main>
 {:else if drawEndgame}
