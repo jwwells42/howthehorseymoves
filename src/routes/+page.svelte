@@ -6,11 +6,16 @@
 
   let coordStars = $state(0);
   let howToWinStars = $state(0);
+  let endingsStars = $state(0);
   let showLearn = $state(true);
+
+  const ENDINGS_KEYS = ['endings-kqk-best-stars', 'endings-krrk-best-stars', 'endings-krk-best-stars'];
 
   onMount(() => {
     coordStars = parseInt(localStorage.getItem('coord-best-stars') ?? '0', 10);
     howToWinStars = parseInt(localStorage.getItem('how-to-win-best-stars') ?? '0', 10);
+    const eStars = ENDINGS_KEYS.map(k => parseInt(localStorage.getItem(k) ?? '0', 10));
+    if (eStars.every(s => s > 0)) endingsStars = Math.min(...eStars);
   });
 
   let allBasicsDone = $derived($progressState.loaded && PIECES.every((piece) => {
@@ -62,6 +67,7 @@
   }));
 
   let dzStats = $derived(getPieceStats('danger-zones'));
+  let m1Stats = $derived(getPieceStats('checkmate-mate-in-1'));
 
   function getPieceStats(pieceKey: string) {
     const puzzleSet = getPuzzlesForPiece(pieceKey);
@@ -180,10 +186,46 @@
       </div>
     </a>
 
+    <!-- Mate in 1 card -->
+    <a href="/learn/checkmate-mate-in-1" class="card">
+      <div class={['step-badge', m1Stats.completedPuzzles > 0 && m1Stats.completedPuzzles === m1Stats.totalPuzzles && 'complete']}>
+        {#if m1Stats.completedPuzzles > 0 && m1Stats.completedPuzzles === m1Stats.totalPuzzles}
+          &#10003;
+        {:else}
+          {PIECES.length + 4}
+        {/if}
+      </div>
+      <div class="card-header">
+        <img src="/pieces/wQ.svg" alt="Mate in 1" class="card-icon" />
+        <h3>Mate in 1</h3>
+      </div>
+      <p class="card-desc">Find the single move that delivers checkmate.</p>
+      <div class="card-footer">
+        {#if m1Stats.completedPuzzles > 0 && m1Stats.completedPuzzles === m1Stats.totalPuzzles}
+          <StarRating stars={m1Stats.bestStars} size="sm" />
+        {/if}
+      </div>
+    </a>
+
+    <!-- Basic Endings card -->
+    <a href="/learn/endings" class="card">
+      <div class={['step-badge', endingsStars > 0 && 'complete']}>
+        {#if endingsStars > 0}&#10003;{:else}{PIECES.length + 5}{/if}
+      </div>
+      <div class="card-header">
+        <img src="/pieces/wK.svg" alt="Endings" class="card-icon" />
+        <h3>Basic Endings</h3>
+      </div>
+      <p class="card-desc">Checkmate with Queen, Rooks, and promote your pawns.</p>
+      <div class="card-footer">
+        {#if endingsStars > 0}<StarRating stars={endingsStars} size="sm" />{/if}
+      </div>
+    </a>
+
     <!-- Play a Game card -->
     <a href="/play?level=random" class={['card', !allBasicsDone && upNextPieceKey === null && 'up-next']}>
       <div class={['step-badge', allBasicsDone && 'complete']}>
-        {#if allBasicsDone}&#10003;{:else}{PIECES.length + 4}{/if}
+        {#if allBasicsDone}&#10003;{:else}{PIECES.length + 6}{/if}
       </div>
       <div class="card-header">
         <img src="/pieces/wK.svg" alt="Play" class="card-icon" />
