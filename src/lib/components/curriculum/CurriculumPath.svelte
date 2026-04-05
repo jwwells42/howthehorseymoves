@@ -26,23 +26,29 @@
           <a
             href={stop.href}
             id={stop.id}
-            class={['stop', stars > 0 && 'completed', isNext && 'next', isNone && 'no-track']}
+            class={['card', stars > 0 && 'completed', isNext && 'up-next', isNone && 'no-track']}
           >
+            <div class={['step-badge', stars > 0 && 'complete']}>
+              {#if stars > 0}
+                &#10003;
+              {:else}
+                &middot;
+              {/if}
+            </div>
             {#if isNext}
               <img src="/pieces/wN.svg" alt="You are here" class="knight-marker" />
             {/if}
-            <div class="stop-icon-wrap">
-              <img src={stop.icon} alt="" class="stop-icon" />
+            <div class="card-header">
+              <img src={stop.icon} alt="" class="card-icon" />
+              <h3>{stop.name}</h3>
             </div>
-            <div class="stop-info">
-              <span class="stop-label">{stop.name}</span>
+            <div class="card-footer">
               {#if stars > 0}
                 <StarRating {stars} size="sm" />
+              {:else}
+                &nbsp;
               {/if}
             </div>
-            {#if stars > 0}
-              <div class="check-badge">&#10003;</div>
-            {/if}
           </a>
         {/each}
       </div>
@@ -63,10 +69,8 @@
   .chapter-heading {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--card-border);
   }
 
   .chapter-num {
@@ -92,115 +96,105 @@
   .stop-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 0.625rem;
+    gap: 1rem;
   }
   @media (min-width: 640px) { .stop-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 1024px) { .stop-grid { grid-template-columns: repeat(3, 1fr); } }
 
-  .stop {
+  /* Cards — matching old landing page style */
+  .card {
+    border-radius: 0.75rem;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    padding: 1.5rem;
+    transition: all 0.15s;
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
-    border-radius: 0.875rem;
-    border: 1px solid rgba(255, 248, 230, 0.08);
-    background: linear-gradient(180deg, rgba(255, 248, 230, 0.06), rgba(255, 248, 230, 0.02));
+    flex-direction: column;
+    position: relative;
+    height: 100%;
     text-decoration: none;
     color: var(--foreground);
-    position: relative;
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+  .card:hover {
+    border-color: rgba(240, 230, 204, 0.3);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
 
-  .stop:hover {
-    transform: translateY(-2px);
-    border-color: rgba(212, 165, 74, 0.25);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(212, 165, 74, 0.08);
+  .card.completed {
+    border-color: rgba(34, 197, 94, 0.25);
   }
-
-  .stop.completed {
-    border-color: rgba(34, 197, 94, 0.3);
-  }
-  .stop.completed:hover {
+  .card.completed:hover {
     border-color: rgba(34, 197, 94, 0.5);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(34, 197, 94, 0.15);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(34, 197, 94, 0.15);
   }
 
-  .stop.next {
-    border-color: rgba(250, 204, 21, 0.4);
-    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.15);
-    animation: next-glow 2s ease-in-out infinite;
+  .card.up-next {
+    animation: up-next-glow 2s ease-in-out infinite;
   }
 
-  @keyframes next-glow {
+  @keyframes up-next-glow {
     0%, 100% { box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.15); }
     50% { box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25), 0 0 12px rgba(250, 204, 21, 0.1); }
   }
 
-  .stop.no-track {
+  .card.no-track {
     border-style: dashed;
     opacity: 0.85;
   }
 
-  .stop-icon-wrap {
-    width: 2.75rem;
-    height: 2.75rem;
-    flex-shrink: 0;
+  /* Step badge — top-left corner number/check */
+  .step-badge {
+    position: absolute;
+    top: -0.625rem;
+    left: -0.625rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 248, 230, 0.08), rgba(255, 248, 230, 0.02));
-    border: 1px solid rgba(255, 248, 230, 0.06);
-    transition: box-shadow 0.2s, border-color 0.2s;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border: 2px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-faint);
   }
-
-  .stop:hover .stop-icon-wrap {
-    border-color: rgba(212, 165, 74, 0.15);
-    box-shadow: 0 0 8px rgba(212, 165, 74, 0.1);
-  }
-
-  .stop.completed .stop-icon-wrap {
-    border-color: rgba(34, 197, 94, 0.2);
-  }
-
-  .stop-icon {
-    width: 2rem;
-    height: 2rem;
-  }
-
-  .stop-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-  }
-
-  .stop-label {
-    font-size: 0.875rem;
-    line-height: 1.3;
-    font-weight: 500;
-  }
-
-  .check-badge {
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 50%;
+  .step-badge.complete {
     background: #16a34a;
+    border-color: #22c55e;
     color: white;
-    font-size: 0.65rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
   }
 
+  /* Card header — icon + title */
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .card-header h3 {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin: 0;
+  }
+  .card-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  /* Card footer — stars */
+  .card-footer {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+  }
+
+  /* Knight marker on up-next card */
   .knight-marker {
     position: absolute;
-    top: -0.875rem;
-    right: -0.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
+    top: -1rem;
+    right: -0.625rem;
+    width: 1.75rem;
+    height: 1.75rem;
     animation: bounce 1.5s ease-in-out infinite;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   }
