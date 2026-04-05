@@ -33,7 +33,7 @@ export interface CurriculumChapter {
 const SETUP_SLUGS = ['rooks', 'knights', 'bishops', 'king', 'queen', 'pawns', 'full'];
 
 export const CURRICULUM: CurriculumChapter[] = [
-  // ── Level 1: The Foal ───────────────────────
+  // ── Level 1: The Foal (9) ──────────────────
   {
     id: 'the-foal',
     title: 'Level 1: The Foal',
@@ -45,110 +45,86 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'piece-knight', name: 'Knight', desc: 'Moves in an L-shape and can jump over pieces.', icon: '/pieces/wN.svg', href: '/learn/knight', progress: { type: 'puzzle-set', key: 'knight' } },
       { id: 'piece-pawn', name: 'Pawn', desc: 'Moves forward, captures diagonally.', icon: '/pieces/wP.svg', href: '/learn/pawn', progress: { type: 'puzzle-set', key: 'pawn' } },
       { id: 'board-setup', name: 'Place the Pieces', desc: 'Learn where each piece goes on the board.', icon: '/pieces/wR.svg', href: '/setup', progress: { type: 'localStorage-all', keys: SETUP_SLUGS.map(s => `setup-${s}-best-stars`) } },
-      { id: 'board-coords', name: 'Name the Square', desc: 'Learn the names of all 64 squares.', icon: '/pieces/wK.svg', href: '/board/coordinates', progress: { type: 'localStorage', key: 'coord-best-stars' } },
+      { id: 'how-to-win', name: 'How to Win', desc: 'Learn check, checkmate, and stalemate.', icon: '/pieces/wK.svg', href: '/learn/how-to-win', progress: { type: 'localStorage', key: 'how-to-win-best-stars' } },
+      { id: 'play-random', name: 'Play a Game!', desc: 'Use everything you\'ve learned against the Random Bot.', icon: '/pieces/wN.svg', href: '/play?level=random', progress: { type: 'none' } },
     ],
   },
 
-  // ── Level 2: The Colt ───────────────────────
+  // ── Level 2: The Colt (9) ──────────────────
   {
     id: 'the-colt',
     title: 'Level 2: The Colt',
     stops: [
       { id: 'danger-zones', name: 'Danger Zones', desc: 'Dodge enemy pieces — reach the star without getting eaten!', icon: '/pieces/bQ.svg', href: '/learn/danger-zones', progress: { type: 'puzzle-set', key: 'danger-zones' } },
-      { id: 'how-to-win', name: 'How to Win', desc: 'Learn check, checkmate, and stalemate.', icon: '/pieces/wK.svg', href: '/learn/how-to-win', progress: { type: 'localStorage', key: 'how-to-win-best-stars' } },
+      { id: 'board-coords', name: 'Name the Square', desc: 'Learn the names of all 64 squares.', icon: '/pieces/wK.svg', href: '/board/coordinates', progress: { type: 'localStorage', key: 'coord-best-stars' } },
       { id: 'mate-in-1', name: 'Mate in 1', desc: 'Find the single move that delivers checkmate.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-mate-in-1', progress: { type: 'puzzle-set', key: 'checkmate-mate-in-1' } },
-      { id: 'play-random', name: 'Play vs Random Bot', desc: 'Use everything you\'ve learned against the Random Bot.', icon: '/pieces/wN.svg', href: '/play?level=random', progress: { type: 'none' } },
-    ],
-  },
-
-  // ── Level 3: The Yearling ───────────────────
-  {
-    id: 'the-yearling',
-    title: 'Level 3: The Yearling',
-    stops: [
       { id: 'endings-kqk', name: 'Queen vs King', desc: 'Deliver checkmate with King + Queen.', icon: '/pieces/wQ.svg', href: '/learn/endings-kqk', progress: { type: 'localStorage', key: 'endings-kqk-best-stars' } },
       { id: 'endings-krrk', name: 'Two Rooks vs King', desc: 'Deliver checkmate with King + 2 Rooks.', icon: '/pieces/wR.svg', href: '/learn/endings-krrk', progress: { type: 'localStorage', key: 'endings-krrk-best-stars' } },
       { id: 'vision-color', name: 'Color of Square', desc: 'Dark or light? Identify the color from the name.', icon: '/pieces/wP.svg', href: '/vision/color', progress: { type: 'localStorage', key: 'blindfold-color-best-stars' } },
       { id: 'vision-rankfile', name: 'Same Rank/File', desc: 'Do these two squares share a rank or file?', icon: '/pieces/wR.svg', href: '/vision/rankfile', progress: { type: 'localStorage', key: 'blindfold-rankfile-best-stars' } },
-    ],
-  },
-
-  // ── Level 4: The Trotter ────────────────────
-  {
-    id: 'the-trotter',
-    title: 'Level 4: The Trotter',
-    stops: [
-      { id: 'cm-back-rank', name: 'Back Rank', desc: 'Trap the king behind its own pawns.', icon: '/pieces/wR.svg', href: '/learn/checkmate-back-rank', progress: { type: 'puzzle-set', key: 'checkmate-back-rank' } },
-      { id: 'cm-rook-ladder', name: 'Rook Ladder', desc: 'Two rooks push the king to the edge.', icon: '/pieces/wR.svg', href: '/learn/checkmate-rook-ladder', progress: { type: 'puzzle-set', key: 'checkmate-rook-ladder' } },
-      { id: 'cm-queen-f7', name: 'Queen Takes f7', desc: 'The queen strikes the weak f7 square.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-queen-f7', progress: { type: 'puzzle-set', key: 'checkmate-queen-f7' } },
       { id: 'vision-diagonals', name: 'Same Diagonal', desc: 'Are these two squares on the same diagonal?', icon: '/pieces/wB.svg', href: '/vision/diagonals', progress: { type: 'localStorage', key: 'blindfold-diagonal-best-stars' } },
       { id: 'vision-neighbors', name: 'Neighbor Squares', desc: 'Name all squares adjacent to a given square.', icon: '/pieces/wK.svg', href: '/vision/neighbors', progress: { type: 'localStorage', key: 'blindfold-neighbors-best-stars' } },
     ],
   },
 
-  // ── Level 5: The Cantering ──────────────────
+  // ── Level 3: The Trotter (9) ───────────────
   {
-    id: 'the-cantering',
-    title: 'Level 5: The Cantering',
+    id: 'the-trotter',
+    title: 'Level 3: The Trotter',
     stops: [
-      { id: 'tactics-pins', name: 'Pins', desc: 'Trap a piece on a line — it can\'t move!', icon: '/pieces/wB.svg', href: '/learn/tactics-pins', progress: { type: 'puzzle-set', key: 'tactics-pins' } },
-      { id: 'tactics-forks', name: 'Forks', desc: 'Attack two pieces at once with the knight.', icon: '/pieces/wN.svg', href: '/learn/tactics-forks', progress: { type: 'puzzle-set', key: 'tactics-forks' } },
-      { id: 'vision-counting', name: 'Move Counting', desc: 'How many squares does this piece control?', icon: '/pieces/wQ.svg', href: '/vision/counting', progress: { type: 'localStorage', key: 'blindfold-counting-best-stars' } },
-      { id: 'vision-reachability', name: 'Piece Reachability', desc: 'Can this piece reach that square? Yes or no!', icon: '/pieces/wN.svg', href: '/vision/reachability', progress: { type: 'localStorage', key: 'blindfold-reachability-best-stars' } },
-      { id: 'opening-scholars', name: "Scholar's Mate", desc: 'Learn and defend against the fastest checkmate.', icon: '/pieces/wQ.svg', href: '/openings/scholars-mate', progress: { type: 'none' } },
-    ],
-  },
-
-  // ── Level 6: The Galloper ───────────────────
-  {
-    id: 'the-galloper',
-    title: 'Level 6: The Galloper',
-    stops: [
+      { id: 'cm-back-rank', name: 'Back Rank', desc: 'Trap the king behind its own pawns.', icon: '/pieces/wR.svg', href: '/learn/checkmate-back-rank', progress: { type: 'puzzle-set', key: 'checkmate-back-rank' } },
+      { id: 'cm-rook-ladder', name: 'Rook Ladder', desc: 'Two rooks push the king to the edge.', icon: '/pieces/wR.svg', href: '/learn/checkmate-rook-ladder', progress: { type: 'puzzle-set', key: 'checkmate-rook-ladder' } },
+      { id: 'cm-queen-f7', name: 'Queen Takes f7', desc: 'The queen strikes the weak f7 square.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-queen-f7', progress: { type: 'puzzle-set', key: 'checkmate-queen-f7' } },
       { id: 'cm-qb-battery', name: 'QB Battery', desc: 'Queen and bishop team up on a diagonal.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-qb-battery', progress: { type: 'puzzle-set', key: 'checkmate-qb-battery' } },
       { id: 'cm-lollis', name: "Lolli's Mate", desc: 'Queen slips in behind the pawns for mate.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-lollis', progress: { type: 'puzzle-set', key: 'checkmate-lollis' } },
       { id: 'cm-queen-king', name: 'Queen & King', desc: 'Use the queen with king support.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-queen-king', progress: { type: 'puzzle-set', key: 'checkmate-queen-king' } },
       { id: 'cm-smothered', name: 'Smothered Mate', desc: 'The knight strikes when the king can\'t move.', icon: '/pieces/wN.svg', href: '/learn/checkmate-smothered', progress: { type: 'puzzle-set', key: 'checkmate-smothered' } },
+      { id: 'mate-in-2', name: 'Mate in 2', desc: 'Set up the checkmate in two precise moves.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-mate-in-2', progress: { type: 'puzzle-set', key: 'checkmate-mate-in-2' } },
+      { id: 'opening-scholars', name: "Scholar's Mate", desc: 'Learn and defend against the fastest checkmate.', icon: '/pieces/wQ.svg', href: '/openings/scholars-mate', progress: { type: 'none' } },
+    ],
+  },
+
+  // ── Level 4: The Cantering (9) ─────────────
+  {
+    id: 'the-cantering',
+    title: 'Level 4: The Cantering',
+    stops: [
+      { id: 'tactics-pins', name: 'Pins', desc: 'Trap a piece on a line — it can\'t move!', icon: '/pieces/wB.svg', href: '/learn/tactics-pins', progress: { type: 'puzzle-set', key: 'tactics-pins' } },
+      { id: 'tactics-forks', name: 'Forks', desc: 'Attack two pieces at once with the knight.', icon: '/pieces/wN.svg', href: '/learn/tactics-forks', progress: { type: 'puzzle-set', key: 'tactics-forks' } },
       { id: 'tactics-skewers', name: 'Skewers', desc: 'Attack through one piece to grab another.', icon: '/pieces/wR.svg', href: '/learn/tactics-skewers', progress: { type: 'puzzle-set', key: 'tactics-skewers' } },
       { id: 'tactics-removing-defender', name: 'Removing Defender', desc: 'Capture the piece that guards a target.', icon: '/pieces/wR.svg', href: '/learn/tactics-removing-defender', progress: { type: 'puzzle-set', key: 'tactics-removing-defender' } },
       { id: 'tactics-discovered', name: 'Discovered Attacks', desc: 'Move one piece to unleash another.', icon: '/pieces/wN.svg', href: '/learn/tactics-discovered', progress: { type: 'puzzle-set', key: 'tactics-discovered' } },
-    ],
-  },
-
-  // ── Level 7: The Charger ────────────────────
-  {
-    id: 'the-charger',
-    title: 'Level 7: The Charger',
-    stops: [
+      { id: 'vision-counting', name: 'Move Counting', desc: 'How many squares does this piece control?', icon: '/pieces/wQ.svg', href: '/vision/counting', progress: { type: 'localStorage', key: 'blindfold-counting-best-stars' } },
+      { id: 'vision-reachability', name: 'Piece Reachability', desc: 'Can this piece reach that square? Yes or no!', icon: '/pieces/wN.svg', href: '/vision/reachability', progress: { type: 'localStorage', key: 'blindfold-reachability-best-stars' } },
       { id: 'endings-krk', name: 'Rook vs King', desc: 'Deliver checkmate with King + Rook.', icon: '/pieces/wR.svg', href: '/learn/endings-krk', progress: { type: 'localStorage', key: 'endings-krk-best-stars' } },
       { id: 'pawn-endings-lesson', name: 'Pawn Endings', desc: 'Key squares, opposition, and essential pawn patterns.', icon: '/pieces/wK.svg', href: '/learn/pawn-endings-lesson', progress: { type: 'localStorage', key: 'pawn-endings-lesson-best-stars' } },
-      { id: 'endings-kpk', name: 'King + Pawn vs King', desc: 'Promote the pawn against perfect defense.', icon: '/pieces/wP.svg', href: '/learn/endings-kpk', progress: { type: 'none' } },
-      { id: 'mate-in-2', name: 'Mate in 2', desc: 'Set up the checkmate in two precise moves.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-mate-in-2', progress: { type: 'puzzle-set', key: 'checkmate-mate-in-2' } },
-      { id: 'vision-changed', name: 'What Changed?', desc: 'Memorize a position, then spot what moved.', icon: '/pieces/wR.svg', href: '/vision/changed', progress: { type: 'localStorage', key: 'blindfold-changed-best-stars' } },
-      { id: 'vision-landed', name: 'Where Did It Land?', desc: 'Follow opening moves mentally, then find a piece.', icon: '/pieces/wN.svg', href: '/vision/landed', progress: { type: 'localStorage', key: 'blindfold-landed-best-stars' } },
     ],
   },
 
-  // ── Level 8: The Destrier ───────────────────
+  // ── Level 5: The Galloper (9) ──────────────
   {
-    id: 'the-destrier',
-    title: 'Level 8: The Destrier',
+    id: 'the-galloper',
+    title: 'Level 5: The Galloper',
     stops: [
-      { id: 'endings-kbbk', name: 'Two Bishops vs King', desc: 'Deliver checkmate with King + 2 Bishops.', icon: '/pieces/wB.svg', href: '/learn/endings-kbbk', progress: { type: 'localStorage', key: 'endings-kbbk-best-stars' } },
-      { id: 'endings-kbnk', name: 'Bishop + Knight', desc: 'Deliver checkmate with King + Bishop + Knight.', icon: '/pieces/wN.svg', href: '/learn/endings-kbnk', progress: { type: 'localStorage', key: 'endings-kbnk-best-stars' } },
+      { id: 'endings-kpk', name: 'King + Pawn vs King', desc: 'Promote the pawn against perfect defense.', icon: '/pieces/wP.svg', href: '/learn/endings-kpk', progress: { type: 'none' } },
+      { id: 'vision-changed', name: 'What Changed?', desc: 'Memorize a position, then spot what moved.', icon: '/pieces/wR.svg', href: '/vision/changed', progress: { type: 'localStorage', key: 'blindfold-changed-best-stars' } },
+      { id: 'vision-landed', name: 'Where Did It Land?', desc: 'Follow opening moves mentally, then find a piece.', icon: '/pieces/wN.svg', href: '/vision/landed', progress: { type: 'localStorage', key: 'blindfold-landed-best-stars' } },
+      { id: 'vision-flash', name: 'Flash Position', desc: 'Memorize a position, then place pieces from memory.', icon: '/pieces/wK.svg', href: '/vision/flash', progress: { type: 'localStorage', key: 'blindfold-flash-best-stars' } },
+      { id: 'vision-piececount', name: 'Piece Count', desc: 'Flash a position — how many pieces of each type?', icon: '/pieces/wP.svg', href: '/vision/piececount', progress: { type: 'localStorage', key: 'blindfold-piececount-best-stars' } },
       { id: 'vision-knight-routes', name: 'Knight Routes', desc: 'Find a knight path between two squares — no board!', icon: '/pieces/wN.svg', href: '/vision/knight-routes', progress: { type: 'none' } },
       { id: 'vision-bishop-routes', name: 'Bishop Routes', desc: 'Find a bishop path — or spot when it\'s impossible!', icon: '/pieces/wB.svg', href: '/vision/bishop-routes', progress: { type: 'none' } },
       { id: 'vision-rookmaze', name: 'Rook Maze', desc: 'Navigate a rook around obstacles — no board!', icon: '/pieces/wR.svg', href: '/vision/rookmaze', progress: { type: 'none' } },
       { id: 'vision-gauntlet', name: 'Knight Gauntlet', desc: 'Navigate the knight without stepping on attacked squares!', icon: '/pieces/wN.svg', href: '/vision/gauntlet', progress: { type: 'none' } },
-      { id: 'vision-flash', name: 'Flash Position', desc: 'Memorize a position, then place pieces from memory.', icon: '/pieces/wK.svg', href: '/vision/flash', progress: { type: 'localStorage', key: 'blindfold-flash-best-stars' } },
-      { id: 'vision-piececount', name: 'Piece Count', desc: 'Flash a position — how many pieces of each type?', icon: '/pieces/wP.svg', href: '/vision/piececount', progress: { type: 'localStorage', key: 'blindfold-piececount-best-stars' } },
     ],
   },
 
-  // ── Level 9: The Stallion ───────────────────
+  // ── Level 6: The Destrier (9) ──────────────
   {
-    id: 'the-stallion',
-    title: 'Level 9: The Stallion',
+    id: 'the-destrier',
+    title: 'Level 6: The Destrier',
     stops: [
+      { id: 'endings-kbbk', name: 'Two Bishops vs King', desc: 'Deliver checkmate with King + 2 Bishops.', icon: '/pieces/wB.svg', href: '/learn/endings-kbbk', progress: { type: 'localStorage', key: 'endings-kbbk-best-stars' } },
+      { id: 'endings-kbnk', name: 'Bishop + Knight', desc: 'Deliver checkmate with King + Bishop + Knight.', icon: '/pieces/wN.svg', href: '/learn/endings-kbnk', progress: { type: 'localStorage', key: 'endings-kbnk-best-stars' } },
       { id: 'vision-knightsquares', name: 'Knight Squares', desc: 'Name every square a knight can reach from a given square.', icon: '/pieces/wN.svg', href: '/vision/knightsquares', progress: { type: 'localStorage', key: 'blindfold-knightsquares-best-stars' } },
       { id: 'vision-relative', name: 'Relative Position', desc: 'Which direction is the second square from the first?', icon: '/pieces/wP.svg', href: '/vision/relative', progress: { type: 'localStorage', key: 'blindfold-relative-best-stars' } },
       { id: 'vision-blindtactics', name: 'Blind Tactics', desc: 'See a position, then find checkmate blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/blindtactics', progress: { type: 'localStorage', key: 'blindfold-blindtactics-best-stars' } },
@@ -156,6 +132,14 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'vision-guarding', name: "Who's Guarding?", desc: 'Track piece interactions as they move — blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/guarding', progress: { type: 'localStorage', key: 'blindfold-guarding-best-stars' } },
       { id: 'bf-mate-kqk', name: 'BF Mate: Q vs K', desc: 'Deliver checkmate blindfolded with King + Queen.', icon: '/pieces/wQ.svg', href: '/vision/mate-kqk', progress: { type: 'localStorage', key: 'blindfold-mate-kqk-best-stars' } },
       { id: 'bf-mate-krrk', name: 'BF Mate: RR vs K', desc: 'Deliver checkmate blindfolded with King + 2 Rooks.', icon: '/pieces/wR.svg', href: '/vision/mate-krrk', progress: { type: 'localStorage', key: 'blindfold-mate-krrk-best-stars' } },
+    ],
+  },
+
+  // ── Level 7: The Stallion (loose — more coming) ──
+  {
+    id: 'the-stallion',
+    title: 'Level 7: The Stallion',
+    stops: [
       { id: 'bf-mate-krk', name: 'BF Mate: R vs K', desc: 'Deliver checkmate blindfolded with King + Rook.', icon: '/pieces/wR.svg', href: '/vision/mate-krk', progress: { type: 'localStorage', key: 'blindfold-mate-krk-best-stars' } },
       { id: 'bf-mate-kbbk', name: 'BF Mate: BB vs K', desc: 'Deliver checkmate blindfolded with King + 2 Bishops.', icon: '/pieces/wB.svg', href: '/vision/mate-kbbk', progress: { type: 'localStorage', key: 'blindfold-mate-kbbk-best-stars' } },
       { id: 'bf-mate-kbnk', name: 'BF Mate: BN vs K', desc: 'Deliver checkmate blindfolded with King + Bishop + Knight.', icon: '/pieces/wN.svg', href: '/vision/mate-kbnk', progress: { type: 'localStorage', key: 'blindfold-mate-kbnk-best-stars' } },
