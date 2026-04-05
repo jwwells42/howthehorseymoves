@@ -95,7 +95,7 @@ export const queenPuzzles: RoutePuzzle[] = [
     title: "Escape Artist",
     instruction: "Escape and reach the star!",
     position: [{ piece: "Q", color: "w", square: "a1" }],
-    walls: ["b2", "a3"],
+    walls: ["b2", "a3", "h1"],
     stars: ["h8"],
     hints: ["The queen is almost boxed in.", "There's one square you can move to — find it, then think big."],
     starThresholds: { three: 3, two: 4, one: 5 },

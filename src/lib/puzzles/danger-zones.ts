@@ -135,7 +135,7 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
       { piece: "N", color: "b", square: "d5" },
     ],
     walls: [],
-    stars: ["h8"],
+    stars: ["f7"],
     hints: [
       "The knight attacks 8 squares in L-shapes from d5.",
       "The queen has many paths — find one that avoids the knight's reach.",
@@ -173,15 +173,15 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     threats: true,
     position: [
       { piece: "B", color: "w", square: "a1" },
-      { piece: "N", color: "b", square: "e5" },
+      { piece: "N", color: "b", square: "e6" },
     ],
     walls: ["c3"],
     stars: ["h8"],
     hints: [
-      "The wall blocks c3 and the knight threatens squares from e5.",
+      "The wall blocks c3 and the knight threatens squares from e6.",
       "Find a diagonal path that avoids both.",
     ],
-    starThresholds: { three: 7, two: 8, one: 9 },
+    starThresholds: { three: 5, two: 6, one: 7 },
   },
   // --- Rook dodging a queen ---
   {
