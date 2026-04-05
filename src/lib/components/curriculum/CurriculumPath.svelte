@@ -42,6 +42,7 @@
               <img src={stop.icon} alt="" class="card-icon" />
               <h3>{stop.name}</h3>
             </div>
+            <p class="card-desc">{stop.desc}</p>
             <div class="card-footer">
               {#if stars > 0}
                 <StarRating {stars} size="sm" />
@@ -164,6 +165,14 @@
   .card-icon {
     width: 3rem;
     height: 3rem;
+  }
+
+  /* Card description */
+  .card-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    flex: 1;
   }
 
   /* Card footer — stars */
