@@ -7,7 +7,7 @@
   import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
   import MateTrainer from '$lib/components/endgame/MateTrainer.svelte';
   import DrawTrainer from '$lib/components/endgame/DrawTrainer.svelte';
-  import PawnEndingsLesson from '$lib/components/lessons/PawnEndingsLesson.svelte';
+  import { pawnEndingSteps, stepStorageKey } from '$lib/components/lessons/pawn-endings-data';
   import type { MateEndgameType } from '$lib/logic/endgame';
   import type { PiecePlacement } from '$lib/logic/types';
   import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from '$lib/components/lessons/how-to-win-data';
@@ -119,10 +119,40 @@
     />
   </main>
 {:else if piece === 'pawn-endings-lesson'}
-  <!-- Pawn endings quiz lesson (opposition concepts) -->
-  <main class="page board-page">
+  <!-- Pawn endings lesson hub -->
+  <main class="page">
     <a href="/" class="back-link">&larr; Back to home</a>
-    <PawnEndingsLesson onNext={() => window.location.href = '/'} />
+
+    <div class="page-header">
+      <img src="/pieces/wK.svg" alt="Pawn Endings" class="header-icon" />
+      <div>
+        <h1>Pawn Endings</h1>
+        <p class="muted">Key squares, opposition, and essential pawn ending patterns.</p>
+      </div>
+    </div>
+
+    <a href="/learn/pawn-endings-lesson/{pawnEndingSteps[0].id}" class="start-btn">
+      Start
+    </a>
+
+    <div class="puzzle-list">
+      {#each pawnEndingSteps as pStep, idx}
+        {@const isQuiz = pStep.type === 'quiz'}
+        {@const stepStars = isQuiz ? parseInt(typeof window !== 'undefined' ? (localStorage.getItem(stepStorageKey(pStep.id)) ?? '0') : '0', 10) : -1}
+        <a href="/learn/pawn-endings-lesson/{pStep.id}" class="puzzle-item">
+          <div class="puzzle-left">
+            <span class="puzzle-num">{idx + 1}.</span>
+            <div>
+              <span class="puzzle-title">{pStep.title}</span>
+              <p class="puzzle-instruction">{pStep.type === 'diagram' ? 'Diagram' : 'Quiz'}</p>
+            </div>
+          </div>
+          {#if stepStars > 0}
+            <StarRating stars={stepStars} size="sm" />
+          {/if}
+        </a>
+      {/each}
+    </div>
   </main>
 {:else if piece === 'how-to-win'}
   <!-- How to Win hub page -->

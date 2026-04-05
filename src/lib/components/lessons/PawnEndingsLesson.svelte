@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
   import { createBoardState, parseFen } from '$lib/logic/types';
@@ -7,15 +8,22 @@
   import type { BoardState, SquareId, PieceColor } from '$lib/logic/types';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import { playSound } from '$lib/state/sound';
-  import { pawnEndingSteps, type LessonStep, type QuizStep } from './pawn-endings-data';
+  import {
+    pawnEndingSteps,
+    getStepById,
+    getStepIndex,
+    stepStorageKey,
+    type LessonStep,
+    type QuizStep,
+  } from './pawn-endings-data';
 
   interface Props {
-    onNext?: () => void;
+    stepSlug: string;
   }
-  let { onNext }: Props = $props();
+  let { stepSlug }: Props = $props();
 
-  let stepIndex = $state(0);
-  let step = $derived(pawnEndingSteps[stepIndex]);
+  let step = $derived(getStepById(stepSlug) ?? pawnEndingSteps[0]);
+  let stepIndex = $derived(getStepIndex(stepSlug));
   let totalSteps = pawnEndingSteps.length;
 
   // Quiz state
@@ -25,15 +33,9 @@
   let opponentSlide = $state<SlideAnimation | null>(null);
   let wrongAnswer = $state<string | null>(null);
   let mistakes = $state(0);
-  let totalMistakes = $state(0);
   let keySquares = $state<SquareId[]>([]);
 
-  // Stars: 0 mistakes across all quizzes = 3, 1-2 = 2, 3+ = 1
-  let stars = $derived.by(() => {
-    if (totalMistakes === 0) return 3;
-    if (totalMistakes <= 2) return 2;
-    return 1;
-  });
+  let stars = $derived(mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
 
   function initStep(s: LessonStep) {
     opponentSlide = null;
@@ -106,7 +108,6 @@
       playSound('wrong');
       wrongAnswer = answer;
       mistakes++;
-      totalMistakes++;
       phase = 'wrong';
       setTimeout(() => {
         wrongAnswer = null;
@@ -124,45 +125,52 @@
     await new Promise(r => setTimeout(r, 300));
     playSound('stars');
     phase = 'result';
+
+    // Save per-step stars
+    const key = stepStorageKey(step.id);
+    const existing = parseInt(localStorage.getItem(key) ?? '0', 10);
+    if (stars > existing) {
+      localStorage.setItem(key, String(stars));
+    }
+
+    // Also update overall lesson stars (min of all quiz steps completed)
+    updateOverallStars();
+  }
+
+  function updateOverallStars() {
+    let min = Infinity;
+    let allDone = true;
+    for (const s of pawnEndingSteps) {
+      if (s.type !== 'quiz') continue;
+      const val = parseInt(localStorage.getItem(stepStorageKey(s.id)) ?? '0', 10);
+      if (val === 0) { allDone = false; break; }
+      min = Math.min(min, val);
+    }
+    if (allDone && min !== Infinity) {
+      const existing = parseInt(localStorage.getItem('pawn-endings-lesson-best-stars') ?? '0', 10);
+      if (min > existing) {
+        localStorage.setItem('pawn-endings-lesson-best-stars', String(min));
+      }
+    }
   }
 
   function nextStep() {
     if (stepIndex < totalSteps - 1) {
-      stepIndex++;
-      const s = pawnEndingSteps[stepIndex];
-      initStep(s);
-      if (s.type === 'quiz') {
-        setTimeout(() => animateIntro(), 500);
-      }
-    } else if (onNext) {
-      const existing = parseInt(localStorage.getItem('pawn-endings-lesson-best-stars') ?? '0', 10);
-      if (stars > existing) {
-        localStorage.setItem('pawn-endings-lesson-best-stars', String(stars));
-      }
-      onNext();
+      goto(`/learn/pawn-endings-lesson/${pawnEndingSteps[stepIndex + 1].id}`);
+    } else {
+      goto('/');
     }
   }
 
-  function prevStep() {
-    if (stepIndex > 0) {
-      stepIndex--;
-      initStep(pawnEndingSteps[stepIndex]);
-      if (pawnEndingSteps[stepIndex].type === 'quiz') {
-        setTimeout(() => animateIntro(), 500);
-      }
+  function retry() {
+    initStep(step);
+    if (step.type === 'quiz') {
+      setTimeout(() => animateIntro(), 500);
     }
   }
 
-  function restart() {
-    stepIndex = 0;
-    totalMistakes = 0;
-    initStep(pawnEndingSteps[0]);
-  }
-
-  let allDone = $derived(phase === 'result' && stepIndex === totalSteps - 1);
   let isQuiz = $derived(step.type === 'quiz');
   let quizStep = $derived(step.type === 'quiz' ? step as QuizStep : null);
-  let canGoBack = $derived(stepIndex > 0 && (phase === 'diagram' || phase === 'asking'));
 </script>
 
 <div class="lesson">
@@ -208,12 +216,9 @@
     </div>
   </div>
 
-  <!-- Diagram: Back + Next buttons -->
+  <!-- Diagram: Next button -->
   {#if phase === 'diagram'}
     <div class="nav-row">
-      {#if canGoBack}
-        <button class="btn-secondary" onclick={prevStep}>Back</button>
-      {/if}
       <button class="btn-primary" onclick={nextStep}>Next</button>
     </div>
   {/if}
@@ -221,9 +226,6 @@
   <!-- Quiz: answer buttons -->
   {#if phase === 'asking' || phase === 'wrong'}
     <div class="question">
-      {#if canGoBack}
-        <button class="back-btn" onclick={prevStep}>&larr; Back</button>
-      {/if}
       <p class="question-text">What will be the result?</p>
       <div class="answer-buttons">
         <button
@@ -257,18 +259,13 @@
 
   {#if phase === 'result'}
     <div class="result-area">
-      {#if allDone}
-        <p class="result-text">Lesson complete!</p>
-        <StarRating {stars} size="lg" />
-        <div class="result-buttons">
-          <button class="btn-secondary" onclick={restart}>Try Again</button>
-          {#if onNext}
-            <button class="btn-primary" onclick={nextStep}>Continue</button>
-          {/if}
-        </div>
-      {:else}
-        <button class="btn-primary" onclick={nextStep}>Next Position</button>
-      {/if}
+      <StarRating {stars} size="lg" />
+      <div class="result-buttons">
+        <button class="btn-secondary" onclick={retry}>Try Again</button>
+        <button class="btn-primary" onclick={nextStep}>
+          {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
+        </button>
+      </div>
     </div>
   {/if}
 </div>
@@ -287,7 +284,7 @@
   .instruction { color: var(--text-muted); font-size: 0.9rem; max-width: 28rem; }
   .progress { color: var(--text-faint); font-size: 0.75rem; margin-top: 0.25rem; }
 
-  /* Side to move — sits above the board, not overlapping it */
+  /* Side to move */
   .side-to-move {
     display: flex;
     align-items: center;
@@ -352,33 +349,16 @@
     100% { transform: scale(1); }
   }
 
-  /* Navigation row */
+  /* Navigation */
   .nav-row {
     display: flex;
     gap: 0.75rem;
     align-items: center;
   }
 
-  .back-btn {
-    display: block;
-    margin-bottom: 0.5rem;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    cursor: pointer;
-    padding: 0;
-  }
-  .back-btn:hover { color: var(--foreground); }
-
   /* Question area */
-  .question {
-    text-align: center;
-  }
-  .question-text {
-    font-weight: bold;
-    margin-bottom: 0.75rem;
-  }
+  .question { text-align: center; }
+  .question-text { font-weight: bold; margin-bottom: 0.75rem; }
   .answer-buttons {
     display: flex;
     gap: 0.75rem;
@@ -442,10 +422,6 @@
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-  }
-  .result-text {
-    font-weight: bold;
-    font-size: 1.125rem;
   }
   .result-buttons {
     display: flex;

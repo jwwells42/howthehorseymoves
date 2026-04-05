@@ -4,6 +4,8 @@
   import { getPuzzle, getPuzzlesForPiece, PIECES } from '$lib/puzzles';
   import PuzzleShell from '$lib/components/puzzle/PuzzleShell.svelte';
   import HowToWinLesson from '$lib/components/lessons/HowToWinLesson.svelte';
+  import PawnEndingsLesson from '$lib/components/lessons/PawnEndingsLesson.svelte';
+  import { getStepById } from '$lib/components/lessons/pawn-endings-data';
   import type { HowToWinSection } from '$lib/components/lessons/how-to-win-data';
 
   let piece = $derived(page.params.piece ?? '');
@@ -11,6 +13,10 @@
 
   // How to Win step routes: /learn/how-to-win-checkmate/back-rank
   let howToWinMatch = $derived(piece.match(/^how-to-win-(check|checkmate|stalemate)$/));
+
+  // Pawn endings step
+  let isPawnEndings = $derived(piece === 'pawn-endings-lesson');
+  let pawnStep = $derived(isPawnEndings ? getStepById(puzzleId) : undefined);
 
   let puzzle = $derived(getPuzzle(piece, puzzleId));
   let puzzleSet = $derived(getPuzzlesForPiece(piece));
@@ -48,7 +54,16 @@
   }
 </script>
 
-{#if howToWinMatch}
+{#if isPawnEndings && pawnStep}
+  <main class="page lesson-page">
+    <a href="/learn/pawn-endings-lesson" class="back-link">
+      &larr; Back to Pawn Endings
+    </a>
+    {#key puzzleId}
+      <PawnEndingsLesson stepSlug={puzzleId} />
+    {/key}
+  </main>
+{:else if howToWinMatch}
   {@const section = howToWinMatch[1] as HowToWinSection}
   <main class="page lesson-page">
     <a href="/learn/{piece}" class="back-link">
