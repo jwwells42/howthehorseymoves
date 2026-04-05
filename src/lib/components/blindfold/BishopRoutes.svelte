@@ -96,6 +96,14 @@
     }
   });
 
+  function handleKeydown(e: KeyboardEvent) {
+    if (result !== 'playing') return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      handleImpossible();
+    }
+  }
+
   function handleSubmit(e: Event) {
     e.preventDefault();
     const sq = input.trim().toLowerCase();
@@ -143,6 +151,8 @@
   }
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+
 <div class="container">
   <div class="header">
     <h2 class="title">Bishop Routes</h2>
@@ -150,11 +160,6 @@
       Find a bishop path from <span class="bold">{puzzle.start}</span> to
       <span class="bold">{puzzle.target}</span> — or spot when it's impossible!
     </p>
-    {#if puzzle.possible}
-      <p class="hint">
-        Shortest path: {puzzle.optimal} move{puzzle.optimal !== 1 ? 's' : ''}
-      </p>
-    {/if}
   </div>
 
   <!-- Route display -->
@@ -186,7 +191,7 @@
       <button type="submit" class="go-btn">Go</button>
     </form>
     <button class="impossible-btn" onclick={handleImpossible}>
-      Can't reach!
+      Can't reach! <span class="shortcut-hint">(Esc)</span>
     </button>
     {#if error}
       <p class="error">{error}</p>
@@ -280,12 +285,6 @@
     font-weight: bold;
   }
 
-  .hint {
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    margin-top: 0.25rem;
-  }
-
   .route-display {
     width: 100%;
     padding: 1rem;
@@ -372,6 +371,11 @@
 
   .impossible-btn:hover {
     background: rgba(239, 68, 68, 0.2);
+  }
+
+  .shortcut-hint {
+    font-size: 0.75rem;
+    opacity: 0.6;
   }
 
   .error {

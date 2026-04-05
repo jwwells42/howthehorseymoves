@@ -144,7 +144,6 @@
       Find a knight route from <span class="bold">{puzzle.start}</span> to
       <span class="bold">{puzzle.target}</span>.
     </p>
-    <p class="hint">Shortest path: {puzzle.optimal} moves</p>
   </div>
 
   <!-- Route display -->
@@ -271,11 +270,6 @@
     font-weight: bold;
   }
 
-  .hint {
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    margin-top: 0.25rem;
-  }
 
   /* Route display */
   .route-display {
