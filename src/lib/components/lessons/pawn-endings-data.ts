@@ -28,6 +28,21 @@ export type LessonStep = DiagramStep | QuizStep;
 // NOTE: proof move sequences should be verified by the user in-browser.
 // Claude-generated PGNs may contain errors.
 
+/** Get a step by its id (used as URL slug) */
+export function getStepById(id: string): LessonStep | undefined {
+  return pawnEndingSteps.find(s => s.id === id);
+}
+
+/** Get the index of a step by its id */
+export function getStepIndex(id: string): number {
+  return pawnEndingSteps.findIndex(s => s.id === id);
+}
+
+/** localStorage key for per-step stars (quiz steps only) */
+export function stepStorageKey(id: string): string {
+  return `pawn-endings-${id}-best-stars`;
+}
+
 export const pawnEndingSteps: LessonStep[] = [
   // ========================================
   // Section 1: Key Squares
