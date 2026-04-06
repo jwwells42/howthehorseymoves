@@ -1,4 +1,4 @@
-import type { SquareId } from '$lib/logic/types';
+import type { SquareId, PiecePlacement } from '$lib/logic/types';
 import type { Arrow } from '$lib/logic/pgn';
 
 // A diagram slide: static board with key-square stars
@@ -25,14 +25,16 @@ export interface QuizStep {
   endState: 'promotion' | 'stalemate';
 }
 
-// A trainer link: navigates to a standalone interactive trainer
+// An inline interactive trainer (EndgameShell or DrawTrainer)
 export interface TrainerStep {
   type: 'trainer';
   id: string;
   title: string;
   instruction: string;
-  href: string;
-  icon: string;
+  trainerType: 'endgame' | 'draw';
+  placements: PiecePlacement[];
+  storageKey?: string;
+  botStrategy?: 'heuristic' | 'bitbase-kpk';
 }
 
 export type LessonStep = DiagramStep | QuizStep | TrainerStep;
@@ -209,19 +211,21 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'diagram',
     id: 'pe-trebuchet-01',
     title: 'The Trebuchet',
-    instruction: 'Each king blocks the other\'s pawn. Whoever moves first loses — this is called zugzwang!',
-    fen: '8/8/8/k7/P7/8/7p/7K w - - 0 1',
+    instruction: 'Each king attacks the other\'s pawn. The pawns block each other. Whoever moves first loses — this is called zugzwang!',
+    fen: '8/8/3Kp3/4Pk2/8/8/8/8 w - - 0 1',
     keySquares: [],
   },
   {
     type: 'quiz',
     id: 'pe-trebuchet-02',
-    title: 'Trebuchet: Black Moves',
-    instruction: 'It\'s Black\'s turn.',
-    startFen: '8/8/8/k7/P7/8/7p/7K b - - 0 1',
-    introMoves: ['Ka6'],
-    answer: 'white',
-    proofMoves: ['a5', 'Ka7', 'a6', 'Ka8', 'a7', 'Kb7', 'a8=Q+'],
+    title: 'Trebuchet: White Moves',
+    instruction: 'It\'s White\'s turn.',
+    startFen: '8/8/3Kp3/4Pk2/8/8/8/8 w - - 0 1',
+    introMoves: [],
+    answer: 'draw',
+    // NOTE: proof moves need user verification in-browser
+    // White must move king, Black captures e5 and promotes
+    proofMoves: ['Ke7', 'Kxe5', 'Kd8', 'Kd6', 'Ke8', 'e5', 'Kf7', 'e4', 'Kf6', 'e3', 'Kf5', 'e2', 'Kf4', 'e1=Q'],
     endState: 'promotion',
   },
 
@@ -255,16 +259,26 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'trainer',
     id: 'pe-kpk-convert',
     title: 'KPK: Convert',
-    instruction: 'Play White and promote the pawn against perfect defense.',
-    href: '/learn/endings-kpk',
-    icon: '/pieces/wK.svg',
+    instruction: 'Promote the pawn! Every wrong move is a draw.',
+    trainerType: 'endgame',
+    placements: [
+      { piece: 'K', color: 'w', square: 'd6' },
+      { piece: 'P', color: 'w', square: 'd4' },
+      { piece: 'K', color: 'b', square: 'd8' },
+    ],
   },
   {
     type: 'trainer',
     id: 'pe-kpk-defend',
     title: 'KPK: Defend',
-    instruction: 'Play Black and hold the draw against perfect play.',
-    href: '/learn/endings-kpk-draw',
-    icon: '/pieces/bK.svg',
+    instruction: 'Keep opposition! Block the key squares and force stalemate.',
+    trainerType: 'draw',
+    placements: [
+      { piece: 'K', color: 'w', square: 'd5' },
+      { piece: 'P', color: 'w', square: 'd4' },
+      { piece: 'K', color: 'b', square: 'd7' },
+    ],
+    storageKey: 'pawn-endings-kpk-draw-best-stars',
+    botStrategy: 'bitbase-kpk',
   },
 ];

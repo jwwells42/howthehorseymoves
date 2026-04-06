@@ -14,9 +14,10 @@
     placements: PiecePlacement[];
     storageKey: string;
     botStrategy?: 'heuristic' | 'bitbase-kpk';
+    onNext?: () => void;
   }
 
-  let { title, instruction, placements, storageKey, botStrategy = 'heuristic' }: Props = $props();
+  let { title, instruction, placements, storageKey, botStrategy = 'heuristic', onNext }: Props = $props();
 
   const MAX_MOVES = 100; // half-moves before auto-draw
 
@@ -549,6 +550,11 @@
       <button class="try-again-btn" onclick={reset}>
         Try Again
       </button>
+      {#if onNext}
+        <button class="try-again-btn" onclick={onNext}>
+          Continue
+        </button>
+      {/if}
     </div>
   {/if}
 
@@ -558,6 +564,11 @@
       <button class="try-again-btn" onclick={reset}>
         Try Again
       </button>
+      {#if onNext}
+        <button class="try-again-btn" onclick={onNext}>
+          Continue
+        </button>
+      {/if}
     </div>
   {/if}
 </div>

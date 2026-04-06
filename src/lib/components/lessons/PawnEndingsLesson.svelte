@@ -3,6 +3,8 @@
   import { goto } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
+  import DrawTrainer from '$lib/components/endgame/DrawTrainer.svelte';
   import { createBoardState, parseFen } from '$lib/logic/types';
   import { parseSan, applyMove } from '$lib/logic/pgn';
   import type { BoardState, SquareId, PieceColor } from '$lib/logic/types';
@@ -16,6 +18,7 @@
     stepStorageKey,
     type LessonStep,
     type QuizStep,
+    type TrainerStep,
   } from './pawn-endings-data';
 
   interface Props {
@@ -198,26 +201,29 @@
 
   let isQuiz = $derived(step.type === 'quiz');
   let quizStep = $derived(step.type === 'quiz' ? step as QuizStep : null);
+  let trainerStep = $derived(step.type === 'trainer' ? step as TrainerStep : null);
 </script>
 
-{#if step.type === 'trainer'}
-  <div class="lesson">
-    <div class="header">
-      <h2 class="title">{step.title}</h2>
-      <p class="instruction">{step.instruction}</p>
-      <p class="progress">{stepIndex + 1} / {totalSteps}</p>
-    </div>
-
-    <div class="trainer-card">
-      <img src={step.icon} alt={step.title} class="trainer-icon" />
-      <a href={step.href} class="btn-primary trainer-play">Play</a>
-    </div>
-
-    <div class="nav-row">
-      <button class="btn-secondary" onclick={nextStep}>
-        {stepIndex < totalSteps - 1 ? 'Skip' : 'Finish'}
-      </button>
-    </div>
+{#if trainerStep}
+  <div class="lesson trainer-lesson">
+    <p class="progress">{stepIndex + 1} / {totalSteps}</p>
+    {#if trainerStep.trainerType === 'endgame'}
+      <EndgameShell
+        title={trainerStep.title}
+        instruction={trainerStep.instruction}
+        placements={trainerStep.placements}
+        onNext={nextStep}
+      />
+    {:else}
+      <DrawTrainer
+        title={trainerStep.title}
+        instruction={trainerStep.instruction}
+        placements={trainerStep.placements}
+        storageKey={trainerStep.storageKey ?? `pawn-endings-${trainerStep.id}-best-stars`}
+        botStrategy={trainerStep.botStrategy}
+        onNext={nextStep}
+      />
+    {/if}
   </div>
 {:else}
   <div class="lesson">
@@ -506,27 +512,11 @@
   }
   .btn-secondary:hover { background: var(--btn-hover); }
 
-  /* Trainer card */
-  .trainer-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 2rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+  /* Trainer (inline EndgameShell / DrawTrainer) */
+  .trainer-lesson {
     width: 100%;
-    max-width: 20rem;
   }
-  .trainer-icon {
-    width: 5rem;
-    height: 5rem;
-  }
-  .trainer-play {
-    text-decoration: none;
+  .trainer-lesson .progress {
     text-align: center;
-    font-size: 1.125rem;
-    padding: 0.75rem 2.5rem;
   }
 </style>
