@@ -1,4 +1,5 @@
 import type { SquareId } from '$lib/logic/types';
+import type { Arrow } from '$lib/logic/pgn';
 
 // A diagram slide: static board with key-square stars
 export interface DiagramStep {
@@ -8,6 +9,7 @@ export interface DiagramStep {
   instruction: string;
   fen: string;
   keySquares: SquareId[];
+  arrows?: Arrow[];
 }
 
 // A quiz: animate intro, ask question, animate proof
@@ -87,12 +89,12 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'quiz',
     id: 'pe-opposition-01',
     title: 'Black Must Move',
-    instruction: 'The kings face each other, and it\'s Black\'s turn. Black steps aside with Ke7. What will be the result?',
-    startFen: '8/3k4/8/3K4/3P4/8/8/8 b - - 0 1',
-    introMoves: ['Ke7'],
+    instruction: 'White plays Kd5. The kings face each other — and it\'s Black\'s turn. What will be the result?',
+    startFen: '8/3k4/8/8/3PK3/8/8/8 w - - 0 1',
+    introMoves: ['Kd5'],
     answer: 'white',
     // NOTE: proof moves need user verification in-browser
-    proofMoves: ['Kc6', 'Kd8', 'Kd6', 'Ke8', 'Kc7', 'Kf7', 'd5', 'Ke7', 'd6+', 'Ke8', 'd7+', 'Kf7', 'd8=Q'],
+    proofMoves: ['Ke7', 'Kc6', 'Kd8', 'Kd6', 'Ke8', 'Kc7', 'Kf7', 'd5', 'Ke7', 'd6+', 'Ke8', 'd7+', 'Kf7', 'd8=Q'],
     endState: 'promotion',
   },
   {
@@ -115,9 +117,15 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'diagram',
     id: 'pe-square-01',
     title: 'Rule of the Square',
-    instruction: 'Can the king catch the pawn? Count the diagonal — if the king can reach this line, it catches the pawn.',
+    instruction: 'Draw a square from the pawn to the promotion rank. If the enemy king can step inside this square, it catches the pawn!',
     fen: '8/8/8/P7/8/8/8/K7 w - - 0 1',
-    keySquares: ['b6', 'c7', 'd8'],
+    keySquares: [],
+    arrows: [
+      { from: 'a5' as SquareId, to: 'a8' as SquareId, color: '#facc15' },
+      { from: 'a8' as SquareId, to: 'd8' as SquareId, color: '#facc15' },
+      { from: 'd8' as SquareId, to: 'd5' as SquareId, color: '#facc15' },
+      { from: 'd5' as SquareId, to: 'a5' as SquareId, color: '#facc15' },
+    ],
   },
   {
     type: 'quiz',

@@ -6,6 +6,7 @@
   import { createBoardState, parseFen } from '$lib/logic/types';
   import { parseSan, applyMove } from '$lib/logic/pgn';
   import type { BoardState, SquareId, PieceColor } from '$lib/logic/types';
+  import type { Arrow } from '$lib/logic/pgn';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import { playSound } from '$lib/state/sound';
   import {
@@ -34,6 +35,7 @@
   let wrongAnswer = $state<string | null>(null);
   let mistakes = $state(0);
   let keySquares = $state<SquareId[]>([]);
+  let diagramArrows = $state<Arrow[] | undefined>(undefined);
 
   let stars = $derived(mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
 
@@ -46,12 +48,14 @@
       const parsed = parseFen(s.fen);
       board = createBoardState(parsed.placements);
       keySquares = s.keySquares;
+      diagramArrows = s.arrows;
       sideToMove = 'w';
       phase = 'diagram';
     } else {
       const parsed = parseFen(s.startFen);
       board = createBoardState(parsed.placements);
       keySquares = [];
+      diagramArrows = undefined;
       sideToMove = s.startFen.split(' ')[1] === 'b' ? 'b' : 'w';
       phase = 'intro';
     }
@@ -201,6 +205,7 @@
         onDragStart={() => {}}
         onDragEnd={() => {}}
         {opponentSlide}
+        arrows={diagramArrows}
       />
 
       <!-- Result overlay -->
