@@ -248,35 +248,41 @@
       </div>
     {/if}
 
-    <div class="board-area">
-      <div class="board-wrap">
-        <Board
-          {board}
-          selectedSquare={null}
-          validMoves={[]}
-          targets={keySquares}
-          reachedTargets={[]}
-          dragValidMoves={[]}
-          onSquareClick={() => {}}
-          onDrop={() => {}}
-          onDragStart={() => {}}
-          onDragEnd={() => {}}
-          {opponentSlide}
-          arrows={diagramArrows}
-        />
-
-        <!-- Result overlay -->
-        {#if phase === 'result' && quizStep}
-          <div class="result-overlay">
-            {#if quizStep.endState === 'promotion'}
-              <div class="trophy">&#127942;</div>
-            {:else}
-              <div class="draw-symbol">&#189;</div>
-            {/if}
-          </div>
-        {/if}
+    {#if showExplorer && quizStep?.annotatedPgn}
+      <div class="explorer-area">
+        <PgnExplorer pgn={quizStep.annotatedPgn} fen={quizStep.startFen} />
       </div>
-    </div>
+    {:else}
+      <div class="board-area">
+        <div class="board-wrap">
+          <Board
+            {board}
+            selectedSquare={null}
+            validMoves={[]}
+            targets={keySquares}
+            reachedTargets={[]}
+            dragValidMoves={[]}
+            onSquareClick={() => {}}
+            onDrop={() => {}}
+            onDragStart={() => {}}
+            onDragEnd={() => {}}
+            {opponentSlide}
+            arrows={diagramArrows}
+          />
+
+          <!-- Result overlay -->
+          {#if phase === 'result' && quizStep}
+            <div class="result-overlay">
+              {#if quizStep.endState === 'promotion'}
+                <div class="trophy">&#127942;</div>
+              {:else}
+                <div class="draw-symbol">&#189;</div>
+              {/if}
+            </div>
+          {/if}
+        </div>
+      </div>
+    {/if}
 
     <!-- Diagram: Next button -->
     {#if phase === 'diagram'}
@@ -335,12 +341,6 @@
           </button>
         </div>
       </div>
-
-      {#if showExplorer && quizStep?.annotatedPgn}
-        <div class="explorer-area">
-          <PgnExplorer pgn={quizStep.annotatedPgn} fen={quizStep.startFen} />
-        </div>
-      {/if}
     {/if}
   </div>
 {/if}
@@ -531,10 +531,9 @@
   }
   .btn-secondary:hover { background: var(--btn-hover); }
 
-  /* Explorer (annotated PGN viewer after quiz result) */
+  /* Explorer (annotated PGN viewer — replaces board area) */
   .explorer-area {
     width: 100%;
-    max-width: 500px;
   }
 
   /* Trainer (inline EndgameShell / DrawTrainer) */

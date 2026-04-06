@@ -686,6 +686,8 @@ function createConversionState(puzzle: ConversionPuzzle) {
 // ═══════════════════════════════════════════════
 
 function createFindMovesState(puzzle: FindMovesPuzzle) {
+  const mode = puzzle.mode ?? 'test';
+
   // Build the board from position + walls
   const placements = [...puzzle.position];
   for (const w of puzzle.walls) {
@@ -697,28 +699,61 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
   const pieceSquare = puzzle.position.find(p => p.piece === puzzle.playerPiece && p.color === 'w')!.square;
 
   // Compute all valid destination squares
-  const correctSquares = new Set<SquareId>(getValidMoves(puzzle.playerPiece, pieceSquare, board, 'w'));
+  const correctSquaresArr = [...getValidMoves(puzzle.playerPiece, pieceSquare, board, 'w')];
+  const correctSquares = new Set<SquareId>(correctSquaresArr);
 
   let foundSquares = $state<Set<SquareId>>(new Set());
   let mistakes = $state(0);
   let isComplete = $state(false);
   let wrongMoveSquare = $state<SquareId | null>(null);
   let currentHintIndex = $state(-1);
+  let slideAnim = $state<SlideAnimation | null>(null);
+  let demoRunning = $state(false);
 
   const stars = $derived.by(() => {
     if (!isComplete) return 0;
+    if (mode === 'demo') return 3;
     const { three, two } = puzzle.starThresholds;
     if (mistakes <= three) return 3;
     if (mistakes <= two) return 2;
     return 1;
   });
 
+  // Guided mode: show correct squares as green highlights
   const highlights = $derived.by(() => {
-    return [] as SquareHighlight[];
+    if (mode !== 'guided') return [] as SquareHighlight[];
+    const result: SquareHighlight[] = [];
+    for (const sq of correctSquaresArr) {
+      if (!foundSquares.has(sq)) {
+        result.push({ square: sq, color: '#22c55e' });
+      }
+    }
+    return result;
   });
+
+  // Demo mode: animate checkmarks appearing one by one (piece stays put)
+  async function runDemo() {
+    if (demoRunning) return;
+    demoRunning = true;
+
+    for (const sq of correctSquaresArr) {
+      await new Promise(r => setTimeout(r, 350));
+      const next = new Set(foundSquares);
+      next.add(sq);
+      foundSquares = next;
+      playSound('correct');
+    }
+
+    await new Promise(r => setTimeout(r, 300));
+    isComplete = true;
+    saveComplete(puzzle.id, 3, 0);
+    playSound('stars');
+    demoRunning = false;
+  }
 
   function handleSquareClick(sq: SquareId) {
     if (isComplete) return;
+    if (mode === 'demo') return; // demo is non-interactive
     if (sq === pieceSquare) return;
     if (foundSquares.has(sq)) return;
 
@@ -734,6 +769,7 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
         playSound('correct');
       }
     } else {
+      if (mode === 'guided') return; // no penalty in guided mode, just ignore
       mistakes++;
       wrongMoveSquare = sq;
       playSound('wrong');
@@ -747,6 +783,11 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     isComplete = false;
     wrongMoveSquare = null;
     currentHintIndex = -1;
+    slideAnim = null;
+    demoRunning = false;
+    if (mode === 'demo') {
+      setTimeout(() => runDemo(), 400);
+    }
   }
 
   function showHint() {
@@ -764,7 +805,7 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     get isComplete() { return isComplete; },
     get stalemateTrigger() { return false; },
     get wrongMoveSquare() { return wrongMoveSquare; },
-    get opponentSlide() { return null as SlideAnimation | null; },
+    get opponentSlide() { return slideAnim; },
     get stars() { return stars; },
     get currentHintIndex() { return currentHintIndex; },
     get arrows() { return [] as Arrow[]; },
@@ -773,10 +814,12 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     get totalCorrect() { return correctSquares.size; },
     get foundCount() { return foundSquares.size; },
     get mistakes() { return mistakes; },
+    get findMovesMode() { return mode; },
     getMovesFrom() { return [] as SquareId[]; },
     handleSquareClick,
     handleDrop(_from: SquareId, _to: SquareId) {},
     reset,
     showHint,
+    runDemo,
   };
 }

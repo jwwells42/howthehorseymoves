@@ -42,6 +42,8 @@ export interface FindMovesPuzzle extends PuzzleBase {
   walls: SquareId[];
   enPassantSquare?: SquareId;
   starThresholds: { three: number; two: number; one: number };
+  /** 'demo' = animate moves, 'guided' = glow targets, 'test' = no hints (default) */
+  mode?: 'demo' | 'guided' | 'test';
 }
 
 export type Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle | FindMovesPuzzle;

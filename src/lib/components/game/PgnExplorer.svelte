@@ -178,6 +178,13 @@
     currentPath = path;
   }
 
+  let canGoBack = $derived(currentPath.length > 0);
+  let canGoForward = $derived(
+    currentPath.length === 0
+      ? tree.children.length > 0
+      : (currentPath[currentPath.length - 1].children.length > 0)
+  );
+
   function goToStart() {
     currentPath = [];
   }
@@ -197,6 +204,17 @@
     }
   }
 
+  function goToEnd() {
+    let path = [...currentPath];
+    let node = path.length > 0 ? path[path.length - 1] : null;
+    let children = node ? node.children : tree.children;
+    while (children.length > 0) {
+      path.push(children[0]);
+      children = children[0].children;
+    }
+    currentPath = path;
+  }
+
   function formatVariationSan(vn: { node: GameNode; moveNumber: number; isWhite: boolean }): string {
     if (vn.isWhite) return `${vn.moveNumber}. ${vn.node.san}${vn.node.nag ?? ''}`;
     return `${vn.moveNumber}... ${vn.node.san}${vn.node.nag ?? ''}`;
@@ -209,35 +227,38 @@
 }} />
 
 <div class="explorer">
-  <div class="board-area">
-    <Board
-      {board}
-      selectedSquare={null}
-      validMoves={[]}
-      targets={[]}
-      reachedTargets={[]}
-      dragValidMoves={[]}
-      onSquareClick={() => {}}
-      onDrop={() => {}}
-      onDragStart={() => {}}
-      onDragEnd={() => {}}
-      readOnly
-      arrows={currentArrows}
-    />
-  </div>
+  <div class="explorer-layout">
+    <div class="board-area">
+      <Board
+        {board}
+        selectedSquare={null}
+        validMoves={[]}
+        targets={[]}
+        reachedTargets={[]}
+        dragValidMoves={[]}
+        onSquareClick={() => {}}
+        onDrop={() => {}}
+        onDragStart={() => {}}
+        onDragEnd={() => {}}
+        readOnly
+        arrows={currentArrows}
+      />
+    </div>
 
-  <div class="controls">
-    <button class="nav-btn" onclick={goToStart} aria-label="Start">&laquo;</button>
-    <button class="nav-btn" onclick={goBack} aria-label="Back">&lsaquo;</button>
-    <button class="nav-btn" onclick={goForward} aria-label="Forward">&rsaquo;</button>
-  </div>
+    <div class="panel">
+      <div class="nav-controls">
+        <button class="nav-btn" onclick={goToStart} disabled={!canGoBack} aria-label="Start">&#x23EE;</button>
+        <button class="nav-btn" onclick={goBack} disabled={!canGoBack} aria-label="Back">&#x25C0;</button>
+        <button class="nav-btn" onclick={goForward} disabled={!canGoForward} aria-label="Forward">&#x25B6;</button>
+        <button class="nav-btn" onclick={goToEnd} disabled={!canGoForward} aria-label="End">&#x23ED;</button>
+      </div>
 
-  {#if currentComment}
-    <p class="comment-text">{currentComment}</p>
-  {/if}
+      {#if currentComment}
+        <p class="comment-text">{currentComment}</p>
+      {/if}
 
-  <div class="move-list">
-    <div class="move-grid">
+      <div class="move-list">
+        <div class="move-grid">
       {#each movePairs as pair}
         <span class="move-num">{pair.num}.</span>
         {#if pair.white}
@@ -289,10 +310,16 @@
       {/each}
     </div>
   </div>
+    </div>
+  </div>
 </div>
 
 <style>
   .explorer {
+    width: 100%;
+  }
+
+  .explorer-layout {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -300,27 +327,61 @@
     width: 100%;
   }
 
+  @media (min-width: 52rem) {
+    .explorer-layout {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+  }
+
   .board-area {
     width: 100%;
     max-width: 500px;
+    flex-shrink: 0;
   }
 
-  .controls {
+  @media (min-width: 52rem) {
+    .board-area {
+      max-width: 400px;
+    }
+  }
+
+  .panel {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  @media (min-width: 52rem) {
+    .panel {
+      flex: 1;
+      max-width: 22rem;
+    }
+  }
+
+  .nav-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 0.5rem;
+    flex-shrink: 0;
   }
   .nav-btn {
-    padding: 0.375rem 0.75rem;
-    background: var(--btn-bg);
-    color: var(--foreground);
-    border: 1px solid var(--card-border);
-    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--btn-bg, #2a2a2a);
+    color: inherit;
+    border: none;
     cursor: pointer;
     font-size: 1.125rem;
-    line-height: 1;
-    transition: background 0.15s;
+    transition: background-color 0.15s;
   }
-  .nav-btn:hover { background: var(--btn-hover); }
+  .nav-btn:hover:not(:disabled) { background: var(--btn-hover, #3a3a3a); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
   .comment-text {
     font-size: 0.875rem;
@@ -334,13 +395,20 @@
 
   .move-list {
     width: 100%;
-    max-width: 500px;
-    max-height: 12rem;
-    overflow-y: auto;
-    padding: 0.5rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--card-border, #333);
+    background: var(--card-bg, #1a1a1a);
+    padding: 0.75rem;
+    max-height: 8rem;
+    overflow-y: auto;
+  }
+
+  @media (min-width: 52rem) {
+    .move-list {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+    }
   }
 
   .move-grid {

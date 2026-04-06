@@ -96,7 +96,7 @@ export const pawnEndingSteps: LessonStep[] = [
     introMoves: ['Kd8'],
     answer: 'draw',
     // NOTE: proof moves need user verification in-browser
-    proofMoves: ['a6', 'Kc7', 'a7', 'Kb7'],
+    proofMoves: ['a6', 'Kc7', 'a7', 'Kb7', 'a8=Q', 'Kxa8'],
     endState: 'stalemate',
   },
   {

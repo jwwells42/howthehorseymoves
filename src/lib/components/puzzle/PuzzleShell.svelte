@@ -21,11 +21,21 @@
   let isRoute = $derived(puzzle.type === 'route');
   let isConversion = $derived(puzzle.type === 'conversion');
   let isFindMoves = $derived(puzzle.type === 'find-moves');
+  let findMovesMode = $derived(puzzle.type === 'find-moves' ? (puzzle.mode ?? 'test') : 'test');
   let showFindMovesIntro = $state(false);
 
   $effect(() => {
     if (puzzle.type === 'find-moves') {
-      showFindMovesIntro = true;
+      if (findMovesMode === 'test') {
+        showFindMovesIntro = true;
+      } else {
+        showFindMovesIntro = false;
+      }
+      // Auto-start demo mode
+      if (findMovesMode === 'demo') {
+        const s = ps as unknown as { runDemo: () => void };
+        setTimeout(() => s.runDemo(), 400);
+      }
     }
   });
 
@@ -151,7 +161,7 @@
   />
 
   <!-- Star thresholds -->
-  {#if isFindMoves && thresholds}
+  {#if isFindMoves && findMovesMode === 'test' && thresholds}
     <div class="thresholds">
       <span><StarRating stars={3} size="sm" /> {thresholds.three === 0 ? 'no' : `≤${thresholds.three}`} mistakes</span>
       <span><StarRating stars={2} size="sm" /> ≤{thresholds.two} mistakes</span>
