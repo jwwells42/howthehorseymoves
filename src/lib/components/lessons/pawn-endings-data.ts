@@ -176,7 +176,60 @@ export const pawnEndingSteps: LessonStep[] = [
   },
 
   // ========================================
-  // Section 4: Outside Passed Pawn
+  // Section 4: Reserve Tempo
+  // ========================================
+  {
+    type: 'diagram',
+    id: 'pe-tempo-01',
+    title: 'Reserve Tempo',
+    instruction: 'White has the opposition — but it\'s White\'s move! If the king moves, Black keeps the opposition. The trick: push the pawn! This "reserve tempo" passes the move to Black without giving up position.',
+    fen: '8/4k3/8/4K3/8/4P3/8/8 w - - 0 1',
+    keySquares: [],
+    arrows: [
+      { from: 'e3' as SquareId, to: 'e4' as SquareId, color: '#facc15' },
+    ],
+  },
+  {
+    type: 'quiz',
+    id: 'pe-tempo-02',
+    title: 'Using the Reserve',
+    instruction: 'White plays e4 — a reserve tempo. Now Black must move first. What will be the result?',
+    startFen: '8/4k3/8/4K3/8/4P3/8/8 w - - 0 1',
+    introMoves: ['e4'],
+    answer: 'white',
+    proofMoves: ['Kd7', 'Kf6'],
+    endState: 'promotion',
+  },
+
+  // ========================================
+  // Section 5: Shouldering
+  // ========================================
+  {
+    type: 'diagram',
+    id: 'pe-shoulder-01',
+    title: 'Shouldering',
+    instruction: 'When the defending king tries to get in front of your pawn, use your king to push it away — like a body check! Step diagonally to block its path. This is called shouldering.',
+    fen: '8/8/8/8/2K1k3/2P5/8/8 w - - 0 1',
+    keySquares: [],
+    arrows: [
+      { from: 'c4' as SquareId, to: 'd5' as SquareId, color: '#facc15' },
+    ],
+  },
+  {
+    type: 'quiz',
+    id: 'pe-shoulder-02',
+    title: 'Shoulder Check',
+    instruction: 'White plays Kd5 — shouldering Black\'s king away from the pawn\'s path. What will be the result?',
+    startFen: '8/8/8/8/2K1k3/2P5/8/8 w - - 0 1',
+    introMoves: ['Kd5'],
+    answer: 'white',
+    // NOTE: proof moves need user verification in-browser
+    proofMoves: ['Kf5', 'c4', 'Ke6', 'Kc6'],
+    endState: 'promotion',
+  },
+
+  // ========================================
+  // Section 6: Outside Passed Pawn
   // ========================================
   {
     type: 'quiz',

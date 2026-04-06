@@ -107,6 +107,7 @@ export const CURRICULUM: CurriculumChapter[] = [
     title: 'Level 5: The Galloper',
     stops: [
       { id: 'pawn-endings-lesson', name: 'Pawn Endings', desc: 'Key squares, opposition, and essential pawn patterns.', icon: '/pieces/wK.svg', href: '/learn/pawn-endings-lesson', progress: { type: 'localStorage', key: 'pawn-endings-lesson-best-stars' } },
+      { id: 'pawn-endings-practice', name: 'Pawn Ending Practice', desc: '20 pawn ending puzzles from Lichess — apply what you learned!', icon: '/pieces/wP.svg', href: '/learn/pawn-endings-practice', progress: { type: 'puzzle-set', key: 'pawn-endings-practice' } },
       { id: 'endings-kpk', name: 'KPK: Convert', desc: 'Promote the pawn against perfect defense.', icon: '/pieces/wP.svg', href: '/learn/endings-kpk', progress: { type: 'none' } },
       { id: 'vision-color', name: 'Color of Square', desc: 'Dark or light? Identify the color from the name.', icon: '/pieces/wP.svg', href: '/vision/color', progress: { type: 'localStorage', key: 'blindfold-color-best-stars' } },
       { id: 'vision-rankfile', name: 'Same Rank/File', desc: 'Do these two squares share a rank or file?', icon: '/pieces/wR.svg', href: '/vision/rankfile', progress: { type: 'localStorage', key: 'blindfold-rankfile-best-stars' } },

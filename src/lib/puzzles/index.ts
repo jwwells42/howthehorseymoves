@@ -26,6 +26,7 @@ import { lichessRemovingDefenderPuzzles } from "./lichess-removing-defender";
 import { lichessDiscoveredPuzzles } from "./lichess-discovered";
 import { lichessPinPuzzles } from "./lichess-pins";
 import { dangerZonePuzzles } from "./danger-zones";
+import { lichessPawnEndingPuzzles } from "./lichess-pawn-endings";
 
 const puzzleSets: Record<string, PuzzleSet> = {
   rook: { piece: "R", name: "Rook", puzzles: rookPuzzles },
@@ -49,6 +50,7 @@ const puzzleSets: Record<string, PuzzleSet> = {
   "tactics-removing-defender": { piece: "R", name: "Removing the Defender", puzzles: lichessRemovingDefenderPuzzles },
   "tactics-discovered": { piece: "N", name: "Discovered Attacks", puzzles: lichessDiscoveredPuzzles },
   "danger-zones": { piece: "N", name: "Danger Zones", puzzles: dangerZonePuzzles },
+  "pawn-endings-practice": { piece: "K", name: "Pawn Ending Practice", puzzles: lichessPawnEndingPuzzles },
 };
 
 export function getPuzzlesForPiece(pieceKey: string): PuzzleSet | undefined {
