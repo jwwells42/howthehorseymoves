@@ -47,7 +47,59 @@ export function stepStorageKey(id: string): string {
 
 export const pawnEndingSteps: LessonStep[] = [
   // ========================================
-  // Section 1: Key Squares
+  // Section 1: Rule of the Square
+  // ========================================
+  {
+    type: 'diagram',
+    id: 'pe-square-01',
+    title: 'Rule of the Square',
+    instruction: 'Draw a square from the pawn to the promotion rank. If the enemy king can step inside this square, it catches the pawn!',
+    fen: '8/8/8/P7/8/8/8/K7 w - - 0 1',
+    keySquares: [],
+    arrows: [
+      { from: 'a5' as SquareId, to: 'a8' as SquareId, color: '#facc15' },
+      { from: 'a8' as SquareId, to: 'd8' as SquareId, color: '#facc15' },
+      { from: 'd8' as SquareId, to: 'd5' as SquareId, color: '#facc15' },
+      { from: 'd5' as SquareId, to: 'a5' as SquareId, color: '#facc15' },
+    ],
+  },
+  {
+    type: 'quiz',
+    id: 'pe-square-02',
+    title: 'Outside the Square',
+    instruction: 'White pushes a6. The black king is far away. What will be the result?',
+    startFen: '7k/8/8/P7/8/8/8/K7 w - - 0 1',
+    introMoves: ['a6'],
+    answer: 'white',
+    proofMoves: ['Kg7', 'a7', 'Kf6', 'a8=Q'],
+    endState: 'promotion',
+  },
+  {
+    type: 'quiz',
+    id: 'pe-square-enters',
+    title: 'Stepping Into the Square',
+    instruction: 'It\'s Black\'s turn. The king is just outside the square — but Black steps in with Kd8! What will be the result?',
+    startFen: '4k3/8/8/P7/8/8/8/K7 b - - 0 1',
+    introMoves: ['Kd8'],
+    answer: 'draw',
+    // NOTE: proof moves need user verification in-browser
+    proofMoves: ['a6', 'Kc7', 'a7', 'Kb7'],
+    endState: 'stalemate',
+  },
+  {
+    type: 'quiz',
+    id: 'pe-square-03',
+    title: 'Inside the Square',
+    instruction: 'White pushes a6. The black king is closer this time. What will be the result?',
+    startFen: '3k4/8/8/P7/8/8/8/K7 w - - 0 1',
+    introMoves: ['a6'],
+    answer: 'draw',
+    proofMoves: ['Kc7', 'a7', 'Kb7'],
+    endState: 'stalemate',
+  },
+
+  // ========================================
+  // Section 2: Key Squares
   // ========================================
   {
     type: 'diagram',
@@ -83,7 +135,7 @@ export const pawnEndingSteps: LessonStep[] = [
   },
 
   // ========================================
-  // Section 2: Opposition
+  // Section 3: Opposition
   // ========================================
   {
     type: 'quiz',
@@ -107,46 +159,6 @@ export const pawnEndingSteps: LessonStep[] = [
     answer: 'draw',
     // NOTE: proof moves need user verification in-browser
     proofMoves: ['d5', 'Kd7', 'd6', 'Kd8', 'Ke6', 'Ke8', 'd7+', 'Kd8', 'Kd6'],
-    endState: 'stalemate',
-  },
-
-  // ========================================
-  // Section 3: Rule of the Square
-  // ========================================
-  {
-    type: 'diagram',
-    id: 'pe-square-01',
-    title: 'Rule of the Square',
-    instruction: 'Draw a square from the pawn to the promotion rank. If the enemy king can step inside this square, it catches the pawn!',
-    fen: '8/8/8/P7/8/8/8/K7 w - - 0 1',
-    keySquares: [],
-    arrows: [
-      { from: 'a5' as SquareId, to: 'a8' as SquareId, color: '#facc15' },
-      { from: 'a8' as SquareId, to: 'd8' as SquareId, color: '#facc15' },
-      { from: 'd8' as SquareId, to: 'd5' as SquareId, color: '#facc15' },
-      { from: 'd5' as SquareId, to: 'a5' as SquareId, color: '#facc15' },
-    ],
-  },
-  {
-    type: 'quiz',
-    id: 'pe-square-02',
-    title: 'Outside the Square',
-    instruction: 'White pushes a6. The black king is far away. What will be the result?',
-    startFen: '7k/8/8/P7/8/8/8/K7 w - - 0 1',
-    introMoves: ['a6'],
-    answer: 'white',
-    proofMoves: ['Kg7', 'a7', 'Kf6', 'a8=Q'],
-    endState: 'promotion',
-  },
-  {
-    type: 'quiz',
-    id: 'pe-square-03',
-    title: 'Inside the Square',
-    instruction: 'White pushes a6. The black king is closer this time. What will be the result?',
-    startFen: '3k4/8/8/P7/8/8/8/K7 w - - 0 1',
-    introMoves: ['a6'],
-    answer: 'draw',
-    proofMoves: ['Kc7', 'a7', 'Kb7'],
     endState: 'stalemate',
   },
 
