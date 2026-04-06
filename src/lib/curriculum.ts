@@ -106,7 +106,7 @@ export const CURRICULUM: CurriculumChapter[] = [
     id: 'the-galloper',
     title: 'Level 5: The Galloper',
     stops: [
-      { id: 'endings-kpk', name: 'King + Pawn vs King', desc: 'Promote the pawn against perfect defense.', icon: '/pieces/wP.svg', href: '/learn/endings-kpk', progress: { type: 'none' } },
+      { id: 'endings-kpk', name: 'KPK: Convert', desc: 'Promote the pawn against perfect defense.', icon: '/pieces/wP.svg', href: '/learn/endings-kpk', progress: { type: 'none' } },
       { id: 'vision-changed', name: 'What Changed?', desc: 'Memorize a position, then spot what moved.', icon: '/pieces/wR.svg', href: '/vision/changed', progress: { type: 'localStorage', key: 'blindfold-changed-best-stars' } },
       { id: 'vision-landed', name: 'Where Did It Land?', desc: 'Follow opening moves mentally, then find a piece.', icon: '/pieces/wN.svg', href: '/vision/landed', progress: { type: 'localStorage', key: 'blindfold-landed-best-stars' } },
       { id: 'vision-flash', name: 'Flash Position', desc: 'Memorize a position, then place pieces from memory.', icon: '/pieces/wK.svg', href: '/vision/flash', progress: { type: 'localStorage', key: 'blindfold-flash-best-stars' } },
@@ -140,6 +140,7 @@ export const CURRICULUM: CurriculumChapter[] = [
     id: 'the-stallion',
     title: 'Level 7: The Stallion',
     stops: [
+      { id: 'endings-kpk-draw', name: 'KPK: Defend', desc: 'Hold the draw with opposition against perfect play.', icon: '/pieces/bK.svg', href: '/learn/endings-kpk-draw', progress: { type: 'localStorage', key: 'draw-kpk-best-stars' } },
       { id: 'bf-mate-krk', name: 'BF Mate: R vs K', desc: 'Deliver checkmate blindfolded with King + Rook.', icon: '/pieces/wR.svg', href: '/vision/mate-krk', progress: { type: 'localStorage', key: 'blindfold-mate-krk-best-stars' } },
       { id: 'bf-mate-kbbk', name: 'BF Mate: BB vs K', desc: 'Deliver checkmate blindfolded with King + 2 Bishops.', icon: '/pieces/wB.svg', href: '/vision/mate-kbbk', progress: { type: 'localStorage', key: 'blindfold-mate-kbbk-best-stars' } },
       { id: 'bf-mate-kbnk', name: 'BF Mate: BN vs K', desc: 'Deliver checkmate blindfolded with King + Bishop + Knight.', icon: '/pieces/wN.svg', href: '/vision/mate-kbnk', progress: { type: 'localStorage', key: 'blindfold-mate-kbnk-best-stars' } },

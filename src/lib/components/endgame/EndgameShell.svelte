@@ -9,7 +9,8 @@
     createBoardState,
   } from '$lib/logic/types';
   import { getLegalMoves, getAllLegalMoves } from '$lib/logic/attacks';
-  import { probeKPK, squareToIndex, KPK_BLACK } from '$lib/logic/kpk-bitbase';
+  import { applyEndgameMove } from '$lib/logic/endgame';
+  import { probeKPK, squareToIndex, KPK_BLACK, KPK_WHITE } from '$lib/logic/kpk-bitbase';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
 
   interface Props {
@@ -94,9 +95,45 @@
         return;
       }
 
-      const move = moves[Math.floor(Math.random() * moves.length)];
+      // Bitbase-perfect defense: prefer moves that draw
+      const drawing: typeof moves = [];
+      const losing: typeof moves = [];
+
+      for (const m of moves) {
+        const nb = applyEndgameMove(currentBoard, m.from, m.to);
+        const isWin = probeBoard(nb, KPK_WHITE);
+        if (isWin === false) drawing.push(m);
+        else losing.push(m);
+      }
+
+      const candidates = drawing.length > 0 ? drawing : losing;
+
+      // Among candidates, prefer staying near the pawn and centralized
+      let bestScore = -Infinity;
+      let bestMoves: typeof moves = [];
+      const wp = findPawnSquare(currentBoard);
+
+      for (const m of candidates) {
+        let score = 0;
+        if (wp) {
+          const dist = chebyshev(m.to, wp);
+          score += (7 - dist) * 10;
+        }
+        const [x, y] = [m.to.charCodeAt(0) - 97, parseInt(m.to[1]) - 1];
+        score += (4 - Math.max(Math.abs(x - 3.5), Math.abs(y - 3.5))) * 3;
+        score += Math.random() * 2;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestMoves = [m];
+        } else if (Math.abs(score - bestScore) < 0.1) {
+          bestMoves.push(m);
+        }
+      }
+
+      const move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+      const piece = currentBoard.pieces.get(move.from)!;
       const newPieces = new Map(currentBoard.pieces);
-      const piece = newPieces.get(move.from)!;
       newPieces.delete(move.from);
       newPieces.set(move.to, piece);
 
@@ -114,6 +151,22 @@
         waitingForBot = false;
       }, 500);
     }, 400);
+  }
+
+  /** Find the white pawn square */
+  function findPawnSquare(b: BoardState): SquareId | null {
+    for (const [sq, p] of b.pieces) {
+      if (p.color === 'w' && p.piece === 'P') return sq;
+    }
+    return null;
+  }
+
+  /** Chebyshev (king) distance between two squares */
+  function chebyshev(a: SquareId, b: SquareId): number {
+    return Math.max(
+      Math.abs(a.charCodeAt(0) - b.charCodeAt(0)),
+      Math.abs(parseInt(a[1]) - parseInt(b[1])),
+    );
   }
 
   /* ── Execute player move ──────────────────────── */

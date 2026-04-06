@@ -28,7 +28,7 @@
   };
 
   // "Hold the draw" endgame positions (student plays Black, bot plays White)
-  const DRAW_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[]; storageKey: string }> = {
+  const DRAW_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[]; storageKey: string; botStrategy?: 'heuristic' | 'bitbase-kpk' }> = {
     'endings-philidor': {
       title: 'Philidor Position',
       instruction: 'Hold the draw! Keep your rook active.',
@@ -40,6 +40,17 @@
         { piece: 'R', color: 'b', square: 'a6' },
       ],
       storageKey: 'draw-philidor-best-stars',
+    },
+    'endings-kpk-draw': {
+      title: 'Hold the Draw: K+P vs K',
+      instruction: 'Keep opposition! Block the key squares and force stalemate.',
+      placements: [
+        { piece: 'K', color: 'w', square: 'd5' },
+        { piece: 'P', color: 'w', square: 'd4' },
+        { piece: 'K', color: 'b', square: 'd7' },
+      ],
+      storageKey: 'draw-kpk-best-stars',
+      botStrategy: 'bitbase-kpk',
     },
   };
 
@@ -116,6 +127,7 @@
       instruction={drawEndgame.instruction}
       placements={drawEndgame.placements}
       storageKey={drawEndgame.storageKey}
+      botStrategy={drawEndgame.botStrategy}
     />
   </main>
 {:else if piece === 'pawn-endings-lesson'}

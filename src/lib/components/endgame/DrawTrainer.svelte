@@ -5,6 +5,7 @@
   import { type BoardState, type SquareId, type PiecePlacement, type PieceColor, createBoardState, boardToKey } from '$lib/logic/types';
   import { getLegalMoves, getAllLegalMoves, isCheckmate, isStalemate } from '$lib/logic/attacks';
   import { applyEndgameMove, pickDefenseMove } from '$lib/logic/endgame';
+  import { probeKPK, squareToIndex, KPK_BLACK, KPK_WHITE } from '$lib/logic/kpk-bitbase';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
 
   interface Props {
@@ -12,9 +13,10 @@
     instruction: string;
     placements: PiecePlacement[];
     storageKey: string;
+    botStrategy?: 'heuristic' | 'bitbase-kpk';
   }
 
-  let { title, instruction, placements, storageKey }: Props = $props();
+  let { title, instruction, placements, storageKey, botStrategy = 'heuristic' }: Props = $props();
 
   const MAX_MOVES = 100; // half-moves before auto-draw
 
@@ -83,6 +85,41 @@
     return count >= 3;
   }
 
+  /* ── KPK bitbase helpers ──────────────────────── */
+
+  function findKPKPieces(
+    b: BoardState,
+  ): { wk: SquareId; bk: SquareId; wp: SquareId } | null {
+    let wk: SquareId | undefined;
+    let bk: SquareId | undefined;
+    let wp: SquareId | undefined;
+    for (const [sq, piece] of b.pieces) {
+      if (piece.color === 'w' && piece.piece === 'K') wk = sq;
+      else if (piece.color === 'b' && piece.piece === 'K') bk = sq;
+      else if (piece.color === 'w' && piece.piece === 'P') wp = sq;
+    }
+    if (!wk || !bk || !wp) return null;
+    return { wk, bk, wp };
+  }
+
+  function probeBoard(b: BoardState, stm: number): boolean | null {
+    const pieces = findKPKPieces(b);
+    if (!pieces) return null;
+    return probeKPK(
+      squareToIndex(pieces.wk),
+      squareToIndex(pieces.bk),
+      squareToIndex(pieces.wp),
+      stm,
+    );
+  }
+
+  function chebyshev(a: SquareId, b: SquareId): number {
+    return Math.max(
+      Math.abs(a.charCodeAt(0) - b.charCodeAt(0)),
+      Math.abs(parseInt(a[1]) - parseInt(b[1])),
+    );
+  }
+
   /* ── Check for clean promotion ─────────────────── */
 
   function hasCleanPromotion(boardState: BoardState, color: PieceColor): boolean {
@@ -105,6 +142,102 @@
     return false;
   }
 
+  /* ── Bot move strategies ──────────────────────── */
+
+  type Move = { from: SquareId; to: SquareId };
+
+  /** Bitbase-perfect: pick the trickiest winning move (fewest drawing responses for Black) */
+  function pickBitbaseBotMove(currentBoard: BoardState, moves: Move[]): Move[] {
+    // Among all White moves, find the one that gives Black the fewest drawing options
+    let trickiest: { move: Move; drawCount: number; score: number }[] = [];
+    let minDraws = Infinity;
+
+    for (const move of moves) {
+      const nb = applyEndgameMove(currentBoard, move.from, move.to);
+
+      // If this move promotes, handle it
+      const p = currentBoard.pieces.get(move.from)!;
+      // Skip — promotion is handled after selection
+
+      // Count how many Black responses draw
+      const blackMoves = getAllLegalMoves('b', nb);
+      let drawCount = 0;
+      for (const bm of blackMoves) {
+        const nb2 = applyEndgameMove(nb, bm.from, bm.to);
+        const isWin = probeBoard(nb2, KPK_WHITE);
+        if (isWin === false) drawCount++;
+      }
+
+      // Heuristic tiebreaker: king proximity to pawn, pawn advancement
+      let score = 0;
+      const kpk = findKPKPieces(currentBoard);
+      if (p.piece === 'K' && kpk) {
+        score += (7 - chebyshev(move.to, kpk.wp)) * 5;
+      }
+      if (p.piece === 'P') {
+        score += parseInt(move.to[1]) * 3;
+      }
+      score += Math.random() * 2;
+
+      if (drawCount < minDraws) {
+        minDraws = drawCount;
+        trickiest = [{ move, drawCount, score }];
+      } else if (drawCount === minDraws) {
+        trickiest.push({ move, drawCount, score });
+      }
+    }
+
+    // Among equally tricky, pick by heuristic score
+    trickiest.sort((a, b) => b.score - a.score);
+    const topScore = trickiest[0].score;
+    return trickiest.filter(t => Math.abs(t.score - topScore) < 1).map(t => t.move);
+  }
+
+  /** Heuristic scoring for non-bitbase games (Philidor etc.) */
+  function pickHeuristicBotMove(currentBoard: BoardState, moves: Move[]): Move[] {
+    let bestScore = -Infinity;
+    let bestMoves: Move[] = [];
+
+    for (const move of moves) {
+      const newBoard = applyEndgameMove(currentBoard, move.from, move.to);
+      let score = 0;
+
+      const piece = currentBoard.pieces.get(move.from)!;
+      if (piece.piece === 'P') {
+        const rank = parseInt(move.to[1]);
+        score += rank * 20;
+        if (rank === 8) score += 500;
+      }
+
+      const captured = currentBoard.pieces.get(move.to);
+      if (captured && captured.color === 'b' && captured.piece !== 'K') {
+        score += 200;
+      }
+
+      if (piece.piece === 'K') {
+        const [x, y] = [move.to.charCodeAt(0) - 97, parseInt(move.to[1]) - 1];
+        const centerDist = Math.max(Math.abs(x - 3.5), Math.abs(y - 3.5));
+        score += (4 - centerDist) * 5;
+      }
+
+      if (isCheckmate('b', newBoard)) score += 10000;
+      if (isStalemate('b', newBoard)) score -= 5000;
+
+      const oppMoves = getAllLegalMoves('b', newBoard);
+      score -= oppMoves.length * 3;
+      score += Math.random() * 3;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMoves = [move];
+      } else if (Math.abs(score - bestScore) < 0.01) {
+        bestMoves.push(move);
+      }
+    }
+
+    return bestMoves;
+  }
+
   /* ── Bot move (White = attacker) ───────────────── */
 
   function makeBotMove(currentBoard: BoardState) {
@@ -123,58 +256,13 @@
         return;
       }
 
-      // Score each move
-      let bestScore = -Infinity;
-      let bestMoves: { from: SquareId; to: SquareId }[] = [];
+      // Select the best move based on strategy
+      let bestMoves: { from: SquareId; to: SquareId }[];
 
-      for (const move of moves) {
-        const newBoard = applyEndgameMove(currentBoard, move.from, move.to);
-        let score = 0;
-
-        // Pawn advancement (closer to promotion = better)
-        const piece = currentBoard.pieces.get(move.from)!;
-        if (piece.piece === 'P') {
-          const rank = parseInt(move.to[1]);
-          score += rank * 20; // White wants rank 8
-          if (rank === 8) score += 500; // Promotion!
-        }
-
-        // Capture a piece? Good for attacker
-        const captured = currentBoard.pieces.get(move.to);
-        if (captured && captured.color === 'b' && captured.piece !== 'K') {
-          score += 200;
-        }
-
-        // King centralization
-        if (piece.piece === 'K') {
-          const [x, y] = [move.to.charCodeAt(0) - 97, parseInt(move.to[1]) - 1];
-          const centerDist = Math.max(Math.abs(x - 3.5), Math.abs(y - 3.5));
-          score += (4 - centerDist) * 5;
-        }
-
-        // Check if this causes checkmate
-        if (isCheckmate('b', newBoard)) {
-          score += 10000;
-        }
-
-        // Avoid stalemate (bad for attacker)
-        if (isStalemate('b', newBoard)) {
-          score -= 5000;
-        }
-
-        // Reduce opponent mobility
-        const oppMoves = getAllLegalMoves('b', newBoard);
-        score -= oppMoves.length * 3;
-
-        // Random jitter
-        score += Math.random() * 3;
-
-        if (score > bestScore) {
-          bestScore = score;
-          bestMoves = [move];
-        } else if (Math.abs(score - bestScore) < 0.01) {
-          bestMoves.push(move);
-        }
+      if (botStrategy === 'bitbase-kpk') {
+        bestMoves = pickBitbaseBotMove(currentBoard, moves);
+      } else {
+        bestMoves = pickHeuristicBotMove(currentBoard, moves);
       }
 
       const move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
@@ -266,6 +354,18 @@
 
   function executeMove(from: SquareId, to: SquareId) {
     const newBoard = applyEndgameMove(board, from, to);
+
+    // KPK bitbase validation: reject moves that turn a draw into a win for White
+    if (botStrategy === 'bitbase-kpk') {
+      const isWin = probeBoard(newBoard, KPK_WHITE);
+      if (isWin === true) {
+        mistakes += 1;
+        feedback = 'That lets White win \u2014 try again!';
+        selectedSquare = null;
+        playSound('wrong');
+        return;
+      }
+    }
 
     // Check if student's move allows immediate checkmate
     const whiteMoves = getAllLegalMoves('w', newBoard);
