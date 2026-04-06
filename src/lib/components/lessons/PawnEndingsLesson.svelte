@@ -5,6 +5,7 @@
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
   import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
   import DrawTrainer from '$lib/components/endgame/DrawTrainer.svelte';
+  import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';
   import { createBoardState, parseFen } from '$lib/logic/types';
   import { parseSan, applyMove } from '$lib/logic/pgn';
   import type { BoardState, SquareId, PieceColor } from '$lib/logic/types';
@@ -48,6 +49,7 @@
     wrongAnswer = null;
     mistakes = 0;
     skipped = false;
+    showExplorer = false;
 
     if (s.type === 'diagram') {
       const parsed = parseFen(s.fen);
@@ -129,13 +131,18 @@
   function skipToResult() {
     if (step.type !== 'quiz') return;
     skipped = true;
-    // Apply all remaining proof moves instantly
-    for (const san of step.proofMoves) {
-      const parsed = parseSan(san, board, sideToMove);
-      if (!parsed) break;
-      board = applyMove(board, parsed.from, parsed.to, parsed.promotion);
-      sideToMove = sideToMove === 'w' ? 'b' : 'w';
+    // Rebuild final position from scratch (animation may have partially applied moves)
+    const parsed = parseFen(step.startFen);
+    let b = createBoardState(parsed.placements);
+    let stm: PieceColor = step.startFen.split(' ')[1] === 'b' ? 'b' : 'w';
+    for (const san of [...step.introMoves, ...step.proofMoves]) {
+      const move = parseSan(san, b, stm);
+      if (!move) break;
+      b = applyMove(b, move.from, move.to, move.promotion);
+      stm = stm === 'w' ? 'b' : 'w';
     }
+    board = b;
+    sideToMove = stm;
     opponentSlide = null;
     playSound('stars');
     phase = 'result';
@@ -202,6 +209,7 @@
   let isQuiz = $derived(step.type === 'quiz');
   let quizStep = $derived(step.type === 'quiz' ? step as QuizStep : null);
   let trainerStep = $derived(step.type === 'trainer' ? step as TrainerStep : null);
+  let showExplorer = $state(false);
 </script>
 
 {#if trainerStep}
@@ -316,12 +324,23 @@
       <div class="result-area">
         <StarRating {stars} size="lg" />
         <div class="result-buttons">
+          {#if quizStep?.annotatedPgn}
+            <button class="btn-secondary" onclick={() => showExplorer = !showExplorer}>
+              {showExplorer ? 'Hide' : 'Explore'}
+            </button>
+          {/if}
           <button class="btn-secondary" onclick={retry}>Try Again</button>
           <button class="btn-primary" onclick={nextStep}>
             {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
           </button>
         </div>
       </div>
+
+      {#if showExplorer && quizStep?.annotatedPgn}
+        <div class="explorer-area">
+          <PgnExplorer pgn={quizStep.annotatedPgn} fen={quizStep.startFen} />
+        </div>
+      {/if}
     {/if}
   </div>
 {/if}
@@ -511,6 +530,12 @@
     transition: background 0.15s;
   }
   .btn-secondary:hover { background: var(--btn-hover); }
+
+  /* Explorer (annotated PGN viewer after quiz result) */
+  .explorer-area {
+    width: 100%;
+    max-width: 500px;
+  }
 
   /* Trainer (inline EndgameShell / DrawTrainer) */
   .trainer-lesson {

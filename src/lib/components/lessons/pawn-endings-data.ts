@@ -23,6 +23,7 @@ export interface QuizStep {
   answer: 'white' | 'draw';
   proofMoves: string[];
   endState: 'promotion' | 'stalemate';
+  annotatedPgn?: string;
 }
 
 // An inline interactive trainer (EndgameShell or DrawTrainer)
@@ -202,6 +203,7 @@ export const pawnEndingSteps: LessonStep[] = [
     answer: 'white',
     proofMoves: ['b6', 'axb6', 'c6', 'bxc6', 'a6', 'c5', 'a7', 'c4', 'a8=Q'],
     endState: 'promotion',
+    annotatedPgn: '1. b6! {The key sacrifice. White offers the b-pawn to rip open the position.} axb6 (1... cxb6 {If Black captures with the c-pawn instead...} 2. a6! {Now the a-pawn is unstoppable.} bxa6 3. c6 {And the c-pawn queens!}) 2. c6! {A second sacrifice!} bxc6 (2... b5 {Trying to hold...} 3. cxb7 {The c-pawn promotes.}) 3. a6 {Now the a-pawn is free and clear — nothing can stop it.} c5 4. a7 c4 5. a8=Q',
   },
 
   // ========================================
