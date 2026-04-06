@@ -102,7 +102,8 @@ CATEGORIES = {
         "title_prefix": "Pawn Ending",
         "instruction": "Find the winning plan!",
         "max_puzzles": 20,
-        "max_rating": 1400,
+        "min_rating": 1200,
+        "max_rating": 1800,
         "pawns_only": True,  # custom flag: only kings+pawns on board
     },
 }
@@ -325,6 +326,8 @@ def main():
                 if theme not in themes:
                     continue
                 if rating > config["max_rating"]:
+                    continue
+                if rating < config.get("min_rating", 0):
                     continue
                 if config.get("pawns_only") and not is_pawns_only(fen):
                     continue

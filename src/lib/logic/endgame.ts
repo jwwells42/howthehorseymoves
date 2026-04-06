@@ -33,7 +33,7 @@ export const ENDGAME_INFO: Record<
     icon: "/pieces/wQ.svg",
   },
   krrk: {
-    name: "2 Rooks vs King",
+    name: "Rook Ladder",
     description: "Deliver checkmate with King + 2 Rooks.",
     icon: "/pieces/wR.svg",
   },

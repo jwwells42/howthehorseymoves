@@ -69,6 +69,7 @@
   // How to Win section stars
   let sectionStars = $state<Record<string, number>>({});
   let hwStepStars = $state(0);
+  let krrkTrainerStars = $state(0);
   onMount(() => {
     const s: Record<string, number> = {};
     for (const sec of HOW_TO_WIN_SECTIONS) {
@@ -81,9 +82,10 @@
         hwStepStars = parseInt(localStorage.getItem(sectionInfo.storageKey) ?? '0', 10);
       }
     }
+    krrkTrainerStars = parseInt(localStorage.getItem('endings-krrk-best-stars') ?? '0', 10);
   });
 
-  const ADVANCED_ENDINGS = ['endings-kbbk', 'endings-kbnk', 'endings-lucena', 'endings-philidor', 'endings-opposition', 'endings-zugzwang', 'endings-reti', 'endings-wrong-bishop', 'endings-pawn-races'];
+  const ADVANCED_ENDINGS = ['endings-kbbk', 'endings-kbnk', 'endings-lucena', 'endings-philidor', 'endings-reti', 'endings-wrong-bishop', 'endings-pawn-races'];
   let parentCategory = $derived(
     piece.startsWith('checkmate-') ? 'checkmate'
     : piece.startsWith('tactics-') ? 'tactics'
@@ -115,7 +117,11 @@
 {:else if mateEndgameMatch}
   <!-- Mate conversion trainer (KQK, KRRK, etc.) -->
   <main class="page board-page">
-    <a href="/" class="back-link">&larr; Back to home</a>
+    {#if mateEndgameMatch[1] === 'krrk'}
+      <a href="/learn/checkmate-rook-ladder" class="back-link">&larr; Back to Rook Ladder</a>
+    {:else}
+      <a href="/" class="back-link">&larr; Back to home</a>
+    {/if}
     <MateTrainer type={mateEndgameMatch[1] as MateEndgameType} />
   </main>
 {:else if drawEndgame}
@@ -331,6 +337,22 @@
         {/if}
       {/each}
     </div>
+
+    {#if piece === 'checkmate-rook-ladder'}
+      <h2 class="play-it-out-heading">Play It Out</h2>
+      <a href="/learn/endings-krrk" class="puzzle-item trainer-card">
+        <div class="puzzle-left">
+          <img src="/pieces/wR.svg" alt="Rook Ladder Trainer" class="trainer-card-icon" />
+          <div>
+            <span class="puzzle-title">Rook Ladder Trainer</span>
+            <p class="puzzle-instruction">Practice with random positions — deliver checkmate!</p>
+          </div>
+        </div>
+        {#if krrkTrainerStars > 0}
+          <StarRating stars={krrkTrainerStars} size="sm" />
+        {/if}
+      </a>
+    {/if}
   </main>
 {:else}
   <main class="page center">
@@ -429,4 +451,15 @@
   }
   .start-btn:hover { background: #15803d; }
   .stars-center { margin-bottom: 1rem; text-align: center; }
+
+  /* Play It Out (rook ladder trainer card) */
+  .play-it-out-heading {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-muted);
+  }
+  .trainer-card { margin-bottom: 1rem; }
+  .trainer-card-icon { width: 2.25rem; height: 2.25rem; }
 </style>

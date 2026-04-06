@@ -27,6 +27,7 @@ import { lichessDiscoveredPuzzles } from "./lichess-discovered";
 import { lichessPinPuzzles } from "./lichess-pins";
 import { dangerZonePuzzles } from "./danger-zones";
 import { lichessPawnEndingPuzzles } from "./lichess-pawn-endings";
+import { lucenaPuzzles } from "./lucena";
 
 const puzzleSets: Record<string, PuzzleSet> = {
   rook: { piece: "R", name: "Rook", puzzles: rookPuzzles },
@@ -51,6 +52,7 @@ const puzzleSets: Record<string, PuzzleSet> = {
   "tactics-discovered": { piece: "N", name: "Discovered Attacks", puzzles: lichessDiscoveredPuzzles },
   "danger-zones": { piece: "N", name: "Danger Zones", puzzles: dangerZonePuzzles },
   "pawn-endings-practice": { piece: "K", name: "Pawn Ending Practice", puzzles: lichessPawnEndingPuzzles },
+  "endings-lucena": { piece: "R", name: "Lucena Position", puzzles: lucenaPuzzles },
 };
 
 export function getPuzzlesForPiece(pieceKey: string): PuzzleSet | undefined {
@@ -109,7 +111,7 @@ export const CATEGORIES: CategoryInfo[] = [
     icon: "/pieces/wQ.svg",
     subcategories: [
       { key: "checkmate-back-rank", name: "Back Rank Mate", description: "Trap the king behind its own pawns.", icon: "/pieces/wR.svg" },
-      { key: "checkmate-rook-ladder", name: "Rook Ladder", description: "Two rooks push the king to the edge.", icon: "/pieces/wR.svg" },
+      { key: "checkmate-rook-ladder", name: "Rook Ladder", description: "Two rooks push the king to the edge, then deliver mate.", icon: "/pieces/wR.svg" },
       { key: "checkmate-queen-f7", name: "Queen Takes f7", description: "The queen strikes the weak f7 square.", icon: "/pieces/wQ.svg" },
       { key: "checkmate-qb-battery", name: "Queen-Bishop Battery", description: "Queen and bishop team up on a diagonal.", icon: "/pieces/wQ.svg" },
       { key: "checkmate-lollis", name: "Lolli's Mate", description: "Queen slips in behind the pawns for mate.", icon: "/pieces/wQ.svg" },
@@ -140,7 +142,6 @@ export const CATEGORIES: CategoryInfo[] = [
     subcategories: [
       { key: "endings-kpk", name: "King + Pawn vs King", description: "Promote the pawn against perfect defense.", icon: "/pieces/wP.svg" },
       { key: "endings-kqk", name: "Queen vs King", description: "Deliver checkmate with King + Queen.", icon: "/pieces/wQ.svg" },
-      { key: "endings-krrk", name: "2 Rooks vs King", description: "Deliver checkmate with King + 2 Rooks.", icon: "/pieces/wR.svg" },
       { key: "endings-krk", name: "Rook vs King", description: "Deliver checkmate with King + Rook.", icon: "/pieces/wR.svg" },
     ],
   },
@@ -152,10 +153,8 @@ export const CATEGORIES: CategoryInfo[] = [
     subcategories: [
       { key: "endings-kbbk", name: "2 Bishops vs King", description: "Deliver checkmate with King + 2 Bishops.", icon: "/pieces/wB.svg" },
       { key: "endings-kbnk", name: "Bishop + Knight vs King", description: "Deliver checkmate with King + Bishop + Knight.", icon: "/pieces/wN.svg" },
-      { key: "endings-lucena", name: "Lucena Position", description: "Build a bridge to promote your rook pawn.", icon: "/pieces/wR.svg", comingSoon: true },
+      { key: "endings-lucena", name: "Lucena Position", description: "Build a bridge to promote your rook pawn.", icon: "/pieces/wR.svg" },
       { key: "endings-philidor", name: "Philidor Position", description: "Hold the draw with your rook.", icon: "/pieces/wR.svg" },
-      { key: "endings-opposition", name: "Opposition", description: "Use your king to control key squares.", icon: "/pieces/wK.svg", comingSoon: true },
-      { key: "endings-zugzwang", name: "Zugzwang", description: "Put your opponent in a position where any move loses.", icon: "/pieces/wK.svg", comingSoon: true },
       { key: "endings-reti", name: "Réti Study", description: "The king chases two pawns at once.", icon: "/pieces/wK.svg", comingSoon: true },
       { key: "endings-wrong-bishop", name: "Wrong Bishop", description: "Why a rook pawn + wrong-color bishop is a draw.", icon: "/pieces/wB.svg", comingSoon: true },
       { key: "endings-pawn-races", name: "Pawn Races", description: "Count tempi — who promotes first?", icon: "/pieces/wP.svg", comingSoon: true },
