@@ -5,9 +5,17 @@
   <a href="/" class="back-link">&larr; Back to home</a>
 
   <h1>Study</h1>
-  <p class="subtitle">Openings, model games, and puzzle creation.</p>
+  <p class="subtitle">Endings, openings, model games, and puzzle creation.</p>
 
   <div class="grid">
+    <a href="/endings" class="card">
+      <div class="card-header">
+        <img src="/pieces/wK.svg" alt="Endings" class="card-icon" />
+        <h3>Endings</h3>
+      </div>
+      <p class="card-desc">Master essential endgame techniques.</p>
+    </a>
+
     <a href="/openings" class="card">
       <div class="card-header">
         <img src="/pieces/wP.svg" alt="Openings" class="card-icon" />

@@ -8,9 +8,8 @@
   const SECTIONS = [
     { label: 'Learn', href: '/' },
     { label: 'Tactics', href: '/tactics' },
-    { label: 'Endings', href: '/endings' },
-    { label: 'Play', href: '/play' },
     { label: 'Study', href: '/study' },
+    { label: 'Play', href: '/play' },
     { label: 'Vision', href: '/vision' },
   ] as const;
 
@@ -19,15 +18,14 @@
       case 'Tactics':
         return path === '/tactics' || path.startsWith('/learn/tactics')
           || path === '/checkmates' || path.startsWith('/learn/checkmate');
-      case 'Endings':
-        return path === '/endings'
+      case 'Study':
+        return path === '/study' || path.startsWith('/games')
+          || path.startsWith('/openings')
+          || path === '/endings'
           || path.startsWith('/learn/endings')
           || path.startsWith('/learn/pawn-endings');
       case 'Play':
         return path.startsWith('/play');
-      case 'Study':
-        return path === '/study' || path.startsWith('/games')
-          || path.startsWith('/openings');
       case 'Vision':
         return path.startsWith('/vision');
       case 'Learn':
