@@ -238,9 +238,9 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'diagram',
     id: 'pe-guard-01',
     title: 'Guard the Entry!',
-    instruction: 'As the defender, stand in front of the pawn and keep opposition. If the attacker\'s king reaches a key square, the pawn promotes!',
-    fen: '8/4k3/8/3PK3/8/8/8/8 b - - 0 1',
-    keySquares: ['d6', 'e6', 'f6'],
+    instruction: 'The defending king stands directly in front of the pawn, keeping opposition. White\'s king cannot reach any key square!',
+    fen: '8/3k4/8/3PK3/8/8/8/8 w - - 0 1',
+    keySquares: ['c6', 'd6', 'e6'],
   },
   {
     type: 'quiz',
