@@ -25,7 +25,17 @@ export interface QuizStep {
   endState: 'promotion' | 'stalemate';
 }
 
-export type LessonStep = DiagramStep | QuizStep;
+// A trainer link: navigates to a standalone interactive trainer
+export interface TrainerStep {
+  type: 'trainer';
+  id: string;
+  title: string;
+  instruction: string;
+  href: string;
+  icon: string;
+}
+
+export type LessonStep = DiagramStep | QuizStep | TrainerStep;
 
 // NOTE: proof move sequences should be verified by the user in-browser.
 // Claude-generated PGNs may contain errors.
@@ -236,5 +246,25 @@ export const pawnEndingSteps: LessonStep[] = [
     answer: 'draw',
     proofMoves: ['Kb8', 'Kb5', 'Kb7'],
     endState: 'stalemate',
+  },
+
+  // ========================================
+  // Section 8: Play It Out (interactive trainers)
+  // ========================================
+  {
+    type: 'trainer',
+    id: 'pe-kpk-convert',
+    title: 'KPK: Convert',
+    instruction: 'Play White and promote the pawn against perfect defense.',
+    href: '/learn/endings-kpk',
+    icon: '/pieces/wK.svg',
+  },
+  {
+    type: 'trainer',
+    id: 'pe-kpk-defend',
+    title: 'KPK: Defend',
+    instruction: 'Play Black and hold the draw against perfect play.',
+    href: '/learn/endings-kpk-draw',
+    icon: '/pieces/bK.svg',
   },
 ];

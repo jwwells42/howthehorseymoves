@@ -53,7 +53,7 @@
       diagramArrows = s.arrows;
       sideToMove = 'w';
       phase = 'diagram';
-    } else {
+    } else if (s.type === 'quiz') {
       const parsed = parseFen(s.startFen);
       board = createBoardState(parsed.placements);
       keySquares = [];
@@ -61,6 +61,7 @@
       sideToMove = s.startFen.split(' ')[1] === 'b' ? 'b' : 'w';
       phase = 'intro';
     }
+    // trainer steps don't need board init
   }
 
   onMount(() => {
@@ -199,104 +200,125 @@
   let quizStep = $derived(step.type === 'quiz' ? step as QuizStep : null);
 </script>
 
-<div class="lesson">
-  <div class="header">
-    <h2 class="title">{step.title}</h2>
-    <p class="instruction">{step.instruction}</p>
-    <p class="progress">{stepIndex + 1} / {totalSteps}</p>
-  </div>
-
-  {#if isQuiz}
-    <div class="side-to-move">
-      <div class={['side-dot', sideToMove === 'w' ? 'white' : 'black']}></div>
-      <span class="side-label">{sideToMove === 'w' ? 'White' : 'Black'} to move</span>
+{#if step.type === 'trainer'}
+  <div class="lesson">
+    <div class="header">
+      <h2 class="title">{step.title}</h2>
+      <p class="instruction">{step.instruction}</p>
+      <p class="progress">{stepIndex + 1} / {totalSteps}</p>
     </div>
-  {/if}
 
-  <div class="board-area">
-    <div class="board-wrap">
-      <Board
-        {board}
-        selectedSquare={null}
-        validMoves={[]}
-        targets={keySquares}
-        reachedTargets={[]}
-        dragValidMoves={[]}
-        onSquareClick={() => {}}
-        onDrop={() => {}}
-        onDragStart={() => {}}
-        onDragEnd={() => {}}
-        {opponentSlide}
-        arrows={diagramArrows}
-      />
-
-      <!-- Result overlay -->
-      {#if phase === 'result' && quizStep}
-        <div class="result-overlay">
-          {#if quizStep.endState === 'promotion'}
-            <div class="trophy">&#127942;</div>
-          {:else}
-            <div class="draw-symbol">&#189;</div>
-          {/if}
-        </div>
-      {/if}
+    <div class="trainer-card">
+      <img src={step.icon} alt={step.title} class="trainer-icon" />
+      <a href={step.href} class="btn-primary trainer-play">Play</a>
     </div>
-  </div>
 
-  <!-- Diagram: Next button -->
-  {#if phase === 'diagram'}
     <div class="nav-row">
-      <button class="btn-primary" onclick={nextStep}>Next</button>
+      <button class="btn-secondary" onclick={nextStep}>
+        {stepIndex < totalSteps - 1 ? 'Skip' : 'Finish'}
+      </button>
     </div>
-  {/if}
+  </div>
+{:else}
+  <div class="lesson">
+    <div class="header">
+      <h2 class="title">{step.title}</h2>
+      <p class="instruction">{step.instruction}</p>
+      <p class="progress">{stepIndex + 1} / {totalSteps}</p>
+    </div>
 
-  <!-- Quiz: answer buttons -->
-  {#if phase === 'asking' || phase === 'wrong'}
-    <div class="question">
-      <p class="question-text">What will be the result?</p>
-      <div class="answer-buttons">
-        <button
-          class={['answer-btn', wrongAnswer === 'white' && 'wrong-flash']}
-          onclick={() => handleAnswer('white')}
-        >
-          <div class="answer-square white"></div>
-          <span>White wins</span>
-        </button>
-        <button
-          class={['answer-btn draw-btn', wrongAnswer === 'draw' && 'wrong-flash']}
-          onclick={() => handleAnswer('draw')}
-        >
-          <span class="draw-icon">&#189;</span>
-          <span>Draw</span>
-        </button>
-        <button
-          class={['answer-btn', wrongAnswer === 'black' && 'wrong-flash']}
-          onclick={() => handleAnswer('black')}
-        >
-          <div class="answer-square black"></div>
-          <span>Black wins</span>
-        </button>
+    {#if isQuiz}
+      <div class="side-to-move">
+        <div class={['side-dot', sideToMove === 'w' ? 'white' : 'black']}></div>
+        <span class="side-label">{sideToMove === 'w' ? 'White' : 'Black'} to move</span>
+      </div>
+    {/if}
+
+    <div class="board-area">
+      <div class="board-wrap">
+        <Board
+          {board}
+          selectedSquare={null}
+          validMoves={[]}
+          targets={keySquares}
+          reachedTargets={[]}
+          dragValidMoves={[]}
+          onSquareClick={() => {}}
+          onDrop={() => {}}
+          onDragStart={() => {}}
+          onDragEnd={() => {}}
+          {opponentSlide}
+          arrows={diagramArrows}
+        />
+
+        <!-- Result overlay -->
+        {#if phase === 'result' && quizStep}
+          <div class="result-overlay">
+            {#if quizStep.endState === 'promotion'}
+              <div class="trophy">&#127942;</div>
+            {:else}
+              <div class="draw-symbol">&#189;</div>
+            {/if}
+          </div>
+        {/if}
       </div>
     </div>
-  {/if}
 
-  {#if phase === 'animating'}
-    <p class="animating-text">Watch the continuation...</p>
-    <button class="btn-secondary skip-btn" onclick={skipToResult}>Skip</button>
-  {/if}
-
-  {#if phase === 'result'}
-    <div class="result-area">
-      <StarRating {stars} size="lg" />
-      <div class="result-buttons">
-        <button class="btn-secondary" onclick={retry}>Try Again</button>
-        <button class="btn-primary" onclick={nextStep}>
-          {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
-        </button>
+    <!-- Diagram: Next button -->
+    {#if phase === 'diagram'}
+      <div class="nav-row">
+        <button class="btn-primary" onclick={nextStep}>Next</button>
       </div>
-    </div>
-  {/if}
-</div>
+    {/if}
+
+    <!-- Quiz: answer buttons -->
+    {#if phase === 'asking' || phase === 'wrong'}
+      <div class="question">
+        <p class="question-text">What will be the result?</p>
+        <div class="answer-buttons">
+          <button
+            class={['answer-btn', wrongAnswer === 'white' && 'wrong-flash']}
+            onclick={() => handleAnswer('white')}
+          >
+            <div class="answer-square white"></div>
+            <span>White wins</span>
+          </button>
+          <button
+            class={['answer-btn draw-btn', wrongAnswer === 'draw' && 'wrong-flash']}
+            onclick={() => handleAnswer('draw')}
+          >
+            <span class="draw-icon">&#189;</span>
+            <span>Draw</span>
+          </button>
+          <button
+            class={['answer-btn', wrongAnswer === 'black' && 'wrong-flash']}
+            onclick={() => handleAnswer('black')}
+          >
+            <div class="answer-square black"></div>
+            <span>Black wins</span>
+          </button>
+        </div>
+      </div>
+    {/if}
+
+    {#if phase === 'animating'}
+      <p class="animating-text">Watch the continuation...</p>
+      <button class="btn-secondary skip-btn" onclick={skipToResult}>Skip</button>
+    {/if}
+
+    {#if phase === 'result'}
+      <div class="result-area">
+        <StarRating {stars} size="lg" />
+        <div class="result-buttons">
+          <button class="btn-secondary" onclick={retry}>Try Again</button>
+          <button class="btn-primary" onclick={nextStep}>
+            {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
+          </button>
+        </div>
+      </div>
+    {/if}
+  </div>
+{/if}
 
 <style>
   .lesson {
@@ -483,4 +505,28 @@
     transition: background 0.15s;
   }
   .btn-secondary:hover { background: var(--btn-hover); }
+
+  /* Trainer card */
+  .trainer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 20rem;
+  }
+  .trainer-icon {
+    width: 5rem;
+    height: 5rem;
+  }
+  .trainer-play {
+    text-decoration: none;
+    text-align: center;
+    font-size: 1.125rem;
+    padding: 0.75rem 2.5rem;
+  }
 </style>
