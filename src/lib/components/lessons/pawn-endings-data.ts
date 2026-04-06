@@ -225,9 +225,7 @@ export const pawnEndingSteps: LessonStep[] = [
     startFen: '8/8/3Kp3/4Pk2/8/8/8/8 w - - 0 1',
     introMoves: [],
     answer: 'black',
-    // NOTE: proof moves need user verification in-browser
-    // White must move king, Black captures e5 and promotes
-    proofMoves: ['Ke7', 'Kxe5', 'Kd8', 'Kd6', 'Ke8', 'e5', 'Kf7', 'e4', 'Kf6', 'e3', 'Kf5', 'e2', 'Kf4', 'e1=Q'],
+    proofMoves: ['Ke7', 'Kxe5'],
     endState: 'promotion',
   },
 
