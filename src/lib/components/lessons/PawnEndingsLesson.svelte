@@ -10,6 +10,14 @@
   import { parseSan, applyMove } from '$lib/logic/pgn';
   import type { BoardState, SquareId, PieceColor } from '$lib/logic/types';
   import type { Arrow } from '$lib/logic/pgn';
+
+  // When explorer updates the board position
+  let explorerBoard = $state<BoardState | null>(null);
+  let explorerArrows = $state<Arrow[] | undefined>(undefined);
+  function handleExplorerBoardChange(b: BoardState, arrows?: Arrow[]) {
+    explorerBoard = b;
+    explorerArrows = arrows;
+  }
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import { playSound } from '$lib/state/sound';
   import {
@@ -49,7 +57,8 @@
     wrongAnswer = null;
     mistakes = 0;
     skipped = false;
-    showExplorer = false;
+    explorerBoard = null;
+    explorerArrows = undefined;
 
     if (s.type === 'diagram') {
       const parsed = parseFen(s.fen);
@@ -209,7 +218,7 @@
   let isQuiz = $derived(step.type === 'quiz');
   let quizStep = $derived(step.type === 'quiz' ? step as QuizStep : null);
   let trainerStep = $derived(step.type === 'trainer' ? step as TrainerStep : null);
-  let showExplorer = $state(false);
+  let hasExplorer = $derived(phase === 'result' && !!quizStep?.annotatedPgn);
 </script>
 
 {#if trainerStep}
@@ -248,100 +257,104 @@
       </div>
     {/if}
 
-    {#if showExplorer && quizStep?.annotatedPgn}
-      <div class="explorer-area">
-        <PgnExplorer pgn={quizStep.annotatedPgn} fen={quizStep.startFen} />
-      </div>
-    {:else}
-      <div class="board-area">
-        <div class="board-wrap">
-          <Board
-            {board}
-            selectedSquare={null}
-            validMoves={[]}
-            targets={keySquares}
-            reachedTargets={[]}
-            dragValidMoves={[]}
-            onSquareClick={() => {}}
-            onDrop={() => {}}
-            onDragStart={() => {}}
-            onDragEnd={() => {}}
-            {opponentSlide}
-            arrows={diagramArrows}
-          />
+    <div class={['lesson-layout', hasExplorer && 'has-panel']}>
+      <div class="board-side">
+        <div class="board-area">
+          <div class="board-wrap">
+            <Board
+              board={explorerBoard ?? board}
+              selectedSquare={null}
+              validMoves={[]}
+              targets={keySquares}
+              reachedTargets={[]}
+              dragValidMoves={[]}
+              onSquareClick={() => {}}
+              onDrop={() => {}}
+              onDragStart={() => {}}
+              onDragEnd={() => {}}
+              opponentSlide={explorerBoard ? null : opponentSlide}
+              arrows={explorerBoard ? explorerArrows : diagramArrows}
+            />
 
-          <!-- Result overlay -->
-          {#if phase === 'result' && quizStep}
-            <div class="result-overlay">
-              {#if quizStep.endState === 'promotion'}
-                <div class="trophy">&#127942;</div>
-              {:else}
-                <div class="draw-symbol">&#189;</div>
-              {/if}
+            <!-- Result overlay (hide when exploring) -->
+            {#if phase === 'result' && quizStep && !explorerBoard}
+              <div class="result-overlay">
+                {#if quizStep.endState === 'promotion'}
+                  <div class="trophy">&#127942;</div>
+                {:else}
+                  <div class="draw-symbol">&#189;</div>
+                {/if}
+              </div>
+            {/if}
+          </div>
+        </div>
+
+        <!-- Diagram: Next button -->
+        {#if phase === 'diagram'}
+          <div class="nav-row">
+            <button class="btn-primary" onclick={nextStep}>Next</button>
+          </div>
+        {/if}
+
+        <!-- Quiz: answer buttons -->
+        {#if phase === 'asking' || phase === 'wrong'}
+          <div class="question">
+            <p class="question-text">What will be the result?</p>
+            <div class="answer-buttons">
+              <button
+                class={['answer-btn', wrongAnswer === 'white' && 'wrong-flash']}
+                onclick={() => handleAnswer('white')}
+              >
+                <div class="answer-square white"></div>
+                <span>White wins</span>
+              </button>
+              <button
+                class={['answer-btn draw-btn', wrongAnswer === 'draw' && 'wrong-flash']}
+                onclick={() => handleAnswer('draw')}
+              >
+                <span class="draw-icon">&#189;</span>
+                <span>Draw</span>
+              </button>
+              <button
+                class={['answer-btn', wrongAnswer === 'black' && 'wrong-flash']}
+                onclick={() => handleAnswer('black')}
+              >
+                <div class="answer-square black"></div>
+                <span>Black wins</span>
+              </button>
             </div>
-          {/if}
+          </div>
+        {/if}
+
+        {#if phase === 'animating'}
+          <p class="animating-text">Watch the continuation...</p>
+          <button class="btn-secondary skip-btn" onclick={skipToResult}>Skip</button>
+        {/if}
+
+        {#if phase === 'result'}
+          <div class="result-area">
+            <StarRating {stars} size="lg" />
+            <div class="result-buttons">
+              <button class="btn-secondary" onclick={retry}>Try Again</button>
+              <button class="btn-primary" onclick={nextStep}>
+                {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
+              </button>
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      {#if hasExplorer && quizStep?.annotatedPgn}
+        <div class="move-list-side">
+          <PgnExplorer
+            pgn={quizStep.annotatedPgn}
+            fen={quizStep.startFen}
+            noBoard
+            onBoardChange={handleExplorerBoardChange}
+          />
         </div>
-      </div>
-    {/if}
-
-    <!-- Diagram: Next button -->
-    {#if phase === 'diagram'}
-      <div class="nav-row">
-        <button class="btn-primary" onclick={nextStep}>Next</button>
-      </div>
-    {/if}
-
-    <!-- Quiz: answer buttons -->
-    {#if phase === 'asking' || phase === 'wrong'}
-      <div class="question">
-        <p class="question-text">What will be the result?</p>
-        <div class="answer-buttons">
-          <button
-            class={['answer-btn', wrongAnswer === 'white' && 'wrong-flash']}
-            onclick={() => handleAnswer('white')}
-          >
-            <div class="answer-square white"></div>
-            <span>White wins</span>
-          </button>
-          <button
-            class={['answer-btn draw-btn', wrongAnswer === 'draw' && 'wrong-flash']}
-            onclick={() => handleAnswer('draw')}
-          >
-            <span class="draw-icon">&#189;</span>
-            <span>Draw</span>
-          </button>
-          <button
-            class={['answer-btn', wrongAnswer === 'black' && 'wrong-flash']}
-            onclick={() => handleAnswer('black')}
-          >
-            <div class="answer-square black"></div>
-            <span>Black wins</span>
-          </button>
-        </div>
-      </div>
-    {/if}
-
-    {#if phase === 'animating'}
-      <p class="animating-text">Watch the continuation...</p>
-      <button class="btn-secondary skip-btn" onclick={skipToResult}>Skip</button>
-    {/if}
-
-    {#if phase === 'result'}
-      <div class="result-area">
-        <StarRating {stars} size="lg" />
-        <div class="result-buttons">
-          {#if quizStep?.annotatedPgn}
-            <button class="btn-secondary" onclick={() => showExplorer = !showExplorer}>
-              {showExplorer ? 'Hide' : 'Explore'}
-            </button>
-          {/if}
-          <button class="btn-secondary" onclick={retry}>Try Again</button>
-          <button class="btn-primary" onclick={nextStep}>
-            {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
-          </button>
-        </div>
-      </div>
-    {/if}
+      {/if}
+    </div>
   </div>
 {/if}
 
@@ -383,6 +396,38 @@
     font-weight: 500;
   }
 
+  /* --- Layout: board + optional move list panel --- */
+  .lesson-layout {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  @media (min-width: 52rem) {
+    .lesson-layout.has-panel {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 1rem;
+      max-width: 56rem;
+      margin: 0 auto;
+    }
+  }
+
+  .board-side {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  @media (min-width: 52rem) {
+    .has-panel .board-side {
+      flex: 1;
+    }
+  }
+
   .board-area {
     width: 100%;
     display: flex;
@@ -393,6 +438,21 @@
     position: relative;
     width: 100%;
     max-width: 500px;
+  }
+
+  .move-list-side {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  @media (min-width: 52rem) {
+    .move-list-side {
+      width: 14rem;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      margin-top: 0;
+    }
   }
 
   /* Result overlay */
@@ -530,11 +590,6 @@
     transition: background 0.15s;
   }
   .btn-secondary:hover { background: var(--btn-hover); }
-
-  /* Explorer (annotated PGN viewer — replaces board area) */
-  .explorer-area {
-    width: 100%;
-  }
 
   /* Trainer (inline EndgameShell / DrawTrainer) */
   .trainer-lesson {

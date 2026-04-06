@@ -2,12 +2,18 @@
   import Board from '$lib/components/board/Board.svelte';
   import { parseGamePgn } from '$lib/logic/pgn';
   import type { GameNode } from '$lib/logic/pgn';
+  import type { BoardState } from '$lib/logic/types';
+  import type { Arrow } from '$lib/logic/pgn';
 
   interface Props {
     pgn: string;
     fen?: string;
+    /** When true, don't render a board — call onBoardChange instead */
+    noBoard?: boolean;
+    /** Called when position changes (only used with noBoard) */
+    onBoardChange?: (board: BoardState, arrows?: Arrow[]) => void;
   }
-  let { pgn, fen }: Props = $props();
+  let { pgn, fen, noBoard, onBoardChange }: Props = $props();
 
   let tree = $derived(parseGamePgn(pgn, fen));
 
@@ -27,6 +33,13 @@
     currentPath.length === 0 ? tree.comment : lastNode?.comment
   );
   let currentArrows = $derived(lastNode?.arrows);
+
+  // Notify parent when position changes (noBoard mode)
+  $effect(() => {
+    if (noBoard && onBoardChange) {
+      onBoardChange(board, currentArrows);
+    }
+  });
 
   // Move list rendering (simplified from GameViewer)
   interface MoveListItem {
@@ -226,39 +239,18 @@
   if (e.key === 'ArrowRight') { e.preventDefault(); goForward(); }
 }} />
 
-<div class="explorer">
-  <div class="explorer-layout">
-    <div class="board-area">
-      <Board
-        {board}
-        selectedSquare={null}
-        validMoves={[]}
-        targets={[]}
-        reachedTargets={[]}
-        dragValidMoves={[]}
-        onSquareClick={() => {}}
-        onDrop={() => {}}
-        onDragStart={() => {}}
-        onDragEnd={() => {}}
-        readOnly
-        arrows={currentArrows}
-      />
-    </div>
+{#snippet navControls()}
+  <div class="nav-controls">
+    <button class="nav-btn" onclick={goToStart} disabled={!canGoBack} aria-label="Start">&#x23EE;</button>
+    <button class="nav-btn" onclick={goBack} disabled={!canGoBack} aria-label="Back">&#x25C0;</button>
+    <button class="nav-btn" onclick={goForward} disabled={!canGoForward} aria-label="Forward">&#x25B6;</button>
+    <button class="nav-btn" onclick={goToEnd} disabled={!canGoForward} aria-label="End">&#x23ED;</button>
+  </div>
+{/snippet}
 
-    <div class="panel">
-      <div class="nav-controls">
-        <button class="nav-btn" onclick={goToStart} disabled={!canGoBack} aria-label="Start">&#x23EE;</button>
-        <button class="nav-btn" onclick={goBack} disabled={!canGoBack} aria-label="Back">&#x25C0;</button>
-        <button class="nav-btn" onclick={goForward} disabled={!canGoForward} aria-label="Forward">&#x25B6;</button>
-        <button class="nav-btn" onclick={goToEnd} disabled={!canGoForward} aria-label="End">&#x23ED;</button>
-      </div>
-
-      {#if currentComment}
-        <p class="comment-text">{currentComment}</p>
-      {/if}
-
-      <div class="move-list">
-        <div class="move-grid">
+{#snippet moveGrid()}
+  <div class="move-list">
+    <div class="move-grid">
       {#each movePairs as pair}
         <span class="move-num">{pair.num}.</span>
         {#if pair.white}
@@ -310,11 +302,55 @@
       {/each}
     </div>
   </div>
+{/snippet}
+
+{#if noBoard}
+  <div class="panel-only">
+    {@render navControls()}
+    {#if currentComment}
+      <p class="comment-text">{currentComment}</p>
+    {/if}
+    {@render moveGrid()}
+  </div>
+{:else}
+  <div class="explorer">
+    <div class="explorer-layout">
+      <div class="board-area">
+        <Board
+          {board}
+          selectedSquare={null}
+          validMoves={[]}
+          targets={[]}
+          reachedTargets={[]}
+          dragValidMoves={[]}
+          onSquareClick={() => {}}
+          onDrop={() => {}}
+          onDragStart={() => {}}
+          onDragEnd={() => {}}
+          readOnly
+          arrows={currentArrows}
+        />
+      </div>
+
+      <div class="panel">
+        {@render navControls()}
+        {#if currentComment}
+          <p class="comment-text">{currentComment}</p>
+        {/if}
+        {@render moveGrid()}
+      </div>
     </div>
   </div>
-</div>
+{/if}
 
 <style>
+  .panel-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
   .explorer {
     width: 100%;
   }

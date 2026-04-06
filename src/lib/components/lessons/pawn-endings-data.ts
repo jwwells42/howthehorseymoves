@@ -213,7 +213,7 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'diagram',
     id: 'pe-trebuchet-01',
     title: 'The Trebuchet',
-    instruction: 'Each king attacks the other\'s pawn. The pawns block each other. Whoever moves first loses — this is called zugzwang!',
+    instruction: 'The squares next to each pawn are "mined" — if your king steps on one, the opponent captures your pawn and promotes! Recognize this pattern from far away.',
     fen: '8/8/3Kp3/4Pk2/8/8/8/8 w - - 0 1',
     keySquares: [],
   },
