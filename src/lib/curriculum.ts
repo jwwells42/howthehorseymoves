@@ -115,7 +115,6 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'vision-counting', name: 'Move Counting', desc: 'How many squares does this piece control?', icon: '/pieces/wQ.svg', href: '/vision/counting', progress: { type: 'localStorage', key: 'blindfold-counting-best-stars' } },
       { id: 'vision-reachability', name: 'Piece Reachability', desc: 'Can this piece reach that square? Yes or no!', icon: '/pieces/wN.svg', href: '/vision/reachability', progress: { type: 'localStorage', key: 'blindfold-reachability-best-stars' } },
       { id: 'vision-changed', name: 'What Changed?', desc: 'Memorize a position, then spot what moved.', icon: '/pieces/wR.svg', href: '/vision/changed', progress: { type: 'localStorage', key: 'blindfold-changed-best-stars' } },
-      { id: 'vision-landed', name: 'Where Did It Land?', desc: 'Follow opening moves mentally, then find a piece.', icon: '/pieces/wN.svg', href: '/vision/landed', progress: { type: 'localStorage', key: 'blindfold-landed-best-stars' } },
     ],
   },
 
@@ -124,6 +123,7 @@ export const CURRICULUM: CurriculumChapter[] = [
     id: 'the-destrier',
     title: 'Level 6: The Destrier',
     stops: [
+      { id: 'vision-landed', name: 'Where Did It Land?', desc: 'Follow opening moves mentally, then find a piece.', icon: '/pieces/wN.svg', href: '/vision/landed', progress: { type: 'localStorage', key: 'blindfold-landed-best-stars' } },
       { id: 'vision-flash', name: 'Flash Position', desc: 'Memorize a position, then place pieces from memory.', icon: '/pieces/wK.svg', href: '/vision/flash', progress: { type: 'localStorage', key: 'blindfold-flash-best-stars' } },
       { id: 'vision-piececount', name: 'Piece Count', desc: 'Flash a position — how many pieces of each type?', icon: '/pieces/wP.svg', href: '/vision/piececount', progress: { type: 'localStorage', key: 'blindfold-piececount-best-stars' } },
       { id: 'vision-knight-routes', name: 'Knight Routes', desc: 'Find a knight path between two squares — no board!', icon: '/pieces/wN.svg', href: '/vision/knight-routes', progress: { type: 'none' } },
@@ -132,7 +132,6 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'vision-gauntlet', name: 'Knight Gauntlet', desc: 'Navigate the knight without stepping on attacked squares!', icon: '/pieces/wN.svg', href: '/vision/gauntlet', progress: { type: 'none' } },
       { id: 'game-immortal', name: 'The Immortal Game', desc: 'Anderssen sacrifices everything — both rooks, a bishop, and his queen.', icon: '/pieces/wB.svg', href: '/games/immortal', progress: { type: 'none' } },
       { id: 'game-rubinstein', name: "Rubinstein's Immortal", desc: 'A devastating queen sacrifice where Black\'s pieces swarm the king.', icon: '/pieces/bQ.svg', href: '/games/rubinstein-immortal', progress: { type: 'none' } },
-      { id: 'game-gold-coins', name: 'Gold Coins Game', desc: 'Marshall\'s stunning final move supposedly made spectators throw gold coins.', icon: '/pieces/bQ.svg', href: '/games/gold-coins', progress: { type: 'none' } },
     ],
   },
 
@@ -141,6 +140,7 @@ export const CURRICULUM: CurriculumChapter[] = [
     id: 'the-stallion',
     title: 'Level 7: The Stallion',
     stops: [
+      { id: 'game-gold-coins', name: 'Gold Coins Game', desc: 'Marshall\'s stunning final move supposedly made spectators throw gold coins.', icon: '/pieces/bQ.svg', href: '/games/gold-coins', progress: { type: 'none' } },
       { id: 'game-century', name: 'Game of the Century', desc: '13-year-old Fischer sacrifices his queen and delivers a brilliant attack.', icon: '/pieces/bN.svg', href: '/games/game-of-century', progress: { type: 'none' } },
       { id: 'game-capablanca', name: 'Capablanca vs Bernstein', desc: 'Precise maneuvering leads to a winning combination.', icon: '/pieces/wN.svg', href: '/games/capablanca-bernstein', progress: { type: 'none' } },
       { id: 'endings-kbbk', name: 'Two Bishops vs King', desc: 'Deliver checkmate with King + 2 Bishops.', icon: '/pieces/wB.svg', href: '/learn/endings-kbbk', progress: { type: 'localStorage', key: 'endings-kbbk-best-stars' } },
@@ -149,15 +149,15 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'vision-relative', name: 'Relative Position', desc: 'Which direction is the second square from the first?', icon: '/pieces/wP.svg', href: '/vision/relative', progress: { type: 'localStorage', key: 'blindfold-relative-best-stars' } },
       { id: 'vision-blindtactics', name: 'Blind Tactics', desc: 'See a position, then find checkmate blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/blindtactics', progress: { type: 'localStorage', key: 'blindfold-blindtactics-best-stars' } },
       { id: 'vision-puzzle', name: 'Blindfold Puzzles', desc: 'Pieces are invisible — solve from a text description!', icon: '/pieces/wK.svg', href: '/vision/puzzle', progress: { type: 'localStorage', key: 'blindfold-puzzle-best-stars' } },
-      { id: 'vision-guarding', name: "Who's Guarding?", desc: 'Track piece interactions as they move — blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/guarding', progress: { type: 'localStorage', key: 'blindfold-guarding-best-stars' } },
     ],
   },
 
-  // ── Level 8: The Charger (6 — more coming) ─
+  // ── Level 8: The Charger (7 — more coming) ─
   {
     id: 'the-charger',
     title: 'Level 8: The Charger',
     stops: [
+      { id: 'vision-guarding', name: "Who's Guarding?", desc: 'Track piece interactions as they move — blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/guarding', progress: { type: 'localStorage', key: 'blindfold-guarding-best-stars' } },
       { id: 'endings-kpk-draw', name: 'KPK: Defend', desc: 'Hold the draw with opposition against perfect play.', icon: '/pieces/bK.svg', href: '/learn/endings-kpk-draw', progress: { type: 'localStorage', key: 'draw-kpk-best-stars' } },
       { id: 'bf-mate-kqk', name: 'BF Mate: Q vs K', desc: 'Deliver checkmate blindfolded with King + Queen.', icon: '/pieces/wQ.svg', href: '/vision/mate-kqk', progress: { type: 'localStorage', key: 'blindfold-mate-kqk-best-stars' } },
       { id: 'bf-mate-krrk', name: 'BF Mate: RR vs K', desc: 'Deliver checkmate blindfolded with King + 2 Rooks.', icon: '/pieces/wR.svg', href: '/vision/mate-krrk', progress: { type: 'localStorage', key: 'blindfold-mate-krrk-best-stars' } },
