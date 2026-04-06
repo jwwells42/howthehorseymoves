@@ -58,19 +58,23 @@ No test framework is configured.
 - `board/SetupTrainer.svelte` — 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup. Each stage individually addressable via `/setup/[stage]`. Exports `SETUP_STAGES` via `<script module>`. Supports click-click and drag-from-tray. Stars based on mistakes: 0=3, 1-2=2, 3+=1. Per-stage localStorage: `setup-{slug}-best-stars`
 - `puzzle/PuzzleShell.svelte` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
 - `game/GameViewer.svelte` — PGN game viewer with path-based navigation (`currentPath: GameNode[]`), auto-play, keyboard nav (`<svelte:window>`), comments, arrows. Variations display inline in the move grid. "Pause at variations" toggle stops auto-play at branch points. Test mode uses `extractMainLine()` for flat main-line-only memorization
+- `game/PgnExplorer.svelte` — Lightweight PGN explorer for embedding annotated move trees. Takes `pgn` + optional `fen` props, renders board + clickable move grid with variations, comments, and keyboard nav. Used by PawnEndingsLesson to show post-quiz analysis. Reuses `parseGamePgn()` tree + same move-grid visual pattern as GameViewer but without test/autoplay/explore modes
 - `game/GameShell.svelte` — Play vs Computer wrapper, accepts `botLevel` prop
 - `opening/OpeningTrainer.svelte` — Opening repertoire trainer with learn/practice phases
 - `endgame/EndgameShell.svelte` — KPK bitbase trainer (`src/lib/logic/kpk-bitbase.ts`: 24KB retrograde analysis). Bot plays perfect defense via bitbase; validates student moves must maintain winning evaluation. Win condition: pawn reaches rank 8. Stars: 0 mistakes=3, 1=2, 2+=1
 - `endgame/MateTrainer.svelte` — Mate conversion trainer (KQK, KRRK, KRK, KBBK, KBNK)
-- `endgame/DrawTrainer.svelte` — "Hold the draw" trainer. Student plays Black (defender), bot plays White (attacker). Bot uses simple evaluation (pawn advancement, captures, centralization). Win = draw achieved (stalemate, threefold repetition, 50-move rule). Lose = checkmate or clean promotion (bot promotes and student can't capture). Uses `boardToKey()` for threefold detection
+- `endgame/DrawTrainer.svelte` — "Hold the draw" trainer. Student plays Black (defender), bot plays White (attacker). Supports `botStrategy` prop: `'heuristic'` (default, simple evaluation) or `'bitbase-kpk'` (perfect play via KPK bitbase). Win = draw achieved (stalemate, threefold repetition, 50-move rule). Lose = checkmate or clean promotion. Uses `boardToKey()` for threefold detection. Optional `onNext` callback for lesson flow integration
+- `lessons/PawnEndingsLesson.svelte` + `pawn-endings-data.ts` — Multi-step pawn endings lesson with 3 step types: `DiagramStep` (static board + key squares/arrows), `QuizStep` (animate intro, ask "what will be the result?", animate proof), `TrainerStep` (inline EndgameShell or DrawTrainer). QuizStep supports optional `annotatedPgn` field — when present, an "Explore" button after the result toggles a PgnExplorer with variations and comments. Sections: Rule of the Square, Key Squares, Opposition, Outside Passed Pawn, Breakthrough, Trebuchet, Guard the Entry, Play It Out (KPK Convert + Defend)
 - `lessons/HowToWinLesson.svelte` + `how-to-win-data.ts` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
+- `nav/NavBar.svelte` — Sticky top nav with sections: Learn, Tactics, Checkmates, Endings, Play, Vision. Responsive title (text on wide screens, favicon on narrow via CSS media query at 640px). `isActive()` logic: each hub claims its routes, Learn catches the rest
 - `blindfold/` — 20 blindfold/visualization components (24 trainers total — BlindfoldMate handles 5 endgame types), all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, KnightSquares, RelativePosition, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
 
 ### Routing (`src/routes/`)
-- `/` — Landing page with four sections: **Basics**, **Practice**, **Study**, **Vision**
-- `/practice` — Practice hub (checkmate, tactics, endings, advanced endings)
-- `/study` — Study hub (openings, model games, puzzle creator)
-- `/vision` — Vision hub (24 blindfold/visualization trainers)
+- `/` — Landing page with curriculum path
+- `/tactics` — Tactics hub (pins, forks, skewers, etc.)
+- `/checkmates` — Checkmate patterns hub
+- `/endings` — Endings hub (basic + advanced endings, pawn endings lesson, KPK defend)
+- `/vision` — Vision hub (25 blindfold/visualization trainers, including coordinate trainer)
 - `/learn/[piece]` — Puzzle list, category hub, endgame trainers, blindfold trainers, How to Win hub/sections
 - `/learn/[piece]/[puzzleId]` — Individual puzzle or How to Win lesson step
 - `/board` — Board hub; `/board/coordinates` — Coordinate trainer
@@ -84,11 +88,12 @@ No test framework is configured.
 ### Lichess Puzzles (`src/lib/puzzles/lichess-*.ts`)
 - Practice puzzles sourced from the Lichess puzzle database (CC0 public domain)
 - Generated by `scripts/filter-lichess.py` from the full 5.8M puzzle CSV
-- Filtered by: rating < 1200, white-to-move only, low piece count, same piece type across all player moves
-- 7 generated files: `lichess-mate1.ts`, `lichess-mate2.ts`, `lichess-forks.ts`, `lichess-skewers.ts`, `lichess-pins.ts`, `lichess-removing-defender.ts`, `lichess-discovered.ts`
+- Filtered by: rating < 1200 (1400 for pawn endings), white-to-move only, low piece count, same piece type across all player moves (except pawnEndgame which allows mixed K+P)
+- 8 generated files: `lichess-mate1.ts`, `lichess-mate2.ts`, `lichess-forks.ts`, `lichess-skewers.ts`, `lichess-pins.ts`, `lichess-removing-defender.ts`, `lichess-discovered.ts`, `lichess-pawn-endings.ts`
+- `pawnEndgame` category filters for positions with only kings and pawns on the board (`pawns_only` flag)
 - Integrated into the standard puzzle system via `PuzzleShell` — no separate trainer component
 - Lichess pins are appended after hand-authored pin puzzles in the same puzzle set
-- To regenerate: download `lichess_db_puzzle.csv.zst` from database.lichess.org, decompress, run the script with python-chess in a venv
+- To regenerate: download `lichess_db_puzzle.csv.zst` from database.lichess.org, decompress to `data/lichess_db_puzzle.csv` (gitignored), run `python3 scripts/filter-lichess.py data/lichess_db_puzzle.csv` with python-chess in a venv
 
 ## Deployment
 
@@ -180,6 +185,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - Do NOT try to programmatically verify checkmate positions — push and let the user test in-browser
 - Claude generates PGNs from memory and they often contain errors (wrong moves mid-game). Always flag generated PGNs as needing user verification. Major chess databases (chessgames.com, Wikipedia, 365chess) block WebFetch (403), but smaller sites may work. If a PGN fails parsing, diagnose the exact failing move and let the user fix it rather than burning tokens on speculative web searches
 - PGN annotations: `{comments}`, NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`). Lichess color convention: G=green, R=red, Y=yellow, B=blue
+- When adding new components, routes, or significant features, update the relevant sections of this CLAUDE.md file so future conversations don't need to re-read code to discover what exists
 
 ## Puzzle Authoring Notes
 
