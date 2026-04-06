@@ -20,7 +20,7 @@ export interface QuizStep {
   instruction: string;
   startFen: string;
   introMoves: string[];
-  answer: 'white' | 'draw';
+  answer: 'white' | 'draw' | 'black';
   proofMoves: string[];
   endState: 'promotion' | 'stalemate';
   annotatedPgn?: string;
@@ -213,7 +213,7 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'diagram',
     id: 'pe-trebuchet-01',
     title: 'The Trebuchet',
-    instruction: 'The squares next to each pawn are "mined" — if your king steps on one, the opponent captures your pawn and promotes! Recognize this pattern from far away.',
+    instruction: 'Each king guards its own pawn. The pawns block each other. Any king move abandons a pawn — so whoever moves first loses it! This is called a trebuchet.',
     fen: '8/8/3Kp3/4Pk2/8/8/8/8 w - - 0 1',
     keySquares: [],
   },
@@ -221,10 +221,10 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'quiz',
     id: 'pe-trebuchet-02',
     title: 'Trebuchet: White Moves',
-    instruction: 'It\'s White\'s turn.',
+    instruction: 'It\'s White\'s turn. White must move the king.',
     startFen: '8/8/3Kp3/4Pk2/8/8/8/8 w - - 0 1',
     introMoves: [],
-    answer: 'draw',
+    answer: 'black',
     // NOTE: proof moves need user verification in-browser
     // White must move king, Black captures e5 and promotes
     proofMoves: ['Ke7', 'Kxe5', 'Kd8', 'Kd6', 'Ke8', 'e5', 'Kf7', 'e4', 'Kf6', 'e3', 'Kf5', 'e2', 'Kf4', 'e1=Q'],
@@ -267,6 +267,30 @@ export const pawnEndingSteps: LessonStep[] = [
       { piece: 'K', color: 'w', square: 'd6' },
       { piece: 'P', color: 'w', square: 'd4' },
       { piece: 'K', color: 'b', square: 'd8' },
+    ],
+  },
+  {
+    type: 'trainer',
+    id: 'pe-kpk-convert-2',
+    title: 'KPK: Long March',
+    instruction: 'The pawn is far back. Use your king to escort it!',
+    trainerType: 'endgame',
+    placements: [
+      { piece: 'K', color: 'w', square: 'e3' },
+      { piece: 'P', color: 'w', square: 'e2' },
+      { piece: 'K', color: 'b', square: 'e7' },
+    ],
+  },
+  {
+    type: 'trainer',
+    id: 'pe-kpk-convert-3',
+    title: 'KPK: Key Squares',
+    instruction: 'The king is far from the pawn. Find the key squares!',
+    trainerType: 'endgame',
+    placements: [
+      { piece: 'K', color: 'w', square: 'd1' },
+      { piece: 'P', color: 'w', square: 'b4' },
+      { piece: 'K', color: 'b', square: 'f8' },
     ],
   },
   {
