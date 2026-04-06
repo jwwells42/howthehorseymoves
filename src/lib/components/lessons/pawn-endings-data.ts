@@ -153,12 +153,12 @@ export const pawnEndingSteps: LessonStep[] = [
     type: 'quiz',
     id: 'pe-opposition-02',
     title: 'White Must Move',
-    instruction: 'Same position — but now it\'s White\'s turn. White tries Ke5, and Black responds Ke7. What will be the result?',
-    startFen: '8/3k4/8/3K4/3P4/8/8/8 w - - 0 1',
-    introMoves: ['Ke5', 'Ke7'],
+    instruction: 'Black plays Kd7 — the kings face each other and it\'s White\'s turn. What will be the result?',
+    startFen: '8/4k3/8/3K4/3P4/8/8/8 b - - 0 1',
+    introMoves: ['Kd7'],
     answer: 'draw',
     // NOTE: proof moves need user verification in-browser
-    proofMoves: ['d5', 'Kd7', 'd6', 'Kd8', 'Ke6', 'Ke8', 'd7+', 'Kd8', 'Kd6'],
+    proofMoves: ['Ke5', 'Ke7', 'd5', 'Kd7', 'd6', 'Kd8', 'Ke6', 'Ke8', 'd7+', 'Kd8', 'Kd6'],
     endState: 'stalemate',
   },
 

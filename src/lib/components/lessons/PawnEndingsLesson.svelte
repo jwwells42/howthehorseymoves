@@ -38,11 +38,13 @@
   let diagramArrows = $state<Arrow[] | undefined>(undefined);
 
   let stars = $derived(mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
+  let skipped = $state(false);
 
   function initStep(s: LessonStep) {
     opponentSlide = null;
     wrongAnswer = null;
     mistakes = 0;
+    skipped = false;
 
     if (s.type === 'diagram') {
       const parsed = parseFen(s.fen);
@@ -120,24 +122,44 @@
     }
   }
 
+  function skipToResult() {
+    if (step.type !== 'quiz') return;
+    skipped = true;
+    // Apply all remaining proof moves instantly
+    for (const san of step.proofMoves) {
+      const parsed = parseSan(san, board, sideToMove);
+      if (!parsed) break;
+      board = applyMove(board, parsed.from, parsed.to, parsed.promotion);
+      sideToMove = sideToMove === 'w' ? 'b' : 'w';
+    }
+    opponentSlide = null;
+    playSound('stars');
+    phase = 'result';
+    saveStepStars();
+  }
+
   async function animateProof() {
     if (step.type !== 'quiz') return;
     for (const san of step.proofMoves) {
+      if (skipped) return;
       await new Promise(r => setTimeout(r, 600));
+      if (skipped) return;
       await animateMove(san);
     }
+    if (skipped) return;
     await new Promise(r => setTimeout(r, 300));
     playSound('stars');
     phase = 'result';
+    saveStepStars();
+  }
 
-    // Save per-step stars
+  function saveStepStars() {
+    if (step.type !== 'quiz') return;
     const key = stepStorageKey(step.id);
     const existing = parseInt(localStorage.getItem(key) ?? '0', 10);
     if (stars > existing) {
       localStorage.setItem(key, String(stars));
     }
-
-    // Also update overall lesson stars (min of all quiz steps completed)
     updateOverallStars();
   }
 
@@ -260,6 +282,7 @@
 
   {#if phase === 'animating'}
     <p class="animating-text">Watch the continuation...</p>
+    <button class="btn-secondary skip-btn" onclick={skipToResult}>Skip</button>
   {/if}
 
   {#if phase === 'result'}
@@ -419,6 +442,11 @@
   .animating-text {
     color: var(--text-muted);
     font-style: italic;
+    margin-bottom: 0;
+  }
+  .skip-btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 1rem;
   }
 
   /* Result area */

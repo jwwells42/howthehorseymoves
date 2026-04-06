@@ -7,31 +7,36 @@
 
   const SECTIONS = [
     { label: 'Learn', href: '/' },
-    { label: 'Practice', href: '/practice' },
-    { label: 'Study', href: '/study' },
+    { label: 'Tactics', href: '/tactics' },
+    { label: 'Checkmates', href: '/checkmates' },
+    { label: 'Endings', href: '/endings' },
+    { label: 'Play', href: '/play' },
     { label: 'Vision', href: '/vision' },
   ] as const;
 
   function isActive(section: typeof SECTIONS[number]): boolean {
     switch (section.label) {
-      case 'Learn':
-        return path === '/'
-          || path.startsWith('/learn/rook') || path.startsWith('/learn/bishop')
-          || path.startsWith('/learn/queen') || path.startsWith('/learn/king')
-          || path.startsWith('/learn/knight') || path.startsWith('/learn/pawn')
-          || path.startsWith('/learn/danger') || path.startsWith('/learn/how-to-win')
-          || path.startsWith('/board') || path.startsWith('/setup')
-          || path.startsWith('/play');
-      case 'Practice':
-        return path === '/practice'
-          || path.startsWith('/learn/checkmate') || path.startsWith('/learn/tactics')
-          || path.startsWith('/learn/endings');
-      case 'Study':
-        return path === '/study'
-          || path.startsWith('/openings') || path.startsWith('/games')
-          || path.startsWith('/editor');
+      case 'Tactics':
+        return path === '/tactics' || path.startsWith('/learn/tactics');
+      case 'Checkmates':
+        return path === '/checkmates' || path.startsWith('/learn/checkmate');
+      case 'Endings':
+        return path === '/endings'
+          || path.startsWith('/learn/endings')
+          || path.startsWith('/learn/pawn-endings');
+      case 'Play':
+        return path.startsWith('/play');
       case 'Vision':
         return path.startsWith('/vision');
+      case 'Learn':
+        // Learn catches everything not claimed by another hub
+        if (path === '/') return true;
+        for (const s of SECTIONS) {
+          if (s.label !== 'Learn' && isActive(s)) return false;
+        }
+        return path.startsWith('/learn') || path.startsWith('/board')
+          || path.startsWith('/setup') || path.startsWith('/openings')
+          || path.startsWith('/games');
       default:
         return false;
     }
@@ -39,7 +44,10 @@
 </script>
 
 <nav class="navbar" aria-label="Main navigation">
-  <a href="/" class="site-title">How The Horsey Moves</a>
+  <a href="/" class="site-title">
+    <img src="/favicon.svg" alt="Home" class="site-icon" />
+    <span class="site-text">How The Horsey Moves</span>
+  </a>
   <div class="nav-links">
     {#each SECTIONS as section}
       <a
@@ -91,6 +99,17 @@
     white-space: nowrap;
     color: var(--foreground);
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .site-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .site-text { display: none; }
+    .site-icon { display: block; }
   }
   .nav-links {
     display: flex;
