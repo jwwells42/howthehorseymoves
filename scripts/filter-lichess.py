@@ -93,6 +93,18 @@ CATEGORIES = {
         "max_puzzles": 15,
         "max_rating": 1200,
     },
+    "pawnEndgame": {
+        "filename": "lichess-pawn-endings.ts",
+        "export_name": "lichessPawnEndingPuzzles",
+        "id_prefix": "lichess-pe",
+        "piece": None,  # allow mixed K+P moves
+        "mode": None,
+        "title_prefix": "Pawn Ending",
+        "instruction": "Find the winning plan!",
+        "max_puzzles": 20,
+        "max_rating": 1400,
+        "pawns_only": True,  # custom flag: only kings+pawns on board
+    },
 }
 
 
@@ -100,6 +112,15 @@ def count_pieces(fen: str) -> int:
     """Count total pieces on the board from FEN."""
     board_part = fen.split()[0]
     return sum(1 for c in board_part if c.isalpha())
+
+
+def is_pawns_only(fen: str) -> bool:
+    """Check if only kings and pawns are on the board."""
+    board_part = fen.split()[0]
+    for c in board_part:
+        if c.isalpha() and c.lower() not in ('k', 'p', '/'):
+            return False
+    return True
 
 
 def square_to_id(sq: int) -> str:
@@ -170,11 +191,14 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
             if piece_letter is None:
                 return None
 
-            if player_piece_type is None:
-                player_piece_type = piece_letter
-            elif piece_letter != player_piece_type:
-                # Different piece types across player moves — skip this puzzle
-                return None
+            if config["piece"] is not None:
+                if player_piece_type is None:
+                    player_piece_type = piece_letter
+                elif piece_letter != player_piece_type:
+                    # Different piece types across player moves — skip this puzzle
+                    return None
+            else:
+                player_piece_type = player_piece_type or piece_letter
 
             solution.append(to_sq)
         else:
@@ -301,6 +325,8 @@ def main():
                 if theme not in themes:
                     continue
                 if rating > config["max_rating"]:
+                    continue
+                if config.get("pawns_only") and not is_pawns_only(fen):
                     continue
 
                 candidates[theme].append({

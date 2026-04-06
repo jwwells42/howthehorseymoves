@@ -8,6 +8,7 @@
     description: string;
     icon: string;
     storageKey: string | null;
+    href?: string;
   }
 
   interface TrainerGroup {
@@ -19,6 +20,7 @@
     {
       title: 'Square Knowledge',
       trainers: [
+        { key: 'coordinates', name: 'Name the Square', description: 'Click the named square before time runs out!', icon: '/pieces/wK.svg', storageKey: 'coord-best-stars', href: '/board/coordinates' },
         { key: 'blindfold-color', name: 'Color of Square', description: 'Dark or light? Identify the color from the name.', icon: '/pieces/wP.svg', storageKey: 'blindfold-color-best-stars' },
         { key: 'blindfold-diagonals', name: 'Same Diagonal?', description: 'Are these two squares on the same diagonal?', icon: '/pieces/wB.svg', storageKey: 'blindfold-diagonal-best-stars' },
         { key: 'blindfold-rankfile', name: 'Same Rank or File?', description: 'Do these two squares share a rank or file?', icon: '/pieces/wR.svg', storageKey: 'blindfold-rankfile-best-stars' },
@@ -95,7 +97,7 @@
     <h2 class="group-title">{group.title}</h2>
     <div class="trainer-list">
       {#each group.trainers as trainer}
-        <a href="/vision/{trainer.key.replace('blindfold-', '')}" class="trainer-item">
+        <a href={trainer.href ?? `/vision/${trainer.key.replace('blindfold-', '')}`} class="trainer-item">
           <div class="trainer-left">
             <img src={trainer.icon} alt={trainer.name} class="trainer-icon" />
             <div>
