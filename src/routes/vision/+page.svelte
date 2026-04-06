@@ -25,7 +25,6 @@
         { key: 'blindfold-diagonals', name: 'Same Diagonal?', description: 'Are these two squares on the same diagonal?', icon: '/pieces/wB.svg', storageKey: 'blindfold-diagonal-best-stars' },
         { key: 'blindfold-rankfile', name: 'Same Rank or File?', description: 'Do these two squares share a rank or file?', icon: '/pieces/wR.svg', storageKey: 'blindfold-rankfile-best-stars' },
 { key: 'blindfold-knightsquares', name: 'Knight Squares', description: 'Name every square a knight can reach from a given square.', icon: '/pieces/wN.svg', storageKey: 'blindfold-knightsquares-best-stars' },
-        { key: 'blindfold-relative', name: 'Relative Position', description: 'Which direction is the second square from the first?', icon: '/pieces/wP.svg', storageKey: 'blindfold-relative-best-stars' },
       ],
     },
     {
@@ -36,6 +35,7 @@
         { key: 'blindfold-bishop-routes', name: 'Bishop Routes', description: 'Find a bishop path — or spot when it\'s impossible!', icon: '/pieces/wB.svg', storageKey: null },
         { key: 'blindfold-reachability', name: 'Piece Reachability', description: 'Can this piece reach that square? Yes or no!', icon: '/pieces/wN.svg', storageKey: 'blindfold-reachability-best-stars' },
         { key: 'blindfold-rookmaze', name: 'Rook Maze', description: 'Navigate a rook around obstacles — no board!', icon: '/pieces/wR.svg', storageKey: null },
+        { key: 'blindfold-gauntlet', name: 'Knight Gauntlet', description: 'Navigate the knight without stepping on queen-attacked squares!', icon: '/pieces/wN.svg', storageKey: null },
       ],
     },
     {
@@ -45,7 +45,6 @@
         { key: 'blindfold-landed', name: 'Where Did It Land?', description: 'Follow opening moves mentally, then find a piece.', icon: '/pieces/wN.svg', storageKey: 'blindfold-landed-best-stars' },
         { key: 'blindfold-flash', name: 'Flash Position', description: 'Memorize a position, then place the pieces from memory.', icon: '/pieces/wK.svg', storageKey: 'blindfold-flash-best-stars' },
         { key: 'blindfold-piececount', name: 'Piece Count', description: 'Flash a position — how many pieces of each type?', icon: '/pieces/wP.svg', storageKey: 'blindfold-piececount-best-stars' },
-        { key: 'blindfold-gauntlet', name: 'Knight Gauntlet', description: 'Navigate the knight without stepping on queen-attacked squares!', icon: '/pieces/wN.svg', storageKey: null },
       ],
     },
     {

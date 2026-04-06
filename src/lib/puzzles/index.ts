@@ -142,6 +142,7 @@ export const CATEGORIES: CategoryInfo[] = [
     subcategories: [
       { key: "endings-kpk", name: "King + Pawn vs King", description: "Promote the pawn against perfect defense.", icon: "/pieces/wP.svg" },
       { key: "endings-kqk", name: "Queen vs King", description: "Deliver checkmate with King + Queen.", icon: "/pieces/wQ.svg" },
+      { key: "endings-krrk", name: "Rook Ladder", description: "Deliver checkmate with King + 2 Rooks.", icon: "/pieces/wR.svg" },
       { key: "endings-krk", name: "Rook vs King", description: "Deliver checkmate with King + Rook.", icon: "/pieces/wR.svg" },
     ],
   },
@@ -175,7 +176,6 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "blindfold-reachability", name: "Piece Reachability", description: "Can this piece reach that square? Yes or no!", icon: "/pieces/wN.svg" },
       { key: "blindfold-neighbors", name: "Neighbor Squares", description: "Name all squares adjacent to a given square.", icon: "/pieces/wK.svg" },
       { key: "blindfold-knightsquares", name: "Knight Squares", description: "Name every square a knight can reach from a given square.", icon: "/pieces/wN.svg" },
-      { key: "blindfold-relative", name: "Relative Position", description: "Which direction is the second square from the first?", icon: "/pieces/wP.svg" },
       { key: "blindfold-changed", name: "What Changed?", description: "Memorize a position, then spot what moved.", icon: "/pieces/wR.svg" },
       { key: "blindfold-landed", name: "Where Did It Land?", description: "Follow opening moves mentally, then find a piece.", icon: "/pieces/wN.svg" },
       { key: "blindfold-flash", name: "Flash Position", description: "Memorize a position, then place the pieces from memory.", icon: "/pieces/wK.svg" },

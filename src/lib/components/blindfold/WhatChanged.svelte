@@ -23,10 +23,11 @@
     answer: string;
   }
 
-  const PIECE_POOL: { piece: PieceKind; color: PieceColor }[] = [
-    { piece: 'K', color: 'w' }, { piece: 'Q', color: 'w' }, { piece: 'R', color: 'w' },
+  // Pieces available beyond the two kings (no extra kings)
+  const EXTRA_POOL: { piece: PieceKind; color: PieceColor }[] = [
+    { piece: 'Q', color: 'w' }, { piece: 'R', color: 'w' },
     { piece: 'B', color: 'w' }, { piece: 'N', color: 'w' }, { piece: 'P', color: 'w' },
-    { piece: 'K', color: 'b' }, { piece: 'Q', color: 'b' }, { piece: 'R', color: 'b' },
+    { piece: 'Q', color: 'b' }, { piece: 'R', color: 'b' },
     { piece: 'B', color: 'b' }, { piece: 'N', color: 'b' }, { piece: 'P', color: 'b' },
   ];
 
@@ -36,34 +37,137 @@
     return String.fromCharCode(97 + f) + (r + 1);
   }
 
-  function generateChallenge(numPieces: number): Challenge {
-    const usedSquares = new Set<string>();
-    const placements: PiecePlacement[] = [];
+  /** Random square avoiding ranks 1 and 8 (for pawns) */
+  function randomPawnSquare(): string {
+    const f = Math.floor(Math.random() * 8);
+    const r = 1 + Math.floor(Math.random() * 6); // ranks 2-7
+    return String.fromCharCode(97 + f) + (r + 1);
+  }
 
-    for (let i = 0; i < numPieces; i++) {
-      let sq: string;
-      do { sq = randomSquare(); } while (usedSquares.has(sq));
-      usedSquares.add(sq);
-      const p = PIECE_POOL[Math.floor(Math.random() * PIECE_POOL.length)];
-      placements.push({ ...p, square: sq });
+  /** Get squares reachable by piece type from a given square (ignoring obstacles) */
+  function getReachableSquares(piece: PieceKind, color: PieceColor, sq: string, occupied: Set<string>): string[] {
+    const f = sq.charCodeAt(0) - 97;
+    const r = parseInt(sq[1]) - 1;
+    const results: string[] = [];
+
+    function addIfValid(df: number, dr: number) {
+      const nf = f + df, nr = r + dr;
+      if (nf >= 0 && nf < 8 && nr >= 0 && nr < 8) {
+        const s = String.fromCharCode(97 + nf) + (nr + 1);
+        if (!occupied.has(s)) {
+          // Pawns can't land on rank 1 or 8
+          if (piece === 'P' && (nr === 0 || nr === 7)) return;
+          results.push(s);
+        }
+      }
     }
 
-    const moveIdx = Math.floor(Math.random() * placements.length);
-    const movedPiece = placements[moveIdx];
-    let newSq: string;
-    do { newSq = randomSquare(); } while (usedSquares.has(newSq));
+    function addSlide(df: number, dr: number) {
+      for (let d = 1; d < 8; d++) {
+        const nf = f + df * d, nr = r + dr * d;
+        if (nf < 0 || nf >= 8 || nr < 0 || nr >= 8) break;
+        const s = String.fromCharCode(97 + nf) + (nr + 1);
+        if (occupied.has(s)) break;
+        results.push(s);
+      }
+    }
 
-    const after = placements.map((p, i) =>
-      i === moveIdx ? { ...p, square: newSq } : { ...p }
-    );
+    switch (piece) {
+      case 'K':
+        for (let df = -1; df <= 1; df++)
+          for (let dr = -1; dr <= 1; dr++)
+            if (df || dr) addIfValid(df, dr);
+        break;
+      case 'N':
+        for (const [df, dr] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]])
+          addIfValid(df, dr);
+        break;
+      case 'R':
+        addSlide(1,0); addSlide(-1,0); addSlide(0,1); addSlide(0,-1);
+        break;
+      case 'B':
+        addSlide(1,1); addSlide(1,-1); addSlide(-1,1); addSlide(-1,-1);
+        break;
+      case 'Q':
+        addSlide(1,0); addSlide(-1,0); addSlide(0,1); addSlide(0,-1);
+        addSlide(1,1); addSlide(1,-1); addSlide(-1,1); addSlide(-1,-1);
+        break;
+      case 'P': {
+        const dir = color === 'w' ? 1 : -1;
+        addIfValid(0, dir);
+        break;
+      }
+    }
+    return results;
+  }
 
-    const colorName = movedPiece.color === 'w' ? 'White' : 'Black';
+  function generateChallenge(numPieces: number): Challenge {
+    // Retry until we get a position where at least one piece can move
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const usedSquares = new Set<string>();
+      const placements: PiecePlacement[] = [];
+
+      // Always place one white king and one black king
+      for (const color of ['w', 'b'] as PieceColor[]) {
+        let sq: string;
+        do { sq = randomSquare(); } while (usedSquares.has(sq));
+        usedSquares.add(sq);
+        placements.push({ piece: 'K', color, square: sq });
+      }
+
+      // Fill remaining slots with random non-king pieces
+      for (let i = 2; i < numPieces; i++) {
+        const p = EXTRA_POOL[Math.floor(Math.random() * EXTRA_POOL.length)];
+        let sq: string;
+        if (p.piece === 'P') {
+          do { sq = randomPawnSquare(); } while (usedSquares.has(sq));
+        } else {
+          do { sq = randomSquare(); } while (usedSquares.has(sq));
+        }
+        usedSquares.add(sq);
+        placements.push({ ...p, square: sq });
+      }
+
+      // Try to find a piece that can make a legal move
+      const indices = [...Array(placements.length).keys()];
+      // Shuffle so we don't always pick the first moveable piece
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+
+      for (const moveIdx of indices) {
+        const movedPiece = placements[moveIdx];
+        const reachable = getReachableSquares(movedPiece.piece, movedPiece.color, movedPiece.square, usedSquares);
+        if (reachable.length === 0) continue;
+
+        const newSq = reachable[Math.floor(Math.random() * reachable.length)];
+        const after = placements.map((p, i) =>
+          i === moveIdx ? { ...p, square: newSq } : { ...p }
+        );
+
+        const colorName = movedPiece.color === 'w' ? 'White' : 'Black';
+        return {
+          before: placements,
+          after,
+          movedPiece,
+          movedTo: newSq,
+          answer: `${colorName} ${movedPiece.piece} ${movedPiece.square} \u2192 ${newSq}`,
+        };
+      }
+    }
+
+    // Fallback (should never happen): simple king move
+    const placements: PiecePlacement[] = [
+      { piece: 'K', color: 'w', square: 'e1' },
+      { piece: 'K', color: 'b', square: 'e8' },
+    ];
     return {
       before: placements,
-      after,
-      movedPiece,
-      movedTo: newSq,
-      answer: `${colorName} ${movedPiece.piece} ${movedPiece.square} \u2192 ${newSq}`,
+      after: [{ piece: 'K', color: 'w', square: 'e2' }, { piece: 'K', color: 'b', square: 'e8' }],
+      movedPiece: placements[0],
+      movedTo: 'e2',
+      answer: 'White K e1 \u2192 e2',
     };
   }
 

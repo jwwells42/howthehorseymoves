@@ -107,7 +107,7 @@ export const CURRICULUM: CurriculumChapter[] = [
     title: 'Level 5: The Galloper',
     stops: [
       { id: 'pawn-endings-practice', name: 'Pawn Ending Practice', desc: '20 pawn ending puzzles from Lichess — apply what you learned!', icon: '/pieces/wP.svg', href: '/learn/pawn-endings-practice', progress: { type: 'puzzle-set', key: 'pawn-endings-practice' } },
-      { id: 'endings-kpk', name: 'KPK: Convert', desc: 'Promote the pawn against perfect defense.', icon: '/pieces/wP.svg', href: '/learn/endings-kpk', progress: { type: 'none' } },
+      { id: 'play-basic', name: 'Play vs Basic Bot', desc: 'Test your skills against a bot that thinks one move ahead.', icon: '/pieces/wN.svg', href: '/play?level=basic', progress: { type: 'none' } },
       { id: 'vision-color', name: 'Color of Square', desc: 'Dark or light? Identify the color from the name.', icon: '/pieces/wP.svg', href: '/vision/color', progress: { type: 'localStorage', key: 'blindfold-color-best-stars' } },
       { id: 'vision-rankfile', name: 'Same Rank/File', desc: 'Do these two squares share a rank or file?', icon: '/pieces/wR.svg', href: '/vision/rankfile', progress: { type: 'localStorage', key: 'blindfold-rankfile-best-stars' } },
       { id: 'vision-diagonals', name: 'Same Diagonal', desc: 'Are these two squares on the same diagonal?', icon: '/pieces/wB.svg', href: '/vision/diagonals', progress: { type: 'localStorage', key: 'blindfold-diagonal-best-stars' } },
@@ -145,8 +145,8 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'endings-kbbk', name: 'Two Bishops vs King', desc: 'Deliver checkmate with King + 2 Bishops.', icon: '/pieces/wB.svg', href: '/learn/endings-kbbk', progress: { type: 'localStorage', key: 'endings-kbbk-best-stars' } },
       { id: 'endings-kbnk', name: 'Bishop + Knight', desc: 'Deliver checkmate with King + Bishop + Knight.', icon: '/pieces/wN.svg', href: '/learn/endings-kbnk', progress: { type: 'localStorage', key: 'endings-kbnk-best-stars' } },
       { id: 'vision-knightsquares', name: 'Knight Squares', desc: 'Name every square a knight can reach from a given square.', icon: '/pieces/wN.svg', href: '/vision/knightsquares', progress: { type: 'localStorage', key: 'blindfold-knightsquares-best-stars' } },
-      { id: 'vision-relative', name: 'Relative Position', desc: 'Which direction is the second square from the first?', icon: '/pieces/wP.svg', href: '/vision/relative', progress: { type: 'localStorage', key: 'blindfold-relative-best-stars' } },
       { id: 'vision-blindtactics', name: 'Blind Tactics', desc: 'See a position, then find checkmate blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/blindtactics', progress: { type: 'localStorage', key: 'blindfold-blindtactics-best-stars' } },
+      { id: 'play-intermediate', name: 'Play vs Intermediate Bot', desc: 'A tougher opponent that looks two moves ahead.', icon: '/pieces/bN.svg', href: '/play?level=intermediate', progress: { type: 'none' } },
       { id: 'vision-puzzle', name: 'Blindfold Puzzles', desc: 'Pieces are invisible — solve from a text description!', icon: '/pieces/wK.svg', href: '/vision/puzzle', progress: { type: 'localStorage', key: 'blindfold-puzzle-best-stars' } },
       { id: 'vision-guarding', name: "Who's Guarding?", desc: 'Track piece interactions as they move — blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/guarding', progress: { type: 'localStorage', key: 'blindfold-guarding-best-stars' } },
     ],
