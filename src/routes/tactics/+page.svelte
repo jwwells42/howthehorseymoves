@@ -3,7 +3,8 @@
   import { CATEGORIES, getPuzzlesForPiece } from '$lib/puzzles';
   import { progressState, getPuzzleProgress } from '$lib/state/progress-store';
 
-  let cat = $derived(CATEGORIES.find(c => c.key === 'tactics')!);
+  let tacticsCat = $derived(CATEGORIES.find(c => c.key === 'tactics')!);
+  let checkmateCat = $derived(CATEGORIES.find(c => c.key === 'checkmate')!);
 
   function getSubStats(subKey: string) {
     const puzzleSet = getPuzzlesForPiece(subKey);
@@ -29,8 +30,44 @@
   <h1>Tactics</h1>
   <p class="subtitle">Spot winning moves and combinations!</p>
 
+  <h2 class="section-heading">Checkmate Patterns</h2>
   <div class="sub-list">
-    {#each cat.subcategories as sub}
+    {#each checkmateCat.subcategories as sub}
+      {@const s = getSubStats(sub.key)}
+      {#if sub.comingSoon}
+        <div class="sub-item disabled">
+          <div class="sub-left">
+            <img src={sub.icon} alt={sub.name} class="sub-icon" />
+            <div>
+              <h3>{sub.name}</h3>
+              <p class="sub-desc">{sub.description}</p>
+            </div>
+          </div>
+          <span class="coming-soon">Coming soon</span>
+        </div>
+      {:else}
+        <a href="/learn/{sub.key}" class="sub-item">
+          <div class="sub-left">
+            <img src={sub.icon} alt={sub.name} class="sub-icon" />
+            <div>
+              <h3>{sub.name}</h3>
+              <p class="sub-desc">{sub.description}</p>
+            </div>
+          </div>
+          <div class="sub-right">
+            <span class="stat">{s.completed}/{s.total}</span>
+            {#if s.completed > 0 && s.completed === s.total}
+              <StarRating stars={s.allStars} size="sm" />
+            {/if}
+          </div>
+        </a>
+      {/if}
+    {/each}
+  </div>
+
+  <h2 class="section-heading">Tactical Motifs</h2>
+  <div class="sub-list">
+    {#each tacticsCat.subcategories as sub}
       {@const s = getSubStats(sub.key)}
       {#if sub.comingSoon}
         <div class="sub-item disabled">
@@ -81,6 +118,14 @@
 
   h1 { font-size: 1.875rem; font-weight: bold; margin-bottom: 0.25rem; }
   .subtitle { color: var(--text-muted); margin-bottom: 2rem; }
+
+  .section-heading {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin: 1.5rem 0 0.75rem;
+  }
+  .section-heading:first-of-type { margin-top: 0; }
 
   .sub-list { display: flex; flex-direction: column; gap: 0.5rem; }
   .sub-item {

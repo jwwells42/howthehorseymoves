@@ -2,6 +2,36 @@ import type { ModelGame } from "./types";
 
 export const GAMES: ModelGame[] = [
   {
+    id: "greco-smothered",
+    white: "NN",
+    black: "Gioachino Greco",
+    event: "Italy",
+    year: 1620,
+    result: "0-1",
+    pgn: "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O Nf6 5.Re1 O-O 6.c3 Qe7 7.d4 exd4 8.e5 Ng4 9.cxd4 Nxd4 10.Nxd4 Qh4 11.Nf3 Qxf2+ 12.Kh1 Qg1+ 13.Nxg1 Nf2# 0-1",
+    description: "Greco's Smothered Mate — Black sacrifices the queen so the knight can deliver checkmate, smothered by White's own pieces.",
+  },
+  {
+    id: "greco-greek-gift",
+    white: "Gioachino Greco",
+    black: "NN",
+    event: "Italy",
+    year: 1620,
+    result: "1-0",
+    pgn: "1.e4 e6 2.d4 Nf6 3.Bd3 Nc6 4.Nf3 Be7 5.h4 O-O 6.e5 Nd5 7.Bxh7+ Kxh7 8.Ng5+ Bxg5 9.hxg5+ Kg8 10.Qh5 f5 11.g6 Re8 12.Qh8# 1-0",
+    description: "The original \"Greek Gift\" — Greco sacrifices the bishop on h7, then storms the kingside with queen and pawns.",
+  },
+  {
+    id: "greco-mate",
+    white: "Gioachino Greco",
+    black: "NN",
+    event: "Italy",
+    year: 1620,
+    result: "1-0",
+    pgn: "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 d6 5.d4 exd4 6.cxd4 Bb4+ 7.Nc3 Nf6 8.O-O Bxc3 9.bxc3 Nxe4 10.Re1 d5 11.Rxe4+ dxe4 12.Ng5 O-O 13.Qh5 h6 14.Nxf7 Qf6 15.Nxh6+ Kh8 16.Nf7+ Kg8 17.Qh8# 1-0",
+    description: "\"Greco's Mate\" — the knight dances with discovered checks, and the queen delivers checkmate on h8.",
+  },
+  {
     id: "fools-mate",
     white: "NN",
     black: "NN",
