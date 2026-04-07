@@ -28,6 +28,8 @@ import { lichessPinPuzzles } from "./lichess-pins";
 import { dangerZonePuzzles } from "./danger-zones";
 import { lichessPawnEndingPuzzles } from "./lichess-pawn-endings";
 import { lucenaPuzzles } from "./lucena";
+import { retiPuzzles } from "./reti";
+import { pawnRacePuzzles } from "./pawn-races";
 
 const puzzleSets: Record<string, PuzzleSet> = {
   rook: { piece: "R", name: "Rook", puzzles: rookPuzzles },
@@ -53,6 +55,8 @@ const puzzleSets: Record<string, PuzzleSet> = {
   "danger-zones": { piece: "N", name: "Danger Zones", puzzles: dangerZonePuzzles },
   "pawn-endings-practice": { piece: "K", name: "Pawn Ending Practice", puzzles: lichessPawnEndingPuzzles },
   "endings-lucena": { piece: "R", name: "Lucena Position", puzzles: lucenaPuzzles },
+  "endings-reti": { piece: "K", name: "Réti Study", puzzles: retiPuzzles },
+  "endings-pawn-races": { piece: "P", name: "Pawn Races", puzzles: pawnRacePuzzles },
 };
 
 export function getPuzzlesForPiece(pieceKey: string): PuzzleSet | undefined {
@@ -156,9 +160,9 @@ export const CATEGORIES: CategoryInfo[] = [
       { key: "endings-kbnk", name: "Bishop + Knight vs King", description: "Deliver checkmate with King + Bishop + Knight.", icon: "/pieces/wN.svg" },
       { key: "endings-lucena", name: "Lucena Position", description: "Build a bridge to promote your rook pawn.", icon: "/pieces/wR.svg" },
       { key: "endings-philidor", name: "Philidor Position", description: "Hold the draw with your rook.", icon: "/pieces/wR.svg" },
-      { key: "endings-reti", name: "Réti Study", description: "The king chases two pawns at once.", icon: "/pieces/wK.svg", comingSoon: true },
-      { key: "endings-wrong-bishop", name: "Wrong Bishop", description: "Why a rook pawn + wrong-color bishop is a draw.", icon: "/pieces/wB.svg", comingSoon: true },
-      { key: "endings-pawn-races", name: "Pawn Races", description: "Count tempi — who promotes first?", icon: "/pieces/wP.svg", comingSoon: true },
+      { key: "endings-reti", name: "Réti Study", description: "The king chases two pawns at once.", icon: "/pieces/wK.svg" },
+      { key: "endings-wrong-bishop", name: "Wrong Bishop", description: "Why a rook pawn + wrong-color bishop is a draw.", icon: "/pieces/wB.svg" },
+      { key: "endings-pawn-races", name: "Pawn Races", description: "Count tempi — who promotes first?", icon: "/pieces/wP.svg" },
     ],
   },
   {

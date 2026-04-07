@@ -52,6 +52,17 @@
       storageKey: 'draw-kpk-best-stars',
       botStrategy: 'bitbase-kpk',
     },
+    'endings-wrong-bishop': {
+      title: 'Wrong Bishop',
+      instruction: 'The bishop can\'t control the promotion square! Stay in the corner to draw.',
+      placements: [
+        { piece: 'K', color: 'w', square: 'f6' },
+        { piece: 'B', color: 'w', square: 'e4' },
+        { piece: 'P', color: 'w', square: 'h6' },
+        { piece: 'K', color: 'b', square: 'h8' },
+      ],
+      storageKey: 'draw-wrong-bishop-best-stars',
+    },
   };
 
   let endgame = $derived(ENDGAME_POSITIONS[piece]);
