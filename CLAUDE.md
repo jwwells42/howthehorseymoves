@@ -25,7 +25,7 @@ No test framework is configured.
 - `moves.ts` — Pure functions for move generation per piece type. Sliding pieces (R/B/Q) use direction arrays; step pieces (K/N) use offset arrays; pawns have special forward/capture/en-passant logic
 - `attacks.ts` — `isSquareAttacked()`, `isInCheck()`, `isCheckmate()`, `isStalemate()`, `getLegalMoves()`, `getAllLegalMoves()`
 - `pgn.ts` — PGN parsers. Flat `parsePgn()` for simple move lists; tree-based `parseGamePgn()` → `GameTree`/`GameNode` with full variation support (`(...)` syntax), comments, NAGs, arrows. `extractMainLine(tree)` flattens to `ParsedGame` for backward compat / test mode. Exports `parseSan()` and `applyMove()` (also used by openings parser). Supports comments (`{text}`), NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`)
-- `bot.ts` — Bot move selection: `pickBotMove(board, color, level)`. `"random"` = any legal move; `"basic"` = one-ply scored evaluation
+- `bot.ts` — Bot move selection: `pickBotMove(board, color, level)`. `"random"` = any legal move; `"basic"` = one-ply scored evaluation; `"intermediate"` = depth-2 minimax with alpha-beta pruning
 - `endgame.ts` — Mate conversion logic for KQK, KRRK, KRK, KBBK, KBNK endgames
 
 ### Puzzle System (`src/lib/puzzles/`)
@@ -33,8 +33,14 @@ No test framework is configured.
   - `RoutePuzzle` (`type: "route"`) — navigate a piece to target stars, avoid walls. Has `playerPiece`, `position`, `walls`, `stars`, `starThresholds`, optional `arrows`/`threats`
   - `TacticPuzzle` (`type: "puzzle"`) — Lichess-style FEN+PGN tactic. Has `fen`, `pgn`, optional `demo`/`starThresholds`
   - `ConversionPuzzle` (`type: "conversion"`) — play against a bot to checkmate or promote. Has `position`, `bot`, `goal`, `starThresholds`
-- Per-piece files (`rook.ts`, `bishop.ts`, etc.) + `castling.ts`, `enpassant.ts`, `checkmate.ts`, `tactics.ts`
+- Per-piece files (`rook.ts`, `bishop.ts`, etc.) + `castling.ts`, `enpassant.ts`, `checkmate.ts`, `tactics.ts`, `lucena.ts`, `reti.ts`, `pawn-races.ts`
 - `index.ts` — Registry with `getPuzzlesForPiece()`, `PIECES`, `CATEGORIES` (with `comingSoon` support for subcategories)
+
+### Curriculum (`src/lib/curriculum.ts`)
+- Defines `CURRICULUM: CurriculumChapter[]` — 8 levels with ~9 stops each, mapping the full learning path
+- Each `CurriculumStop` has `id`, `name`, `icon`, `href`, and `progress` source (puzzle-set, localStorage key, or none)
+- Helper functions: `getStopStars()`, `getAllStopStars()`, `getFirstIncompleteId()` for progress tracking
+- Used by landing page `CurriculumPath` component to render the winding trail UI
 
 ### Model Games (`src/lib/games/`)
 - `types.ts` — `ModelGame` interface
@@ -67,7 +73,7 @@ No test framework is configured.
 - `lessons/PawnEndingsLesson.svelte` + `pawn-endings-data.ts` — Multi-step pawn endings lesson with 3 step types: `DiagramStep` (static board + key squares/arrows), `QuizStep` (animate intro, ask "what will be the result?", animate proof), `TrainerStep` (inline EndgameShell or DrawTrainer). QuizStep supports optional `annotatedPgn` field — when present, an "Explore" button after the result toggles a PgnExplorer with variations and comments. Sections: Rule of the Square, Key Squares, Opposition, Outside Passed Pawn, Breakthrough, Trebuchet, Guard the Entry, Play It Out (KPK Convert + Defend)
 - `lessons/HowToWinLesson.svelte` + `how-to-win-data.ts` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
 - `nav/NavBar.svelte` — Sticky top nav with sections: Learn, Tactics, Checkmates, Endings, Play, Vision. Responsive title (text on wide screens, favicon on narrow via CSS media query at 640px). `isActive()` logic: each hub claims its routes, Learn catches the rest
-- `blindfold/` — 20 blindfold/visualization components (24 trainers total — BlindfoldMate handles 5 endgame types), all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, KnightSquares, RelativePosition, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
+- `blindfold/` — 19 blindfold/visualization components (23 trainers total — BlindfoldMate handles 5 endgame types), all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, KnightSquares, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
 
 ### Routing (`src/routes/`)
 - `/` — Landing page with curriculum path
@@ -88,7 +94,7 @@ No test framework is configured.
 ### Lichess Puzzles (`src/lib/puzzles/lichess-*.ts`)
 - Practice puzzles sourced from the Lichess puzzle database (CC0 public domain)
 - Generated by `scripts/filter-lichess.py` from the full 5.8M puzzle CSV
-- Filtered by: rating < 1200 (1400 for pawn endings), white-to-move only, low piece count, same piece type across all player moves (except pawnEndgame which allows mixed K+P)
+- Filtered by: rating < 1200 (1200-1800 for pawn endings), white-to-move only, low piece count, same piece type across all player moves (except pawnEndgame which allows mixed K+P)
 - 8 generated files: `lichess-mate1.ts`, `lichess-mate2.ts`, `lichess-forks.ts`, `lichess-skewers.ts`, `lichess-pins.ts`, `lichess-removing-defender.ts`, `lichess-discovered.ts`, `lichess-pawn-endings.ts`
 - `pawnEndgame` category filters for positions with only kings and pawns on the board (`pawns_only` flag)
 - Integrated into the standard puzzle system via `PuzzleShell` — no separate trainer component
@@ -157,12 +163,8 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 ## Key Conventions
 
 - Many students using this app cannot read yet. All interactive elements (puzzles, lessons, trainers) should be figure-out-able from visual cues alone: arrows, colors, icons, and board state. Text instructions are helpful for those who can read but must not be the only signal. Use universal symbols (trophies, checkmarks, red/green colors) over text labels
-- Landing page has four sections: Basics, Practice, Study, Vision. Practice/Study/Vision are always visible. Celebration banner with DVD-screensaver knight animation when all basics are 3-starred
-- Basics cards have step numbers (1-9) with green checkmarks when complete, yellow glow + "Start here!"/"Up next!" badge on the first incomplete card
+- Landing page shows a curriculum path: 8 levels with ~9 stops each, rendered as a winding trail. Knight marker sits on the first incomplete stop. "Continue" button links to it. Everything is unlocked (no gating). Nav bar hubs (Practice, Study, Vision, etc.) remain for direct access
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
-- "Continue" button above Basics grid links directly to the next unsolved puzzle. "Play a Game!" card (step 7) in Basics links to `/play?level=random`
-- Cross-category "Next" button: last puzzle in a basics category shows "Continue to Bishop!" etc., last pawn puzzle shows "Continue to The Board!"
-- Full basics flow: puzzles (rook→...→pawn) → The Board (Name the Square + Place the Pieces) → How to Win → Play a Game. Each section's completion screen links to the next
 - Play page accepts `?level=random` or `?level=basic` query param to skip the level selector
 - Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
 - The Board must appear at the same size and position on screen at all times within a page. Mode switches (e.g., viewer ↔ test mode) must not cause the board to shift or resize
