@@ -4,16 +4,27 @@
   interface Props {
     boardArea: Snippet;
     sidebarArea: Snippet;
+    headerArea?: Snippet;
   }
 
-  let { boardArea, sidebarArea }: Props = $props();
+  let { boardArea, sidebarArea, headerArea }: Props = $props();
 </script>
 
 <div class="board-layout">
+  {#if headerArea}
+    <div class="mobile-header">
+      {@render headerArea()}
+    </div>
+  {/if}
   <div class="board-area">
     {@render boardArea()}
   </div>
   <div class="sidebar-area">
+    {#if headerArea}
+      <div class="desktop-header">
+        {@render headerArea()}
+      </div>
+    {/if}
     {@render sidebarArea()}
   </div>
 </div>
@@ -40,6 +51,17 @@
     align-items: center;
   }
 
+  .mobile-header {
+    display: block;
+    width: 100%;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .desktop-header {
+    display: none;
+  }
+
   .sidebar-area {
     display: flex;
     flex-direction: column;
@@ -58,6 +80,13 @@
 
   /* Desktop: horizontal layout */
   @media (min-width: 900px) {
+    .mobile-header {
+      display: none;
+    }
+
+    .desktop-header {
+      display: block;
+    }
     .board-layout {
       flex-direction: row;
       align-items: stretch;

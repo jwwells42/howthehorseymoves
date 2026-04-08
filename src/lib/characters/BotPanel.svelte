@@ -15,7 +15,7 @@
 </script>
 
 <div class="bot-panel">
-  <BotAvatar avatar={character.avatar} size={64} {animation} />
+  <BotAvatar avatar={character.avatar} size={80} {animation} />
   <div class="bot-info">
     <span class="bot-name" style:color={character.color}>{character.name}</span>
     {#if reaction}

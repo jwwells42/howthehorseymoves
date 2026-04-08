@@ -89,6 +89,13 @@
 </script>
 
 <BoardLayout>
+  {#snippet headerArea()}
+    <div class="header">
+      <h2 class="title">{puzzle.title}</h2>
+      <p class="instruction">{puzzle.instruction}</p>
+    </div>
+  {/snippet}
+
   {#snippet boardArea()}
     <Board
       board={ps.board}
@@ -123,11 +130,6 @@
   {/snippet}
 
   {#snippet sidebarArea()}
-    <div class="header">
-      <h2 class="title">{puzzle.title}</h2>
-      <p class="instruction">{puzzle.instruction}</p>
-    </div>
-
     {#if findMovesInfo}
       <div class="move-counter">
         {findMovesInfo.found} of {findMovesInfo.total} found{findMovesInfo.mistakes > 0 ? ` · ${findMovesInfo.mistakes} wrong` : ''}

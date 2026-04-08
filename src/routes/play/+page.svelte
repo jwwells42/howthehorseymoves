@@ -30,7 +30,7 @@
       <button class="level-card" onclick={() => level = 'random'}>
         {#if randomChar}
           <div class="char-card">
-            <img src={randomChar.avatar} alt={randomChar.name} class="char-avatar" width="56" height="56" />
+            <img src={randomChar.avatar} alt={randomChar.name} class="char-avatar" width="72" height="72" />
             <div>
               <h3 style:color={randomChar.color}>{randomChar.name}</h3>
               <p class="level-desc">{randomChar.description}</p>

@@ -56,7 +56,7 @@ No test framework is configured.
 - `progress-store.ts` — Svelte writable store, persists to localStorage (`"horsey-progress"`). Sequential unlock: puzzle N requires N-1 completed
 - `use-puzzle.svelte.ts` — State factory for gameplay: board state, move validation, drag-and-drop, star calculation, side-effects, multi-step solution validation
 - `use-game.svelte.ts` — State factory for Play vs Computer: castling, promotion, bot moves, threefold repetition detection via `boardToKey()`
-- `sound.ts` — WAV file playback (`/sounds/*.wav`) with mute toggle persisted to localStorage. Four sounds: `move`, `correct`, `wrong`, `stars`. Used by puzzles, game, and endgame trainers
+- `sound.ts` — Web Audio synthesis with mute toggle persisted to localStorage. Six sounds: `move`, `correct`, `wrong`, `stars`, `botCapture`, `botReact`. Used by puzzles, game, endgame trainers, and bot character reactions
 
 ### Components (`src/lib/components/`)
 - `board/Board.svelte` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations, danger-square overlays. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode). `dangerSquares` prop highlights squares with red semi-transparent overlay
@@ -65,7 +65,7 @@ No test framework is configured.
 - `puzzle/PuzzleShell.svelte` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
 - `game/GameViewer.svelte` — PGN game viewer with path-based navigation (`currentPath: GameNode[]`), auto-play, keyboard nav (`<svelte:window>`), comments, arrows. Variations display inline in the move grid. "Pause at variations" toggle stops auto-play at branch points. Test mode uses `extractMainLine()` for flat main-line-only memorization
 - `game/PgnExplorer.svelte` — Lightweight PGN explorer for embedding annotated move trees. Takes `pgn` + optional `fen` props, renders board + clickable move grid with variations, comments, and keyboard nav. Used by PawnEndingsLesson to show post-quiz analysis. Reuses `parseGamePgn()` tree + same move-grid visual pattern as GameViewer but without test/autoplay/explore modes
-- `game/GameShell.svelte` — Play vs Computer wrapper, accepts `botLevel` prop
+- `game/GameShell.svelte` — Play vs Computer wrapper, accepts `botLevel` prop. Integrates bot character panel with reaction system (captures, checks, checkmate, thinking animations + speech bubbles)
 - `opening/OpeningTrainer.svelte` — Opening repertoire trainer with learn/practice phases
 - `endgame/EndgameShell.svelte` — KPK bitbase trainer (`src/lib/logic/kpk-bitbase.ts`: 24KB retrograde analysis). Bot plays perfect defense via bitbase; validates student moves must maintain winning evaluation. Win condition: pawn reaches rank 8. Stars: 0 mistakes=3, 1=2, 2+=1
 - `endgame/MateTrainer.svelte` — Mate conversion trainer (KQK, KRRK, KRK, KBBK, KBNK)
@@ -73,6 +73,10 @@ No test framework is configured.
 - `lessons/PawnEndingsLesson.svelte` + `pawn-endings-data.ts` — Multi-step pawn endings lesson with 3 step types: `DiagramStep` (static board + key squares/arrows), `QuizStep` (animate intro, ask "what will be the result?", animate proof), `TrainerStep` (inline EndgameShell or DrawTrainer). QuizStep supports optional `annotatedPgn` field — when present, an "Explore" button after the result toggles a PgnExplorer with variations and comments. Sections: Rule of the Square, Key Squares, Opposition, Outside Passed Pawn, Breakthrough, Trebuchet, Guard the Entry, Play It Out (KPK Convert + Defend)
 - `lessons/HowToWinLesson.svelte` + `how-to-win-data.ts` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
 - `nav/NavBar.svelte` — Sticky top nav with sections: Learn, Tactics, Checkmates, Endings, Play, Vision. Responsive title (text on wide screens, favicon on narrow via CSS media query at 640px). `isActive()` logic: each hub claims its routes, Learn catches the rest
+- `characters/BotAvatar.svelte` — Animated avatar with CSS keyframes (bob, rock, bounce, shake, jump, tilt, celebrate, droop). Props: `avatar`, `size`, `animation`
+- `characters/SpeechBubble.svelte` — Accent-colored speech bubble with fade-in animation on text change
+- `characters/BotPanel.svelte` — Combines BotAvatar + name + SpeechBubble. Used by GameShell sidebar
+- `characters/bots.ts` — `BotCharacter` interface and `BOT_CHARACTERS` registry. Each character has `reactions` pools (greeting, thinking, capture, captured, check, checkmate, checkmated, draw, move). `getCharacter(level)` lookup. Currently: random → "The Sloth" (Kenney CC0 animal sprite)
 - `blindfold/` — 19 blindfold/visualization components (23 trainers total — BlindfoldMate handles 5 endgame types), all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, KnightSquares, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
 
 ### Routing (`src/routes/`)
@@ -188,6 +192,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - Claude generates PGNs from memory and they often contain errors (wrong moves mid-game). Always flag generated PGNs as needing user verification. Major chess databases (chessgames.com, Wikipedia, 365chess) block WebFetch (403), but smaller sites may work. If a PGN fails parsing, diagnose the exact failing move and let the user fix it rather than burning tokens on speculative web searches
 - PGN annotations: `{comments}`, NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`). Lichess color convention: G=green, R=red, Y=yellow, B=blue
 - When adding new components, routes, or significant features, update the relevant sections of this CLAUDE.md file so future conversations don't need to re-read code to discover what exists
+- After making UI layout changes, verify with a Chromebook-sized viewport (1366×768). CSS changes that look fine on a large monitor can break on smaller screens
 
 ## Puzzle Authoring Notes
 
@@ -218,3 +223,12 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - Promotion: player gets a picker overlay (Q/R/B/N) when pawn reaches last rank; bot auto-promotes to queen
 - Draw detection: stalemate, threefold repetition, 50-move rule (halfmove clock), insufficient material (K vs K, K+B/N vs K, K+B vs K+B same-color bishops). Matches Lichess rules
 - Click-to-move: all interactive board wrappers must use separate `dragFrom` state for drag tracking, keeping `selectedSquare` independent. Never clear `selectedSquare` in `onDragEnd` — that breaks click-click
+
+## Bot Characters (`src/lib/characters/`)
+
+- Each bot level can have a `BotCharacter` with name, avatar (Kenney CC0 sprite), accent color, description, and reaction text pools
+- Characters are optional — bots without a character entry fall back to a plain text header in GameShell
+- Reaction system in GameShell uses `$effect` blocks watching `game.moveHistory`, `game.waitingForBot`, and `game.result` to trigger animations + speech bubbles
+- CSS keyframe animations on the avatar: idle bob, thinking rock, capture bounce, captured shake, check jump, move tilt, win celebrate, lose droop
+- Adding a new character: add entry to `BOT_CHARACTERS` in `bots.ts`, place sprite PNG in `static/characters/`
+- Art assets from [Kenney's Animal Pack Remastered](https://kenney.nl/assets/animal-pack-remastered) (CC0, by Kenney Vleugels)

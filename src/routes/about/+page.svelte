@@ -73,6 +73,13 @@
         <a href="https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>.</p>
       </div>
       <div class="credit-card">
+        <h3>Bot Character Art</h3>
+        <p>Animal sprites by <em>Kenney Vleugels</em> from the
+        <a href="https://kenney.nl/assets/animal-pack-remastered" target="_blank" rel="noopener noreferrer">Animal Pack Remastered</a>.
+        Licensed under <em>CC0 (Public Domain)</em>.
+        <a href="https://kenney.nl" target="_blank" rel="noopener noreferrer">kenney.nl</a>.</p>
+      </div>
+      <div class="credit-card">
         <h3>Framework</h3>
         <p>Built with <em>SvelteKit, Svelte 5, and TypeScript</em>. Hosted on Vercel.</p>
       </div>

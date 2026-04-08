@@ -236,6 +236,7 @@
         if (isCapture) {
           triggerAnimation('shake', 500);
           botReaction = pickReaction(character.reactions.captured);
+          playSound('botCapture');
         }
       }
     }

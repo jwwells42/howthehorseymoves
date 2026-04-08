@@ -14,7 +14,7 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 - **Tactics** — pins, skewers, forks, removing the defender, discovered attacks (hand-authored instruction + Lichess practice puzzles)
 - **Endings** — King + Pawn vs King (bitbase-powered perfect defense), mate conversion (KQK, KRRK, KRK), and advanced endings (KBBK, KBNK, Philidor "hold the draw" trainer)
 - **Blindfold training** — 24 visualization trainers: color of square, same diagonal, knight routes, knight squares, piece reachability, flash position, move counting, blindfold checkmate, and more
-- **Play vs computer** — random bot and basic bot (one-ply evaluation)
+- **Play vs computer** — random bot (The Sloth) and basic bot (one-ply evaluation), with animated character avatars and reactions
 - **Openings** — learn opening repertoires move by move with arrow hints
 - **Model games** — 14 classical games (Fool's Mate through Kasparov) with move-by-move viewer, annotations, variation support, and a test mode to reproduce games from memory
 - **Star ratings** — 1-3 stars based on move efficiency, shown as mastery badges when all puzzles in a set are completed
@@ -100,3 +100,9 @@ Open an issue to discuss before starting large changes.
 ## License
 
 [GNU Affero General Public License v3.0](LICENSE) — free to use, modify, and deploy, but if you host a modified version, you must share your source code too. In the spirit of [Lichess](https://lichess.org).
+
+## Acknowledgments
+
+- Chess piece SVGs by [Colin M.L. Burnett](https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces) (CC BY-SA 3.0)
+- Bot character art from [Kenney's Animal Pack Remastered](https://kenney.nl/assets/animal-pack-remastered) by Kenney Vleugels (CC0)
+- Practice puzzles from the [Lichess Puzzle Database](https://database.lichess.org/#puzzles) (CC0)
