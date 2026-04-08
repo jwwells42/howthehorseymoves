@@ -74,7 +74,14 @@
   let atEnd = $derived(moveIdx >= currentLine.length);
 
   let currentComment = $derived.by(() => {
-    if (phase === 'setup' || moveIdx === 0) return undefined;
+    if (phase === 'setup') return undefined;
+    // In learn/hint mode, show the comment for the upcoming move (alongside the arrow)
+    if (!atEnd && isPlayerTurn && !waiting && !browsing && (phase === 'learn' || showHint)) {
+      const upcoming = currentLine[moveIdx].comment;
+      if (upcoming) return upcoming;
+    }
+    // Otherwise show the comment for the move just played
+    if (moveIdx === 0) return undefined;
     return currentLine[moveIdx - 1].comment;
   });
 
