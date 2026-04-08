@@ -6,7 +6,7 @@
   import type { BotLevel } from '$lib/logic/bot';
   import type { SquareId, PieceKind } from '$lib/logic/types';
 
-  let { botLevel = 'random' }: { botLevel?: BotLevel } = $props();
+  let { botLevel = 'random', onChangeOpponent }: { botLevel?: BotLevel; onChangeOpponent?: () => void } = $props();
 
   let game = $derived(createGameState(botLevel));
 
@@ -270,6 +270,12 @@
         New Game
       </button>
     {/if}
+
+    {#if onChangeOpponent}
+      <button class="change-opponent-btn" onclick={onChangeOpponent}>
+        Change opponent
+      </button>
+    {/if}
   {/snippet}
 </BoardLayout>
 
@@ -384,6 +390,20 @@
 
   .new-game-btn:hover {
     background: #15803d;
+  }
+
+  .change-opponent-btn {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .change-opponent-btn:hover {
+    color: var(--foreground);
   }
 
   /* Result overlays */
