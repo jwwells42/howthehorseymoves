@@ -42,6 +42,7 @@
 
   {#if continueTarget}
     <a href={continueTarget.href} class="continue-btn">
+      <img src="/pieces/wN.svg" alt="" class="continue-icon" width="32" height="32" />
       Continue: {continueTarget.name}
     </a>
   {/if}
@@ -72,7 +73,10 @@
   .subtitle { color: var(--text-muted); }
 
   .continue-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     margin-bottom: 1.5rem;
     padding: 0.75rem 1rem;
     border-radius: 0.75rem;
@@ -82,8 +86,14 @@
     font-weight: bold;
     font-size: 1.125rem;
     transition: background 0.15s;
+    animation: pulse-glow 2s ease-in-out infinite;
   }
   .continue-btn:hover { background: #15803d; }
+  .continue-icon { filter: brightness(0) invert(1); }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+  }
 
   .footer {
     margin-top: 3rem;

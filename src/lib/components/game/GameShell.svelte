@@ -31,9 +31,7 @@
   let canGoBack = $derived(
     reviewIndex === null ? game.positions.length > 1 : reviewIndex > 0
   );
-  let canGoForward = $derived(
-    reviewIndex !== null && reviewIndex < game.positions.length - 1
-  );
+  let canGoForward = $derived(reviewIndex !== null);
 
   function goBack() {
     if (reviewIndex === null) {

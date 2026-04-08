@@ -226,13 +226,29 @@ export function getFirstIncompleteId(stopStars: Record<string, number>): string 
   return null;
 }
 
-/** Find the first incomplete stop and return its info for the Continue button. */
+/** Find the first incomplete stop and return its info for the Continue button.
+ *  For puzzle-set stops, links directly to the first incomplete puzzle. */
 export function getFirstIncompleteStop(stopStars: Record<string, number>): { id: string; name: string; href: string } | null {
   const id = getFirstIncompleteId(stopStars);
   if (!id) return null;
   for (const chapter of CURRICULUM) {
     for (const stop of chapter.stops) {
-      if (stop.id === id) return { id: stop.id, name: stop.name, href: stop.href };
+      if (stop.id !== id) continue;
+      let href = stop.href;
+      // For puzzle-set stops, find the first incomplete puzzle and link directly to it
+      if (stop.progress.type === 'puzzle-set') {
+        const set = getPuzzlesForPiece(stop.progress.key);
+        if (set) {
+          const firstIncomplete = set.puzzles.find(p => {
+            const prog = getPuzzleProgress(p.id);
+            return !prog || !prog.completed;
+          });
+          if (firstIncomplete) {
+            href = `/learn/${stop.progress.key}/${firstIncomplete.id}`;
+          }
+        }
+      }
+      return { id: stop.id, name: stop.name, href };
     }
   }
   return null;
