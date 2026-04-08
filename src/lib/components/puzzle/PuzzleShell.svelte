@@ -210,8 +210,8 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.25rem 0.75rem;
-    font-size: 0.75rem;
+    gap: 0.125rem 0.375rem;
+    font-size: 0.6875rem;
     color: var(--text-faint);
     flex-shrink: 0;
   }

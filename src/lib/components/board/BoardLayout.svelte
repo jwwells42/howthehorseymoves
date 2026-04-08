@@ -46,6 +46,7 @@
     align-items: center;
     gap: 0.75rem;
     width: 100%;
+    min-width: 0;
     flex-shrink: 0;
   }
 
