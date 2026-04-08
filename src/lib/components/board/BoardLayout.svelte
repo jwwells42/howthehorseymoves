@@ -68,11 +68,11 @@
     }
 
     .sidebar-area {
-      width: 14rem;
+      width: 18rem;
       flex-shrink: 0;
-      overflow-y: auto;
-      align-items: stretch;
-      justify-content: center;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 1rem;
     }
   }
 </style>
