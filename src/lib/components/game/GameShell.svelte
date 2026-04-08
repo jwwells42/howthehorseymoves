@@ -174,7 +174,7 @@
   type AnimationType = 'idle' | 'thinking' | 'bounce' | 'shake' | 'jump' | 'tilt' | 'celebrate' | 'droop';
   let botReaction = $state('');
   let botAnimation = $state<AnimationType>('idle');
-  let animTimer = $state<ReturnType<typeof setTimeout> | null>(null);
+  let animTimer: ReturnType<typeof setTimeout> | null = null;
 
   function pickReaction(pool: string[]): string {
     return pool[Math.floor(Math.random() * pool.length)];
