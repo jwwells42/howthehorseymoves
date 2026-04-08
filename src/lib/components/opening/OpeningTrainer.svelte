@@ -54,6 +54,7 @@
   let lineComplete = $state(false);
   let allDone = $state(false);
   let dragFrom = $state<SquareId | null>(null);
+  let autoNext = $state(false);
   let browsing = $derived(moveIdx < maxReachedIdx);
   let atFrontier = $derived(moveIdx >= maxReachedIdx);
 
@@ -63,11 +64,7 @@
 
   let currentComment = $derived.by(() => {
     if (phase === 'setup' || moveIdx === 0) return undefined;
-    // Show the most recent comment at or before current position
-    for (let i = moveIdx - 1; i >= 0; i--) {
-      if (currentLine[i].comment) return currentLine[i].comment;
-    }
-    return undefined;
+    return currentLine[moveIdx - 1].comment;
   });
 
   let arrows = $derived.by((): Arrow[] | undefined => {
@@ -397,6 +394,13 @@
       moveListEl.scrollTop = bottom - moveListEl.clientHeight;
     }
   });
+
+  // Auto-advance to next variation
+  $effect(() => {
+    if (!autoNext || !lineComplete || allDone) return;
+    const timer = setTimeout(() => advanceLine(), 800);
+    return () => clearTimeout(timer);
+  });
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -500,7 +504,7 @@
           disabled={lineIdx === 0 || waiting}
           aria-label="Previous line"
         >&lsaquo;</button>
-        <span>Line {lineIdx + 1} of {activeLines.length}</span>
+        <span>Line {lineIdx + 1}/{activeLines.length}</span>
         <button
           class="nav-btn"
           onclick={() => jumpToLine(lineIdx + 1)}
@@ -508,10 +512,15 @@
           aria-label="Next line"
         >&rsaquo;</button>
         <span class="mode-sep">&middot;</span>
-        <span class={['mode-badge', phase]}>{phase === 'learn' ? 'Learning' : 'Practicing'}</span>
+        <span class={['mode-badge', phase]}>{phase === 'learn' ? 'Learn' : 'Practice'}</span>
         <button class="btn btn-sm" onclick={toggleMode}>
-          {phase === 'learn' ? 'Practice' : 'Learn'}
+          Switch
         </button>
+        <span class="mode-sep">&middot;</span>
+        <label class="toggle-label">
+          <input type="checkbox" bind:checked={autoNext} />
+          Auto
+        </label>
       </div>
 
       <div class="status">
@@ -698,10 +707,10 @@
   .info-row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
     color: var(--text-faint);
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     margin-top: 0.25rem;
     flex-shrink: 0;
   }
@@ -729,6 +738,19 @@
 
   .mode-sep {
     color: var(--text-faint);
+  }
+
+  .toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--text-faint);
+  }
+
+  .toggle-label input[type="checkbox"] {
+    margin: 0;
   }
 
   .mode-badge {
