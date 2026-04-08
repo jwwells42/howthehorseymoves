@@ -1,9 +1,11 @@
 <script lang="ts">
   import { page } from '$app/state';
   import GameShell from '$lib/components/game/GameShell.svelte';
+  import { getCharacter } from '$lib/characters/bots';
   import type { BotLevel } from '$lib/logic/bot';
 
   const VALID_LEVELS: BotLevel[] = ['random', 'basic', 'intermediate'];
+  let randomChar = getCharacter('random');
 
   let paramLevel = $derived(page.url.searchParams.get('level'));
   let initialLevel = $derived(VALID_LEVELS.includes(paramLevel as BotLevel) ? (paramLevel as BotLevel) : null);
@@ -26,8 +28,18 @@
     </div>
     <div class="level-list">
       <button class="level-card" onclick={() => level = 'random'}>
-        <h3>Random Bot</h3>
-        <p class="level-desc">Plays completely random legal moves. Great for beginners.</p>
+        {#if randomChar}
+          <div class="char-card">
+            <img src={randomChar.avatar} alt={randomChar.name} class="char-avatar" width="56" height="56" />
+            <div>
+              <h3 style:color={randomChar.color}>{randomChar.name}</h3>
+              <p class="level-desc">{randomChar.description}</p>
+            </div>
+          </div>
+        {:else}
+          <h3>Random Bot</h3>
+          <p class="level-desc">Plays completely random legal moves. Great for beginners.</p>
+        {/if}
       </button>
       <button class="level-card" onclick={() => level = 'basic'}>
         <h3>Basic Bot</h3>
@@ -83,4 +95,6 @@
   .level-card:hover { border-color: rgba(240, 230, 204, 0.3); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
   .level-card h3 { font-weight: bold; margin-bottom: 0.25rem; }
   .level-desc { font-size: 0.875rem; color: var(--text-muted); }
+  .char-card { display: flex; align-items: center; gap: 0.75rem; }
+  .char-avatar { object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
 </style>

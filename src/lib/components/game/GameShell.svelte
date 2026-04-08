@@ -1,12 +1,17 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
+  import BotPanel from '$lib/characters/BotPanel.svelte';
+  import { getCharacter } from '$lib/characters/bots';
   import { createGameState } from '$lib/state/use-game.svelte';
   import { getLegalMoves } from '$lib/logic/attacks';
+  import { playSound } from '$lib/state/sound';
   import type { BotLevel } from '$lib/logic/bot';
   import type { SquareId, PieceKind } from '$lib/logic/types';
 
   let { botLevel = 'random' }: { botLevel?: BotLevel } = $props();
+
+  let character = $derived(getCharacter(botLevel));
 
   let game = $derived(createGameState(botLevel));
 
@@ -160,8 +165,96 @@
   function startNewGame() {
     reviewIndex = null;
     showDrawOverlay = false;
+    botAnimation = 'idle';
+    if (character) botReaction = pickReaction(character.reactions.greeting);
     game.newGame();
   }
+
+  // === Bot character reactions ===
+  type AnimationType = 'idle' | 'thinking' | 'bounce' | 'shake' | 'jump' | 'tilt' | 'celebrate' | 'droop';
+  let botReaction = $state('');
+  let botAnimation = $state<AnimationType>('idle');
+  let animTimer = $state<ReturnType<typeof setTimeout> | null>(null);
+
+  function pickReaction(pool: string[]): string {
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function triggerAnimation(anim: AnimationType, duration: number) {
+    if (animTimer) clearTimeout(animTimer);
+    botAnimation = anim;
+    animTimer = setTimeout(() => { botAnimation = 'idle'; }, duration);
+  }
+
+  // Greeting on mount
+  $effect(() => {
+    if (character) botReaction = pickReaction(character.reactions.greeting);
+  });
+
+  // Bot thinking
+  $effect(() => {
+    if (!character) return;
+    if (game.waitingForBot) {
+      botAnimation = 'thinking';
+      botReaction = pickReaction(character.reactions.thinking);
+    }
+  });
+
+  // React to new moves
+  let lastMoveCount = $state(0);
+  $effect(() => {
+    if (!character) return;
+    const moves = game.moveHistory;
+    if (moves.length <= lastMoveCount) {
+      lastMoveCount = moves.length;
+      return;
+    }
+    const newMoveIdx = lastMoveCount;
+    lastMoveCount = moves.length;
+
+    for (let i = newMoveIdx; i < moves.length; i++) {
+      const san = moves[i].san;
+      const isBotMove = i % 2 === 1; // black = bot
+      const isCapture = san.includes('x');
+      const isCheck = san.includes('+') || san.includes('#');
+
+      if (isBotMove) {
+        if (isCapture) {
+          triggerAnimation('bounce', 500);
+          botReaction = pickReaction(character.reactions.capture);
+          playSound('botCapture');
+        } else if (isCheck) {
+          triggerAnimation('jump', 600);
+          botReaction = pickReaction(character.reactions.check);
+          playSound('botReact');
+        } else {
+          triggerAnimation('tilt', 400);
+          botReaction = pickReaction(character.reactions.move);
+        }
+      } else {
+        // Player move
+        if (isCapture) {
+          triggerAnimation('shake', 500);
+          botReaction = pickReaction(character.reactions.captured);
+        }
+      }
+    }
+  });
+
+  // React to game end
+  $effect(() => {
+    if (!character || game.result === 'playing') return;
+    if (game.result === 'checkmate-white') {
+      triggerAnimation('droop', 1000);
+      botReaction = pickReaction(character.reactions.checkmated);
+    } else if (game.result === 'checkmate-black') {
+      triggerAnimation('celebrate', 1500);
+      botReaction = pickReaction(character.reactions.checkmate);
+    } else {
+      triggerAnimation('idle', 0);
+      botReaction = pickReaction(character.reactions.draw);
+    }
+  });
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -205,10 +298,14 @@
   {/snippet}
 
   {#snippet sidebarArea()}
-    <div class="header">
-      <h2 class="title">Play vs Computer</h2>
-      <p class="status">{statusText}</p>
-    </div>
+    {#if character}
+      <BotPanel {character} reaction={botReaction} animation={botAnimation} />
+    {:else}
+      <div class="header">
+        <h2 class="title">Play vs Computer</h2>
+        <p class="status">{statusText}</p>
+      </div>
+    {/if}
 
     <div class="move-panel">
       <div class="move-list" bind:this={moveListEl}>
