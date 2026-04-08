@@ -222,7 +222,7 @@
         if (isCapture) {
           triggerAnimation('bounce', 500);
           botReaction = pickReaction(character.reactions.capture);
-          playSound('botCapture');
+          playSound('botCaptures');
         } else if (isCheck) {
           triggerAnimation('jump', 600);
           botReaction = pickReaction(character.reactions.check);
@@ -236,7 +236,7 @@
         if (isCapture) {
           triggerAnimation('shake', 500);
           botReaction = pickReaction(character.reactions.captured);
-          playSound('botCapture');
+          playSound('botCaptured');
         }
       }
     }

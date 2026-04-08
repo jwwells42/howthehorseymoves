@@ -89,7 +89,11 @@ const SOUNDS = {
     sine(659, 0.2, 0.4, 0.15);
     sine(784, 0.35, 0.5, 0.3);
   },
-  botCapture() {
+  botCaptures() {
+    sine(440, 0.12, 0.3);
+    sine(660, 0.15, 0.35, 0.08);
+  },
+  botCaptured() {
     sine(440, 0.12, 0.3);
     sine(330, 0.15, 0.25, 0.08);
   },
