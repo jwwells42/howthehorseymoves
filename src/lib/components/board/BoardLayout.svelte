@@ -60,11 +60,15 @@
     .board-layout {
       flex-direction: row;
       align-items: stretch;
+      justify-content: center;
       gap: 1.5rem;
     }
 
     .board-area {
-      flex: 1;
+      flex: 0 0 auto;
+      height: 100%;
+      aspect-ratio: 1;
+      max-width: calc(100% - 19.5rem);
     }
 
     .sidebar-area {
