@@ -208,7 +208,9 @@
   }
   .thresholds {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.75rem;
     font-size: 0.75rem;
     color: var(--text-faint);
     flex-shrink: 0;
@@ -217,6 +219,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
+    white-space: nowrap;
   }
 
   /* Find-moves intro overlay */
