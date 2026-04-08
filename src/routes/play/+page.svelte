@@ -41,8 +41,9 @@
   </main>
 {:else}
   <main class="page">
+    <button class="back-link" onclick={() => level = null}>&larr; Change opponent</button>
     {#key level}
-      <GameShell botLevel={level} onChangeOpponent={() => level = null} />
+      <GameShell botLevel={level} />
     {/key}
   </main>
 {/if}
