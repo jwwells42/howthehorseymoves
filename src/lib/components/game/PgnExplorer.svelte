@@ -352,6 +352,8 @@
     flex-direction: column;
     gap: 0.75rem;
     width: 100%;
+    min-height: 0;
+    flex: 1;
   }
 
   .explorer {
@@ -438,16 +440,9 @@
     border: 1px solid var(--card-border, #333);
     background: var(--card-bg, #1a1a1a);
     padding: 0.75rem;
-    max-height: 8rem;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-  }
-
-  @media (min-width: 52rem) {
-    .move-list {
-      flex: 1;
-      min-height: 0;
-      max-height: none;
-    }
   }
 
   .move-grid {

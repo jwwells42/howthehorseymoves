@@ -2,7 +2,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';
-  import { type SquareId } from '$lib/logic/types';
+  import { type SquareId, type BoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import type { Arrow } from '$lib/logic/pgn';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
@@ -56,6 +56,16 @@
   let allDone = $state(false);
   let dragFrom = $state<SquareId | null>(null);
   let autoNext = $state(false);
+
+  // Explore mode state
+  let exploreBoardOverride = $state<BoardState | null>(null);
+  let exploreBoard = $derived(exploreBoardOverride ?? startBoard);
+  let exploreArrows = $state<Arrow[] | undefined>(undefined);
+
+  function onExploreBoardChange(b: BoardState, a?: Arrow[]) {
+    exploreBoardOverride = b;
+    exploreArrows = a;
+  }
   let browsing = $derived(moveIdx < maxReachedIdx);
   let atFrontier = $derived(moveIdx >= maxReachedIdx);
 
@@ -464,12 +474,32 @@
     </div>
   </div>
 {:else if phase === 'explore'}
-  <div class="explore-wrapper">
-    <button class="btn btn-secondary btn-back-explore" onclick={backToSetup}>
-      &larr; Back to setup
-    </button>
-    <PgnExplorer pgn={opening.pgn} flipped={flipped} />
-  </div>
+  <BoardLayout>
+    {#snippet boardArea()}
+      <Board
+        board={exploreBoard}
+        selectedSquare={null}
+        validMoves={[]}
+        targets={[]}
+        reachedTargets={[]}
+        dragValidMoves={[]}
+        onSquareClick={() => {}}
+        onDrop={() => {}}
+        onDragStart={() => {}}
+        onDragEnd={() => {}}
+        readOnly
+        arrows={exploreArrows}
+        {flipped}
+      />
+    {/snippet}
+
+    {#snippet sidebarArea()}
+      <PgnExplorer pgn={opening.pgn} {flipped} noBoard onBoardChange={onExploreBoardChange} />
+      <button class="btn btn-secondary btn-back" onclick={backToSetup}>
+        Back to setup
+      </button>
+    {/snippet}
+  </BoardLayout>
 {:else}
   <BoardLayout>
     {#snippet boardArea()}
@@ -660,18 +690,6 @@
     width: 100%;
   }
 
-  .explore-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 0.5rem;
-  }
-
-  .btn-back-explore {
-    align-self: flex-start;
-    font-size: 0.875rem;
-  }
 
   /* === Setup === */
 
