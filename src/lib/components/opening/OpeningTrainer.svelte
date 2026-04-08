@@ -1,5 +1,6 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import { type SquareId } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import type { Arrow } from '$lib/logic/pgn';
@@ -445,9 +446,53 @@
     </div>
   </div>
 {:else}
-  <div class="drill-layout">
-    <!-- Board side -->
-    <div class="board-side">
+  <BoardLayout>
+    {#snippet boardArea()}
+      <Board
+        {board}
+        {selectedSquare}
+        {validMoves}
+        targets={[]}
+        reachedTargets={[]}
+        dragValidMoves={dragMoves}
+        onSquareClick={handleSquareClick}
+        onDrop={handleDrop}
+        {onDragStart}
+        {onDragEnd}
+        {wrongMoveSquare}
+        {opponentSlide}
+        {arrows}
+        {flipped}
+        playableColors={[playerColor]}
+      />
+      {#if allDone}
+        <div class="done-overlay">
+          <div class="done-content">
+            {#if phase === 'learn'}
+              <div class="done-check">&#10003;</div>
+              <p class="done-title">Lines learned!</p>
+              <button class="btn" onclick={() => startDrilling('practice')}>
+                Practice now
+              </button>
+              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
+                Back to setup
+              </button>
+            {:else}
+              <div class="done-check">&#10003;</div>
+              <p class="done-title">Lines mastered!</p>
+              <button class="btn" onclick={() => startDrilling('practice')}>
+                Practice again
+              </button>
+              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
+                Back to setup
+              </button>
+            {/if}
+          </div>
+        </div>
+      {/if}
+    {/snippet}
+
+    {#snippet sidebarArea()}
       <div class="info-row">
         <button
           class="nav-btn"
@@ -467,51 +512,6 @@
         <button class="btn btn-sm" onclick={toggleMode}>
           {phase === 'learn' ? 'Practice' : 'Learn'}
         </button>
-      </div>
-
-      <div class="board-wrapper">
-        <Board
-          {board}
-          {selectedSquare}
-          {validMoves}
-          targets={[]}
-          reachedTargets={[]}
-          dragValidMoves={dragMoves}
-          onSquareClick={handleSquareClick}
-          onDrop={handleDrop}
-          {onDragStart}
-          {onDragEnd}
-          {wrongMoveSquare}
-          {opponentSlide}
-          {arrows}
-          {flipped}
-          playableColors={[playerColor]}
-        />
-        {#if allDone}
-          <div class="done-overlay">
-            <div class="done-content">
-              {#if phase === 'learn'}
-                <div class="done-check">&#10003;</div>
-                <p class="done-title">Lines learned!</p>
-                <button class="btn" onclick={() => startDrilling('practice')}>
-                  Practice now
-                </button>
-                <button class="btn btn-secondary done-btn" onclick={backToSetup}>
-                  Back to setup
-                </button>
-              {:else}
-                <div class="done-check">&#10003;</div>
-                <p class="done-title">Lines mastered!</p>
-                <button class="btn" onclick={() => startDrilling('practice')}>
-                  Practice again
-                </button>
-                <button class="btn btn-secondary done-btn" onclick={backToSetup}>
-                  Back to setup
-                </button>
-              {/if}
-            </div>
-          </div>
-        {/if}
       </div>
 
       <div class="status">
@@ -537,15 +537,12 @@
         {/if}
       </div>
 
-      <div class="comment-area">
-        {#if currentComment}
+      {#if currentComment}
+        <div class="comment-area">
           <p class="comment-text">{currentComment}</p>
-        {/if}
-      </div>
-    </div>
+        </div>
+      {/if}
 
-    <!-- Move list side -->
-    <div class="move-list-side">
       <div class="drill-info">
         <span class="drill-opening-name">{opening.name}</span>
       </div>
@@ -591,8 +588,8 @@
       <button class="btn btn-secondary btn-back" onclick={backToSetup}>
         Back to setup
       </button>
-    </div>
-  </div>
+    {/snippet}
+  </BoardLayout>
 {/if}
 
 <style>
@@ -618,63 +615,6 @@
 
   .description {
     color: var(--text-muted);
-  }
-
-  /* === Drill layout (board + move list side-by-side) === */
-
-  .drill-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    align-items: flex-start;
-    max-width: 56rem;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .drill-layout {
-      flex: 1;
-      min-height: 0;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .drill-layout {
-      flex-direction: row;
-    }
-  }
-
-  .board-side {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-side {
-      min-height: 0;
-    }
-  }
-
-  .move-list-side {
-    width: 100%;
-  }
-
-  @media (min-width: 1024px) {
-    .move-list-side {
-      width: 14rem;
-      align-self: stretch;
-      display: flex;
-      flex-direction: column;
-    }
-  }
-
-  @media (min-width: 1024px) and (min-height: 32rem) {
-    .move-list-side {
-      min-height: 0;
-    }
   }
 
   .drill-info {
@@ -803,23 +743,6 @@
     color: #fbbf24;
   }
 
-  /* === Board === */
-
-  .board-wrapper {
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-wrapper {
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
-  }
-
   .done-overlay {
     position: absolute;
     inset: 0;
@@ -908,16 +831,9 @@
     border: 1px solid var(--card-border);
     background: var(--card-bg);
     padding: 0.75rem;
-    max-height: 8rem;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-  }
-
-  @media (min-width: 1024px) and (min-height: 32rem) {
-    .move-list {
-      flex: 1;
-      min-height: 0;
-      max-height: none;
-    }
   }
 
   .move-grid {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import { createGameState } from '$lib/state/use-game.svelte';
   import { getLegalMoves } from '$lib/logic/attacks';
   import type { BotLevel } from '$lib/logic/bot';
@@ -167,48 +168,48 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="game-shell">
-  <div class="header">
-    <h2 class="title">Play vs Computer</h2>
-    <p class="status">{statusText}</p>
-  </div>
+<BoardLayout>
+  {#snippet boardArea()}
+    <Board
+      board={displayBoard}
+      selectedSquare={isReviewing ? null : game.selectedSquare}
+      validMoves={isReviewing || game.pendingPromotion ? [] : game.validMoves}
+      targets={[]}
+      reachedTargets={[]}
+      dragValidMoves={isReviewing || game.pendingPromotion ? [] : dragValidMoves}
+      onSquareClick={onSquareClick}
+      onDrop={onDrop}
+      {onDragStart}
+      {onDragEnd}
+      opponentSlide={isReviewing ? null : game.botSlide}
+    />
+    {#if game.result === 'checkmate-white' && reviewIndex === null}
+      <div class="result-overlay">
+        <div class="trophy">&#127942;</div>
+      </div>
+    {/if}
+    {#if isDraw && reviewIndex === null && showDrawOverlay}
+      <div class="result-overlay" onclick={() => showDrawOverlay = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showDrawOverlay = false; }} role="button" tabindex="-1">
+        <div class="draw-symbol">&#189;</div>
+      </div>
+    {/if}
+    {#if game.pendingPromotion}
+      <div class="promo-overlay">
+        <div class="promo-picker">
+          {#each PROMO_PIECES as p}
+            <button class="promo-btn" onclick={() => game.completePromotion(p)}>
+              <img src="/pieces/w{p}.svg" alt={p} width="60" height="60" />
+            </button>
+          {/each}
+        </div>
+      </div>
+    {/if}
+  {/snippet}
 
-  <div class="main-area">
-    <div class="board-wrap">
-      <Board
-        board={displayBoard}
-        selectedSquare={isReviewing ? null : game.selectedSquare}
-        validMoves={isReviewing || game.pendingPromotion ? [] : game.validMoves}
-        targets={[]}
-        reachedTargets={[]}
-        dragValidMoves={isReviewing || game.pendingPromotion ? [] : dragValidMoves}
-        onSquareClick={onSquareClick}
-        onDrop={onDrop}
-        {onDragStart}
-        {onDragEnd}
-        opponentSlide={isReviewing ? null : game.botSlide}
-      />
-      {#if game.result === 'checkmate-white' && reviewIndex === null}
-        <div class="result-overlay">
-          <div class="trophy">&#127942;</div>
-        </div>
-      {/if}
-      {#if isDraw && reviewIndex === null && showDrawOverlay}
-        <div class="result-overlay" onclick={() => showDrawOverlay = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showDrawOverlay = false; }} role="button" tabindex="-1">
-          <div class="draw-symbol">&#189;</div>
-        </div>
-      {/if}
-      {#if game.pendingPromotion}
-        <div class="promo-overlay">
-          <div class="promo-picker">
-            {#each PROMO_PIECES as p}
-              <button class="promo-btn" onclick={() => game.completePromotion(p)}>
-                <img src="/pieces/w{p}.svg" alt={p} width="60" height="60" />
-              </button>
-            {/each}
-          </div>
-        </div>
-      {/if}
+  {#snippet sidebarArea()}
+    <div class="header">
+      <h2 class="title">Play vs Computer</h2>
+      <p class="status">{statusText}</p>
     </div>
 
     <div class="move-panel">
@@ -238,60 +239,43 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="nav-controls">
-    <button
-      class="nav-btn"
-      onclick={goToStart}
-      disabled={!canGoBack}
-      aria-label="Start"
-    >&#x23EE;</button>
-    <button
-      class="nav-btn"
-      onclick={goBack}
-      disabled={!canGoBack}
-      aria-label="Back"
-    >&#x25C0;</button>
-    <button
-      class="nav-btn"
-      onclick={goForward}
-      disabled={!canGoForward}
-      aria-label="Forward"
-    >&#x25B6;</button>
-    <button
-      class="nav-btn"
-      onclick={goToEnd}
-      disabled={!canGoForward}
-      aria-label="End"
-    >&#x23ED;</button>
-  </div>
+    <div class="nav-controls">
+      <button
+        class="nav-btn"
+        onclick={goToStart}
+        disabled={!canGoBack}
+        aria-label="Start"
+      >&#x23EE;</button>
+      <button
+        class="nav-btn"
+        onclick={goBack}
+        disabled={!canGoBack}
+        aria-label="Back"
+      >&#x25C0;</button>
+      <button
+        class="nav-btn"
+        onclick={goForward}
+        disabled={!canGoForward}
+        aria-label="Forward"
+      >&#x25B6;</button>
+      <button
+        class="nav-btn"
+        onclick={goToEnd}
+        disabled={!canGoForward}
+        aria-label="End"
+      >&#x23ED;</button>
+    </div>
 
-  {#if game.result !== 'playing'}
-    <button class="new-game-btn" onclick={startNewGame}>
-      New Game
-    </button>
-  {/if}
-</div>
+    {#if game.result !== 'playing'}
+      <button class="new-game-btn" onclick={startNewGame}>
+        New Game
+      </button>
+    {/if}
+  {/snippet}
+</BoardLayout>
 
 <style>
-  .game-shell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    max-width: 56rem;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .game-shell {
-      flex: 1;
-      min-height: 0;
-    }
-  }
-
   .header {
     text-align: center;
     flex-shrink: 0;
@@ -308,62 +292,11 @@
     margin: 0;
   }
 
-  .main-area {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-    align-items: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .main-area {
-      flex: 1;
-      min-height: 0;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .main-area {
-      flex-direction: row;
-      align-items: stretch;
-      justify-content: center;
-    }
-  }
-
-  .board-wrap {
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-wrap {
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
-  }
-
   .move-panel {
-    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .move-panel {
-      width: 12rem;
-      flex-shrink: 0;
-    }
-  }
-
-  @media (min-width: 768px) and (min-height: 32rem) {
-    .move-panel {
-      min-height: 0;
-    }
+    min-height: 0;
   }
 
   .move-list {
@@ -371,16 +304,9 @@
     border: 1px solid var(--card-border, #333);
     background: var(--card-bg, #1a1a1a);
     padding: 0.5rem;
-    max-height: 8rem;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-  }
-
-  @media (min-width: 768px) and (min-height: 32rem) {
-    .move-list {
-      flex: 1;
-      min-height: 0;
-      max-height: none;
-    }
   }
 
   .move-grid {

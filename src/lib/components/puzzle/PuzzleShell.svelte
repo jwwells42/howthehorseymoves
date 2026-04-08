@@ -1,5 +1,6 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import PuzzleControls from './PuzzleControls.svelte';
   import StarRating from './StarRating.svelte';
   import SuccessOverlay from './SuccessOverlay.svelte';
@@ -87,26 +88,8 @@
   function onDragEnd() { dragFrom = null; }
 </script>
 
-<div class="shell">
-  <!-- Instruction -->
-  <div class="header">
-    <h2 class="title">{puzzle.title}</h2>
-    <p class="instruction">{puzzle.instruction}</p>
-  </div>
-
-  <!-- Move counter -->
-  {#if findMovesInfo}
-    <div class="move-counter">
-      {findMovesInfo.found} of {findMovesInfo.total} found{findMovesInfo.mistakes > 0 ? ` · ${findMovesInfo.mistakes} wrong` : ''}
-    </div>
-  {:else if showMoveCounter && thresholds}
-    <div class="move-counter">
-      Moves: {ps.moveCount} / {thresholds.three}
-    </div>
-  {/if}
-
-  <!-- Board -->
-  <div class="board-wrapper">
+<BoardLayout>
+  {#snippet boardArea()}
     <Board
       board={ps.board}
       selectedSquare={ps.selectedSquare}
@@ -137,85 +120,64 @@
     {#if ps.isComplete}
       <SuccessOverlay stars={ps.stars} {onNext} onRetry={ps.reset} {nextLabel} />
     {/if}
-  </div>
+  {/snippet}
 
-  <!-- Stalemate warning -->
-  {#if ps.stalemateTrigger}
-    <div class="stalemate-warning">
-      <strong>Stalemate!</strong> The opponent has no legal moves but isn't in check. That's a draw, not a win.
-      <button class="stalemate-retry" onclick={ps.reset}>Try again</button>
+  {#snippet sidebarArea()}
+    <div class="header">
+      <h2 class="title">{puzzle.title}</h2>
+      <p class="instruction">{puzzle.instruction}</p>
     </div>
-  {/if}
 
-  <!-- Hint display -->
-  {#if ps.currentHintIndex >= 0 && puzzle.hints?.[ps.currentHintIndex]}
-    <div class="hint-box">
-      Hint: {puzzle.hints[ps.currentHintIndex]}
-    </div>
-  {/if}
+    {#if findMovesInfo}
+      <div class="move-counter">
+        {findMovesInfo.found} of {findMovesInfo.total} found{findMovesInfo.mistakes > 0 ? ` · ${findMovesInfo.mistakes} wrong` : ''}
+      </div>
+    {:else if showMoveCounter && thresholds}
+      <div class="move-counter">
+        Moves: {ps.moveCount} / {thresholds.three}
+      </div>
+    {/if}
 
-  <!-- Controls -->
-  <PuzzleControls
-    onReset={ps.reset}
-    onHint={puzzle.hints?.length ? ps.showHint : undefined}
-  />
+    {#if ps.stalemateTrigger}
+      <div class="stalemate-warning">
+        <strong>Stalemate!</strong> The opponent has no legal moves but isn't in check. That's a draw, not a win.
+        <button class="stalemate-retry" onclick={ps.reset}>Try again</button>
+      </div>
+    {/if}
 
-  <!-- Star thresholds -->
-  {#if isFindMoves && findMovesMode === 'test' && thresholds}
-    <div class="thresholds">
-      <span><StarRating stars={3} size="sm" /> {thresholds.three === 0 ? 'no' : `≤${thresholds.three}`} mistakes</span>
-      <span><StarRating stars={2} size="sm" /> ≤{thresholds.two} mistakes</span>
-      <span><StarRating stars={1} size="sm" /> ≤{thresholds.one} mistakes</span>
-    </div>
-  {:else if showMoveCounter && thresholds}
-    <div class="thresholds">
-      <span><StarRating stars={3} size="sm" /> {thresholds.three} moves</span>
-      <span><StarRating stars={2} size="sm" /> {thresholds.two} moves</span>
-      <span><StarRating stars={1} size="sm" /> {thresholds.one} moves</span>
-    </div>
-  {/if}
-</div>
+    {#if ps.currentHintIndex >= 0 && puzzle.hints?.[ps.currentHintIndex]}
+      <div class="hint-box">
+        Hint: {puzzle.hints[ps.currentHintIndex]}
+      </div>
+    {/if}
+
+    <PuzzleControls
+      onReset={ps.reset}
+      onHint={puzzle.hints?.length ? ps.showHint : undefined}
+    />
+
+    {#if isFindMoves && findMovesMode === 'test' && thresholds}
+      <div class="thresholds">
+        <span><StarRating stars={3} size="sm" /> {thresholds.three === 0 ? 'no' : `≤${thresholds.three}`} mistakes</span>
+        <span><StarRating stars={2} size="sm" /> ≤{thresholds.two} mistakes</span>
+        <span><StarRating stars={1} size="sm" /> ≤{thresholds.one} mistakes</span>
+      </div>
+    {:else if showMoveCounter && thresholds}
+      <div class="thresholds">
+        <span><StarRating stars={3} size="sm" /> {thresholds.three} moves</span>
+        <span><StarRating stars={2} size="sm" /> {thresholds.two} moves</span>
+        <span><StarRating stars={1} size="sm" /> {thresholds.one} moves</span>
+      </div>
+    {/if}
+  {/snippet}
+</BoardLayout>
 
 <style>
-  .shell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .shell {
-      flex: 1;
-      min-height: 0;
-    }
-  }
-
   .header { text-align: center; flex-shrink: 0; }
   .title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
   .instruction { color: var(--text-muted); }
   .move-counter { font-size: 0.875rem; color: var(--text-faint); flex-shrink: 0; }
 
-  .board-wrapper {
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-wrapper {
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
-  }
-
-  @media (max-height: 480px) {
-    .shell { gap: 0.25rem; }
-    .header { display: none; }
-  }
   .stalemate-warning {
     background: rgba(127, 29, 29, 0.4);
     border: 1px solid rgba(239, 68, 68, 0.5);

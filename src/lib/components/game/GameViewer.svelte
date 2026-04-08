@@ -1,5 +1,6 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import { parseGamePgn, extractMainLine } from '$lib/logic/pgn';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
@@ -666,14 +667,14 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="viewer-layout">
-  <div class="board-side">
-    <div class="player-label">
-      <div class="player-dot player-dot-black"></div>
-      <span class="player-name">{game.black}</span>
-    </div>
+<BoardLayout>
+  {#snippet boardArea()}
+    <div class="board-column">
+      <div class="player-label">
+        <div class="player-dot player-dot-black"></div>
+        <span class="player-name">{game.black}</span>
+      </div>
 
-    <div class="board-wrapper">
       <Board
         board={testMode ? testBoard : displayBoard}
         selectedSquare={testMode ? testSelected : viewerSelected}
@@ -688,13 +689,15 @@
         arrows={testMode ? testArrows : (exploring ? undefined : currentArrows)}
         playableColors={['w', 'b']}
       />
-    </div>
 
-    <div class="player-label">
-      <div class="player-dot player-dot-white"></div>
-      <span class="player-name">{game.white}</span>
+      <div class="player-label">
+        <div class="player-dot player-dot-white"></div>
+        <span class="player-name">{game.white}</span>
+      </div>
     </div>
+  {/snippet}
 
+  {#snippet sidebarArea()}
     {#if !testMode && exploring}
       <div class="explore-indicator">
         <span class="explore-label">Exploring</span>
@@ -742,8 +745,6 @@
           Pause at variations
         </label>
       </div>
-    {:else}
-      <div class="sub-controls"></div>
     {/if}
 
     <div class="test-btn-wrap">
@@ -767,9 +768,7 @@
         {/if}
       </div>
     {/if}
-  </div>
 
-  <div class="move-list-side">
     {#if testMode}
       <div class="test-panel">
         <h2 class="test-title">Test Yourself</h2>
@@ -865,8 +864,8 @@
         {/if}
       </div>
     {/if}
-  </div>
-</div>
+  {/snippet}
+</BoardLayout>
 
 <style>
   /* --- Test Mode --- */
@@ -931,61 +930,13 @@
     color: var(--text-muted, #888);
   }
 
-  /* --- Viewer layout --- */
-  .viewer-layout {
+  /* --- Board column (player labels + board) --- */
+  .board-column {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    align-items: flex-start;
-    max-width: 56rem;
-    margin: 0 auto;
+    align-items: stretch;
     width: 100%;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .viewer-layout {
-      flex: 1;
-      min-height: 0;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .viewer-layout {
-      flex-direction: row;
-    }
-  }
-
-  .board-side {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-side {
-      min-height: 0;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .board-side {
-      max-width: none;
-    }
-  }
-
-  .board-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-wrapper {
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
+    height: 100%;
   }
 
   /* --- Explore indicator --- */
@@ -1119,26 +1070,6 @@
     margin: 0;
   }
 
-  /* --- Move list side --- */
-  .move-list-side {
-    width: 100%;
-  }
-
-  @media (min-width: 1024px) {
-    .move-list-side {
-      width: 14rem;
-      align-self: stretch;
-      display: flex;
-      flex-direction: column;
-    }
-  }
-
-  @media (min-width: 1024px) and (min-height: 32rem) {
-    .move-list-side {
-      min-height: 0;
-    }
-  }
-
   .game-info {
     font-size: 0.875rem;
     margin-bottom: 0.5rem;
@@ -1164,16 +1095,9 @@
     border: 1px solid var(--card-border, #333);
     background: var(--card-bg, #1a1a1a);
     padding: 0.75rem;
-    max-height: 8rem;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-  }
-
-  @media (min-width: 1024px) and (min-height: 32rem) {
-    .move-list {
-      flex: 1;
-      min-height: 0;
-      max-height: none;
-    }
   }
 
   .move-grid {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/puzzle/StarRating.svelte';
   import { playSound } from '$lib/state/sound';
   import { type BoardState, type SquareId, createBoardState } from '$lib/logic/types';
@@ -189,13 +190,8 @@
   }
 </script>
 
-<div class="mate-trainer">
-  <div class="header">
-    <h2 class="title">{info.name}</h2>
-    <p class="status">{statusText}</p>
-  </div>
-
-  <div class="board-wrap">
+<BoardLayout>
+  {#snippet boardArea()}
     <Board
       {board}
       {selectedSquare}
@@ -209,48 +205,40 @@
       {onDragEnd}
       opponentSlide={botSlide}
     />
-  </div>
+  {/snippet}
 
-  {#if feedback && result === 'playing'}
-    <p class="feedback">{feedback}</p>
-  {/if}
-
-  {#if result === 'won'}
-    <div class="result">
-      <StarRating {stars} size="lg" />
-      <p class="result-text">
-        {#if mistakes === 0}
-          Perfect — no mistakes!
-        {:else}
-          {mistakes} mistake{mistakes > 1 ? 's' : ''}
-        {/if}
-      </p>
-      {#if bestStars > 0 && bestStars > stars}
-        <p class="best-text">Best: {bestStars} stars</p>
-      {/if}
-      <button class="new-position-btn" onclick={reset}>
-        New Position
-      </button>
+  {#snippet sidebarArea()}
+    <div class="header">
+      <h2 class="title">{info.name}</h2>
+      <p class="status">{statusText}</p>
     </div>
-  {/if}
-</div>
+
+    {#if feedback && result === 'playing'}
+      <p class="feedback">{feedback}</p>
+    {/if}
+
+    {#if result === 'won'}
+      <div class="result">
+        <StarRating {stars} size="lg" />
+        <p class="result-text">
+          {#if mistakes === 0}
+            Perfect — no mistakes!
+          {:else}
+            {mistakes} mistake{mistakes > 1 ? 's' : ''}
+          {/if}
+        </p>
+        {#if bestStars > 0 && bestStars > stars}
+          <p class="best-text">Best: {bestStars} stars</p>
+        {/if}
+        <button class="new-position-btn" onclick={reset}>
+          New Position
+        </button>
+      </div>
+    {/if}
+  {/snippet}
+</BoardLayout>
 
 <style>
-  .mate-trainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .mate-trainer {
-      flex: 1;
-      min-height: 0;
-    }
-  }
-
   .header {
     text-align: center;
     flex-shrink: 0;
@@ -265,21 +253,6 @@
   .status {
     color: #888;
     margin: 0;
-  }
-
-  .board-wrap {
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-wrap {
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
   }
 
   .feedback {
@@ -297,11 +270,6 @@
     gap: 0.75rem;
     animation: fade-in 0.3s ease-out;
     flex-shrink: 0;
-  }
-
-  @media (max-height: 480px) {
-    .mate-trainer { gap: 0.25rem; }
-    .header { display: none; }
   }
 
   .result-text {
