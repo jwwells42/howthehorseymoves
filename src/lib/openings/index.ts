@@ -320,7 +320,7 @@ export const OPENINGS: Opening[] = [
     id: "c6-qb6-vs-london",
     name: "c6 Qb6 vs London",
     color: "b",
-    description: "Fight the London with ...Qb6 — punish b3 with the wild ...g5!",
+    description: "A sideline against the London for the Caro/Slav player.",
     pgn: `1.d4 c6 2.Bf4
       (2.e4 { Caro })
       (2.c4 d5 { Slav })
