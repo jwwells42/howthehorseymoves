@@ -56,27 +56,24 @@
   }
 
   /* Desktop: horizontal layout */
-  @media (min-width: 900px) and (min-height: 500px) {
+  @media (min-width: 900px) {
     .board-layout {
       flex-direction: row;
-      align-items: stretch;
+      align-items: center;
       justify-content: center;
-      gap: 1.5rem;
+      gap: 1rem;
     }
 
     .board-area {
       flex: 0 0 auto;
-      height: 100%;
+      width: min(calc(100dvh - 6rem), calc(100% - 19rem));
       aspect-ratio: 1;
-      max-width: calc(100% - 19.5rem);
     }
 
     .sidebar-area {
       width: 18rem;
       flex-shrink: 0;
       align-items: center;
-      justify-content: flex-start;
-      padding-top: 1rem;
     }
   }
 </style>
