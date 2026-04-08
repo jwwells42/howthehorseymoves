@@ -532,15 +532,14 @@
           disabled={lineIdx >= activeLines.length - 1 || waiting}
           aria-label="Next line"
         >&rsaquo;</button>
-        <span class="mode-sep">&middot;</span>
-        <span class={['mode-badge', phase]}>{phase === 'learn' ? 'Learn' : 'Practice'}</span>
-        <button class="btn btn-sm" onclick={toggleMode}>
-          Switch
-        </button>
-        <span class="mode-sep">&middot;</span>
+      </div>
+
+      <div class="info-row">
+        <button class={['mode-btn', phase === 'learn' && 'mode-active']} onclick={() => { if (phase !== 'learn') toggleMode(); }}>Learn</button>
+        <button class={['mode-btn', phase === 'practice' && 'mode-active']} onclick={() => { if (phase !== 'practice') toggleMode(); }}>Practice</button>
         <label class="toggle-label">
           <input type="checkbox" bind:checked={autoNext} />
-          Auto
+          Auto-advance
         </label>
       </div>
 
@@ -770,8 +769,27 @@
     cursor: default;
   }
 
-  .mode-sep {
+  .mode-btn {
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.375rem;
+    background: none;
+    border: 1px solid var(--card-border);
     color: var(--text-faint);
+    cursor: pointer;
+    font-size: 0.8125rem;
+    transition: all 0.15s;
+  }
+
+  .mode-btn:hover {
+    background: var(--btn-bg);
+    color: inherit;
+  }
+
+  .mode-btn.mode-active {
+    background: var(--btn-hover);
+    color: inherit;
+    font-weight: 600;
+    border-color: transparent;
   }
 
   .toggle-label {
@@ -781,22 +799,11 @@
     cursor: pointer;
     font-size: 0.8125rem;
     color: var(--text-faint);
+    margin-left: auto;
   }
 
   .toggle-label input[type="checkbox"] {
     margin: 0;
-  }
-
-  .mode-badge {
-    font-weight: 500;
-  }
-
-  .mode-badge.learn {
-    color: #60a5fa;
-  }
-
-  .mode-badge.practice {
-    color: #fbbf24;
   }
 
   .done-overlay {
