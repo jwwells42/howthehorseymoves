@@ -705,70 +705,6 @@
       </div>
     {/if}
 
-    <div class="nav-controls">
-      <button
-        class="nav-btn"
-        onclick={goToStart}
-        disabled={!canGoBack}
-        aria-label="Start"
-      >&#x23EE;</button>
-      <button
-        class="nav-btn"
-        onclick={goBack}
-        disabled={!canGoBack}
-        aria-label="Back"
-      >&#x25C0;</button>
-      <button
-        class="nav-btn nav-btn-wide"
-        onclick={togglePlay}
-        disabled={testMode}
-        aria-label={isPlaying ? 'Pause' : 'Play'}
-      >{isPlaying ? '\u23F8' : '\u25B6'}</button>
-      <button
-        class="nav-btn"
-        onclick={goForward}
-        disabled={!canGoForward}
-        aria-label="Forward"
-      >&#x25B6;</button>
-      <button
-        class="nav-btn"
-        onclick={goToEnd}
-        disabled={!canGoForward}
-        aria-label="End"
-      >&#x23ED;</button>
-    </div>
-
-    {#if !testMode}
-      <div class="sub-controls">
-        <label class="variation-toggle">
-          <input type="checkbox" bind:checked={pauseOnVariations} />
-          Pause at variations
-        </label>
-      </div>
-    {/if}
-
-    <div class="test-btn-wrap">
-      {#if testMode}
-        <button class="btn-test" onclick={exitTestMode}>
-          Back to Viewer
-        </button>
-      {:else}
-        <button class="btn-test" onclick={startTestMode}>
-          Test Yourself
-        </button>
-      {/if}
-    </div>
-
-    {#if !testMode}
-      <div class="comment-area">
-        {#if exploring}
-          <p class="comment-text">Try any move. Arrow left to undo, Esc to return.</p>
-        {:else if currentComment}
-          <p class="comment-text">{currentComment}</p>
-        {/if}
-      </div>
-    {/if}
-
     {#if testMode}
       <div class="test-panel">
         <h2 class="test-title">Test Yourself</h2>
@@ -863,7 +799,69 @@
           <div class="game-result">{game.result}</div>
         {/if}
       </div>
+
+      <div class="comment-area">
+        {#if exploring}
+          <p class="comment-text">Try any move. Arrow left to undo, Esc to return.</p>
+        {:else if currentComment}
+          <p class="comment-text">{currentComment}</p>
+        {/if}
+      </div>
     {/if}
+
+    <div class="nav-controls">
+      <button
+        class="nav-btn"
+        onclick={goToStart}
+        disabled={!canGoBack}
+        aria-label="Start"
+      >&#x23EE;</button>
+      <button
+        class="nav-btn"
+        onclick={goBack}
+        disabled={!canGoBack}
+        aria-label="Back"
+      >&#x25C0;</button>
+      <button
+        class="nav-btn nav-btn-wide"
+        onclick={togglePlay}
+        disabled={testMode}
+        aria-label={isPlaying ? 'Pause' : 'Play'}
+      >{isPlaying ? '\u23F8' : '\u25B6'}</button>
+      <button
+        class="nav-btn"
+        onclick={goForward}
+        disabled={!canGoForward}
+        aria-label="Forward"
+      >&#x25B6;</button>
+      <button
+        class="nav-btn"
+        onclick={goToEnd}
+        disabled={!canGoForward}
+        aria-label="End"
+      >&#x23ED;</button>
+    </div>
+
+    {#if !testMode}
+      <div class="sub-controls">
+        <label class="variation-toggle">
+          <input type="checkbox" bind:checked={pauseOnVariations} />
+          Pause at variations
+        </label>
+      </div>
+    {/if}
+
+    <div class="test-btn-wrap">
+      {#if testMode}
+        <button class="btn-test" onclick={exitTestMode}>
+          Back to Viewer
+        </button>
+      {:else}
+        <button class="btn-test" onclick={startTestMode}>
+          Test Yourself
+        </button>
+      {/if}
+    </div>
   {/snippet}
 </BoardLayout>
 
@@ -945,7 +943,6 @@
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    margin-top: 0.75rem;
     padding: 0.375rem 0.75rem;
     border-radius: 0.5rem;
     background: rgba(234, 179, 8, 0.1);
@@ -980,7 +977,6 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin-top: 0.75rem;
     flex-shrink: 0;
   }
 
@@ -1013,7 +1009,6 @@
   .sub-controls {
     display: flex;
     justify-content: center;
-    margin-top: 0.5rem;
     flex-shrink: 0;
   }
 
@@ -1034,7 +1029,6 @@
   .test-btn-wrap {
     display: flex;
     justify-content: center;
-    margin-top: 0.75rem;
     flex-shrink: 0;
   }
 
@@ -1056,8 +1050,6 @@
 
   /* --- Comment area --- */
   .comment-area {
-    margin-top: 0.75rem;
-    min-height: 3rem;
     flex-shrink: 0;
   }
 

@@ -59,7 +59,7 @@ export const backRankMatePuzzles: TacticPuzzle[] = [
     type: "puzzle",
     title: "Don't Stalemate!",
     instruction: "Checkmate in one — but be careful not to stalemate!",
-    fen: "7k/4K3/8/8/8/6Q1/8/8 w - - 0 1",
+    fen: "7k/5K2/8/8/8/6Q1/8/8 w - - 0 1",
     pgn: "1. Qg7#",
     hints: [
       "If the king has no legal moves AND isn't in check, it's stalemate — a draw!",

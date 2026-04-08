@@ -60,7 +60,7 @@
   @media (min-width: 900px) {
     .board-layout {
       flex-direction: row;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
       gap: 1rem;
     }
