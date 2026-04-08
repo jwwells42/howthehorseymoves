@@ -12,8 +12,10 @@
     noBoard?: boolean;
     /** Called when position changes (only used with noBoard) */
     onBoardChange?: (board: BoardState, arrows?: Arrow[]) => void;
+    /** Flip the board (black on bottom) */
+    flipped?: boolean;
   }
-  let { pgn, fen, noBoard, onBoardChange }: Props = $props();
+  let { pgn, fen, noBoard, onBoardChange, flipped }: Props = $props();
 
   let tree = $derived(parseGamePgn(pgn, fen));
 
@@ -329,6 +331,7 @@
           onDragEnd={() => {}}
           readOnly
           arrows={currentArrows}
+          {flipped}
         />
       </div>
 

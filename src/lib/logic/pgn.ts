@@ -40,7 +40,7 @@ interface AnnotatedToken {
 }
 
 /** Parse [%cal Ge2e4,Rd7d5] arrow directives from a comment string. */
-function parseArrows(comment: string): { text: string; arrows: Arrow[] } {
+export function parseArrows(comment: string): { text: string; arrows: Arrow[] } {
   const arrows: Arrow[] = [];
   const text = comment.replace(/\[%cal\s+([^\]]+)\]/g, (_, spec: string) => {
     for (const entry of spec.split(",")) {

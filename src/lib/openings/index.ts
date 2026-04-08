@@ -1,6 +1,7 @@
 import type { BoardState, PieceColor, PieceKind, SquareId } from "../logic/types";
 import { parseFen, createBoardState } from "../logic/types";
-import { parseSan, applyMove } from "../logic/pgn";
+import { parseSan, applyMove, parseArrows } from "../logic/pgn";
+import type { Arrow } from "../logic/pgn";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -15,6 +16,7 @@ export interface OpeningMove {
   colorPlayed: PieceColor;
   nag?: string;
   comment?: string;
+  arrows?: Arrow[];
   children: OpeningMove[];
 }
 
@@ -89,7 +91,7 @@ function tokenizeOpeningPgn(pgn: string): string[] {
       const start = i + 1;
       while (i < pgn.length && pgn[i] !== "}") i++;
       const raw = pgn.slice(start, i)
-        .replace(/\[%[^\]]*\]/g, "")
+        .replace(/\[%csl[^\]]*\]/g, "")
         .replace(/\$(\d+)/g, (_, n) => nagToSymbol(parseInt(n, 10)))
         .trim();
       if (raw) tokens.push("{" + raw);
@@ -159,7 +161,9 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
       }
     } else if (token.startsWith("{")) {
       if (state.parentNode) {
-        state.parentNode.comment = token.slice(1);
+        const { text, arrows } = parseArrows(token.slice(1));
+        if (text) state.parentNode.comment = text;
+        if (arrows.length > 0) state.parentNode.arrows = arrows;
       }
     } else if (token === "(") {
       stack.push({ savedState: { ...state }, savedLMP: { ...lastMoveParent } });

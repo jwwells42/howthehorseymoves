@@ -1,6 +1,7 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
+  import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';
   import { type SquareId } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import type { Arrow } from '$lib/logic/pgn';
@@ -14,7 +15,7 @@
     findBranchPoint,
   } from '$lib/openings';
 
-  type Phase = 'setup' | 'learn' | 'practice';
+  type Phase = 'setup' | 'learn' | 'practice' | 'explore';
 
   interface Props {
     opening: Opening;
@@ -67,13 +68,21 @@
     return currentLine[moveIdx - 1].comment;
   });
 
+  // Annotation arrows from the most recently played move
+  let annotationArrows = $derived.by((): Arrow[] => {
+    if (phase === 'setup' || moveIdx === 0) return [];
+    return currentLine[moveIdx - 1].arrows ?? [];
+  });
+
   let arrows = $derived.by((): Arrow[] | undefined => {
-    if (phase === 'setup' || atEnd || !isPlayerTurn || waiting || browsing) return undefined;
-    if (phase === 'learn' || showHint) {
+    if (phase === 'setup') return undefined;
+    const hintArrows: Arrow[] = [];
+    if (!atEnd && isPlayerTurn && !waiting && !browsing && (phase === 'learn' || showHint)) {
       const move = currentLine[moveIdx];
-      return [{ from: move.from, to: move.to, color: '#15803d' }];
+      hintArrows.push({ from: move.from, to: move.to, color: '#15803d' });
     }
-    return undefined;
+    const all = [...annotationArrows, ...hintArrows];
+    return all.length > 0 ? all : undefined;
   });
 
   let validMoves = $derived.by(() => {
@@ -218,6 +227,7 @@
         waiting = false;
         if (nextIdx >= line.length) {
           lineComplete = true;
+          playSound('correct');
         }
       }, 400);
     }, 300);
@@ -273,6 +283,7 @@
 
       if (nextIdx >= currentLine.length) {
         lineComplete = true;
+        playSound('correct');
       } else if (currentLine[nextIdx].colorPlayed !== playerColor) {
         autoPlayOpponent(nextIdx, currentLine);
       }
@@ -447,7 +458,17 @@
       <button class="btn btn-secondary" onclick={() => startDrilling('practice')} disabled={!canStart}>
         Start practicing
       </button>
+      <button class="btn btn-secondary" onclick={() => phase = 'explore'}>
+        Explore
+      </button>
     </div>
+  </div>
+{:else if phase === 'explore'}
+  <div class="explore-wrapper">
+    <button class="btn btn-secondary btn-back-explore" onclick={backToSetup}>
+      &larr; Back to setup
+    </button>
+    <PgnExplorer pgn={opening.pgn} flipped={flipped} />
   </div>
 {:else}
   <BoardLayout>
@@ -638,6 +659,19 @@
   .btn-back {
     margin-top: 0.75rem;
     width: 100%;
+  }
+
+  .explore-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.5rem;
+  }
+
+  .btn-back-explore {
+    align-self: flex-start;
+    font-size: 0.875rem;
   }
 
   /* === Setup === */
