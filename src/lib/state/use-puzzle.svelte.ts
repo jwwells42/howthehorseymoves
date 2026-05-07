@@ -244,7 +244,7 @@ function createTacticState(puzzle: TacticPuzzle) {
   let stars = $derived(calculateStars(moveCount));
 
   let validMoves = $derived.by(() => {
-    if (!selectedSquare || demoPhase) return [];
+    if (!selectedSquare || demoPhase || pendingPromotion) return [];
     const p = board.pieces.get(selectedSquare);
     if (!p || p.color !== 'w') return [];
     return getLegalMoves(selectedSquare, board, 'w');
@@ -352,9 +352,25 @@ function createTacticState(puzzle: TacticPuzzle) {
     setTimeout(() => autoPlayOpponent(), 100);
   }
 
-  function executeMove(from: SquareId, to: SquareId) {
+  let pendingPromotion = $state<{ from: SquareId; to: SquareId } | null>(null);
+
+  function executeMove(from: SquareId, to: SquareId, promotionPiece?: PieceKind) {
+    // Detect pawn reaching 8th rank — check if any tree node for this move has promotion
+    if (!promotionPiece) {
+      const piece = board.pieces.get(from);
+      if (piece && piece.piece === 'P') {
+        const rank = to[1];
+        if ((piece.color === 'w' && rank === '8') || (piece.color === 'b' && rank === '1')) {
+          pendingPromotion = { from, to };
+          selectedSquare = null;
+          return;
+        }
+      }
+    }
+
     const match = currentChildren.find(c =>
-      c.color === 'w' && c.from === from && c.to === to
+      c.color === 'w' && c.from === from && c.to === to &&
+      (!c.promotion || c.promotion === promotionPiece)
     );
 
     if (!match) {
@@ -384,8 +400,15 @@ function createTacticState(puzzle: TacticPuzzle) {
     autoPlayOpponent();
   }
 
+  function completePromotion(promoteTo: PieceKind) {
+    if (!pendingPromotion) return;
+    const { from, to } = pendingPromotion;
+    pendingPromotion = null;
+    executeMove(from, to, promoteTo);
+  }
+
   function handleSquareClick(sq: SquareId) {
-    if (isComplete || waitingForAnimation || demoPhase) return;
+    if (isComplete || waitingForAnimation || demoPhase || pendingPromotion) return;
     if (!selectedSquare) {
       const p = board.pieces.get(sq);
       if (p && p.color === 'w') selectedSquare = sq;
@@ -408,7 +431,7 @@ function createTacticState(puzzle: TacticPuzzle) {
   }
 
   function handleDrop(from: SquareId, to: SquareId) {
-    if (isComplete || waitingForAnimation || demoPhase || from === to) return;
+    if (isComplete || waitingForAnimation || demoPhase || pendingPromotion || from === to) return;
     const p = board.pieces.get(from);
     if (!p || p.color !== 'w') return;
     const moves = getLegalMoves(from, board, 'w');
@@ -424,6 +447,7 @@ function createTacticState(puzzle: TacticPuzzle) {
     stalemateTrigger = false;
     currentHintIndex = -1;
     wrongMoveSquare = null;
+    pendingPromotion = null;
     opponentSlide = null;
     waitingForAnimation = false;
     currentChildren = tree.children;
@@ -462,7 +486,7 @@ function createTacticState(puzzle: TacticPuzzle) {
     get arrows() { return currentArrows; },
     get highlights() { return currentHighlights; },
     get demoPhase() { return demoPhase; },
-    get pendingPromotion() { return null as { from: SquareId; to: SquareId } | null; },
+    get pendingPromotion() { return pendingPromotion; },
     getMovesFrom(from: SquareId) {
       const p = board.pieces.get(from);
       if (!p || p.color !== 'w') return [];
@@ -470,7 +494,7 @@ function createTacticState(puzzle: TacticPuzzle) {
     },
     handleSquareClick,
     handleDrop,
-    completePromotion(_p: PieceKind) {},
+    completePromotion,
     reset,
     showHint,
   };
