@@ -42,8 +42,8 @@ export const lichessForkPuzzles: TacticPuzzle[] = [
     id: "lichess-fork-05",
     title: "Fork #5",
     instruction: "Attack two pieces at once!",
-    fen: "2b2k1r/q4ppp/5n2/8/3R4/8/PP3PPP/4R1K1 w - - 0 23",
-    pgn: "1. Rd8+ Ne8 2. Rexe8#",
+    fen: "r1q2rk1/pp3pbp/3pbnp1/2pNp3/2PnP3/P1NP2PP/1P3PBK/R1BQ1R2 w - - 7 14",
+    pgn: "1. Ne7+ Kh8 2. Nxc8",
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
