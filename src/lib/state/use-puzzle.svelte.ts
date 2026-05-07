@@ -1,6 +1,6 @@
 import { type BoardState, type PieceKind, type PieceColor, type SquareId, createBoardState, parseFen, squareToCoords, coordsToSquare } from '$lib/logic/types';
 import { getValidMoves } from '$lib/logic/moves';
-import { isCheckmate, isStalemate, getLegalMoves } from '$lib/logic/attacks';
+import { isCheckmate, isStalemate, getLegalMoves, isSquareAttacked } from '$lib/logic/attacks';
 import { applyMove } from '$lib/logic/pgn';
 import type { Arrow } from '$lib/logic/pgn';
 import type { Puzzle, RoutePuzzle, TacticPuzzle, ConversionPuzzle, FindMovesPuzzle } from '$lib/puzzles/types';
@@ -196,9 +196,11 @@ function createRouteState(puzzle: RoutePuzzle) {
     get arrows() { return (puzzle.arrows ?? []) as Arrow[]; },
     get highlights() { return dangerHighlights; },
     get demoPhase() { return null as 'playing' | 'resetting' | null; },
+    get pendingPromotion() { return null as { from: SquareId; to: SquareId } | null; },
     getMovesFrom: getFilteredMoves,
     handleSquareClick,
     handleDrop,
+    completePromotion(_p: PieceKind) {},
     reset,
     showHint,
   };
@@ -460,6 +462,7 @@ function createTacticState(puzzle: TacticPuzzle) {
     get arrows() { return currentArrows; },
     get highlights() { return currentHighlights; },
     get demoPhase() { return demoPhase; },
+    get pendingPromotion() { return null as { from: SquareId; to: SquareId } | null; },
     getMovesFrom(from: SquareId) {
       const p = board.pieces.get(from);
       if (!p || p.color !== 'w') return [];
@@ -467,6 +470,7 @@ function createTacticState(puzzle: TacticPuzzle) {
     },
     handleSquareClick,
     handleDrop,
+    completePromotion(_p: PieceKind) {},
     reset,
     showHint,
   };
@@ -490,8 +494,10 @@ function createConversionState(puzzle: ConversionPuzzle) {
   let wrongMoveSquare = $state<SquareId | null>(null);
   let opponentSlide = $state<SlideAnimation | null>(null);
   let waitingForAnimation = $state(false);
+  let pendingPromotion = $state<{ from: SquareId; to: SquareId } | null>(null);
 
   let validMoves = $derived.by(() => {
+    if (pendingPromotion) return [];
     if (!selectedSquare) return [];
     const p = board.pieces.get(selectedSquare);
     if (!p || p.color !== 'w') return [];
@@ -550,6 +556,14 @@ function createConversionState(puzzle: ConversionPuzzle) {
       newPieces.delete(move.from);
       newPieces.set(move.to, piece);
 
+      // Bot auto-promotes to queen
+      if (piece.piece === 'P') {
+        const rank = move.to[1];
+        if ((piece.color === 'b' && rank === '1') || (piece.color === 'w' && rank === '8')) {
+          newPieces.set(move.to, { piece: 'Q', color: piece.color });
+        }
+      }
+
       opponentSlide = {
         piece: piece.piece,
         color: piece.color,
@@ -579,12 +593,28 @@ function createConversionState(puzzle: ConversionPuzzle) {
     }, 400);
   }
 
-  function executeMove(from: SquareId, to: SquareId) {
+  function executeMove(from: SquareId, to: SquareId, promotionPiece?: PieceKind) {
     const newPieces = new Map(board.pieces);
     const piece = newPieces.get(from)!;
+
+    // Detect pawn reaching final rank — ask user for piece choice
+    if (piece.piece === 'P' && !promotionPiece) {
+      const rank = to[1];
+      if ((piece.color === 'w' && rank === '8') || (piece.color === 'b' && rank === '1')) {
+        pendingPromotion = { from, to };
+        selectedSquare = null;
+        return;
+      }
+    }
+
     newPieces.delete(from);
     newPieces.set(to, piece);
     applyMoveEffects(newPieces, from, to, piece);
+
+    // Apply promotion if specified
+    if (promotionPiece && piece.piece === 'P') {
+      newPieces.set(to, { piece: promotionPiece, color: piece.color });
+    }
 
     const newBoard: BoardState = { pieces: newPieces };
     board = newBoard;
@@ -597,6 +627,20 @@ function createConversionState(puzzle: ConversionPuzzle) {
       isComplete = true;
       saveComplete(puzzle.id, calculateStars(newMoveCount), newMoveCount);
       playSound('stars');
+    } else if (puzzle.goal === 'promotion' && promotionPiece) {
+      // Promotion succeeds if the promoted piece can't be captured and it's not stalemate
+      const isSafe = !isSquareAttacked(to, 'b', newBoard);
+      const stalemate = isStalemate('b', newBoard);
+      if (isSafe && !stalemate) {
+        isComplete = true;
+        saveComplete(puzzle.id, calculateStars(newMoveCount), newMoveCount);
+        playSound('stars');
+      } else if (stalemate) {
+        stalemateTrigger = true;
+      } else {
+        // Unsafe promotion — bot will capture it, game continues
+        makeBotMove(newBoard);
+      }
     } else if (isStalemate('b', newBoard)) {
       stalemateTrigger = true;
     } else {
@@ -604,8 +648,15 @@ function createConversionState(puzzle: ConversionPuzzle) {
     }
   }
 
+  function completePromotion(promoteTo: PieceKind) {
+    if (!pendingPromotion) return;
+    const { from, to } = pendingPromotion;
+    pendingPromotion = null;
+    executeMove(from, to, promoteTo);
+  }
+
   function handleSquareClick(sq: SquareId) {
-    if (isComplete || waitingForAnimation) return;
+    if (isComplete || waitingForAnimation || pendingPromotion) return;
     if (!selectedSquare) {
       const p = board.pieces.get(sq);
       if (p && p.color === 'w') selectedSquare = sq;
@@ -628,7 +679,7 @@ function createConversionState(puzzle: ConversionPuzzle) {
   }
 
   function handleDrop(from: SquareId, to: SquareId) {
-    if (isComplete || waitingForAnimation || from === to) return;
+    if (isComplete || waitingForAnimation || pendingPromotion || from === to) return;
     const p = board.pieces.get(from);
     if (!p || p.color !== 'w') return;
     const moves = getLegalMoves(from, board, 'w');
@@ -646,6 +697,7 @@ function createConversionState(puzzle: ConversionPuzzle) {
     wrongMoveSquare = null;
     opponentSlide = null;
     waitingForAnimation = false;
+    pendingPromotion = null;
   }
 
   function showHint() {
@@ -669,6 +721,7 @@ function createConversionState(puzzle: ConversionPuzzle) {
     get arrows() { return [] as Arrow[]; },
     get highlights() { return [] as SquareHighlight[]; },
     get demoPhase() { return null as 'playing' | 'resetting' | null; },
+    get pendingPromotion() { return pendingPromotion; },
     getMovesFrom(from: SquareId) {
       const p = board.pieces.get(from);
       if (!p || p.color !== 'w') return [];
@@ -676,6 +729,7 @@ function createConversionState(puzzle: ConversionPuzzle) {
     },
     handleSquareClick,
     handleDrop,
+    completePromotion,
     reset,
     showHint,
   };
@@ -811,6 +865,7 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     get arrows() { return [] as Arrow[]; },
     get highlights() { return highlights; },
     get demoPhase() { return null as 'playing' | 'resetting' | null; },
+    get pendingPromotion() { return null as { from: SquareId; to: SquareId } | null; },
     get totalCorrect() { return correctSquares.size; },
     get foundCount() { return foundSquares.size; },
     get mistakes() { return mistakes; },
@@ -818,6 +873,7 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     getMovesFrom() { return [] as SquareId[]; },
     handleSquareClick,
     handleDrop(_from: SquareId, _to: SquareId) {},
+    completePromotion(_p: PieceKind) {},
     reset,
     showHint,
     runDemo,

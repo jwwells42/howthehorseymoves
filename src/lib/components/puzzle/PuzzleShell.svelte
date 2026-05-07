@@ -8,6 +8,8 @@
   import type { Puzzle } from '$lib/puzzles/types';
   import type { PieceKind, SquareId } from '$lib/logic/types';
 
+  const PROMO_PIECES: PieceKind[] = ['Q', 'R', 'B', 'N'];
+
   interface Props {
     puzzle: Puzzle;
     onNext?: () => void;
@@ -121,6 +123,17 @@
           <div class="find-intro-icon">&#10003;</div>
           <p class="find-intro-text">Tap every square this piece can move to!</p>
           <span class="find-intro-hint">Tap to start</span>
+        </div>
+      </div>
+    {/if}
+    {#if ps.pendingPromotion}
+      <div class="promo-overlay">
+        <div class="promo-picker">
+          {#each PROMO_PIECES as p}
+            <button class="promo-btn" onclick={() => ps.completePromotion(p)}>
+              <img src="/pieces/w{p}.svg" alt={p} width="60" height="60" />
+            </button>
+          {/each}
         </div>
       </div>
     {/if}
@@ -268,5 +281,45 @@
   @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
+  }
+
+  /* Promotion picker */
+  .promo-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.25rem;
+    z-index: 10;
+  }
+  .promo-picker {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--card-bg, #1a1a1a);
+    border: 2px solid var(--card-border, #333);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+  }
+  .promo-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    background: var(--btn-bg, #374151);
+    border: 2px solid transparent;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .promo-btn:hover {
+    background: var(--btn-hover, #4b5563);
+    border-color: #22c55e;
+  }
+  .promo-btn img {
+    width: 3.5rem;
+    height: 3.5rem;
   }
 </style>
