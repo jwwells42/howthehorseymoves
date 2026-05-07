@@ -32,6 +32,6 @@ export const lucenaPuzzles: ConversionPuzzle[] = [
       "Once the rook is on the 4th rank, bring your king out from behind the pawn.",
       "When the enemy rook checks, hide behind your own rook on the 4th rank!",
     ],
-    starThresholds: { three: 6, two: 10, one: 16 },
+    starThresholds: { three: 10, two: 14, one: 20 },
   },
 ];
