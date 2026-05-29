@@ -100,12 +100,13 @@
     + <a href="https://www.chessdb.cn/queryc_en/" target="_blank" rel="noopener noreferrer">chessdb.cn</a> evals
   </p>
 
-  <div class="data-source">
-    <strong>Source:</strong> Lichess rated standard games
-    &bull; <strong>Engine evals:</strong> chessdb.cn
-    &bull; <strong>Positions:</strong> {EVAL_DIFF_DATA.unique_fens.toLocaleString()}
-    &bull; <strong>Move pairs:</strong> {EVAL_DIFF_DATA.total_pairs.toLocaleString()}
-  </div>
+  <p class="explainer">
+    The table below shows the results from parsing all 56.7 million rated blitz, rapid, and classical
+    games from the <a href="https://database.lichess.org/" target="_blank" rel="noopener noreferrer">Lichess open database</a>
+    for March 2026, looking at moves 1–10, resulting in 43,594 positions and 1,281,577 move pairs.
+    See <a href="https://qchess.net/HowDoEvalDiffsMatterForHumanScores" target="_blank" rel="noopener noreferrer">qchess.net</a>
+    for the original research that inspired the current effort.
+  </p>
 
   <div class="filters">
     <div class="filter-group">
@@ -251,17 +252,14 @@
   .subtitle a { text-decoration: underline; }
   .subtitle a:hover { color: var(--foreground); }
 
-  .data-source {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
+  .explainer {
     margin-bottom: 1.25rem;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--text-muted);
-    line-height: 1.5;
+    line-height: 1.6;
   }
-  .data-source strong { color: var(--foreground); }
+  .explainer a { text-decoration: underline; }
+  .explainer a:hover { color: var(--foreground); }
 
   .filters {
     display: flex;
