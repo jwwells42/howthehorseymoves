@@ -28,7 +28,9 @@ export function toggleMuted(): void {
 
 let ctx: AudioContext | null = null;
 
-function getCtx(): AudioContext {
+/** Shared AudioContext. Exported so other synth modules (e.g. breathwork drone)
+ *  reuse the same context and benefit from the suspended-state resume. */
+export function getCtx(): AudioContext {
   if (!ctx) ctx = new AudioContext();
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   return ctx;
