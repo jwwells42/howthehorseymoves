@@ -21,6 +21,7 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 - **Sequential unlock** — complete a puzzle to unlock the next one
 - **Sound effects** — move, correct, wrong, and star sounds with a mute toggle
 - **No accounts** — progress saves to the browser (localStorage)
+- **Breathwork** (`/breathwork`) — a standalone, non-chess extra: a guided breathing trainer (resonance breathing + the cyclic physiological sigh) for performance-coaching students. Not linked from the chess nav
 
 ## Running locally
 
