@@ -20,8 +20,14 @@ const INHALE_HZ = 220;
 const EXHALE_HZ = 165;
 const PARTIAL_RATIO = 1.5; // a fifth above the fundamental, quietly, for warmth
 const MASTER_VOLUME = 0.16;
-const CROSSFADE = 0.5; // seconds — gentle tone-to-tone blend
 const FADE = 1.0; // seconds — overall fade in/out on start/stop
+
+// Ducked roll-on instead of a simultaneous crossfade: the leaving tone dims
+// first, then after a short gap the arriving tone rolls in. This leaves a soft
+// trough at the boundary — a "breath" in the sound — rather than an abrupt swap.
+const FADE_OUT_TC = 0.35; // outgoing decay time constant (seconds)
+const FADE_IN_TC = 0.5; // incoming rise time constant (seconds)
+const ROLL_DELAY = 0.4; // gap before the new tone rolls on (seconds)
 
 interface Voice {
   fund: OscillatorNode;
@@ -89,13 +95,25 @@ export class BreathDrone {
     }
   }
 
-  /** Crossfade to the tone for the given phase. No-op until started. */
+  /** Ducked roll-on to the tone for the given phase. No-op until started. */
   setPhase(phase: BreathPhaseName): void {
     if (!this.started || !this.ctx || !this.inhale || !this.exhale) return;
     const t = this.ctx.currentTime;
     const inhaling = phase !== 'exhale';
-    this.inhale.gain.gain.setTargetAtTime(inhaling ? 1 : 0, t, CROSSFADE / 3);
-    this.exhale.gain.gain.setTargetAtTime(inhaling ? 0 : 1, t, CROSSFADE / 3);
+    const incoming = inhaling ? this.inhale : this.exhale;
+    const outgoing = inhaling ? this.exhale : this.inhale;
+
+    // Dim the leaving tone right away.
+    outgoing.gain.gain.cancelScheduledValues(t);
+    outgoing.gain.gain.setValueAtTime(outgoing.gain.gain.value, t);
+    outgoing.gain.gain.setTargetAtTime(0, t, FADE_OUT_TC);
+
+    // Hold the arriving tone, then roll it on after a short gap so the two
+    // don't fight and a gentle trough opens between them.
+    incoming.gain.gain.cancelScheduledValues(t);
+    incoming.gain.gain.setValueAtTime(incoming.gain.gain.value, t);
+    incoming.gain.gain.setTargetAtTime(1, t + ROLL_DELAY, FADE_IN_TC);
+
     if (phase === 'topoff') this.accent();
   }
 
