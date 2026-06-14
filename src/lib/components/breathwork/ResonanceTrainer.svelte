@@ -7,12 +7,19 @@
 
   type Phase = BreathPhaseName | 'idle';
 
-  // Height presets → resonance rate (bpm). Derived from the Hasuo et al. (2024)
-  // formula, kept inside the 4.5–7.0 band. Direction is the reliable part.
-  const HEIGHT_PRESETS = [
-    { key: 'short', label: 'Shorter', sub: '5’2″ & under', rate: 6.5 },
-    { key: 'avg', label: 'Average', sub: '5’3″–5’11″', rate: 5.5 },
-    { key: 'tall', label: 'Taller', sub: '6’0″ & up', rate: 5.0 },
+  // Read-only reference: resonance rate by height & sex, from Hasuo et al. (2024).
+  // ♀ = 15.88 − 0.06×cm, ♂ = 17.90 − 0.07×cm, rounded to 0.1 and clamped to the
+  // 4.5–7.0 band (* = clamped). Shown as a guide; nothing is entered.
+  const RATE_TABLE = [
+    { ht: '5′0″', cm: 152, f: '6.7', m: '7.0*' },
+    { ht: '5′2″', cm: 157, f: '6.4', m: '6.9' },
+    { ht: '5′4″', cm: 163, f: '6.1', m: '6.5' },
+    { ht: '5′6″', cm: 168, f: '5.8', m: '6.2' },
+    { ht: '5′8″', cm: 173, f: '5.5', m: '5.8' },
+    { ht: '5′10″', cm: 178, f: '5.2', m: '5.5' },
+    { ht: '6′0″', cm: 183, f: '4.9', m: '5.1' },
+    { ht: '6′2″', cm: 188, f: '4.6', m: '4.7' },
+    { ht: '6′4″', cm: 193, f: '4.5*', m: '4.5*' },
   ] as const;
 
   const SESSION_PRESETS = [
@@ -49,11 +56,6 @@
     const s = Math.max(0, Math.ceil(seconds));
     const m = Math.floor(s / 60);
     return `${m}:${String(s % 60).padStart(2, '0')}`;
-  }
-
-  function pickRate(r: number) {
-    rate = r;
-    saveRate(r);
   }
 
   function pickSession(m: number) {
@@ -112,22 +114,9 @@
   {#if !running}
     <div class="controls">
       <fieldset>
-        <legend>Pick your starting rate by height</legend>
-        <div class="preset-row">
-          {#each HEIGHT_PRESETS as p}
-            <button
-              type="button"
-              class={['preset', rate === p.rate && 'active']}
-              onclick={() => pickRate(p.rate)}
-            >
-              <span class="preset-label">{p.label}</span>
-              <span class="preset-sub">{p.sub}</span>
-              <span class="preset-val">{p.rate} bpm</span>
-            </button>
-          {/each}
-        </div>
+        <legend>Your breathing rate</legend>
         <label class="slider">
-          <span>Fine-tune: <strong>{rate.toFixed(1)} breaths/min</strong></span>
+          <span>Rate: <strong>{rate.toFixed(1)} breaths/min</strong></span>
           <input
             type="range"
             min="4.5"
@@ -140,7 +129,34 @@
         <p class="readout">
           {inhaleS.toFixed(1)} s in &middot; {exhaleS.toFixed(1)} s out
         </p>
-        <p class="hint">An estimate, not a measurement — pick what feels smoothest.</p>
+        <p class="hint">
+          5.5 is the population average. Use the table as a guide — then pick what feels
+          smoothest. No personal info needed.
+        </p>
+      </fieldset>
+
+      <fieldset>
+        <legend>The science: resonance rate by height</legend>
+        <table class="science">
+          <thead>
+            <tr><th>Height</th><th>&#9792; women</th><th>&#9794; men</th></tr>
+          </thead>
+          <tbody>
+            {#each RATE_TABLE as row}
+              <tr>
+                <td>{row.ht} <span class="cm">({row.cm} cm)</span></td>
+                <td>{row.f}</td>
+                <td>{row.m}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+        <p class="footnote">
+          Resonance frequency in breaths/min (Hasuo et al. 2024). An estimate, not a
+          measurement — height &amp; sex explain under half the variation. The study tested
+          5.0&ndash;7.0, so values marked <strong>*</strong> are clamped to the
+          4.5&ndash;7.0 band. Shorter &rarr; faster, taller &rarr; slower.
+        </p>
       </fieldset>
 
       <fieldset>
@@ -256,14 +272,40 @@
     font-size: 0.75rem;
     color: var(--text-faint);
   }
-  .preset-val {
-    font-size: 0.8rem;
+
+  .science {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .science th,
+  .science td {
+    padding: 0.3rem 0.5rem;
+    text-align: right;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .science th:first-child,
+  .science td:first-child {
+    text-align: left;
+  }
+  .science th {
     color: var(--text-muted);
+    font-weight: bold;
+  }
+  .science .cm {
+    color: var(--text-faint);
+    font-size: 0.8rem;
+  }
+  .footnote {
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text-faint);
   }
 
   .slider {
     display: block;
-    margin-top: 1rem;
     font-size: 0.9rem;
     color: var(--text-muted);
   }
