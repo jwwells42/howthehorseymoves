@@ -24,7 +24,6 @@
   <a href="/" class="back-link">&larr; Back to home</a>
 
   <h1>Breathwork</h1>
-  <p class="subtitle">Two guided breathing practices. Find a comfortable seat and follow the orb.</p>
 
   <div class="tabs" role="tablist" aria-label="Breathing practice">
     <button
@@ -35,7 +34,7 @@
       onclick={() => pick('resonance')}
     >
       <span class="tab-title">Resonance Breathing</span>
-      <span class="tab-sub">Slow, steady, longer exhale — calm &amp; focus</span>
+      <span class="tab-sub">Train parasympathetic</span>
     </button>
     <button
       type="button"
@@ -45,7 +44,7 @@
       onclick={() => pick('sigh')}
     >
       <span class="tab-title">Physiological Sigh</span>
-      <span class="tab-sub">Double inhale, long exhale — fast reset</span>
+      <span class="tab-sub">Double inhale, long exhale, fast reset</span>
     </button>
   </div>
 
@@ -94,10 +93,6 @@
   h1 {
     font-size: 1.875rem;
     font-weight: bold;
-    margin-bottom: 0.25rem;
-  }
-  .subtitle {
-    color: var(--text-muted);
     margin-bottom: 1.5rem;
   }
 
