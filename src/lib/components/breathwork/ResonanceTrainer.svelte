@@ -22,17 +22,10 @@
     { ht: '6′4″', cm: 193, f: '4.5*', m: '4.5*' },
   ] as const;
 
-  const SESSION_PRESETS = [
-    { mins: 2, label: '2 min', sub: 'quick calm' },
-    { mins: 10, label: '10 min', sub: 'focus dose' },
-    { mins: 13, label: '13 min', sub: 'focus dose' },
-    { mins: 17, label: '17 min', sub: 'full dose' },
-  ];
-
   const INHALE_FRACTION = 0.4; // 40% inhale / 60% exhale (I:E ≈ 4:6)
 
   let rate = $state(5.5);
-  let sessionMins = $state(10);
+  let sessionMins = $state(15);
   let running = $state(false);
   let finished = $state(false);
   let phase = $state<Phase>('idle');
@@ -44,7 +37,7 @@
 
   onMount(() => {
     rate = loadRate(5.5);
-    sessionMins = loadSessionMins(10);
+    sessionMins = loadSessionMins(15);
     return () => stop();
   });
 
@@ -56,11 +49,6 @@
     const s = Math.max(0, Math.ceil(seconds));
     const m = Math.floor(s / 60);
     return `${m}:${String(s % 60).padStart(2, '0')}`;
-  }
-
-  function pickSession(m: number) {
-    sessionMins = m;
-    saveSessionMins(m);
   }
 
   function start() {
@@ -103,7 +91,14 @@
 
 <div class="trainer">
   <div class="pacer-wrap">
-    <BreathPacer {phase} {phaseSeconds} />
+    <button
+      type="button"
+      class="orb-button"
+      onclick={running ? stop : start}
+      aria-label={running ? 'Stop session' : 'Begin session'}
+    >
+      <BreathPacer {phase} {phaseSeconds} />
+    </button>
     {#if running}
       <p class="timer">{fmt(remaining)}</p>
     {:else if finished}
@@ -129,10 +124,6 @@
         <p class="readout">
           {inhaleS.toFixed(1)} s in &middot; {exhaleS.toFixed(1)} s out
         </p>
-        <p class="hint">
-          5.5 is the population average. Use the table as a guide — then pick what feels
-          smoothest. No personal info needed.
-        </p>
       </fieldset>
 
       <fieldset>
@@ -151,28 +142,21 @@
             {/each}
           </tbody>
         </table>
-        <p class="footnote">
-          Resonance frequency in breaths/min (Hasuo et al. 2024). An estimate, not a
-          measurement — height &amp; sex explain under half the variation. The study tested
-          5.0&ndash;7.0, so values marked <strong>*</strong> are clamped to the
-          4.5&ndash;7.0 band. Shorter &rarr; faster, taller &rarr; slower.
-        </p>
       </fieldset>
 
       <fieldset>
         <legend>Session length</legend>
-        <div class="preset-row">
-          {#each SESSION_PRESETS as p}
-            <button
-              type="button"
-              class={['preset', sessionMins === p.mins && 'active']}
-              onclick={() => pickSession(p.mins)}
-            >
-              <span class="preset-label">{p.label}</span>
-              <span class="preset-sub">{p.sub}</span>
-            </button>
-          {/each}
-        </div>
+        <label class="slider">
+          <span>Length: <strong>{sessionMins} min</strong></span>
+          <input
+            type="range"
+            min="2"
+            max="20"
+            step="1"
+            bind:value={sessionMins}
+            oninput={() => saveSessionMins(sessionMins)}
+          />
+        </label>
       </fieldset>
     </div>
 
@@ -181,12 +165,9 @@
     <details class="why">
       <summary>Why this works</summary>
       <p>
-        Slow breathing near your <em>resonance frequency</em> (about 4.5&ndash;7
-        breaths/min) makes heart rate swing in large, easy waves with each breath,
-        strengthening the body's calming brake (the vagus nerve). Making the
-        <strong>exhale longer than the inhale</strong> raises that calming activity
-        further. No breath holds — they add nothing here. A 10&ndash;17 minute
-        session is the dose linked to better focus and composure under pressure.
+        Something to do with the vagus nerve &amp; this practice helping
+        parasympathetic nervous system chill mode as opposed to sympathetic nervous
+        system battle mode. Will rewrite when I understand better.
       </p>
     </details>
   {:else}
@@ -204,6 +185,14 @@
   .pacer-wrap {
     position: relative;
     text-align: center;
+  }
+  .orb-button {
+    display: block;
+    margin: 0 auto;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
   }
   .timer {
     margin-top: 0.5rem;
@@ -237,42 +226,6 @@
     color: var(--text-muted);
     font-weight: bold;
   }
-  .preset-row {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .preset {
-    flex: 1 1 0;
-    min-width: 5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-    padding: 0.75rem 0.5rem;
-    border-radius: 0.6rem;
-    border: 1px solid var(--card-border);
-    background: var(--btn-bg);
-    color: var(--foreground);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .preset:hover {
-    background: var(--btn-hover);
-  }
-  .preset.active {
-    border-color: var(--foreground);
-    background: var(--btn-hover);
-    box-shadow: 0 0 0 1px var(--foreground) inset;
-  }
-  .preset-label {
-    font-weight: bold;
-  }
-  .preset-sub {
-    font-size: 0.75rem;
-    color: var(--text-faint);
-  }
-
   .science {
     width: 100%;
     border-collapse: collapse;
@@ -297,13 +250,6 @@
     color: var(--text-faint);
     font-size: 0.8rem;
   }
-  .footnote {
-    margin-top: 0.6rem;
-    font-size: 0.78rem;
-    line-height: 1.45;
-    color: var(--text-faint);
-  }
-
   .slider {
     display: block;
     font-size: 0.9rem;
@@ -319,12 +265,6 @@
     text-align: center;
     font-size: 1rem;
     color: var(--foreground);
-  }
-  .hint {
-    margin-top: 0.25rem;
-    text-align: center;
-    font-size: 0.8rem;
-    color: var(--text-faint);
   }
 
   .start,

@@ -148,14 +148,10 @@
     <button type="button" class="start" onclick={start}>Begin</button>
 
     <details class="why">
-      <summary>How &amp; why</summary>
+      <summary>What</summary>
       <p>
-        Each cycle is a <strong>double inhale through the nose</strong> — a full breath,
-        then a short sharp sip to top off — followed by a <strong>long, slow exhale
-        through the mouth</strong>. That second little inhale reopens collapsed air sacs
-        in the lungs; the long exhale offloads carbon dioxide and downshifts arousal
-        fast. A single round can settle you in about 30 seconds; five minutes a day is
-        the dose shown to lift mood and lower resting breathing rate over time.
+        Inhale fully through the nose, then inhale again to top it off, still through
+        the nose, then loooooong exhale.
       </p>
       <p class="tip">
         Feeling lightheaded? Soften the top-off sip and lengthen the exhale. Stop and
