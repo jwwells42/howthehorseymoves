@@ -1,5 +1,5 @@
 <script lang="ts">
-  import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import type { CurriculumChapter } from '$lib/curriculum';
 
   interface Props {

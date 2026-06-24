@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { onMount } from 'svelte';
-  import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import { getPuzzlesForPiece, PIECES, getCategory } from '$lib/puzzles';
   import { progressState, isPuzzleUnlocked, getPuzzleProgress } from '$lib/state/progress-store';
   import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
-  import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import { playSound } from '$lib/state/sound';
   import { type BoardState, type SquareId, createBoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';

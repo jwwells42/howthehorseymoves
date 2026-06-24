@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
-  import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
   import DrawTrainer from '$lib/components/endgame/DrawTrainer.svelte';
   import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';

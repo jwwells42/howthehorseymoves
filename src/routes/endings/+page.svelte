@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import { CATEGORIES, getPuzzlesForPiece } from '$lib/puzzles';
   import { progressState, getPuzzleProgress } from '$lib/state/progress-store';
 

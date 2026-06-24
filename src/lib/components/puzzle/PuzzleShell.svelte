@@ -2,7 +2,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import PuzzleControls from './PuzzleControls.svelte';
-  import StarRating from './StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import SuccessOverlay from './SuccessOverlay.svelte';
   import { createPuzzleState } from '$lib/state/use-puzzle.svelte';
   import type { Puzzle } from '$lib/puzzles/types';

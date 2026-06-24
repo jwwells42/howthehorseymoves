@@ -47,7 +47,7 @@
   import { goto } from '$app/navigation';
   import { type BoardState, type PieceColor, RANKS } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
-  import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import { playSound } from '$lib/state/sound';
 
   function mistakesToStars(m: number): number {

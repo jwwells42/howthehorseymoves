@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { FILES, RANKS, type SquareId } from '$lib/logic/types';
-  import StarRating from '$lib/components/puzzle/StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import { playSound } from '$lib/state/sound';
 
   const SQUARE_SIZE = 100;

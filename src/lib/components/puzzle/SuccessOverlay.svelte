@@ -1,5 +1,5 @@
 <script lang="ts">
-  import StarRating from './StarRating.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
 
   interface Props {
     stars: number;
