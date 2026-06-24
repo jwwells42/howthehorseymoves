@@ -1,6 +1,6 @@
 import type { TacticPuzzle } from "./types";
 
-export const lichessRemovingDefenderPuzzles: TacticPuzzle[] = [
+export const removingDefenderPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-rtd-01",

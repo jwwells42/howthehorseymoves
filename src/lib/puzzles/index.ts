@@ -17,16 +17,15 @@ import {
   queenKingMatePuzzles,
   smotheredMatePuzzles,
 } from "./checkmate";
-import { pinPuzzles } from "./tactics";
-import { lichessMateIn1Puzzles } from "./lichess-mate1";
-import { lichessMateIn2Puzzles } from "./lichess-mate2";
-import { lichessForkPuzzles } from "./lichess-forks";
-import { lichessSkewerPuzzles } from "./lichess-skewers";
-import { lichessRemovingDefenderPuzzles } from "./lichess-removing-defender";
-import { lichessDiscoveredPuzzles } from "./lichess-discovered";
-import { lichessPinPuzzles } from "./lichess-pins";
+import { pinPuzzles } from "./pins";
+import { mateIn1Puzzles } from "./mate-in-1";
+import { mateIn2Puzzles } from "./mate-in-2";
+import { forkPuzzles } from "./forks";
+import { skewerPuzzles } from "./skewers";
+import { removingDefenderPuzzles } from "./removing-defender";
+import { discoveredPuzzles } from "./discovered";
 import { dangerZonePuzzles } from "./danger-zones";
-import { lichessPawnEndingPuzzles } from "./lichess-pawn-endings";
+import { pawnEndingPuzzles } from "./pawn-endings";
 import { lucenaPuzzles } from "./lucena";
 import { retiPuzzles } from "./reti";
 import { pawnRacePuzzles } from "./pawn-races";
@@ -45,15 +44,15 @@ const puzzleSets: Record<string, PuzzleSet> = {
   "checkmate-lollis": { piece: "Q", name: "Lolli's Mate", puzzles: lollisMatePuzzles },
   "checkmate-queen-king": { piece: "Q", name: "Queen & King Mate", puzzles: queenKingMatePuzzles },
   "checkmate-smothered": { piece: "N", name: "Smothered Mate", puzzles: smotheredMatePuzzles },
-  "checkmate-mate-in-1": { piece: "Q", name: "Mate in 1", puzzles: lichessMateIn1Puzzles },
-  "checkmate-mate-in-2": { piece: "Q", name: "Mate in 2", puzzles: lichessMateIn2Puzzles },
-  "tactics-pins": { piece: "B", name: "Pins", puzzles: [...pinPuzzles, ...lichessPinPuzzles] },
-  "tactics-forks": { piece: "N", name: "Forks", puzzles: lichessForkPuzzles },
-  "tactics-skewers": { piece: "R", name: "Skewers", puzzles: lichessSkewerPuzzles },
-  "tactics-removing-defender": { piece: "R", name: "Removing the Defender", puzzles: lichessRemovingDefenderPuzzles },
-  "tactics-discovered": { piece: "N", name: "Discovered Attacks", puzzles: lichessDiscoveredPuzzles },
+  "checkmate-mate-in-1": { piece: "Q", name: "Mate in 1", puzzles: mateIn1Puzzles },
+  "checkmate-mate-in-2": { piece: "Q", name: "Mate in 2", puzzles: mateIn2Puzzles },
+  "tactics-pins": { piece: "B", name: "Pins", puzzles: pinPuzzles },
+  "tactics-forks": { piece: "N", name: "Forks", puzzles: forkPuzzles },
+  "tactics-skewers": { piece: "R", name: "Skewers", puzzles: skewerPuzzles },
+  "tactics-removing-defender": { piece: "R", name: "Removing the Defender", puzzles: removingDefenderPuzzles },
+  "tactics-discovered": { piece: "N", name: "Discovered Attacks", puzzles: discoveredPuzzles },
   "danger-zones": { piece: "N", name: "Danger Zones", puzzles: dangerZonePuzzles },
-  "pawn-endings-practice": { piece: "K", name: "Pawn Ending Practice", puzzles: lichessPawnEndingPuzzles },
+  "pawn-endings-practice": { piece: "K", name: "Pawn Ending Practice", puzzles: pawnEndingPuzzles },
   "endings-lucena": { piece: "R", name: "Lucena Position", puzzles: lucenaPuzzles },
   "endings-reti": { piece: "K", name: "Réti Study", puzzles: retiPuzzles },
   "endings-pawn-races": { piece: "P", name: "Pawn Races", puzzles: pawnRacePuzzles },

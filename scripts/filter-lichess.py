@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
 """
-Filter Lichess puzzle database and generate TypeScript puzzle files.
+Filter the Lichess puzzle database into TypeScript puzzle *candidate* files.
+
+The live puzzle sets (src/lib/puzzles/forks.ts, pins.ts, …) are HAND-CURATED.
+This script does NOT write to them. Instead it generates candidate files into a
+sandbox directory (scripts/puzzle-candidates/ by default) so you can keep combing
+the database for new puzzles and then copy the good ones into the live concept
+files by hand.
+
+Workflow:
+    1. Run this script to (re)generate candidates into the sandbox.
+    2. Browse the generated files; pick puzzles worth keeping.
+    3. Paste the chosen puzzle objects into the matching live concept file,
+       giving each a unique id (the live ids are hand-managed).
 
 Usage:
-    python3 scripts/filter-lichess.py /tmp/lichess/lichess_db_puzzle.csv
+    python3 scripts/filter-lichess.py <path-to-lichess-csv> [output-dir]
+
+    output-dir defaults to scripts/puzzle-candidates/ and is created if missing.
 
 Requires: pip install chess
 """
@@ -294,11 +308,15 @@ def generate_typescript(puzzles: list[dict], config: dict) -> str:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 filter-lichess.py <path-to-lichess-csv>")
+        print("Usage: python3 filter-lichess.py <path-to-lichess-csv> [output-dir]")
         sys.exit(1)
 
     csv_path = sys.argv[1]
-    output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "lib", "puzzles")
+    # Generate into a sandbox so the hand-curated live sets are never overwritten.
+    # Pass an explicit output dir as the 2nd arg to override.
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.join(script_dir, "puzzle-candidates")
+    os.makedirs(output_dir, exist_ok=True)
 
     # Collect candidates per category
     candidates: dict[str, list] = {theme: [] for theme in CATEGORIES}
@@ -385,7 +403,9 @@ def main():
                 f.write(ts_content)
             print(f"  Written to {output_path}")
 
-    print("\nDone!")
+    print(f"\nDone! Candidates written to {output_dir}/")
+    print("Review them and copy the puzzles you want into the live concept files")
+    print("(src/lib/puzzles/), giving each a unique id.")
 
 
 if __name__ == "__main__":

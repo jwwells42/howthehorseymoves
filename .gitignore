@@ -25,3 +25,6 @@ npm-debug.log*
 /data/*.csv
 /data/*.pgn
 .claude/worktrees/
+
+# generated puzzle candidates (sandbox output of scripts/filter-lichess.py)
+/scripts/puzzle-candidates/
