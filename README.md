@@ -22,6 +22,7 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 - **Sound effects** — move, correct, wrong, and star sounds with a mute toggle
 - **No accounts** — progress saves to the browser (localStorage)
 - **Breathwork** (`/breathwork`) — a standalone, non-chess extra: a guided breathing trainer (resonance breathing + the cyclic physiological sigh) for performance-coaching students. Not linked from the chess nav
+- **The Probabilitizer** (`/probabilitizer`) — a standalone opening-odds explorer: play or paste a line and see the cumulative chance of the whole line arising from the start (split by which side you play), using the Lichess opening explorer. Requires a one-click "Login with Lichess" (Lichess's explorer now needs authentication). Not linked from the chess nav. Based on [Opening-Explorer-Plus](https://github.com/EikaMikiku/Opening-Explorer-Plus) by EikaMikiku
 
 ## Running locally
 
