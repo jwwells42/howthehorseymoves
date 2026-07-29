@@ -339,14 +339,7 @@
 
   <h1>The Probabilitizer</h1>
   <p class="tagline">
-    See the percentage chance you'll actually see move 23 in that Bg5 Najdorf that you think is going to win your next game.
-  </p>
-  <p class="credit">
-    Based on
-    <a href="https://github.com/EikaMikiku/Opening-Explorer-Plus" target="_blank" rel="noopener noreferrer">
-      Opening-Explorer-Plus</a>
-    by EikaMikiku. Data from the
-    <a href="https://lichess.org/analysis#explorer" target="_blank" rel="noopener noreferrer">Lichess opening explorer</a>.
+    See the percentage chance you'll actually see move 23 in your Bg5 Najdorf.
   </p>
 
   {#if !signedIn}
@@ -400,6 +393,30 @@
           <button type="button" onclick={loadLine} disabled={loading}>Load</button>
         </div>
       </div>
+
+      <section class="card settings">
+        <h2>Database</h2>
+        <div class="radio-row">
+          <label><input type="radio" name="db" checked={settings.db === 'masters'} onchange={() => setDb('masters')} /> Masters</label>
+          <label><input type="radio" name="db" checked={settings.db === 'lichess'} onchange={() => setDb('lichess')} /> Lichess</label>
+        </div>
+        {#if settings.db === 'lichess'}
+          <div class="filters">
+            <p class="filter-label">Rating</p>
+            <div class="chips">
+              {#each RATING_BUCKETS as r}
+                <label class="chip"><input type="checkbox" checked={settings.ratings.includes(r)} onchange={() => toggleRating(r)} /> {r}</label>
+              {/each}
+            </div>
+            <p class="filter-label">Time control</p>
+            <div class="chips">
+              {#each SPEEDS as s}
+                <label class="chip"><input type="checkbox" checked={settings.speeds.includes(s)} onchange={() => toggleSpeed(s)} /> {s}</label>
+              {/each}
+            </div>
+          </div>
+        {/if}
+      </section>
     </div>
 
     <div class="right">
@@ -474,33 +491,17 @@
           <p class="muted">No games in this database for this position.</p>
         {/if}
       </section>
-
-      <section class="card settings">
-        <h2>Database</h2>
-        <div class="radio-row">
-          <label><input type="radio" name="db" checked={settings.db === 'masters'} onchange={() => setDb('masters')} /> Masters</label>
-          <label><input type="radio" name="db" checked={settings.db === 'lichess'} onchange={() => setDb('lichess')} /> Lichess</label>
-        </div>
-        {#if settings.db === 'lichess'}
-          <div class="filters">
-            <p class="filter-label">Rating</p>
-            <div class="chips">
-              {#each RATING_BUCKETS as r}
-                <label class="chip"><input type="checkbox" checked={settings.ratings.includes(r)} onchange={() => toggleRating(r)} /> {r}</label>
-              {/each}
-            </div>
-            <p class="filter-label">Time control</p>
-            <div class="chips">
-              {#each SPEEDS as s}
-                <label class="chip"><input type="checkbox" checked={settings.speeds.includes(s)} onchange={() => toggleSpeed(s)} /> {s}</label>
-              {/each}
-            </div>
-          </div>
-        {/if}
-      </section>
     </div>
   </div>
   {/if}
+
+  <p class="credit">
+    Based on
+    <a href="https://github.com/EikaMikiku/Opening-Explorer-Plus" target="_blank" rel="noopener noreferrer">
+      Opening-Explorer-Plus</a>
+    by EikaMikiku. Data from the
+    <a href="https://lichess.org/analysis#explorer" target="_blank" rel="noopener noreferrer">Lichess opening explorer</a>.
+  </p>
 </main>
 
 <style>
@@ -533,7 +534,9 @@
   .credit {
     font-size: 0.8rem;
     color: var(--text-faint);
-    margin-bottom: 1.5rem;
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--card-border);
   }
   .credit a {
     color: var(--text-muted);
