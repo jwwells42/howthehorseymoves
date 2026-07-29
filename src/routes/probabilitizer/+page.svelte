@@ -405,12 +405,8 @@
         <button type="button" onclick={undo} disabled={line.length === 0}>&larr; Undo</button>
         <button type="button" onclick={reset} disabled={line.length === 0}>Reset</button>
         <button type="button" onclick={() => (flipped = !flipped)}>Flip</button>
-        <a class="btn-link" href={analysisUrl} target="_blank" rel="noopener noreferrer">Analysis ↗</a>
-      </div>
-
-      <div class="fen-row">
-        <input class="fen-input" type="text" readonly value={currentFen} aria-label="Current position FEN" />
         <button type="button" onclick={copyFen}>{fenCopied ? 'Copied!' : 'Copy FEN'}</button>
+        <a class="btn-link" href={analysisUrl} target="_blank" rel="noopener noreferrer">Analysis ↗</a>
       </div>
 
       <div class="paste">
@@ -648,7 +644,6 @@
   }
   .board-controls button,
   .paste button,
-  .fen-row button,
   .btn-link {
     padding: 0.45rem 0.8rem;
     border-radius: 0.5rem;
@@ -661,7 +656,6 @@
   }
   .board-controls button:hover,
   .paste button:hover,
-  .fen-row button:hover,
   .btn-link:hover {
     background: var(--btn-hover);
   }
@@ -672,23 +666,6 @@
   .btn-link {
     text-decoration: none;
     display: inline-block;
-  }
-
-  .fen-row {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-  }
-  .fen-input {
-    flex: 1;
-    min-width: 0;
-    padding: 0.4rem 0.55rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--text-muted);
-    font-family: monospace;
-    font-size: 0.72rem;
   }
 
   .paste {
