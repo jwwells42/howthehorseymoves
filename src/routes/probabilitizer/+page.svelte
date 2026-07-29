@@ -6,7 +6,7 @@
   import { applyMove, parseGamePgn, extractMainLine, type GameMove } from '$lib/logic/pgn';
   import { boardToFen } from '$lib/probabilitizer/board-to-fen';
   import { fetchExplorer, type ExplorerData, type ExplorerSettings, type FetchFn, RATING_BUCKETS, SPEEDS } from '$lib/probabilitizer/lichess';
-  import { moveProbability, movePlayRate, lineTotals } from '$lib/probabilitizer/probability';
+  import { moveProbability, movePlayRate, lineTotals, nodeTotal } from '$lib/probabilitizer/probability';
   import { createLichessOAuth } from '$lib/probabilitizer/auth';
   import type { OAuth2AuthCodePKCE } from '@bity/oauth2-auth-code-pkce';
 
@@ -74,6 +74,21 @@
   let currentFen = $derived(boardToFen(board, colorToMove, fullMove));
   let analysisUrl = $derived(`https://lichess.org/analysis/${currentFen.replace(/ /g, '_')}`);
 
+  // Games in the whole database = games at the starting position. Only changes
+  // with the database filters, so cache it against a signature of those.
+  let rootGames = $state<number | null>(null);
+  let rootKey = $state('');
+
+  function settingsKey(s: ExplorerSettings): string {
+    return s.db === 'lichess'
+      ? `lichess:${[...s.ratings].sort((a, b) => a - b).join('-')}:${[...s.speeds].sort().join('-')}`
+      : 'masters';
+  }
+
+  // null whenever the cache belongs to a different database, so the overall
+  // figure hides itself rather than showing a stale denominator.
+  let rootTotal = $derived(rootKey === settingsKey(settings) ? rootGames : null);
+
   let fenCopied = $state(false);
   let lineScrollEl = $state<HTMLDivElement | null>(null);
 
@@ -100,6 +115,22 @@
   let controller: AbortController | null = null;
   let reqSeq = 0;
 
+  // Fetch the starting position's total when we don't already have it for the
+  // selected database. Called after the main fetch resolves, never alongside it.
+  async function ensureRootGames() {
+    const key = settingsKey(settings);
+    if (rootKey === key && rootGames !== null) return;
+    try {
+      // No AbortSignal — this must survive the next refresh()'s controller.abort().
+      const data = await fetchExplorer([], settings, authFetch);
+      if (settingsKey(settings) !== key) return; // settings changed mid-flight
+      rootGames = nodeTotal(data);
+      rootKey = key;
+    } catch {
+      // Leave the cache cold; the overall figure stays hidden.
+    }
+  }
+
   async function refresh() {
     if (!signedIn) return;
     const seq = ++reqSeq;
@@ -112,6 +143,13 @@
       if (seq === reqSeq) {
         currentData = data;
         loading = false;
+        if (line.length === 0) {
+          // This fetch IS the starting position — record its total for free.
+          rootGames = nodeTotal(data);
+          rootKey = settingsKey(settings);
+        } else {
+          void ensureRootGames(); // at most one extra request per database
+        }
       }
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
@@ -304,6 +342,9 @@
     const newLine: LineEntry[] = [];
     try {
       let data = await fetchExplorer([], settings, authFetch);
+      // The first fetch is the starting position — cache its total.
+      rootGames = nodeTotal(data);
+      rootKey = settingsKey(settings);
       for (let i = 0; i < moves.length; i++) {
         const mv = moves[i];
         const before = positions[i];
@@ -435,6 +476,18 @@
           </p>
           <p>
             {dbLabel} get here <strong>{pct(totals.whiteProb)}%</strong> of the time as Black.
+          </p>
+        {/if}
+
+        {#if currentData && rootTotal}
+          <p class="overall">
+            This position occurs in
+            <strong>{pct(nodeTotal(currentData) / rootTotal)}%</strong>
+            of all {dbLabel} games
+            <span class="muted">({nodeTotal(currentData).toLocaleString()} games)</span>
+          </p>
+          <p class="muted small">
+            Counts every move order that reaches it, including ones you might not play.
           </p>
         {/if}
       </section>
@@ -628,6 +681,9 @@
   .middle,
   .right {
     flex: 1 1 17rem;
+    /* Flex children default to min-width: auto — without this a long game
+       count can push the column past its basis and shove the next one off. */
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -708,6 +764,15 @@
   }
   .muted {
     color: var(--text-faint);
+  }
+  .totals .overall {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--card-border);
+  }
+  .totals .small {
+    font-size: 0.75rem;
+    line-height: 1.35;
   }
   .error {
     color: #dc2626;

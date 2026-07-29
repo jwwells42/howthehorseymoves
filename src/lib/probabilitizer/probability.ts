@@ -9,6 +9,15 @@
 import type { PieceColor } from "$lib/logic/types";
 import type { ExplorerData } from "./lichess";
 
+/**
+ * Games that ever reached this position, by ANY move order. The explorer is
+ * position-keyed (Zobrist), so this total already includes transpositions —
+ * unlike the per-move counts, which are edge counts from this position only.
+ */
+export function nodeTotal(data: ExplorerData): number {
+  return data.white + data.draws + data.black;
+}
+
 /** Total games across all moves listed at a position. */
 function totalGames(data: ExplorerData): number {
   let total = 0;
