@@ -478,27 +478,16 @@
           <p>
             {dbLabel} get here <strong>{pct(totals.whiteProb)}%</strong> of the time as Black.
           </p>
-          <p class="muted small">
-            Your own moves taken as given — only the opponent's replies are left to chance.
-          </p>
         {/if}
 
         {#if currentData && rootTotal}
           {@const overall = nodeTotal(currentData) / rootTotal}
           <p class="overall">
             This position occurs in <strong>{pct(overall)}%</strong> of all {dbLabel} games{#if line.length > 0}, compared to
-              <strong>{pct(totals.pathProb)}%</strong> from this move order specifically{/if}.
+              <strong>{pct(totals.pathProb)}%</strong> from this specific move order{/if}.
           </p>
-          {#if line.length > 0 && totals.pathProb > 0 && overall / totals.pathProb > 1.05}
-            <p class="muted small">
-              <strong>{(overall / totals.pathProb).toFixed(1)}×</strong> as many games reach it by some
-              other move order.{#if hasSkips}
-                Skipped moves are treated as forced, so the move-order figure counts them as certain.{/if}
-            </p>
-          {/if}
           <p class="muted small">
-            {nodeTotal(currentData).toLocaleString()} games. Both figures leave every move to chance —
-            unlike the two above, which hold one side's moves fixed.
+            {nodeTotal(currentData).toLocaleString()} total games in this position
           </p>
         {/if}
       </section>
