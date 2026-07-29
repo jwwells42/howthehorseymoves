@@ -70,7 +70,7 @@ export async function fetchExplorer(
     }
     throw new Error(
       res.status === 429
-        ? "Lichess is rate-limiting requests — wait a moment and try again."
+        ? "Lichess is rate-limiting requests. Wait a moment and try again."
         : `Lichess explorer error (${res.status}).`,
     );
   }

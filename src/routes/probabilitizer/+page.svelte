@@ -54,6 +54,15 @@
   let fullMove = $derived(Math.floor(line.length / 2) + 1);
   let totals = $derived(lineTotals(line.map((e) => ({ side: e.side, prob: e.prob, excluded: e.excluded }))));
 
+  // Cumulative probability of reaching each ply (product so far, skipping excluded moves).
+  let rolling = $derived.by(() => {
+    let p = 1;
+    return line.map((e) => {
+      if (!e.excluded) p *= e.prob;
+      return p;
+    });
+  });
+
   // Who the percentages describe, based on the selected database.
   let dbLabel = $derived.by(() => {
     if (settings.db === 'masters') return 'Masters';
@@ -370,6 +379,7 @@
   <div class="signed-in-row">
     <span class="signed-in-label">✓ Signed in with Lichess</span>
     <button type="button" onclick={logout}>Sign out</button>
+    {#if error}<span class="error">{error}</span>{/if}
   </div>
 
   <div class="layout">
@@ -419,10 +429,6 @@
     </div>
 
     <div class="middle">
-      {#if error}
-        <p class="error">{error}</p>
-      {/if}
-
       <section class="totals card">
         <h2>Percentage from starting position</h2>
         {#if totals.whiteCount + totals.blackCount === 0}
@@ -443,13 +449,14 @@
           <div class="line-scroll" bind:this={lineScrollEl}>
             <table class="line-table">
               <thead>
-                <tr><th>Move</th><th>Chance</th><th>Skip</th></tr>
+                <tr><th>Move</th><th>This move</th><th>Line so far</th><th>Skip</th></tr>
               </thead>
               <tbody>
                 {#each line as entry, i}
                   <tr class={entry.excluded ? 'excluded' : ''}>
                     <td>{`${Math.floor(i / 2) + 1}${i % 2 === 0 ? '. ' : '. ..'}`}{entry.san}</td>
                     <td>{pct(entry.prob)}%</td>
+                    <td>{pct(rolling[i])}%</td>
                     <td class="skip">
                       <input
                         type="checkbox"
@@ -752,8 +759,11 @@
     border-bottom: 1px solid var(--card-border);
   }
   .line-table th:nth-child(2),
-  .line-table td:nth-child(2) {
+  .line-table td:nth-child(2),
+  .line-table th:nth-child(3),
+  .line-table td:nth-child(3) {
     text-align: right;
+    font-variant-numeric: tabular-nums;
   }
   .line-table .skip {
     text-align: center;
