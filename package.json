@@ -22,5 +22,8 @@
   },
   "overrides": {
     "cookie": "^0.7.0"
+  },
+  "dependencies": {
+    "@bity/oauth2-auth-code-pkce": "^2.13.0"
   }
 }

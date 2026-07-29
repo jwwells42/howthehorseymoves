@@ -1,12 +1,19 @@
-// Client for the public Lichess opening explorer API (explorer.lichess.ovh).
+// Client for the Lichess opening explorer API (explorer.lichess.ovh).
 //
 // This is the ONLY external network call in the app. It is used exclusively by
 // The Probabilitizer (an off-nav tool). No student/app data is sent — only chess
 // positions, encoded as a list of UCI moves from the standard starting position.
 //
+// Since Feb 2026 (post-DDoS), Lichess requires an OAuth token on every explorer
+// request. The caller passes an auth-decorated fetch (see auth.ts, which uses
+// Lichess "Login with Lichess" PKCE) that attaches `Authorization: Bearer …`.
+//
 // The probability method (walking a line and multiplying per-move conditional
 // probabilities, split by mover) is from EikaMikiku's Opening-Explorer-Plus:
 // https://github.com/EikaMikiku/Opening-Explorer-Plus
+
+/** A fetch-compatible function (global fetch, or an auth-decorated fetch). */
+export type FetchFn = (url: string, init?: RequestInit) => Promise<Response>;
 
 export interface ExplorerMove {
   uci: string;
@@ -41,6 +48,7 @@ export const SPEEDS = ["bullet", "blitz", "rapid", "classical"];
 export async function fetchExplorer(
   playUci: string[],
   settings: ExplorerSettings,
+  fetchFn: FetchFn,
   signal?: AbortSignal,
 ): Promise<ExplorerData> {
   const base = settings.db === "lichess" ? "lichess" : "masters";
@@ -55,8 +63,11 @@ export async function fetchExplorer(
   }
 
   const url = `https://explorer.lichess.ovh/${base}?${params.toString()}`;
-  const res = await fetch(url, { signal });
+  const res = await fetchFn(url, { signal });
   if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error("Lichess sign-in required or expired — sign in again.");
+    }
     throw new Error(
       res.status === 429
         ? "Lichess is rate-limiting requests — wait a moment and try again."

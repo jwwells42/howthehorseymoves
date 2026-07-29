@@ -5,8 +5,10 @@
   import { getLegalMoves } from '$lib/logic/attacks';
   import { applyMove, parseSan } from '$lib/logic/pgn';
   import { boardToFen } from '$lib/probabilitizer/board-to-fen';
-  import { fetchExplorer, type ExplorerData, type ExplorerSettings, RATING_BUCKETS, SPEEDS } from '$lib/probabilitizer/lichess';
+  import { fetchExplorer, type ExplorerData, type ExplorerSettings, type FetchFn, RATING_BUCKETS, SPEEDS } from '$lib/probabilitizer/lichess';
   import { moveProbability, movePlayRate, lineTotals } from '$lib/probabilitizer/probability';
+  import { createLichessOAuth } from '$lib/probabilitizer/auth';
+  import type { OAuth2AuthCodePKCE } from '@bity/oauth2-auth-code-pkce';
 
   const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -';
 
@@ -42,6 +44,12 @@
   let validMoves = $state<SquareId[]>([]);
   let dragValidMoves = $state<SquareId[]>([]);
 
+  // Lichess auth (the explorer requires being signed in since Feb 2026)
+  let oauth: OAuth2AuthCodePKCE | null = null;
+  let signedIn = $state(false);
+  let authError = $state<string | null>(null);
+  let authFetch: FetchFn = (url, init) => fetch(url, init);
+
   let colorToMove = $derived<PieceColor>(line.length % 2 === 0 ? 'w' : 'b');
   let fullMove = $derived(Math.floor(line.length / 2) + 1);
   let totals = $derived(lineTotals(line.map((e) => ({ side: e.side, prob: e.prob, excluded: e.excluded }))));
@@ -57,13 +65,14 @@
   let reqSeq = 0;
 
   async function refresh() {
+    if (!signedIn) return;
     const seq = ++reqSeq;
     controller?.abort();
     controller = new AbortController();
     loading = true;
     error = null;
     try {
-      const data = await fetchExplorer(line.map((e) => e.uci), settings, controller.signal);
+      const data = await fetchExplorer(line.map((e) => e.uci), settings, authFetch, controller.signal);
       if (seq === reqSeq) {
         currentData = data;
         loading = false;
@@ -77,7 +86,36 @@
     }
   }
 
-  onMount(refresh);
+  onMount(async () => {
+    oauth = createLichessOAuth();
+    try {
+      if (await oauth.isReturningFromAuthServer()) {
+        await oauth.getAccessToken();
+        history.replaceState({}, '', location.pathname);
+      }
+    } catch {
+      authError = 'Lichess sign-in failed — please try again.';
+    }
+    if (oauth.isAuthorized()) {
+      signedIn = true;
+      authFetch = oauth.decorateFetchHTTPClient(window.fetch) as FetchFn;
+      refresh();
+    }
+  });
+
+  async function login() {
+    authError = null;
+    if (!oauth) oauth = createLichessOAuth();
+    await oauth.fetchAuthorizationCode(); // redirects away to lichess.org
+  }
+
+  function logout() {
+    oauth?.reset();
+    signedIn = false;
+    currentData = null;
+    authError = null;
+    authFetch = (url, init) => fetch(url, init);
+  }
 
   // --- Move making ---
   function promotionFor(from: SquareId, to: SquareId): PieceKind | undefined {
@@ -171,7 +209,7 @@
       .trim()
       .split(/\s+/)
       .filter(Boolean);
-    if (tokens.length === 0) return;
+    if (tokens.length === 0 || !signedIn) return;
 
     controller?.abort();
     const seq = ++reqSeq;
@@ -181,7 +219,7 @@
     let b = startBoard();
     const newLine: LineEntry[] = [];
     try {
-      let data = await fetchExplorer([], settings);
+      let data = await fetchExplorer([], settings, authFetch);
       for (let i = 0; i < tokens.length; i++) {
         const color: PieceColor = i % 2 === 0 ? 'w' : 'b';
         let parsed: { from: SquareId; to: SquareId; promotion?: PieceKind } | null = null;
@@ -208,7 +246,7 @@
         });
         b = applyMove(b, parsed.from, parsed.to, parsed.promotion);
         await sleep(300); // stay under Lichess rate limits
-        data = await fetchExplorer(newLine.map((e) => e.uci), settings);
+        data = await fetchExplorer(newLine.map((e) => e.uci), settings, authFetch);
         if (seq !== reqSeq) return; // superseded by another action
       }
       board = b;
@@ -260,6 +298,24 @@
     by EikaMikiku. Data from the
     <a href="https://lichess.org/analysis#explorer" target="_blank" rel="noopener noreferrer">Lichess opening explorer</a>.
   </p>
+
+  {#if !signedIn}
+    <section class="signin card">
+      <h2>Sign in with Lichess to continue</h2>
+      <p>
+        Since early 2026, Lichess requires you to be signed in to use its opening explorer.
+        This uses Lichess's official “Login with Lichess” — the app never sees your password,
+        and asks for <strong>no access to your account</strong> (zero scopes). Your token stays
+        in your browser and is only used to fetch explorer stats.
+      </p>
+      {#if authError}<p class="error">{authError}</p>{/if}
+      <button type="button" class="signin-btn" onclick={login}>Sign in with Lichess</button>
+    </section>
+  {:else}
+  <div class="signed-in-row">
+    <span class="signed-in-label">✓ Signed in with Lichess</span>
+    <button type="button" onclick={logout}>Sign out</button>
+  </div>
 
   <div class="layout">
     <div class="left">
@@ -403,6 +459,7 @@
       </section>
     </div>
   </div>
+  {/if}
 </main>
 
 <style>
@@ -440,6 +497,48 @@
   .credit a {
     color: var(--text-muted);
     text-decoration: underline;
+  }
+
+  .signin {
+    max-width: 34rem;
+  }
+  .signin p {
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  .signin-btn {
+    padding: 0.6rem 1.1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--card-border);
+    background: var(--btn-bg);
+    color: var(--foreground);
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .signin-btn:hover {
+    background: var(--btn-hover);
+  }
+  .signed-in-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .signed-in-row button {
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--card-border);
+    background: var(--btn-bg);
+    color: var(--foreground);
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+  .signed-in-row button:hover {
+    background: var(--btn-hover);
   }
 
   .layout {
