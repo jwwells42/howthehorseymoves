@@ -393,30 +393,6 @@
           <button type="button" onclick={loadLine} disabled={loading}>Load</button>
         </div>
       </div>
-
-      <section class="card settings">
-        <h2>Database</h2>
-        <div class="radio-row">
-          <label><input type="radio" name="db" checked={settings.db === 'masters'} onchange={() => setDb('masters')} /> Masters</label>
-          <label><input type="radio" name="db" checked={settings.db === 'lichess'} onchange={() => setDb('lichess')} /> Lichess</label>
-        </div>
-        {#if settings.db === 'lichess'}
-          <div class="filters">
-            <p class="filter-label">Rating</p>
-            <div class="chips">
-              {#each RATING_BUCKETS as r}
-                <label class="chip"><input type="checkbox" checked={settings.ratings.includes(r)} onchange={() => toggleRating(r)} /> {r}</label>
-              {/each}
-            </div>
-            <p class="filter-label">Time control</p>
-            <div class="chips">
-              {#each SPEEDS as s}
-                <label class="chip"><input type="checkbox" checked={settings.speeds.includes(s)} onchange={() => toggleSpeed(s)} /> {s}</label>
-              {/each}
-            </div>
-          </div>
-        {/if}
-      </section>
     </div>
 
     <div class="right">
@@ -469,6 +445,30 @@
         <div class="explorer-head">
           <h2>Moves here {#if loading}<span class="spinner" aria-label="loading">…</span>{/if}</h2>
         </div>
+
+        <div class="db-controls">
+          <div class="radio-row">
+            <label><input type="radio" name="db" checked={settings.db === 'masters'} onchange={() => setDb('masters')} /> Masters</label>
+            <label><input type="radio" name="db" checked={settings.db === 'lichess'} onchange={() => setDb('lichess')} /> Lichess</label>
+          </div>
+          {#if settings.db === 'lichess'}
+            <div class="filters">
+              <p class="filter-label">Rating</p>
+              <div class="chips">
+                {#each RATING_BUCKETS as r}
+                  <label class="chip"><input type="checkbox" checked={settings.ratings.includes(r)} onchange={() => toggleRating(r)} /> {r}</label>
+                {/each}
+              </div>
+              <p class="filter-label">Time control</p>
+              <div class="chips">
+                {#each SPEEDS as s}
+                  <label class="chip"><input type="checkbox" checked={settings.speeds.includes(s)} onchange={() => toggleSpeed(s)} /> {s}</label>
+                {/each}
+              </div>
+            </div>
+          {/if}
+        </div>
+
         {#if currentData && currentData.moves.length > 0}
           <ul class="explorer-moves">
             {#each currentData.moves as m}
@@ -757,6 +757,11 @@
     background: #374151;
   }
 
+  .db-controls {
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--card-border);
+  }
   .radio-row {
     display: flex;
     gap: 1rem;
