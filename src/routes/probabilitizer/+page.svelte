@@ -94,7 +94,7 @@
         history.replaceState({}, '', location.pathname);
       }
     } catch {
-      authError = 'Lichess sign-in failed — please try again.';
+      authError = 'Lichess sign-in FAILURE';
     }
     if (oauth.isAuthorized()) {
       signedIn = true;
@@ -288,8 +288,7 @@
 
   <h1>The Probabilitizer</h1>
   <p class="tagline">
-    How likely is a whole opening line to actually appear on the board — from the very first move?
-    Play or paste a line and see the cumulative odds, split by who you're playing.
+    See the percentage chance you'll actually see move 23 in that Najdorf you think is going to gain you rating in your next game.
   </p>
   <p class="credit">
     Based on
@@ -302,12 +301,6 @@
   {#if !signedIn}
     <section class="signin card">
       <h2>Sign in with Lichess to continue</h2>
-      <p>
-        Since early 2026, Lichess requires you to be signed in to use its opening explorer.
-        This uses Lichess's official “Login with Lichess” — the app never sees your password,
-        and asks for <strong>no access to your account</strong> (zero scopes). Your token stays
-        in your browser and is only used to fetch explorer stats.
-      </p>
       {#if authError}<p class="error">{authError}</p>{/if}
       <button type="button" class="signin-btn" onclick={login}>Sign in with Lichess</button>
     </section>
@@ -364,17 +357,15 @@
       {/if}
 
       <section class="totals card">
-        <h2>Chance this line arises from the start</h2>
+        <h2>Percentage from starting position</h2>
         {#if totals.whiteCount + totals.blackCount === 0}
-          <p class="muted">Play or paste some moves to see the odds.</p>
+          <p class="muted">Put some moves in</p>
         {:else}
           <p>
-            As <strong>White</strong>, aiming for this line, you reach this position
-            <strong>{pct(totals.blackProb)}%</strong> of the time (given Black plays along).
+            You get here <strong>{pct(totals.blackProb)}%</strong> of the time as White.
           </p>
           <p>
-            As <strong>Black</strong>, aiming for this line, you reach this position
-            <strong>{pct(totals.whiteProb)}%</strong> of the time (given White plays along).
+            You get here <strong>{pct(totals.whiteProb)}%</strong> of the time as Black.
           </p>
         {/if}
       </section>
@@ -403,7 +394,6 @@
               {/each}
             </tbody>
           </table>
-          <p class="hint">Tick “Skip” to treat a move as forced / your own choice — it drops out of the odds.</p>
         </section>
       {/if}
 
@@ -659,11 +649,6 @@
   .line-table tr.excluded td:not(.skip) {
     opacity: 0.4;
     text-decoration: line-through;
-  }
-  .hint {
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    margin-top: 0.5rem;
   }
 
   .explorer-moves {
