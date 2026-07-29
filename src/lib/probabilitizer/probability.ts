@@ -18,19 +18,18 @@ export function nodeTotal(data: ExplorerData): number {
   return data.white + data.draws + data.black;
 }
 
-/** Total games across all moves listed at a position. */
-function totalGames(data: ExplorerData): number {
-  let total = 0;
-  for (const m of data.moves) total += m.white + m.draws + m.black;
-  return total;
-}
-
 /**
  * Conditional probability of the given UCI move at this position:
- * (games with that move) / (games across all listed moves). 0 if unseen or 0/0.
+ * (games with that move) / (all games at this position). 0 if unseen or 0/0.
+ *
+ * The denominator is `nodeTotal`, not the sum of the listed moves, so this is a
+ * true conditional probability. Dividing by the listed-move sum would instead
+ * condition on "played one of the top 20 moves", inflating every ply — which
+ * matters because the product of these is compared against the position's own
+ * share of the database.
  */
 export function moveProbability(data: ExplorerData, uci: string): number {
-  const total = totalGames(data);
+  const total = nodeTotal(data);
   if (total === 0) return 0;
   const move = data.moves.find((m) => m.uci === uci);
   if (!move) return 0;
@@ -38,9 +37,13 @@ export function moveProbability(data: ExplorerData, uci: string): number {
   return games / total;
 }
 
-/** Share of games for a single move at this position (for the explorer bars). */
+/**
+ * Share of games for a single move at this position (for the explorer bars).
+ * These sum to slightly under 100%: games that *ended* here, and moves past the
+ * top-20 cap, are in the denominator but have no row of their own.
+ */
 export function movePlayRate(data: ExplorerData, move: ExplorerData["moves"][number]): number {
-  const total = totalGames(data);
+  const total = nodeTotal(data);
   if (total === 0) return 0;
   return (move.white + move.draws + move.black) / total;
 }
@@ -56,6 +59,14 @@ export interface LineTotals {
   whiteProb: number;
   /** Product of Black's move probabilities (chance White reaches the line). */
   blackProb: number;
+  /**
+   * Product of BOTH movers' probabilities — the chance a game follows this exact
+   * move order from the start, with neither side's moves taken as given. This is
+   * the like-for-like counterpart to the position's own share of the database
+   * (`nodeTotal(position) / nodeTotal(start)`); the two differ only by the games
+   * that reached the same position via a different move order.
+   */
+  pathProb: number;
   whiteCount: number; // non-excluded White moves
   blackCount: number; // non-excluded Black moves
 }
@@ -79,5 +90,5 @@ export function lineTotals(moves: LineMove[]): LineTotals {
       blackCount++;
     }
   }
-  return { whiteProb, blackProb, whiteCount, blackCount };
+  return { whiteProb, blackProb, pathProb: whiteProb * blackProb, whiteCount, blackCount };
 }

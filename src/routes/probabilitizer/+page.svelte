@@ -88,6 +88,7 @@
   // null whenever the cache belongs to a different database, so the overall
   // figure hides itself rather than showing a stale denominator.
   let rootTotal = $derived(rootKey === settingsKey(settings) ? rootGames : null);
+  let hasSkips = $derived(line.some((e) => e.excluded));
 
   let fenCopied = $state(false);
   let lineScrollEl = $state<HTMLDivElement | null>(null);
@@ -477,17 +478,27 @@
           <p>
             {dbLabel} get here <strong>{pct(totals.whiteProb)}%</strong> of the time as Black.
           </p>
+          <p class="muted small">
+            Your own moves taken as given — only the opponent's replies are left to chance.
+          </p>
         {/if}
 
         {#if currentData && rootTotal}
+          {@const overall = nodeTotal(currentData) / rootTotal}
           <p class="overall">
-            This position occurs in
-            <strong>{pct(nodeTotal(currentData) / rootTotal)}%</strong>
-            of all {dbLabel} games
-            <span class="muted">({nodeTotal(currentData).toLocaleString()} games)</span>
+            This position occurs in <strong>{pct(overall)}%</strong> of all {dbLabel} games{#if line.length > 0}, compared to
+              <strong>{pct(totals.pathProb)}%</strong> from this move order specifically{/if}.
           </p>
+          {#if line.length > 0 && totals.pathProb > 0 && overall / totals.pathProb > 1.05}
+            <p class="muted small">
+              <strong>{(overall / totals.pathProb).toFixed(1)}×</strong> as many games reach it by some
+              other move order.{#if hasSkips}
+                Skipped moves are treated as forced, so the move-order figure counts them as certain.{/if}
+            </p>
+          {/if}
           <p class="muted small">
-            Counts every move order that reaches it, including ones you might not play.
+            {nodeTotal(currentData).toLocaleString()} games. Both figures leave every move to chance —
+            unlike the two above, which hold one side's moves fixed.
           </p>
         {/if}
       </section>
