@@ -720,14 +720,16 @@
   }
   .line-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.875rem;
   }
   .line-table thead th {
     position: sticky;
     top: 0;
-    background: var(--card-bg);
+    background: var(--background);
     z-index: 1;
+    border-bottom: 1px solid var(--card-border);
   }
   .line-table th,
   .line-table td {
