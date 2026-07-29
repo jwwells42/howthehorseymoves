@@ -3,7 +3,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import { parseFen, createBoardState, type BoardState, type SquareId, type PieceKind, type PieceColor } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
-  import { applyMove, parseSan } from '$lib/logic/pgn';
+  import { applyMove, parseGamePgn, extractMainLine, type GameMove } from '$lib/logic/pgn';
   import { boardToFen } from '$lib/probabilitizer/board-to-fen';
   import { fetchExplorer, type ExplorerData, type ExplorerSettings, type FetchFn, RATING_BUCKETS, SPEEDS } from '$lib/probabilitizer/lichess';
   import { moveProbability, movePlayRate, lineTotals } from '$lib/probabilitizer/probability';
@@ -248,57 +248,57 @@
     line = line.map((e, idx) => (idx === i ? { ...e, excluded: !e.excluded } : e));
   }
 
-  // --- Paste a line: replay it, fetching the explorer at each ply ---
+  // --- Paste a line: parse the PGN (handling comments, NAGs, arrows, and
+  // variations via the shared parser), then replay the main line, fetching
+  // the explorer at each ply. ---
   async function loadLine() {
-    const tokens = lineText
-      .replace(/\{[^}]*\}/g, ' ')
-      .replace(/\([^)]*\)/g, ' ')
-      .replace(/\d+\.(\.\.)?/g, ' ')
-      .replace(/\b(1-0|0-1|1\/2-1\/2|\*)\b/g, ' ')
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean);
-    if (tokens.length === 0 || !signedIn) return;
+    if (!signedIn) return;
+
+    let moves: GameMove[];
+    let positions: BoardState[];
+    try {
+      const main = extractMainLine(parseGamePgn(lineText));
+      moves = main.moves;
+      positions = main.positions; // positions[i] is the board before moves[i]
+    } catch {
+      error = "Couldn't read that line — check the moves.";
+      return;
+    }
+    if (moves.length === 0) {
+      error = 'No moves found in that text.';
+      return;
+    }
 
     controller?.abort();
     const seq = ++reqSeq;
     loading = true;
     error = null;
 
-    let b = startBoard();
     const newLine: LineEntry[] = [];
     try {
       let data = await fetchExplorer([], settings, authFetch);
-      for (let i = 0; i < tokens.length; i++) {
+      for (let i = 0; i < moves.length; i++) {
+        const mv = moves[i];
+        const before = positions[i];
         const color: PieceColor = i % 2 === 0 ? 'w' : 'b';
-        let parsed: { from: SquareId; to: SquareId; promotion?: PieceKind } | null = null;
-        try {
-          parsed = parseSan(tokens[i], b, color);
-        } catch {
-          parsed = null;
-        }
-        if (!parsed || !parsed.from || !parsed.to) {
-          throw new Error(`Couldn't read move "${tokens[i]}" — check the line.`);
-        }
-        const uci = toLichessUci(parsed.from, parsed.to, parsed.promotion, b);
+        const uci = toLichessUci(mv.from, mv.to, mv.promotion, before);
         const prob = moveProbability(data, uci);
         const dataMove = data.moves.find((m) => m.uci === uci);
         newLine.push({
-          san: dataMove?.san ?? tokens[i],
+          san: dataMove?.san ?? mv.san,
           uci,
-          from: parsed.from,
-          to: parsed.to,
-          promotion: parsed.promotion,
+          from: mv.from,
+          to: mv.to,
+          promotion: mv.promotion,
           side: color,
           prob,
           excluded: false,
         });
-        b = applyMove(b, parsed.from, parsed.to, parsed.promotion);
         await sleep(300); // stay under Lichess rate limits
         data = await fetchExplorer(newLine.map((e) => e.uci), settings, authFetch);
         if (seq !== reqSeq) return; // superseded by another action
       }
-      board = b;
+      board = positions[positions.length - 1];
       line = newLine;
       currentData = data;
       selectedSquare = null;
@@ -395,7 +395,7 @@
       </div>
     </div>
 
-    <div class="right">
+    <div class="middle">
       {#if error}
         <p class="error">{error}</p>
       {/if}
@@ -440,10 +440,12 @@
           </table>
         </section>
       {/if}
+    </div>
 
+    <div class="right">
       <section class="card">
         <div class="explorer-head">
-          <h2>Moves here {#if loading}<span class="spinner" aria-label="loading">…</span>{/if}</h2>
+          <h2>Database {#if loading}<span class="spinner" aria-label="loading">…</span>{/if}</h2>
         </div>
 
         <div class="db-controls">
@@ -508,7 +510,7 @@
   .page {
     min-height: 100vh;
     padding: 1.5rem;
-    max-width: 72rem;
+    max-width: 80rem;
     margin: 0 auto;
   }
   .back-link {
@@ -592,11 +594,12 @@
     align-items: flex-start;
   }
   .left {
-    flex: 1 1 20rem;
+    flex: 1 1 22rem;
     max-width: 32rem;
   }
+  .middle,
   .right {
-    flex: 1 1 22rem;
+    flex: 1 1 17rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
