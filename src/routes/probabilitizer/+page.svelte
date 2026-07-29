@@ -62,9 +62,27 @@
     if (rs.length === 1) return `Lichess players rated ${rs[0]}`;
     return `Lichess players rated ${rs[0]}–${rs[rs.length - 1]}`;
   });
-  let analysisUrl = $derived(
-    `https://lichess.org/analysis/${boardToFen(board, colorToMove, fullMove).replace(/ /g, '_')}`,
-  );
+  let currentFen = $derived(boardToFen(board, colorToMove, fullMove));
+  let analysisUrl = $derived(`https://lichess.org/analysis/${currentFen.replace(/ /g, '_')}`);
+
+  let fenCopied = $state(false);
+  let lineScrollEl = $state<HTMLDivElement | null>(null);
+
+  // Keep the newest move visible in the scrollable line list.
+  $effect(() => {
+    const n = line.length;
+    if (lineScrollEl && n) lineScrollEl.scrollTop = lineScrollEl.scrollHeight;
+  });
+
+  async function copyFen() {
+    try {
+      await navigator.clipboard.writeText(currentFen);
+      fenCopied = true;
+      setTimeout(() => (fenCopied = false), 1200);
+    } catch {
+      fenCopied = false;
+    }
+  }
 
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   const pct = (x: number) => (x * 100).toFixed(3);
@@ -380,6 +398,11 @@
         <a class="btn-link" href={analysisUrl} target="_blank" rel="noopener noreferrer">Analysis ↗</a>
       </div>
 
+      <div class="fen-row">
+        <input class="fen-input" type="text" readonly value={currentFen} aria-label="Current position FEN" />
+        <button type="button" onclick={copyFen}>{fenCopied ? 'Copied!' : 'Copy FEN'}</button>
+      </div>
+
       <div class="paste">
         <label for="line-input">Paste a line (SAN / PGN)</label>
         <div class="paste-row">
@@ -417,27 +440,29 @@
       {#if line.length > 0}
         <section class="card">
           <h2>Your line</h2>
-          <table class="line-table">
-            <thead>
-              <tr><th>Move</th><th>Chance</th><th>Skip</th></tr>
-            </thead>
-            <tbody>
-              {#each line as entry, i}
-                <tr class={entry.excluded ? 'excluded' : ''}>
-                  <td>{`${Math.floor(i / 2) + 1}${i % 2 === 0 ? '. ' : '. ..'}`}{entry.san}</td>
-                  <td>{pct(entry.prob)}%</td>
-                  <td class="skip">
-                    <input
-                      type="checkbox"
-                      checked={entry.excluded}
-                      onchange={() => toggleExclude(i)}
-                      aria-label={`Treat ${entry.san} as forced`}
-                    />
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
+          <div class="line-scroll" bind:this={lineScrollEl}>
+            <table class="line-table">
+              <thead>
+                <tr><th>Move</th><th>Chance</th><th>Skip</th></tr>
+              </thead>
+              <tbody>
+                {#each line as entry, i}
+                  <tr class={entry.excluded ? 'excluded' : ''}>
+                    <td>{`${Math.floor(i / 2) + 1}${i % 2 === 0 ? '. ' : '. ..'}`}{entry.san}</td>
+                    <td>{pct(entry.prob)}%</td>
+                    <td class="skip">
+                      <input
+                        type="checkbox"
+                        checked={entry.excluded}
+                        onchange={() => toggleExclude(i)}
+                        aria-label={`Treat ${entry.san} as forced`}
+                      />
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
         </section>
       {/if}
     </div>
@@ -616,6 +641,7 @@
   }
   .board-controls button,
   .paste button,
+  .fen-row button,
   .btn-link {
     padding: 0.45rem 0.8rem;
     border-radius: 0.5rem;
@@ -624,9 +650,11 @@
     color: var(--foreground);
     cursor: pointer;
     font-size: 0.875rem;
+    white-space: nowrap;
   }
   .board-controls button:hover,
   .paste button:hover,
+  .fen-row button:hover,
   .btn-link:hover {
     background: var(--btn-hover);
   }
@@ -637,6 +665,23 @@
   .btn-link {
     text-decoration: none;
     display: inline-block;
+  }
+
+  .fen-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .fen-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.4rem 0.55rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-muted);
+    font-family: monospace;
+    font-size: 0.72rem;
   }
 
   .paste {
@@ -685,10 +730,20 @@
     font-size: 0.875rem;
   }
 
+  .line-scroll {
+    max-height: 20rem;
+    overflow-y: auto;
+  }
   .line-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.875rem;
+  }
+  .line-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    z-index: 1;
   }
   .line-table th,
   .line-table td {
