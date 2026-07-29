@@ -124,11 +124,41 @@
     return undefined;
   }
 
+  function isCastle(from: SquareId, to: SquareId, b: BoardState): boolean {
+    return b.pieces.get(from)?.piece === 'K' && Math.abs(from.charCodeAt(0) - to.charCodeAt(0)) === 2;
+  }
+
+  // The board engine encodes castling as the king's destination (e1g1/e1c1); the
+  // Lichess explorer uses king-takes-rook (e1h1/e1a1). Convert at the boundary.
+  function toLichessUci(from: SquareId, to: SquareId, promotion: PieceKind | undefined, b: BoardState): string {
+    if (isCastle(from, to, b)) {
+      const rookFile = to.charCodeAt(0) > from.charCodeAt(0) ? 'h' : 'a';
+      return `${from}${rookFile}${from[1]}`;
+    }
+    return from + to + (promotion ? promotion.toLowerCase() : '');
+  }
+
+  function fromLichessUci(uci: string, b: BoardState): { from: SquareId; to: SquareId; promotion?: PieceKind } {
+    const from = uci.slice(0, 2) as SquareId;
+    let to = uci.slice(2, 4) as SquareId;
+    const promotion = uci.length > 4 ? (uci[4].toUpperCase() as PieceKind) : undefined;
+    // King e-file to a/h rook square = Lichess castling → king's destination
+    if (b.pieces.get(from)?.piece === 'K' && from[0] === 'e' && from[1] === to[1] && (to[0] === 'h' || to[0] === 'a')) {
+      to = `${to[0] === 'h' ? 'g' : 'c'}${from[1]}` as SquareId;
+    }
+    return { from, to, promotion };
+  }
+
+  function sanFallback(from: SquareId, to: SquareId, b: BoardState): string {
+    if (isCastle(from, to, b)) return to.charCodeAt(0) > from.charCodeAt(0) ? 'O-O' : 'O-O-O';
+    return `${from}-${to}`;
+  }
+
   function playMove(from: SquareId, to: SquareId, promotion?: PieceKind) {
-    const uci = from + to + (promotion ? promotion.toLowerCase() : '');
-    const prob = currentData ? moveProbability(currentData, uci) : 0;
+    const uci = toLichessUci(from, to, promotion, board);
     const dataMove = currentData?.moves.find((m) => m.uci === uci);
-    const san = dataMove?.san ?? `${from}-${to}`;
+    const prob = currentData ? moveProbability(currentData, uci) : 0;
+    const san = dataMove?.san ?? sanFallback(from, to, board);
     const side = colorToMove;
     board = applyMove(board, from, to, promotion);
     line = [...line, { san, uci, from, to, promotion, side, prob, excluded: false }];
@@ -166,9 +196,7 @@
   }
 
   function playUci(uci: string) {
-    const from = uci.slice(0, 2) as SquareId;
-    const to = uci.slice(2, 4) as SquareId;
-    const promotion = uci.length > 4 ? (uci[4].toUpperCase() as PieceKind) : undefined;
+    const { from, to, promotion } = fromLichessUci(uci, board);
     playMove(from, to, promotion);
   }
 
@@ -231,7 +259,7 @@
         if (!parsed || !parsed.from || !parsed.to) {
           throw new Error(`Couldn't read move "${tokens[i]}" — check the line.`);
         }
-        const uci = parsed.from + parsed.to + (parsed.promotion ? parsed.promotion.toLowerCase() : '');
+        const uci = toLichessUci(parsed.from, parsed.to, parsed.promotion, b);
         const prob = moveProbability(data, uci);
         const dataMove = data.moves.find((m) => m.uci === uci);
         newLine.push({
@@ -380,7 +408,7 @@
             <tbody>
               {#each line as entry, i}
                 <tr class={entry.excluded ? 'excluded' : ''}>
-                  <td>{i % 2 === 0 ? `${Math.floor(i / 2) + 1}.` : ''}{entry.san}</td>
+                  <td>{`${Math.floor(i / 2) + 1}${i % 2 === 0 ? '.' : '...'}`}{entry.san}</td>
                   <td>{pct(entry.prob)}%</td>
                   <td class="skip">
                     <input
