@@ -204,6 +204,18 @@
     dragValidMoves = [];
   }
 
+  function handleKeydown(e: KeyboardEvent) {
+    if (!signedIn) return;
+    const t = e.target as HTMLElement | null;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    if (e.key === 'f' || e.key === 'F') {
+      flipped = !flipped;
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      undo();
+    }
+  }
+
   function playUci(uci: string) {
     const { from, to, promotion } = fromLichessUci(uci, board);
     playMove(from, to, promotion);
@@ -319,6 +331,8 @@
 <svelte:head>
   <title>The Probabilitizer — How The Horsey Moves</title>
 </svelte:head>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <main class="page">
   <a href="/" class="back-link">&larr; Back to home</a>
