@@ -53,6 +53,15 @@
   let colorToMove = $derived<PieceColor>(line.length % 2 === 0 ? 'w' : 'b');
   let fullMove = $derived(Math.floor(line.length / 2) + 1);
   let totals = $derived(lineTotals(line.map((e) => ({ side: e.side, prob: e.prob, excluded: e.excluded }))));
+
+  // Who the percentages describe, based on the selected database.
+  let dbLabel = $derived.by(() => {
+    if (settings.db === 'masters') return 'Masters';
+    const rs = [...settings.ratings].sort((a, b) => a - b);
+    if (rs.length === 0 || rs.length === RATING_BUCKETS.length) return 'Lichess players';
+    if (rs.length === 1) return `Lichess players rated ${rs[0]}`;
+    return `Lichess players rated ${rs[0]}–${rs[rs.length - 1]}`;
+  });
   let analysisUrl = $derived(
     `https://lichess.org/analysis/${boardToFen(board, colorToMove, fullMove).replace(/ /g, '_')}`,
   );
@@ -390,10 +399,10 @@
           <p class="muted">Put some moves in</p>
         {:else}
           <p>
-            You get here <strong>{pct(totals.blackProb)}%</strong> of the time as White.
+            {dbLabel} get here <strong>{pct(totals.blackProb)}%</strong> of the time as White.
           </p>
           <p>
-            You get here <strong>{pct(totals.whiteProb)}%</strong> of the time as Black.
+            {dbLabel} get here <strong>{pct(totals.whiteProb)}%</strong> of the time as Black.
           </p>
         {/if}
       </section>
@@ -463,7 +472,7 @@
             <p class="filter-label">Rating</p>
             <div class="chips">
               {#each RATING_BUCKETS as r}
-                <label class="chip"><input type="checkbox" checked={settings.ratings.includes(r)} onchange={() => toggleRating(r)} /> {r}+</label>
+                <label class="chip"><input type="checkbox" checked={settings.ratings.includes(r)} onchange={() => toggleRating(r)} /> {r}</label>
               {/each}
             </div>
             <p class="filter-label">Time control</p>
