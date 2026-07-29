@@ -316,7 +316,7 @@
 
   <h1>The Probabilitizer</h1>
   <p class="tagline">
-    See the percentage chance you'll actually see move 23 in that Najdorf you think is going to gain you rating in your next game.
+    See the percentage chance you'll actually see move 23 in that Bg5 Najdorf that you think is going to win your next game.
   </p>
   <p class="credit">
     Based on
