@@ -408,7 +408,7 @@
             <tbody>
               {#each line as entry, i}
                 <tr class={entry.excluded ? 'excluded' : ''}>
-                  <td>{`${Math.floor(i / 2) + 1}${i % 2 === 0 ? '. ' : '... '}`}{entry.san}</td>
+                  <td>{`${Math.floor(i / 2) + 1}${i % 2 === 0 ? '. ' : '. ..'}`}{entry.san}</td>
                   <td>{pct(entry.prob)}%</td>
                   <td class="skip">
                     <input
