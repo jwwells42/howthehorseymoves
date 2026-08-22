@@ -14,7 +14,7 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 - **Tactics** — pins, skewers, forks, removing the defender, discovered attacks (hand-authored instruction + Lichess practice puzzles)
 - **Endings** — King + Pawn vs King (bitbase-powered perfect defense), mate conversion (KQK, KRRK, KRK), and advanced endings (KBBK, KBNK, Philidor "hold the draw" trainer)
 - **Blindfold training** — 24 visualization trainers: color of square, same diagonal, knight routes, knight squares, piece reachability, flash position, move counting, blindfold checkmate, and more
-- **Play vs computer** — random bot (The Sloth) and basic bot (one-ply evaluation), with animated character avatars and reactions
+- **Play vs computer** — an eight-rung ladder of animal opponents, from The Sloth (random moves) up to The Owl (opening book + two-move lookahead), each with an animated avatar and reactions. One opponent per curriculum level; beating one earns a trophy
 - **Openings** — learn opening repertoires move by move with arrow hints
 - **Model games** — 14 classical games (Fool's Mate through Kasparov) with move-by-move viewer, annotations, variation support, and a test mode to reproduce games from memory
 - **Star ratings** — 1-3 stars based on move efficiency, shown as mastery badges when all puzzles in a set are completed

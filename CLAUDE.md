@@ -203,7 +203,8 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 ## Key Conventions
 
 - Many students using this app cannot read yet. All interactive elements (puzzles, lessons, trainers) should be figure-out-able from visual cues alone: arrows, colors, icons, and board state. Text instructions are helpful for those who can read but must not be the only signal. Use universal symbols (trophies, checkmarks, red/green colors) over text labels
-- Landing page shows a curriculum path: 8 levels with ~9 stops each, rendered as a winding trail. Knight marker sits on the first incomplete stop. "Continue" button links to it. Everything is unlocked (no gating). Nav bar hubs (Practice, Study, Vision, etc.) remain for direct access
+- Landing page shows a curriculum path: 8 levels with ~9-10 stops each, rendered as a winding trail. Knight marker sits on the first incomplete stop. "Continue" button links to it. Everything is unlocked (no gating). Nav bar hubs (Practice, Study, Vision, etc.) remain for direct access
+- **Every level ends with its bot — the boss of that level.** The eight `play-*` stops are the closing stop of their chapter, and they report progress (`bot-beaten-{level}`), so the knight marker rests there until the student wins. Keep a new bot last in its chapter; a mid-chapter bot parks the marker before the level's content is done
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
 - Play page accepts `?level=random` or `?level=basic` query param to skip the level selector
 - Stars on category/piece cards only show when ALL puzzles in that set are completed (mastery indicator, not best-single-puzzle)
@@ -250,20 +251,46 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 
 ## Bot System (`src/lib/logic/bot.ts`)
 
-- Three levels: `"random"` (any legal move), `"basic"` (one-ply evaluation), and `"intermediate"` (depth-2 minimax with alpha-beta pruning)
-- Basic bot scores each legal move by: captures (trade up), checkmate delivery (+1000), checkmate defense (-500 if move allows opponent mate-in-1), piece safety, check bonus, center control, castling, pawn advancement
-- Intermediate bot: depth-2 minimax search with alpha-beta pruning. Uses piece-square tables (standard simplified PSTs from Chess Programming Wiki) for static evaluation. Handles promotion, castling, and en passant in move simulation. Captures sorted first for better pruning (~35×35 = ~1,225 positions worst case, typically much less with pruning). Instant on Chromebooks
+**An 8-rung ladder, one bot per curriculum level.** Strength is config, not code: `BOT_SPECS` is a table of `BotSpec` rows, and `pickBotMove()` reads the row rather than branching per level. Adding a rung = adding a row + a character + a curriculum stop. No new algorithm.
+
+Each bot is the **boss of its curriculum level** — the closing stop of that chapter (`curriculum.ts`).
+
+| Rung | Level | Character | `BotLevel` | `search` | `slack` | `depth` | mate-scan | book | ms/move | beats rung below |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Foal | The Sloth | `random` | random | — | — | — | — | 0.1 | — |
+| 2 | Colt | The Chick | `greedy` | greedy | — | — | — | — | 0.2 | 65% |
+| 3 | Trotter | The Frog | `loose` | heuristic | 1.4 | — | off | — | 0.7 | 81% |
+| 4 | Cantering | The Rabbit | `careful` | heuristic | 0.6 | — | on | — | 9.8 | 88% |
+| 5 | Galloper | The Panda | `basic` | heuristic | 0 | — | on | — | 10.4 | 88% |
+| 6 | Destrier | The Monkey | `sharp` | minimax | 0.7 | 2 | — | — | 13.9 | 77% |
+| 7 | Stallion | The Bear | `intermediate` | minimax | 0 | 2 | — | — | 11.5 | 88% |
+| 8 | Charger | The Owl | `expert` | minimax | 0 | 3 | — | yes | 290 | 85% |
+
+Times are avg ms/move on a dev desktop; expect several times this on a Chromebook. The win rates are 24-game self-play matches against the rung below (stronger side plays Black). **Re-run `scripts/bot-ladder-match.ts` after touching any knob** — the whole point of the ladder is that each step is felt, and self-play is the only way to know before a student finds out. Ideas for making the bots distinctive by *playstyle* rather than strength are parked in `bot-personality-ideas.md`.
+
+- **`slack` is the main strength knob**, not depth — depth alone gives only two or three usable steps. A bot picks at random among all moves scoring within `slack` pawns of the best, so it plays second-best moves rather than random ones (a blunder-rate design was rejected: it makes a bot feel broken, not weak). `slack: 0` is full strength, so `basic` and `intermediate` behave exactly as they always have
+- **Slack ceiling on heuristic bots**: `scoreMove` penalizes hanging a piece by `value * 5` while material is `value * 10`, so heuristic slack above ~1.4 buys knight blunders and above ~2.5 rook blunders. Keep it under 1.5. Minimax slack is in real centipawns and means what it says. `slackPoints()` does the ×10 / ×100 conversion
+- **Cost is not where you'd guess.** Two counter-intuitive facts, both measured:
+  - `avoidsMateIn1` costs a heuristic bot ~10x (`loose` 0.7 ms → `careful` 9.8 ms) — the scan generates every opponent reply and tests checkmate on each. Turning it off makes a low rung both weaker *and* cheaper, which is why it's a knob
+  - **Leaves dominate the minimax cost, and the leaf must not generate moves.** `minimax` handles `depth === 0` *before* calling `getAllLegalMoves`, using `hasLegalMoves()` (`attacks.ts:125`) — same predicate, but it early-exits on the first legal move instead of legality-checking all ~35. That one ordering is worth **11x** (depth-2 was 186 ms/move before it, 11.5 ms after). Terminal detection is unaffected: mate and stalemate are both still scored correctly at the horizon. Do not "simplify" this back into a single movegen at the top of the function
+- `pickBotMove` runs **synchronously on the UI thread** (`use-game.svelte.ts:189`, inside a 400 ms `setTimeout`). While it runs the avatar's thinking animation and speech bubble are frozen, so a slow search reads as a hung UI, not as a bot thinking. If more visible "thinking time" is wanted, lengthen the artificial delay — don't slow the search. Anything past depth 3 needs a Web Worker first
+- `search` modes: `random` (uniform), `greedy` (biggest capture available else random — never checks safety, so it walks onto defended squares *systematically*, a pattern students can learn), `heuristic` (one-ply `scoreMove`), `minimax` (alpha-beta to `spec.depth` plies with PSTs)
+- `scoreMove` terms: captures (trade up), checkmate delivery (+1000), checkmate defense (−500, gated on `avoidsMateIn1`), piece safety, check bonus, center control, castling, pawn advancement
+- **Even depths are safer than odd ones** without a quiescence search: an odd depth ends on the bot's own move, so it sees its capture but not your recapture. Depth 3 was measured before shipping and did *not* suffer from this — it lifted the Owl from 63% to 85% against the Bear — but re-measure before assuming a deeper search is a better one
+- Minimax detail: standard simplified PSTs from the Chess Programming Wiki; captures sorted first for pruning. `applySimpleMove` drops castling rights and the en passant square below the root, so castling is invisible to the search (known, accepted)
+- **Opening book** (`src/lib/logic/opening-book.ts`): only the Owl uses it. ~22 lines of plain PGN, parsed once on first use (same lazy pattern as `kpk-bitbase.ts`) into a `boardToKey()`-keyed map, so it's transposition-complete for free. The bot always plays Black, so only Black replies are stored. Returns `null` out of book → normal search. Costs zero search time and matters a lot, because students' games are decided in the first ten moves
 - `createGameState(botLevel)` in `use-game.svelte.ts` creates the game state factory; `GameShell` passes it through
-- Play page (`/play`) shows a level selector before starting the game
-- Adding new levels: add to `BotLevel` type, handle in `pickBotMove()`
+- Play page (`/play`) renders the ladder from `BOT_LADDER` + `BOT_SPECS` + `BOT_CHARACTERS` — difficulty pips (`spec.rung` of 8) and a trophy, both readable without text. Accepts `?level=<BotLevel>`
+- **Beating a bot** writes `bot-beaten-{level}` = `'3'` to localStorage (from `GameShell`, on `result === 'checkmate-white'`). `'3'` rather than a boolean because `getStopStars()` parseInts localStorage progress as a star count, so the existing `{ type: 'localStorage' }` curriculum source just works
+- `src/lib/puzzles/types.ts` keeps its own narrower `bot: "random" | "basic"` union for `ConversionPuzzle` — deliberately not widened to `BotLevel`
 - Promotion: player gets a picker overlay (Q/R/B/N) when pawn reaches last rank; bot auto-promotes to queen
 - Draw detection: stalemate, threefold repetition, 50-move rule (halfmove clock), insufficient material (K vs K, K+B/N vs K, K+B vs K+B same-color bishops). Matches Lichess rules
 - Click-to-move: all interactive board wrappers must use separate `dragFrom` state for drag tracking, keeping `selectedSquare` independent. Never clear `selectedSquare` in `onDragEnd` — that breaks click-click
 
 ## Bot Characters (`src/lib/characters/`)
 
-- Each bot level can have a `BotCharacter` with name, avatar (Kenney CC0 sprite), accent color, description, and reaction text pools
-- Characters are optional — bots without a character entry fall back to a plain text header in GameShell
+- Each bot level has a `BotCharacter` with name, avatar (Kenney CC0 sprite), accent color, description, and reaction text pools. All 8 rungs have one; the `BotLevel` key is the *engine*, the character is the persona wrapped around it
+- The registry stays `Partial<Record<BotLevel, BotCharacter>>` even though it's now complete — narrowing it would make GameShell's no-character fallback dead code, and that branch is the only place `statusText` renders
 - Reaction system in GameShell uses `$effect` blocks watching `game.moveHistory`, `game.waitingForBot`, and `game.result` to trigger animations + speech bubbles
 - CSS keyframe animations on the avatar: idle bob, thinking rock, capture bounce, captured shake, check jump, move tilt, win celebrate, lose droop
 - Adding a new character: add entry to `BOT_CHARACTERS` in `bots.ts`, place sprite PNG in `static/characters/`
