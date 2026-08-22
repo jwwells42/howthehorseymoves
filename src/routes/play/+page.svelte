@@ -1,31 +1,45 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/state';
+  import { goto } from '$app/navigation';
   import GameShell from '$lib/components/game/GameShell.svelte';
   import { getCharacter } from '$lib/characters/bots';
   import { BOT_LADDER, BOT_SPECS, type BotLevel } from '$lib/logic/bot';
 
-  let paramLevel = $derived(page.url.searchParams.get('level'));
-  let initialLevel = $derived(BOT_LADDER.includes(paramLevel as BotLevel) ? (paramLevel as BotLevel) : null);
-  let level = $state<BotLevel | null>(null);
+  // The URL is the single source of truth for which bot is being played.
+  //
+  // This used to be local state seeded from the URL by an $effect, which meant
+  // neither exit worked once you arrived via ?level=: "Change opponent" set the
+  // state to null, the effect saw the unchanged URL and immediately put it back,
+  // and the nav's Play link went to /play without remounting the page, so the
+  // stale state kept the game on screen. Both read as the button doing nothing.
+  let level = $derived.by(() => {
+    const p = page.url.searchParams.get('level');
+    return BOT_LADDER.includes(p as BotLevel) ? (p as BotLevel) : null;
+  });
 
   // Which bots the student has already beaten (trophy on the card).
   let beaten = $state<Record<string, boolean>>({});
 
-  onMount(() => {
+  function readBeaten() {
     const found: Record<string, boolean> = {};
     for (const l of BOT_LADDER) {
       found[l] = (parseInt(localStorage.getItem(`bot-beaten-${l}`) ?? '0', 10) || 0) > 0;
     }
     beaten = found;
-  });
+  }
 
-  // Sync from URL param on first load
-  $effect(() => {
-    if (initialLevel && level === null) {
-      level = initialLevel;
-    }
-  });
+  onMount(readBeaten);
+
+  function play(botLevel: BotLevel) {
+    goto(`/play?level=${botLevel}`);
+  }
+
+  function changeOpponent() {
+    // Re-read first: the student may have just won a trophy on the card behind us.
+    readBeaten();
+    goto('/play');
+  }
 
   const MAX_RUNG = BOT_LADDER.length;
   const PIPS = BOT_LADDER.map((_, i) => i + 1);
@@ -42,7 +56,7 @@
       {#each BOT_LADDER as botLevel (botLevel)}
         {@const char = getCharacter(botLevel)}
         {@const spec = BOT_SPECS[botLevel]}
-        <button class="level-card" onclick={() => level = botLevel}>
+        <button class="level-card" onclick={() => play(botLevel)}>
           <div class="char-card">
             {#if char}
               <img src={char.avatar} alt="" class="char-avatar" width="56" height="56" />
@@ -68,7 +82,7 @@
   </main>
 {:else}
   <main class="page">
-    <button class="back-link" onclick={() => level = null}>&larr; Change opponent</button>
+    <button class="back-link" onclick={changeOpponent}>&larr; Change opponent</button>
     {#key level}
       <GameShell botLevel={level} />
     {/key}

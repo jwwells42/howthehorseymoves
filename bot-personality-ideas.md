@@ -69,7 +69,31 @@ lot by hitting the 300-ply cap in self-play. Re-run
 `scripts/bot-ladder-match.ts` after adding any constraint and confirm the ladder
 is still monotone.
 
-## 3. Smaller things
+## 3. Horse icons for the levels
+
+The levels are named for a horse growing up — Foal, Colt, Trotter, Cantering,
+Galloper, Destrier, Stallion, Charger — and now each one ends with an animal
+boss. So Level 3 "The Trotter" is beaten by defeating a frog, and the horse
+naming currently carries no visual weight at all.
+
+Each level should have its own horse icon, the way each boss has its animal.
+Then the trail reads as one idea: *you are the horse growing up, and each level
+has a creature guarding the way out.*
+
+State of play:
+
+- `CurriculumChapter` (`curriculum.ts`) is `{ id, title, stops }` — **there is no
+  icon field on a chapter yet.** Only individual stops have `icon`. So this needs
+  a field plus rendering in the landing-page trail, not just art.
+- Kenney's Animal Pack Remastered has exactly **one** horse sprite, so it can't
+  supply a foal→charger progression. New art is needed.
+- Cheap fallback if art is slow to arrive: the knight piece is already an SVG
+  (`static/pieces/wN.svg`), so it can be recolored and scaled per level — small
+  and pale for the Foal, large and dark for the Charger. Gives a sense of growth
+  with no new assets, and can be swapped for real horse art later without
+  touching the layout.
+
+## 4. Smaller things
 
 - **Reaction lines tied to the constraint.** The Chick complaining when there's
   nothing to eat; the Bear refusing to retreat out loud. Reactions currently only
@@ -81,7 +105,7 @@ is still monotone.
 - **Show the trophy count somewhere central**, e.g. "5 of 8 bosses beaten" on the
   landing page. The data is already in localStorage (`bot-beaten-{level}`).
 
-## 4. Known limitations worth fixing if the engine gets another pass
+## 5. Known limitations worth fixing if the engine gets another pass
 
 - `applySimpleMove` (`bot.ts`) drops castling rights and the en passant square,
   so **castling is invisible to the minimax search** below the root. The bots
