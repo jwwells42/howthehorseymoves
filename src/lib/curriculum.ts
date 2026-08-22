@@ -231,6 +231,15 @@ export function getFirstIncompleteId(stopStars: Record<string, number>): string 
   return null;
 }
 
+/** The stop that follows the given one, crossing into the next chapter.
+ *  Returns null at the very end of the curriculum. */
+export function getNextStopAfter(stopId: string): CurriculumStop | null {
+  const all = CURRICULUM.flatMap(c => c.stops);
+  const i = all.findIndex(s => s.id === stopId);
+  if (i === -1 || i === all.length - 1) return null;
+  return all[i + 1];
+}
+
 /** Find the first incomplete stop and return its info for the Continue button.
  *  For puzzle-set stops, links directly to the first incomplete puzzle. */
 export function getFirstIncompleteStop(stopStars: Record<string, number>): { id: string; name: string; href: string } | null {

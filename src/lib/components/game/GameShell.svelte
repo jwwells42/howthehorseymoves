@@ -6,12 +6,18 @@
   import { createGameState } from '$lib/state/use-game.svelte';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
+  import { getNextStopAfter } from '$lib/curriculum';
   import type { BotLevel } from '$lib/logic/bot';
   import type { SquareId, PieceKind } from '$lib/logic/types';
 
   let { botLevel = 'random' }: { botLevel?: BotLevel } = $props();
 
   let character = $derived(getCharacter(botLevel));
+
+  // Every bot is the boss of a curriculum level, so beating one should offer the
+  // way onward like any other stop. The stop ids are `play-{level}` throughout;
+  // the last bot in the curriculum has no next stop, and the button hides.
+  let nextStop = $derived(getNextStopAfter(`play-${botLevel}`));
 
   let game = $derived(createGameState(botLevel));
 
@@ -285,8 +291,18 @@
       opponentSlide={isReviewing ? null : game.botSlide}
     />
     {#if game.result === 'checkmate-white' && reviewIndex === null}
-      <div class="result-overlay">
-        <div class="trophy">&#127942;</div>
+      <div class="result-overlay win-overlay">
+        <div class="win-card">
+          <div class="trophy">&#127942;</div>
+          <div class="win-buttons">
+            <button class="win-btn" onclick={startNewGame}>Play Again</button>
+            {#if nextStop}
+              <a class="win-btn next-btn" href={nextStop.href}>
+                {nextStop.name} &rarr;
+              </a>
+            {/if}
+          </div>
+        </div>
       </div>
     {/if}
     {#if isDraw && reviewIndex === null && showDrawOverlay}
@@ -515,6 +531,42 @@
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
     animation: trophy-pop 0.5s ease-out;
   }
+
+  /* The win overlay takes pointer events back (.result-overlay disables them so
+     the draw symbol doesn't block the board) because it now holds buttons. */
+  .win-overlay {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.45);
+    border-radius: 0.5rem;
+  }
+  .win-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .win-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 22rem;
+  }
+  .win-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: var(--btn-bg);
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .win-btn:hover { background: var(--btn-hover); }
+  .next-btn { background: #16a34a; color: white; }
+  .next-btn:hover { background: #15803d; }
   .draw-symbol {
     font-size: 8rem;
     font-weight: bold;

@@ -58,6 +58,32 @@ Sketch: `moveFilter?: (board, color, moves) => Move[]` on `BotSpec`, applied in
 | Bear | Never retreats — pieces only move forward or sideways | Overextension; retreat is a resource |
 | Owl | (none — it's the pure test) | — |
 
+### A knight-heavy opening book for the Frog
+
+A frog hops; so does a knight. Giving the Frog its own book full of early knight
+moves — Four Knights, Two Knights, Petrov, knight-first setups, Nimzowitsch —
+would make it *recognisably* the hopping bot from move one, before the student
+has seen enough of the game to judge anything else. It's flavour and teaching at
+once: the student meets knights everywhere at exactly the level where the
+curriculum introduces them.
+
+Practical notes for building it (the book format is deliberately easy to hand-edit):
+
+- Lines live as **plain PGN strings** in `src/lib/logic/opening-book.ts`, parsed
+  once on first use. Write them as normal moves; no FENs, no keys.
+- **Only Black's moves are stored** — the bot always plays Black, and the White
+  moves in each line just steer which positions get covered. So write lines that
+  reach the positions students actually reach.
+- `bookMove()` is keyed by `boardToKey()`, so transpositions are handled for
+  free. Two lines arriving at the same position both work.
+- **One change is needed first:** `usesBook` on `BotSpec` is a boolean tied to a
+  single shared book, so the Frog can't have a different one yet. Make it a book
+  id (e.g. `book?: 'main' | 'knights'`) and have `bookMove(board, color, which)`
+  pick the map. Small change, but it has to come before a second book exists.
+- The Frog runs `slack: 1.4`, so it will wander out of book quickly and play
+  loosely afterwards — which is the point. The book only needs to cover the first
+  4-6 moves to establish the character.
+
 **Hard requirement:** a filter must never return an empty list. Always fall back
 to the unfiltered moves, or the bot has no move and the game state breaks
 (`use-game.svelte.ts:190` currently leaves `waitingForBot` stuck true if
