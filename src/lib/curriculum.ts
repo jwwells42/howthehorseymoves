@@ -46,11 +46,11 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'piece-pawn', name: 'Pawn', desc: 'Moves forward, captures diagonally.', icon: '/pieces/wP.svg', href: '/learn/pawn', progress: { type: 'puzzle-set', key: 'pawn' } },
       { id: 'board-setup', name: 'Place the Pieces', desc: 'Learn where each piece goes on the board.', icon: '/pieces/wR.svg', href: '/setup', progress: { type: 'localStorage-all', keys: SETUP_SLUGS.map(s => `setup-${s}-best-stars`) } },
       { id: 'how-to-win', name: 'How to Win', desc: 'Learn check, checkmate, and stalemate.', icon: '/pieces/wK.svg', href: '/learn/how-to-win', progress: { type: 'localStorage', key: 'how-to-win-best-stars' } },
-      { id: 'play-random', name: 'Play a Game!', desc: 'Use everything you\'ve learned against the Random Bot.', icon: '/pieces/wN.svg', href: '/play?level=random', progress: { type: 'none' } },
+      { id: 'play-random', name: 'Play the Sloth', desc: 'Use everything you\'ve learned. The Sloth plays random moves.', icon: '/pieces/wN.svg', href: '/play?level=random', progress: { type: 'localStorage', key: 'bot-beaten-random' } },
     ],
   },
 
-  // ── Level 2: The Colt (9) ──────────────────
+  // ── Level 2: The Colt (10) ─────────────────
   {
     id: 'the-colt',
     title: 'Level 2: The Colt',
@@ -64,10 +64,11 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'cm-lollis', name: "Lolli's Mate", desc: 'Queen slips in behind the pawns for mate.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-lollis', progress: { type: 'puzzle-set', key: 'checkmate-lollis' } },
       { id: 'cm-queen-f7', name: 'Queen Takes f7', desc: 'The queen strikes the weak f7 square.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-queen-f7', progress: { type: 'puzzle-set', key: 'checkmate-queen-f7' } },
       { id: 'cm-qb-battery', name: 'QB Battery', desc: 'Queen and bishop team up on a diagonal.', icon: '/pieces/wQ.svg', href: '/learn/checkmate-qb-battery', progress: { type: 'puzzle-set', key: 'checkmate-qb-battery' } },
+      { id: 'play-greedy', name: 'Play the Chick', desc: 'It grabs every piece it can — but never checks if it\'s safe.', icon: '/pieces/wN.svg', href: '/play?level=greedy', progress: { type: 'localStorage', key: 'bot-beaten-greedy' } },
     ],
   },
 
-  // ── Level 3: The Trotter (9) ───────────────
+  // ── Level 3: The Trotter (10) ──────────────
   {
     id: 'the-trotter',
     title: 'Level 3: The Trotter',
@@ -81,10 +82,11 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'game-greco-smothered', name: "Greco's Smothered", desc: 'Greco sacrifices the queen so the knight delivers smothered mate.', icon: '/pieces/bN.svg', href: '/games/greco-smothered', progress: { type: 'none' } },
       { id: 'opening-scholars', name: "Scholar's Mate", desc: 'Learn and defend against the fastest checkmate.', icon: '/pieces/wQ.svg', href: '/openings/scholars-mate', progress: { type: 'none' } },
       { id: 'game-opera', name: 'The Opera Game', desc: 'Morphy\'s masterpiece — rapid development and open lines.', icon: '/pieces/wQ.svg', href: '/games/opera', progress: { type: 'none' } },
+      { id: 'play-loose', name: 'Play the Frog', desc: 'It hops around — it finds good moves, but not the best one.', icon: '/pieces/wN.svg', href: '/play?level=loose', progress: { type: 'localStorage', key: 'bot-beaten-loose' } },
     ],
   },
 
-  // ── Level 4: The Cantering (9) ─────────────
+  // ── Level 4: The Cantering (10) ────────────
   {
     id: 'the-cantering',
     title: 'Level 4: The Cantering',
@@ -98,6 +100,7 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'game-greco-mate', name: "Greco's Mate", desc: 'The knight dances with discovered checks, then Qh8# delivers the blow.', icon: '/pieces/wN.svg', href: '/games/greco-mate', progress: { type: 'none' } },
       { id: 'endings-krk', name: 'Rook vs King', desc: 'Deliver checkmate with King + Rook.', icon: '/pieces/wR.svg', href: '/learn/endings-krk', progress: { type: 'localStorage', key: 'endings-krk-best-stars' } },
       { id: 'pawn-endings-lesson', name: 'Pawn Endings', desc: 'Key squares, opposition, and essential pawn patterns.', icon: '/pieces/wK.svg', href: '/learn/pawn-endings-lesson', progress: { type: 'localStorage', key: 'pawn-endings-lesson-best-stars' } },
+      { id: 'play-careful', name: 'Play the Rabbit', desc: 'Quick and careful — it rarely leaves a piece hanging.', icon: '/pieces/wN.svg', href: '/play?level=careful', progress: { type: 'localStorage', key: 'bot-beaten-careful' } },
     ],
   },
 
@@ -107,7 +110,6 @@ export const CURRICULUM: CurriculumChapter[] = [
     title: 'Level 5: The Galloper',
     stops: [
       { id: 'pawn-endings-practice', name: 'Pawn Ending Practice', desc: '20 pawn ending puzzles from Lichess — apply what you learned!', icon: '/pieces/wP.svg', href: '/learn/pawn-endings-practice', progress: { type: 'puzzle-set', key: 'pawn-endings-practice' } },
-      { id: 'play-basic', name: 'Play vs Basic Bot', desc: 'Test your skills against a bot that thinks one move ahead.', icon: '/pieces/wN.svg', href: '/play?level=basic', progress: { type: 'none' } },
       { id: 'vision-color', name: 'Color of Square', desc: 'Dark or light? Identify the color from the name.', icon: '/pieces/wP.svg', href: '/vision/color', progress: { type: 'localStorage', key: 'blindfold-color-best-stars' } },
       { id: 'vision-rankfile', name: 'Same Rank/File', desc: 'Do these two squares share a rank or file?', icon: '/pieces/wR.svg', href: '/vision/rankfile', progress: { type: 'localStorage', key: 'blindfold-rankfile-best-stars' } },
       { id: 'vision-diagonals', name: 'Same Diagonal', desc: 'Are these two squares on the same diagonal?', icon: '/pieces/wB.svg', href: '/vision/diagonals', progress: { type: 'localStorage', key: 'blindfold-diagonal-best-stars' } },
@@ -115,10 +117,11 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'vision-reachability', name: 'Piece Reachability', desc: 'Can this piece reach that square? Yes or no!', icon: '/pieces/wN.svg', href: '/vision/reachability', progress: { type: 'localStorage', key: 'blindfold-reachability-best-stars' } },
       { id: 'vision-changed', name: 'What Changed?', desc: 'Memorize a position, then spot what moved.', icon: '/pieces/wR.svg', href: '/vision/changed', progress: { type: 'localStorage', key: 'blindfold-changed-best-stars' } },
       { id: 'vision-landed', name: 'Where Did It Land?', desc: 'Follow opening moves mentally, then find a piece.', icon: '/pieces/wN.svg', href: '/vision/landed', progress: { type: 'localStorage', key: 'blindfold-landed-best-stars' } },
+      { id: 'play-basic', name: 'Play the Panda', desc: 'Calm and steady — it takes what you leave and spots mate in one.', icon: '/pieces/wN.svg', href: '/play?level=basic', progress: { type: 'localStorage', key: 'bot-beaten-basic' } },
     ],
   },
 
-  // ── Level 6: The Destrier (9) ──────────────
+  // ── Level 6: The Destrier (10) ─────────────
   {
     id: 'the-destrier',
     title: 'Level 6: The Destrier',
@@ -132,6 +135,7 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'game-immortal', name: 'The Immortal Game', desc: 'Anderssen sacrifices everything — both rooks, a bishop, and his queen.', icon: '/pieces/wB.svg', href: '/games/immortal', progress: { type: 'none' } },
       { id: 'game-rubinstein', name: "Rubinstein's Immortal", desc: 'A devastating queen sacrifice where Black\'s pieces swarm the king.', icon: '/pieces/bQ.svg', href: '/games/rubinstein-immortal', progress: { type: 'none' } },
       { id: 'game-gold-coins', name: 'Gold Coins Game', desc: 'Marshall\'s stunning final move supposedly made spectators throw gold coins.', icon: '/pieces/bQ.svg', href: '/games/gold-coins', progress: { type: 'none' } },
+      { id: 'play-sharp', name: 'Play the Monkey', desc: 'Cheeky and clever — it looks two moves ahead.', icon: '/pieces/bN.svg', href: '/play?level=sharp', progress: { type: 'localStorage', key: 'bot-beaten-sharp' } },
     ],
   },
 
@@ -146,13 +150,13 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'endings-kbnk', name: 'Bishop + Knight', desc: 'Deliver checkmate with King + Bishop + Knight.', icon: '/pieces/wN.svg', href: '/learn/endings-kbnk', progress: { type: 'localStorage', key: 'endings-kbnk-best-stars' } },
       { id: 'vision-knightsquares', name: 'Knight Squares', desc: 'Name every square a knight can reach from a given square.', icon: '/pieces/wN.svg', href: '/vision/knightsquares', progress: { type: 'localStorage', key: 'blindfold-knightsquares-best-stars' } },
       { id: 'vision-blindtactics', name: 'Blind Tactics', desc: 'See a position, then find checkmate blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/blindtactics', progress: { type: 'localStorage', key: 'blindfold-blindtactics-best-stars' } },
-      { id: 'play-intermediate', name: 'Play vs Intermediate Bot', desc: 'A tougher opponent that looks two moves ahead.', icon: '/pieces/bN.svg', href: '/play?level=intermediate', progress: { type: 'none' } },
       { id: 'vision-puzzle', name: 'Blindfold Puzzles', desc: 'Pieces are invisible — solve from a text description!', icon: '/pieces/wK.svg', href: '/vision/puzzle', progress: { type: 'localStorage', key: 'blindfold-puzzle-best-stars' } },
       { id: 'vision-guarding', name: "Who's Guarding?", desc: 'Track piece interactions as they move — blindfolded!', icon: '/pieces/wQ.svg', href: '/vision/guarding', progress: { type: 'localStorage', key: 'blindfold-guarding-best-stars' } },
+      { id: 'play-intermediate', name: 'Play the Bear', desc: 'Strong and patient — it never misses a gift.', icon: '/pieces/bN.svg', href: '/play?level=intermediate', progress: { type: 'localStorage', key: 'bot-beaten-intermediate' } },
     ],
   },
 
-  // ── Level 8: The Charger (6 — more coming) ─
+  // ── Level 8: The Charger (8 — more coming) ─
   {
     id: 'the-charger',
     title: 'Level 8: The Charger',
@@ -164,6 +168,7 @@ export const CURRICULUM: CurriculumChapter[] = [
       { id: 'bf-mate-krk', name: 'BF Mate: R vs K', desc: 'Deliver checkmate blindfolded with King + Rook.', icon: '/pieces/wR.svg', href: '/vision/mate-krk', progress: { type: 'localStorage', key: 'blindfold-mate-krk-best-stars' } },
       { id: 'bf-mate-kbbk', name: 'BF Mate: BB vs K', desc: 'Deliver checkmate blindfolded with King + 2 Bishops.', icon: '/pieces/wB.svg', href: '/vision/mate-kbbk', progress: { type: 'localStorage', key: 'blindfold-mate-kbbk-best-stars' } },
       { id: 'bf-mate-kbnk', name: 'BF Mate: BN vs K', desc: 'Deliver checkmate blindfolded with King + Bishop + Knight.', icon: '/pieces/wN.svg', href: '/vision/mate-kbnk', progress: { type: 'localStorage', key: 'blindfold-mate-kbnk-best-stars' } },
+      { id: 'play-expert', name: 'Play the Owl', desc: 'The toughest — it knows the openings and plans ahead.', icon: '/pieces/bN.svg', href: '/play?level=expert', progress: { type: 'localStorage', key: 'bot-beaten-expert' } },
     ],
   },
 ];

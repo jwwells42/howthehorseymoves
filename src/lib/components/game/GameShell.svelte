@@ -242,6 +242,15 @@
     }
   });
 
+  // Record a win against this bot — drives the trophy on /play and marks the
+  // matching curriculum stop complete. Stored as '3' because getStopStars()
+  // parseInts localStorage progress values as a star count.
+  $effect(() => {
+    if (game.result === 'checkmate-white') {
+      localStorage.setItem(`bot-beaten-${botLevel}`, '3');
+    }
+  });
+
   // React to game end
   $effect(() => {
     if (!character || game.result === 'playing') return;
