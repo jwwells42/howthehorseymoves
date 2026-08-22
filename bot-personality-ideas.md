@@ -40,7 +40,7 @@ freezes the avatar animation and speech bubble. `thinkMs` must be an *artificial
 delay with the thread free — that's what makes it read as thinking rather than
 hanging. Don't buy thinking time by making the search slower.
 
-## 2. Playstyle constraints — the bigger idea
+## 2. Playstyle — move constraints and opening books
 
 A filter applied to the legal move list before scoring. This is what would make
 bots genuinely memorable, and each constraint teaches something specific.
@@ -83,6 +83,45 @@ Practical notes for building it (the book format is deliberately easy to hand-ed
 - The Frog runs `slack: 1.4`, so it will wander out of book quickly and play
   loosely afterwards — which is the point. The book only needs to cover the first
   4-6 moves to establish the character.
+
+### An early bot that always goes for Scholar's Mate
+
+One of the low rungs should try the four-move mate *every single game*. The
+curriculum already teaches it — `opening-scholars` is a Level 3 stop, "learn and
+defend against the fastest checkmate" — and right now nothing ever actually
+plays it at them. A bot that reliably does turns that lesson into a drill: the
+student gets to defend it over and over until it's automatic.
+
+**The wrinkle: the bot plays Black, so it's the mirror.** Not Qh5 and Bc4 hunting
+f7 — it's `…e5`, `…Bc5`, `…Qh4` all bearing down on **f2**, the square the white
+king is defending alone. Worth being deliberate about, because a student who has
+only ever seen the White version may not recognise the same idea pointed at them.
+
+Which rung is a teaching call, not a technical one:
+
+- **The Chick (L2)** — fits its character perfectly; it's already the bot that
+  lunges at material, and it would meet the student *before* the Level 3 lesson.
+  Getting mated in four is a strong motivation to go learn why. Or it's just
+  demoralising. Your call.
+- **The Rabbit (L4)** — comes right after the lesson, so it's pure practice of
+  something just taught. Safer, less dramatic.
+- The Frog (L3) sits at the lesson itself but is already earmarked for the
+  knight book above.
+
+Notes for building it:
+
+- Same prerequisite as the Frog book: `usesBook` must become a book id first.
+- Books work with **any** search mode — `bookMove` is consulted before the search
+  in `pickBotMove`, so even `random` or `greedy` bots can follow one.
+- **Author and verify the lines yourself.** Claude-generated PGN routinely
+  contains illegal or simply bad moves, and this one has to be exactly right to
+  teach the pattern. `scripts/bot-ladder-match.ts` won't catch a *wrong* line,
+  only an unreachable one — the book parser throws on illegal SAN, so a line that
+  parses is legal but not necessarily good.
+- Nice side effect: when the student defends correctly, the bot is out of book
+  with its queen stranded on h4 and will usually be worse. That is exactly the
+  lesson — early queen sorties get punished — and it happens without any special
+  code.
 
 **Hard requirement:** a filter must never return an empty list. Always fall back
 to the unfiltered moves, or the bot has no move and the game state breaks
