@@ -78,7 +78,7 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 - `puzzle/PuzzleShell.svelte` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
 - `game/GameViewer.svelte` — PGN game viewer with path-based navigation (`currentPath: GameNode[]`), auto-play, keyboard nav (`<svelte:window>`), comments, arrows. Variations display inline in the move grid. "Pause at variations" toggle stops auto-play at branch points. Test mode uses `extractMainLine()` for flat main-line-only memorization
 - `game/PgnExplorer.svelte` — Lightweight PGN explorer for embedding annotated move trees. Takes `pgn` + optional `fen` props, renders board + clickable move grid with variations, comments, and keyboard nav. Used by PawnEndingsLesson to show post-quiz analysis. Reuses `parseGamePgn()` tree + same move-grid visual pattern as GameViewer but without test/autoplay/explore modes
-- `game/GameShell.svelte` — Play vs Computer wrapper, accepts `botLevel` prop. Integrates bot character panel with reaction system (captures, checks, checkmate, thinking animations + speech bubbles)
+- `game/GameShell.svelte` — Play vs Computer wrapper, accepts `botLevel` prop. Integrates bot character panel with reaction system (captures, checks, checkmate, thinking animations + speech bubbles). Also holds the Resign button (see Bot System)
 - `opening/OpeningTrainer.svelte` — Opening repertoire trainer with learn/practice phases
 - `endgame/EndgameShell.svelte` — KPK bitbase trainer (`src/lib/logic/kpk-bitbase.ts`: 24KB retrograde analysis). Bot plays perfect defense via bitbase; validates student moves must maintain winning evaluation. Win condition: pawn reaches rank 8. Stars: 0 mistakes=3, 1=2, 2+=1
 - `endgame/MateTrainer.svelte` — Mate conversion trainer (KQK, KRRK, KRK, KBBK, KBNK)
@@ -281,6 +281,7 @@ Times are avg ms/move on a dev desktop; expect several times this on a Chromeboo
 - **Opening book** (`src/lib/logic/opening-book.ts`): only the Owl uses it. ~22 lines of plain PGN, parsed once on first use (same lazy pattern as `kpk-bitbase.ts`) into a `boardToKey()`-keyed map, so it's transposition-complete for free. The bot always plays Black, so only Black replies are stored. Returns `null` out of book → normal search. Costs zero search time and matters a lot, because students' games are decided in the first ten moves
 - `createGameState(botLevel)` in `use-game.svelte.ts` creates the game state factory; `GameShell` passes it through
 - Play page (`/play`) renders the ladder from `BOT_LADDER` + `BOT_SPECS` + `BOT_CHARACTERS` — difficulty pips (`spec.rung` of 8) and a trophy, both readable without text. Accepts `?level=<BotLevel>`
+- **Resigning** (`game.resign()` in `use-game.svelte.ts`, button in `GameShell`) ends the game with `result: 'resigned'`. Two taps — a flag button arms it, a red ✓ confirms — because students tap fast and a one-tap resign would end games by accident. It works while the bot is thinking too: the queued bot move re-checks `result` before it lands, so the resignation always sticks. A white flag overlays the board (the signal a non-reader can read), the bot shows its `resign` reaction, and nothing is written to localStorage — only a checkmate counts as beating a bot
 - **Beating a bot** writes `bot-beaten-{level}` = `'3'` to localStorage (from `GameShell`, on `result === 'checkmate-white'`). `'3'` rather than a boolean because `getStopStars()` parseInts localStorage progress as a star count, so the existing `{ type: 'localStorage' }` curriculum source just works
 - `src/lib/puzzles/types.ts` keeps its own narrower `bot: "random" | "basic"` union for `ConversionPuzzle` — deliberately not widened to `BotLevel`
 - Promotion: player gets a picker overlay (Q/R/B/N) when pawn reaches last rank; bot auto-promotes to queen
@@ -291,6 +292,7 @@ Times are avg ms/move on a dev desktop; expect several times this on a Chromeboo
 
 - Each bot level has a `BotCharacter` with name, avatar (Kenney CC0 sprite), accent color, description, and reaction text pools. All 8 rungs have one; the `BotLevel` key is the *engine*, the character is the persona wrapped around it
 - The registry stays `Partial<Record<BotLevel, BotCharacter>>` even though it's now complete — narrowing it would make GameShell's no-character fallback dead code, and that branch is the only place `statusText` renders
+- The `resign` reaction pool is for when the *player* gives up. Keep those lines kind and never gloating — the bot does not celebrate (`triggerAnimation('idle', 0)`), unlike a checkmate win
 - Reaction system in GameShell uses `$effect` blocks watching `game.moveHistory`, `game.waitingForBot`, and `game.result` to trigger animations + speech bubbles
 - CSS keyframe animations on the avatar: idle bob, thinking rock, capture bounce, captured shake, check jump, move tilt, win celebrate, lose droop
 - Adding a new character: add entry to `BOT_CHARACTERS` in `bots.ts`, place sprite PNG in `static/characters/`

@@ -11,7 +11,7 @@ export interface MoveRecord {
   to: SquareId;
 }
 
-type GameResult = 'playing' | 'checkmate-white' | 'checkmate-black' | 'stalemate' | 'threefold' | 'fifty-move' | 'insufficient-material';
+type GameResult = 'playing' | 'checkmate-white' | 'checkmate-black' | 'resigned' | 'stalemate' | 'threefold' | 'fifty-move' | 'insufficient-material';
 
 const STARTING_POSITION: PiecePlacement[] = [
   // White
@@ -186,6 +186,9 @@ export function createGameState(botLevel: BotLevel = 'random') {
     waitingForBot = true;
 
     setTimeout(() => {
+      // The player can resign while the bot is thinking — drop the queued move.
+      if (result !== 'playing') return;
+
       const move = pickBotMove(currentBoard, 'b', botLevel);
       if (!move) return;
 
@@ -425,6 +428,20 @@ export function createGameState(botLevel: BotLevel = 'random') {
     executeMove(from, to);
   }
 
+  /**
+   * Give up. Works while the bot is thinking too — the queued bot move checks
+   * `result` before it lands, so a resignation always sticks.
+   */
+  function resign() {
+    if (result !== 'playing') return;
+    result = 'resigned';
+    selectedSquare = null;
+    pendingPromotion = null;
+    inCheck = false;
+    waitingForBot = false;
+    botSlide = null;
+  }
+
   function newGame() {
     const fresh = buildStartingBoard();
     board = fresh;
@@ -454,6 +471,7 @@ export function createGameState(botLevel: BotLevel = 'random') {
     handleSquareClick,
     handleDrop,
     completePromotion,
+    resign,
     newGame,
   };
 }

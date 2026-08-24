@@ -14,6 +14,8 @@ export interface BotCharacter {
     check: string[];
     checkmate: string[];
     checkmated: string[];
+    /** The player gave up. Kind, never gloating — a resigning student already feels it. */
+    resign: string[];
     draw: string[];
     move: string[];
   };
@@ -42,6 +44,7 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       check: ['Watch out!', 'Check!', 'Careful!'],
       checkmate: ['I won?!', 'Wow!', 'Really?!'],
       checkmated: ['Good game!', 'You got me!', 'Nice one!', 'Gg!'],
+      resign: ["That's ok!", 'Rest is good!', 'Another time!'],
       draw: ['Tie!', 'Draw!', 'We both win!'],
       move: ['Wheee!', 'Here I go!', 'Boop!', 'Zoom!'],
     },
@@ -62,6 +65,7 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       check: ['Peep!', 'Look out!', 'Check!'],
       checkmate: ['I ate them all!', 'Peep peep peep!', 'Yum!'],
       checkmated: ['Still full!', 'Good game!', 'You win!', 'Peep.'],
+      resign: ['Peep. Try again!', 'You can beat me!', 'Next time!'],
       draw: ['We share!', 'Tie!', 'Half each!'],
       move: ['Peep!', 'Hop!', 'Over here!', 'This way!'],
     },
@@ -82,6 +86,7 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       check: ['Ribbit! Check!', 'Watch it!', 'Hop away!'],
       checkmate: ['I hopped to victory!', 'Ribbit!', 'I did it!'],
       checkmated: ['Good hop!', 'You got me!', 'Croak.', 'Well played!'],
+      resign: ['Hop back soon!', 'No worries!', "That's alright!"],
       draw: ['A tie!', 'Even!', 'Ribbit, draw!'],
       move: ['Hop!', 'Boing!', 'Splash!', 'Ribbit!'],
     },
@@ -102,6 +107,7 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       check: ['Check!', 'Careful now!', 'Look at your king!'],
       checkmate: ['Hop hop hooray!', 'I win!', 'Too fast for you!'],
       checkmated: ['You were faster!', 'Good game!', 'Nice hunting!', 'Well done!'],
+      resign: ['Come back and try!', "That's ok!", 'Next race is yours!'],
       draw: ['A draw!', 'Even race!', 'Nobody wins!'],
       move: ['Hop!', 'Zip!', 'Over here!', 'Quick!'],
     },
@@ -122,6 +128,7 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       check: ['Check.', 'Your king, please.', 'Careful.'],
       checkmate: ['Checkmate.', 'A good game.', 'That is mate.'],
       checkmated: ['You played well.', 'Well earned!', 'Good game.', 'I am impressed.'],
+      resign: ['A wise choice.', 'Rest, then return.', 'No shame in that.'],
       draw: ['A fair draw.', 'Even.', 'Nobody wins today.'],
       move: ['There.', 'My move.', 'Steady.', 'Mmm.'],
     },
@@ -142,6 +149,7 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       check: ['Check!', 'Eyes on your king!', 'Ooh ooh, check!'],
       checkmate: ['Ooh ooh AH AH!', 'Got you!', 'Told you!'],
       checkmated: ['You outsmarted me!', 'Good game!', 'Ooh. Well played.', 'Again?'],
+      resign: ['Aw, come back!', 'Rematch?', 'No hard feelings!'],
       draw: ['A draw! Boring.', 'Even!', 'Nobody wins.'],
       move: ['Swing!', 'Watch this!', 'Ooh!', 'Here!'],
     },
@@ -162,6 +170,7 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       check: ['Check.', 'Your king is in danger.', 'Watch out.'],
       checkmate: ['Checkmate.', 'The game is mine.', 'Well fought.'],
       checkmated: ['You beat me!', 'Truly well played.', 'A worthy win.', 'Good game.'],
+      resign: ['Rest. Then return.', 'A hard game.', 'You will get me next time.'],
       draw: ['A draw. Fair.', 'Neither of us wins.', 'Even.'],
       move: ['There.', 'My turn.', 'Grr.', 'Done.'],
     },
@@ -182,6 +191,7 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       check: ['Check.', 'Your king, watch it.', 'Hoo. Check.'],
       checkmate: ['Checkmate.', 'The book was right.', 'It was always coming.'],
       checkmated: ['Remarkable!', 'You have truly learned.', 'I salute you.', 'A fine game.'],
+      resign: ['Even masters resign.', 'A wise decision.', 'Study, then return.'],
       draw: ['A draw. Respectable.', 'Balanced.', 'Neither falls.'],
       move: ['Hoo.', 'As planned.', 'There.', 'Naturally.'],
     },

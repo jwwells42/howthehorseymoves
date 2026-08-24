@@ -100,16 +100,23 @@
     || game.result === 'fifty-move' || game.result === 'insufficient-material'
   );
   let showDrawOverlay = $state(false);
+  let showResignOverlay = $state(false);
 
   // Show draw overlay when a draw occurs
   $effect(() => {
     if (isDraw) showDrawOverlay = true;
   });
 
+  // A white flag over the board: the one signal a non-reader can read.
+  $effect(() => {
+    if (game.result === 'resigned') showResignOverlay = true;
+  });
+
   let resultMessage = $derived.by(() => {
     switch (game.result) {
       case 'checkmate-white': return 'Checkmate \u2014 you win!';
       case 'checkmate-black': return 'Checkmate \u2014 you lose!';
+      case 'resigned': return 'You resigned.';
       case 'stalemate': return 'Stalemate \u2014 it\u2019s a draw!';
       case 'threefold': return 'Threefold repetition \u2014 it\u2019s a draw!';
       case 'fifty-move': return '50-move rule \u2014 it\u2019s a draw!';
@@ -168,9 +175,20 @@
     }
   }
 
+  // Resigning is two taps: the flag arms it, the check confirms. Students tap
+  // fast and a one-tap resign would end games by accident.
+  let confirmingResign = $state(false);
+
+  function doResign() {
+    confirmingResign = false;
+    game.resign();
+  }
+
   function startNewGame() {
     reviewIndex = null;
     showDrawOverlay = false;
+    confirmingResign = false;
+    showResignOverlay = false;
     botAnimation = 'idle';
     if (character) botReaction = pickReaction(character.reactions.greeting);
     game.newGame();
@@ -266,6 +284,10 @@
     } else if (game.result === 'checkmate-black') {
       triggerAnimation('celebrate', 1500);
       botReaction = pickReaction(character.reactions.checkmate);
+    } else if (game.result === 'resigned') {
+      // No celebrating a student who gave up.
+      triggerAnimation('idle', 0);
+      botReaction = pickReaction(character.reactions.resign);
     } else {
       triggerAnimation('idle', 0);
       botReaction = pickReaction(character.reactions.draw);
@@ -308,6 +330,11 @@
     {#if isDraw && reviewIndex === null && showDrawOverlay}
       <div class="result-overlay" onclick={() => showDrawOverlay = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showDrawOverlay = false; }} role="button" tabindex="-1">
         <div class="draw-symbol">&#189;</div>
+      </div>
+    {/if}
+    {#if game.result === 'resigned' && reviewIndex === null && showResignOverlay}
+      <div class="result-overlay" onclick={() => showResignOverlay = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showResignOverlay = false; }} role="button" tabindex="-1">
+        <div class="resign-symbol">&#127987;&#65039;</div>
       </div>
     {/if}
     {#if game.pendingPromotion}
@@ -391,6 +418,16 @@
     {#if game.result !== 'playing'}
       <button class="new-game-btn" onclick={startNewGame}>
         New Game
+      </button>
+    {:else if confirmingResign}
+      <div class="resign-confirm">
+        <span class="resign-flag" aria-hidden="true">&#127987;&#65039;</span>
+        <button class="confirm-btn confirm-yes" onclick={doResign} aria-label="Yes, resign">&#10003;</button>
+        <button class="confirm-btn confirm-no" onclick={() => confirmingResign = false} aria-label="No, keep playing">&#10007;</button>
+      </div>
+    {:else}
+      <button class="resign-btn" onclick={() => confirmingResign = true} aria-label="Resign">
+        <span aria-hidden="true">&#127987;&#65039;</span> Resign
       </button>
     {/if}
 
@@ -510,6 +547,58 @@
     background: #15803d;
   }
 
+  .resign-btn {
+    padding: 0.5rem 1.25rem;
+    background: var(--btn-bg, #2a2a2a);
+    color: var(--text-muted, #888);
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .resign-btn:hover {
+    background: var(--btn-hover, #3a3a3a);
+    color: inherit;
+  }
+
+  .resign-confirm {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .resign-flag {
+    font-size: 1.25rem;
+  }
+
+  .confirm-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: filter 0.15s;
+  }
+
+  .confirm-btn:hover {
+    filter: brightness(1.15);
+  }
+
+  .confirm-yes {
+    background: #dc2626;
+  }
+
+  .confirm-no {
+    background: #16a34a;
+  }
+
 
   /* Result overlays */
   .result-overlay {
@@ -567,6 +656,11 @@
   .win-btn:hover { background: var(--btn-hover); }
   .next-btn { background: #16a34a; color: white; }
   .next-btn:hover { background: #15803d; }
+  .resign-symbol {
+    font-size: 7rem;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+    animation: trophy-pop 0.5s ease-out;
+  }
   .draw-symbol {
     font-size: 8rem;
     font-weight: bold;
