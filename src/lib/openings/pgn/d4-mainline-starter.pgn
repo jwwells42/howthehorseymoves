@@ -1,0 +1,47 @@
+[White "Introduction"]
+[Event "Introduction"]
+[ChapterName "Introduction"]
+
+{Press "ctrl + a" on your keyboard to edit this text. This is the mandatory intro chapter of your study. It is gonna sit above all chapters and folders, its positioning can not be changed and on opening the default URL of the study this chapter will load. If you prefer not to use it, you can hide this intro chapter in the study settings. You can edit this intro chapter in any way, its purpose is to give a brief introduction for what the study is about, this can be useful even if you never share it with anyone. Sorry for the slight inconvenience for users where this intro chapter was added now, this is a recent change to the site. If you already have a intro chapter just copy its pgn into this chapter and delete your old intro chapter. Have fun!}
+
+
+[White "Queen's Gambit Declined"]
+[Event "Queen's Gambit Declined"]
+[ChapterName "Queen's Gambit Declined"]
+
+1. d4 d5 2. c4 e6 (2... Nf6 $2 3. cxd5 Nxd5 4. Nf3 e6 5. e4) 3. Nf3 Nf6 (3... c6 4. Qc2 Nf6 5. e3 Nbd7 6. Nc3) (3... dxc4 4. e4 b5 5. a4 c6 6. axb5 cxb5 7. b3 Bb4+ 8. Bd2 Bxd2+ 9. Nbxd2 c3 $2 10. Bxb5+) 4. Nc3 Be7 (4... Bb4 5. Qa4+ Nc6 6. e3 O-O 7. Qc2 Re8 8. Bd2) 5. Bf4 O-O 6. e3 b6 (6... Nbd7 7. c5) 7. cxd5 Nxd5 8. Nxd5 Qxd5 9. Bd3 c5 10. Qc2 Bb7 (10... h6 11. Be4) 11. dxc5 Bxc5 $2 (11... bxc5 12. Rd1) 12. Bxh7+ Kh8 13. O-O g6 14. Bxg6 fxg6 15. Be5+
+
+
+[White "Queen's Gambit Accepted"]
+[Event "Queen's Gambit Accepted"]
+[ChapterName "Queen's Gambit Accepted"]
+
+1. d4 d5 2. c4 dxc4 3. e4 e5 (3... b5 4. a4 c6 5. axb5 cxb5 6. Nc3 Bd7 (6... Qb6 7. Be3) 7. d5) (3... e6 4. Bxc4 Nf6 5. e5) 4. Nf3 exd4 5. Bxc4 Nc6 6. O-O Be6 7. Bxe6 fxe6 8. Ng5
+
+
+[White "Slav"]
+[Event "Slav"]
+[ChapterName "Slav"]
+
+1. d4 d5 2. c4 c6 3. Nc3 Nf6 4. e3 e6 5. Nf3 Nbd7 6. Be2 Bd6 7. O-O O-O 8. b3
+
+
+[White "King's Indian Defense"]
+[Event "King's Indian Defense"]
+[ChapterName "King's Indian Defense"]
+
+1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 (6... Nbd7 7. Be3 e5 8. d5 Ng4 9. Bg5 f6 10. Bh4 g5 11. Nd2 Nh6 12. Bg3) (6... Nc6 7. d5 Ne5 8. Nxe5 dxe5 9. Be3) 7. O-O Nc6 8. d5 Ne7 9. b4
+
+
+[White "Grunfeld"]
+[Event "Grunfeld"]
+[ChapterName "Grunfeld"]
+
+1. d4 Nf6 2. c4 g6 3. Nc3 d5 4. cxd5 Nxd5 5. e4 Nxc3 6. bxc3 Bg7 7. Nf3 c5 8. Rb1 O-O 9. Be2 Nc6 (9... cxd4 10. cxd4 Qa5+ 11. Bd2 Qxa2 12. O-O Bg4 13. Be3 Nc6 14. d5) 10. d5
+
+
+[White "Dutch"]
+[Event "Dutch"]
+[ChapterName "Dutch"]
+
+1. d4 f5 2. Bf4 Nf6 3. e3 e6 4. Nf3 b6 5. c4 Bb7 6. Be2 Be7 7. O-O O-O 8. Nc3 d6 9. Ng5 Qd7 10. h4 h6 11. Nh3
