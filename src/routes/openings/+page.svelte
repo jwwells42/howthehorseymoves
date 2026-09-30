@@ -1,9 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { OPENINGS } from '$lib/openings';
+  import type { Opening } from '$lib/openings';
 
-  let whiteOpenings = $derived(OPENINGS.filter(o => o.color === 'w'));
-  let blackOpenings = $derived(OPENINGS.filter(o => o.color === 'b'));
+  // Grouped openings (e.g. a repertoire from one study) get their own section
+  let groups = $derived([...new Set(OPENINGS.flatMap(o => o.group ? [o.group] : []))]);
+  let whiteOpenings = $derived(OPENINGS.filter(o => !o.group && o.color === 'w'));
+  let blackOpenings = $derived(OPENINGS.filter(o => !o.group && o.color === 'b'));
 
   let completedIds = $state<Set<string>>(new Set());
 
@@ -18,39 +21,44 @@
   });
 </script>
 
+{#snippet openingCard(opening: Opening)}
+  <a href="/openings/{opening.id}" class="card">
+    <div>
+      <h3>{opening.name}</h3>
+      <p class="card-desc">{opening.description}</p>
+    </div>
+    {#if completedIds.has(opening.id)}
+      <span class="check">&#10003;</span>
+    {/if}
+  </a>
+{/snippet}
+
 <main class="page">
   <a href="/study" class="back-link">&larr; Back to study</a>
 
   <h1>Opening Repertoire</h1>
   <p class="subtitle">Learn opening lines move by move.</p>
 
+  {#each groups as group}
+    <h2 class="section-title">{group}</h2>
+    <div class="list">
+      {#each OPENINGS.filter(o => o.group === group) as opening}
+        {@render openingCard(opening)}
+      {/each}
+    </div>
+  {/each}
+
   <h2 class="section-title">Play as White</h2>
   <div class="list">
     {#each whiteOpenings as opening}
-      <a href="/openings/{opening.id}" class="card">
-        <div>
-          <h3>{opening.name}</h3>
-          <p class="card-desc">{opening.description}</p>
-        </div>
-        {#if completedIds.has(opening.id)}
-          <span class="check">&#10003;</span>
-        {/if}
-      </a>
+      {@render openingCard(opening)}
     {/each}
   </div>
 
   <h2 class="section-title">Play as Black</h2>
   <div class="list">
     {#each blackOpenings as opening}
-      <a href="/openings/{opening.id}" class="card">
-        <div>
-          <h3>{opening.name}</h3>
-          <p class="card-desc">{opening.description}</p>
-        </div>
-        {#if completedIds.has(opening.id)}
-          <span class="check">&#10003;</span>
-        {/if}
-      </a>
+      {@render openingCard(opening)}
     {/each}
   </div>
 

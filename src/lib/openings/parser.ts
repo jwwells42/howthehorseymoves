@@ -33,6 +33,7 @@ export interface Opening {
   description: string;
   color: PieceColor;
   pgn: string;
+  group?: string; // openings sharing a group get their own section on /openings
 }
 
 // === NAG display ===
@@ -226,6 +227,39 @@ export function extractLines(tree: OpeningTree): OpeningLine[] {
     dfs(root, []);
   }
   return lines;
+}
+
+// === Multi-chapter PGNs (e.g. a Lichess study export) ===
+
+export interface PgnChapter {
+  name: string;
+  pgn: string;
+}
+
+// Split a multi-game PGN into chapters. A header line that comes after some
+// movetext starts the next chapter. The name is [ChapterName] (Lichess studies)
+// or else [Event]. Chapters with no moves (like Lichess's intro chapter) are dropped.
+export function splitPgnChapters(pgn: string): PgnChapter[] {
+  const chunks: string[][] = [[]];
+  let hasMoves = false;
+  for (const line of pgn.split("\n")) {
+    const isHeader = /^\s*\[\w+ "/.test(line);
+    if (isHeader && hasMoves) {
+      chunks.push([]);
+      hasMoves = false;
+    }
+    if (!isHeader && line.trim()) hasMoves = true;
+    chunks[chunks.length - 1].push(line);
+  }
+  const chapters: PgnChapter[] = [];
+  for (const chunk of chunks) {
+    const text = chunk.join("\n").trim();
+    const movetext = text.replace(/^\s*\[\w+ ".*$/gm, "").replace(/\{[^}]*\}/g, "");
+    if (!/[a-zA-Z]/.test(movetext)) continue;
+    const name = text.match(/\[ChapterName "([^"]*)"\]/)?.[1] ?? text.match(/\[Event "([^"]*)"\]/)?.[1] ?? "Chapter";
+    chapters.push({ name, pgn: text });
+  }
+  return chapters;
 }
 
 // Cut each line after its `depth`-th move by `color`, dropping duplicates.

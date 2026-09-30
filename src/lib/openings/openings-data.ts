@@ -1,6 +1,53 @@
 import type { Opening } from "./parser";
+import { parseOpeningPgn, extractLines, findBranchPoint, splitPgnChapters } from "./parser";
+import e4StarterPgn from "./pgn/e4-mainline-starter.pgn?raw";
+
+// Card text built from the PGN itself, so it stays right when a study is
+// re-exported: the moves every line shares (up to 3 moves each) and the line count.
+function describe(pgn: string): string {
+  try {
+    const lines = extractLines(parseOpeningPgn(pgn));
+    const shared = Math.min(...lines.map((line) => findBranchPoint(lines[0], line)));
+    const moves = lines[0]
+      .slice(0, Math.min(shared, 6))
+      .map((m, i) => (i % 2 === 0 ? `${i / 2 + 1}.` : "") + m.san)
+      .join(" ");
+    return `${moves}${shared > 6 ? " …" : ""} · ${lines.length} line${lines.length === 1 ? "" : "s"}`;
+  } catch (e) {
+    return `⚠ PGN problem: ${e instanceof Error ? e.message : String(e)}`;
+  }
+}
+
+// === 1.e4 Mainline Starter ===
+// A Lichess study export, kept as-is in pgn/e4-mainline-starter.pgn. To update
+// it, re-export the study and overwrite that file. Each chapter becomes a card
+// (its id comes from the chapter name, so renaming a chapter resets its progress),
+// plus one card at /openings/e4 with every chapter together.
+const E4_STARTER = "1.e4 Mainline Starter";
+const e4Chapters = splitPgnChapters(e4StarterPgn);
+const e4WholePgn = e4Chapters.map((ch) => ch.pgn).join("\n\n");
+
+const E4_STARTER_OPENINGS: Opening[] = [
+  {
+    id: "e4",
+    name: E4_STARTER,
+    color: "w",
+    group: E4_STARTER,
+    description: `The whole repertoire, every chapter together — try "3 moves at a time". ${describe(e4WholePgn)}`,
+    pgn: e4WholePgn,
+  },
+  ...e4Chapters.map((ch): Opening => ({
+    id: `e4-${ch.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    name: `1.e4 — ${ch.name}`,
+    color: "w",
+    group: E4_STARTER,
+    description: describe(ch.pgn),
+    pgn: ch.pgn,
+  })),
+];
 
 export const OPENINGS: Opening[] = [
+  ...E4_STARTER_OPENINGS,
   // === White openings ===
   {
     id: "scholars-mate",

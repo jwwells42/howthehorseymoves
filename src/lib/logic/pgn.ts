@@ -260,12 +260,17 @@ export interface GameTree {
 function tokenizeGamePgn(pgn: string): string[] {
   const tokens: string[] = [];
   let i = 0;
+  let hasMoves = false;
   while (i < pgn.length) {
     const ch = pgn[i];
     if (ch === " " || ch === "\n" || ch === "\r" || ch === "\t") { i++; continue; }
     if (ch === "(" || ch === ")") { tokens.push(ch); i++; continue; }
-    // PGN headers [Tag "value"] — skip
+    // PGN headers [Tag "value"] — skip, but emit "|" when they start another game
     if (ch === "[" && (i === 0 || pgn[i - 1] !== "%")) {
+      if (hasMoves) {
+        tokens.push("|");
+        hasMoves = false;
+      }
       while (i < pgn.length && pgn[i] !== "]") i++;
       i++;
       continue;
@@ -317,6 +322,7 @@ function tokenizeGamePgn(pgn: string): string[] {
       const token = pgn.slice(start, i);
       if (/^(1-0|0-1|\*)$/.test(token)) continue;
       if (token.startsWith("1/2")) continue;
+      hasMoves = true;
       tokens.push(token);
       continue;
     }
@@ -325,7 +331,9 @@ function tokenizeGamePgn(pgn: string): string[] {
   return tokens;
 }
 
-/** Parse PGN into a GameTree with full variation support. */
+/** Parse PGN into a GameTree with full variation support. A multi-game PGN
+ *  (e.g. a Lichess study's chapters) merges into one tree: each later game
+ *  follows the moves the tree already has and branches off as a variation. */
 export function parseGamePgn(pgn: string, fen?: string): GameTree {
   const startFen = fen ?? STARTING_FEN;
   const { placements, castlingRights, enPassantSquare } = parseFen(startFen);
@@ -342,10 +350,17 @@ export function parseGamePgn(pgn: string, fen?: string): GameTree {
   let state: ParseState = { parentNode: null, board: startBoard, color: "w" };
   let lastMoveParent: ParseState = { ...state };
   const stack: { savedState: ParseState; savedLMP: ParseState }[] = [];
+  // Only after the first game, so a single game parses exactly as it always has
+  let mergeGames = false;
 
   for (let ti = 0; ti < tokens.length; ti++) {
     const token = tokens[ti];
-    if (token.startsWith("$")) {
+    if (token === "|") {
+      state = { parentNode: null, board: startBoard, color: "w" };
+      lastMoveParent = { ...state };
+      stack.length = 0;
+      mergeGames = true;
+    } else if (token.startsWith("$")) {
       const n = parseInt(token.slice(1), 10);
       if (state.parentNode) {
         state.parentNode.nag = numericNagToSymbol(n);
@@ -369,6 +384,14 @@ export function parseGamePgn(pgn: string, fen?: string): GameTree {
       lastMoveParent = saved.savedLMP;
     } else {
       lastMoveParent = { ...state };
+      const nextColor = state.color === "w" ? "b" : "w";
+      const siblings = state.parentNode ? state.parentNode.children : tree.children;
+      const existing = mergeGames ? siblings.find((n) => n.san === token) : undefined;
+      if (existing) {
+        state = { parentNode: existing, board: existing.boardAfter, color: nextColor };
+        continue;
+      }
+
       const resolved = parseSan(token, state.board, state.color);
       const newBoard = applyMove(state.board, resolved.from, resolved.to, resolved.promotion);
 

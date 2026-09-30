@@ -26,7 +26,7 @@ No test framework is configured.
 - `types.ts` — Core types: `PieceKind`, `PieceColor`, `SquareId` (union of all 64 squares), `BoardState` (Map-based, immutable). FEN parser via `parseFen()`. Position hashing via `boardToKey()` (used for threefold repetition)
 - `moves.ts` — Pure functions for move generation per piece type. Sliding pieces (R/B/Q) use direction arrays; step pieces (K/N) use offset arrays; pawns have special forward/capture/en-passant logic
 - `attacks.ts` — `isSquareAttacked()`, `isInCheck()`, `isCheckmate()`, `isStalemate()`, `getLegalMoves()`, `getAllLegalMoves()`
-- `pgn.ts` — PGN parsers. Flat `parsePgn()` for simple move lists; tree-based `parseGamePgn()` → `GameTree`/`GameNode` with full variation support (`(...)` syntax), comments, NAGs, arrows. `extractMainLine(tree)` flattens to `ParsedGame` for backward compat / test mode. Exports `parseSan()` and `applyMove()` (also used by openings parser). Supports comments (`{text}`), NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`)
+- `pgn.ts` — PGN parsers. Flat `parsePgn()` for simple move lists; tree-based `parseGamePgn()` → `GameTree`/`GameNode` with full variation support (`(...)` syntax), comments, NAGs, arrows. A multi-game PGN (e.g. a Lichess study's chapters) merges into one tree — a header after movetext starts the next game, which follows the moves already in the tree and branches off as a variation; a single game parses exactly as before. `extractMainLine(tree)` flattens to `ParsedGame` for backward compat / test mode. Exports `parseSan()` and `applyMove()` (also used by openings parser). Supports comments (`{text}`), NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`)
 - `bot.ts` — Bot move selection: `pickBotMove(board, color, level)`. `"random"` = any legal move; `"basic"` = one-ply scored evaluation; `"intermediate"` = depth-2 minimax with alpha-beta pruning
 - `endgame.ts` — Mate conversion logic for KQK, KRRK, KRK, KBBK, KBNK endgames
 
@@ -58,6 +58,8 @@ The puzzle-set `key` string is the join across all three. **Multi-level concepts
 ### Opening Trainer (`src/lib/openings/`)
 - `parser.ts` — the engine: opening types (`OpeningMove`/`OpeningTree`/`OpeningLine`/`Opening`), PGN variation parser (`parseOpeningPgn`), `extractLines`, `truncateLines` (cut lines after N of a color's moves, deduped), `findBranchPoint`, NAG display (`nagToSymbol`)
 - `openings-data.ts` — the `OPENINGS` repertoire data + `getOpening()` lookup
+- `pgn/` — whole Lichess study exports kept verbatim, imported with `?raw`. `e4-mainline-starter.pgn` (White 1.e4 repertoire) feeds the **1.e4 Mainline Starter** section: `splitPgnChapters()` (parser.ts) splits it by chapter (name from `[ChapterName]`, move-less intro chapter dropped) → one card per chapter (`e4-{chapter-slug}`) plus the whole repertoire at `/openings/e4`. Card descriptions are generated from the moves (`describe()`: shared trunk + line count, or a ⚠ with the parse error), so updating = re-export the study and overwrite the file. Renaming a chapter changes its id and resets its progress
+- `Opening.group` — openings with a group get their own section on `/openings` (above Play as White/Black) instead of being listed by color
 - `index.ts` — re-export barrel (`export * from "./parser"; export * from "./openings-data";`). Consumers import from `$lib/openings`
 - Parses `(variation)` syntax into a tree, extracts all root-to-leaf lines
 - Student plays one color; opponent moves auto-play with animation
@@ -104,7 +106,7 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 - `/board` — Board hub; `/board/coordinates` — Coordinate trainer
 - `/setup` — Place the Pieces stage list; `/setup/[stage]` — individual stage
 - `/games`, `/games/[gameId]` — Model game viewer
-- `/openings`, `/openings/[id]` — Opening repertoire trainer
+- `/openings`, `/openings/[id]` — Opening repertoire trainer (`/openings/e4` = the whole 1.e4 Mainline Starter)
 - `/play` — Play vs computer
 - `/editor` — Puzzle creator (place pieces, generate FEN strings)
 - `/about` — Privacy, COPPA, credits, license, administrator info
