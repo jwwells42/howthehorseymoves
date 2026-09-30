@@ -44,7 +44,8 @@
 
   // === Order: one line at a time (depth) or STEP moves at a time (breadth) ===
   const STEP = 3;
-  let order = $state<'depth' | 'breadth'>('depth');
+  function initialOrder() { return opening.defaultOrder ?? 'depth'; }
+  let order = $state<'depth' | 'breadth'>(initialOrder());
   // How many of your moves are learned in breadth order — saved per built-in opening
   let learnedDepth = $state(0);
   // Where the drilled lines stop. Set when a drill starts rather than derived

@@ -34,6 +34,7 @@ export interface Opening {
   color: PieceColor;
   pgn: string;
   group?: string; // openings sharing a group get their own section on /openings
+  defaultOrder?: "depth" | "breadth"; // setup toggle's starting order (default "depth": one line at a time)
 }
 
 // === NAG display ===

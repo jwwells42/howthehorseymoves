@@ -33,7 +33,8 @@ const E4_STARTER_OPENINGS: Opening[] = [
     name: E4_STARTER,
     color: "w",
     group: E4_STARTER,
-    description: `The whole repertoire, every chapter together — try "3 moves at a time". ${describe(e4WholePgn)}`,
+    defaultOrder: "breadth",
+    description: `The whole repertoire, every chapter together, learned 3 moves at a time. ${describe(e4WholePgn)}`,
     pgn: e4WholePgn,
   },
   ...e4Chapters.map((ch): Opening => ({
