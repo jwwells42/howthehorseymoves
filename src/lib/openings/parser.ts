@@ -228,6 +228,23 @@ export function extractLines(tree: OpeningTree): OpeningLine[] {
   return lines;
 }
 
+// Cut each line after its `depth`-th move by `color`, dropping duplicates.
+// Lines start from the standard position (White to move), so White's Nth move
+// is ply 2N-1 and Black's is ply 2N. Keeps the input (tree) order.
+export function truncateLines(lines: OpeningLine[], color: PieceColor, depth: number): OpeningLine[] {
+  const plies = color === "w" ? 2 * depth - 1 : 2 * depth;
+  const seen = new Set<string>();
+  const result: OpeningLine[] = [];
+  for (const line of lines) {
+    const cut = line.slice(0, plies);
+    const key = cut.map(m => m.san).join(" ");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(cut);
+  }
+  return result;
+}
+
 export function findBranchPoint(line1: OpeningLine, line2: OpeningLine): number {
   let i = 0;
   while (i < line1.length && i < line2.length && line1[i].san === line2[i].san) i++;

@@ -56,12 +56,13 @@ The puzzle-set `key` string is the join across all three. **Multi-level concepts
 - `index.ts` — 14 classical games (Greco through Kasparov) with PGN strings. Most are unannotated — user annotates via Lichess studies, then pastes PGN with `{comments}` and `[%cal ...]` arrows
 
 ### Opening Trainer (`src/lib/openings/`)
-- `parser.ts` — the engine: opening types (`OpeningMove`/`OpeningTree`/`OpeningLine`/`Opening`), PGN variation parser (`parseOpeningPgn`), `extractLines`, `findBranchPoint`, NAG display (`nagToSymbol`)
+- `parser.ts` — the engine: opening types (`OpeningMove`/`OpeningTree`/`OpeningLine`/`Opening`), PGN variation parser (`parseOpeningPgn`), `extractLines`, `truncateLines` (cut lines after N of a color's moves, deduped), `findBranchPoint`, NAG display (`nagToSymbol`)
 - `openings-data.ts` — the `OPENINGS` repertoire data + `getOpening()` lookup
 - `index.ts` — re-export barrel (`export * from "./parser"; export * from "./openings-data";`). Consumers import from `$lib/openings`
 - Parses `(variation)` syntax into a tree, extracts all root-to-leaf lines
 - Student plays one color; opponent moves auto-play with animation
 - Learn mode: arrows show each move. Practice mode: arrows only on mistakes
+- **Order toggle** on the setup screen: "One line at a time" (depth-first, the original behavior) or "3 moves at a time" (breadth-first, like ChessTempo). Breadth order drills `truncateLines(activeLines, color, stageDepth)`: stage 1 = every line up to your 3rd move, then "Keep going" adds 3 more. Arrows in Learn are only for *new* moves (`isNew()`: move number > `learnedDepth`), so earlier stages are recalled without help and hidden in the move list until played; a mistake still brings the hint arrow back. `stageDepth` is set when a drill starts (not derived from phase), so flipping Learn/Practice mid-stage keeps the same lines. Progress is saved per built-in opening as `opening-{id}-learned-depth` (your moves learned; not saved for custom PGNs) and a saved value reopens the setup in breadth order. `opening-{id}-complete` is only written by a practice run over full-length lines
 
 ### State (`src/lib/state/`)
 - `progress-store.ts` — Svelte writable store, persists to localStorage (`"horsey-progress"`). Sequential unlock: puzzle N requires N-1 completed
@@ -248,6 +249,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - Student plays one side (white), opponent auto-responds
 - Lines are trained sequentially: main line first, then variations rewind to branch point
 - Learn phase shows arrows; practice phase hides them unless the student makes a mistake
+- Breadth order ("3 moves at a time") changes only which new moves come first — arrows are always for new moves. Step is a fixed `STEP = 3`; a stage cutoff based on database statistics (like the probabilitizer's line odds) is a future idea, and would need stats precomputed offline since the live explorer requires a Lichess login
 
 ## Bot System (`src/lib/logic/bot.ts`)
 
