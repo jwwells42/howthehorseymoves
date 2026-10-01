@@ -41,24 +41,24 @@
   --weight-medium: 500;
   --weight-strong: 700;
 
-  /* The page. Greens are USWDS system tokens, named beside each. A USWDS grade
-     runs from 0 (white) to 100 (black). Two grades 50 or more apart meet the
-     WCAG AA contrast for text. */
-  --page: #0d351e; /* mint-vivid-80 */
-  --surface: #204e34; /* mint-70. Cards and panels */
-  --surface-raised: #286846; /* mint-60. Buttons, and cards under the pointer */
-  --line: #2e8367; /* mint-50. Borders */
+  /* The page: the site's own olive and cream, its original dark mode. Cards,
+     buttons and borders are cream laid over the olive at 6%, 10% and 12%,
+     written out as solid colours so the contrast test can check them. */
+  --page: #2d4a22;
+  --surface: #3a542e; /* Cards and panels */
+  --surface-raised: #425b36; /* Buttons, and cards under the pointer */
+  --line: #465f3a; /* Borders */
 
   /* Text. --ink goes on anything. --ink-muted goes on --page and --surface,
      not on --surface-raised. */
-  --ink: #f5f0e6; /* gold-5 */
-  --ink-muted: #b4d0b9; /* green-cool-20 */
+  --ink: #ede4cc;
+  --ink-muted: #b8c4a0;
 
   /* The main action on a screen: Start, Next, Continue. Cream, so it never
      looks like an answer. */
-  --action: #f5f0e6; /* gold-5 */
-  --action-hover: #f1e5cd; /* gold-10 */
-  --on-action: #0d351e; /* mint-vivid-80 */
+  --action: #ede4cc;
+  --action-hover: #e2d6b6;
+  --on-action: #2d4a22;
 
   /* Right and wrong. Okabe and Ito's blue and vermillion, which stay apart for
      every common kind of colour blindness. Red and green do not. Always pair
@@ -88,10 +88,11 @@
   --star: #face00;
   --star-edge: #5c4809; /* yellow-vivid-70 */
 
-  /* The board. Its squares are 3.7:1 apart, so light and dark still differ
-     without colour. */
-  --board-light: #f1e5cd; /* gold-10 */
-  --board-dark: #4d8055; /* green-cool-50 */
+  /* The board: warm cream and khaki-sage. The squares are 3.2:1 apart, so
+     light and dark still differ without colour, and the dark square stays
+     clear of --wrong for colour-blind eyes. */
+  --board-light: #efe2c0;
+  --board-dark: #748450;
   --board-move-dot: rgba(0, 0, 0, 0.2);
   --board-target: #c2850c; /* gold-vivid-40. A move onto a star */
 
