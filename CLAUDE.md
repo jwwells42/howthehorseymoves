@@ -14,9 +14,49 @@ It also hosts a couple of standalone tools that reuse the app's shell but sit of
 npm run dev          # Dev server at localhost:5173
 npm run build        # Production build
 npm run check        # TypeScript + Svelte diagnostics (svelte-kit sync + svelte-check)
+npm test             # Vitest: the design-system rules in src/design.test.ts
 ```
 
-No test framework is configured.
+The only tests are the design-system rules (see Design system below). There are no tests of chess logic.
+
+## Design system
+
+Every colour, the typeface and the type sizes live in **`src/app.css`** as custom properties, with element defaults (body, headings, focus ring, `.sr-only`, shared keyframes). Shared patterns are components (`ui/`, `board/`). Everything else is scoped CSS that reads tokens through `var()`. No component writes a colour of its own.
+
+**Where each choice comes from:**
+- **Right/wrong = blue/vermillion, never green/red.** Okabe & Ito, *Color Universal Design* (2008): their blue `#0072b2` and vermillion `#d55e00` stay apart for every common kind of colour blindness. The old green and red were 9 ΔE apart under deuteranopia. Always pair the colour with a shape (✓ / ✗) for non-readers
+- **Greens and tints are USWDS system tokens** (U.S. Web Design System colour grades, 0 = white → 100 = black). Two grades 50+ apart meet WCAG AA text contrast. The token comments in app.css name each USWDS grade
+- **Contrast is WCAG 2 AA**: 4.5:1 for text, 3:1 for large/bold text and shapes
+- **Colour-blind checks** simulate deuteranopia, protanopia and tritanopia with Machado, Oliveira & Fernandes (IEEE TVCG 2009) and require CIE76 ΔE ≥ 25 between colours that carry meaning
+- **Typeface: Atkinson Hyperlegible Next** (Braille Institute, SIL OFL 1.1), self-hosted at `static/fonts/` with one variable woff2 for all weights, preloaded in `app.html`. Drawn for low-vision readers so I, l and 1 differ
+- **Body text is 18px, nothing below 14px.** Children of 5–7 read faster as text gets larger, and no age reads worse for it (Hughes & Wilkins, 2000)
+- **Emphasis is bold, never italic.** Readers with dyslexia read italic more slowly (Rello & Baeza-Yates, 2013), and the font has no true italic. `em`/`i` are restyled to bold globally
+
+**Tokens** (see app.css for values and the USWDS grade of each):
+- Type: `--font`; sizes `--size-small` (14px, labels/counts/coordinates), `--size-secondary` (16px), `--size-body` (18px), `--size-large` (22px, card/trainer titles), `--size-title` (32px, one per page)
+- Page: `--page` (background), `--surface` (cards, panels — opaque), `--surface-raised` (buttons, hovered cards), `--line` (borders)
+- Text: `--ink` (on anything), `--ink-muted` (on `--page`/`--surface` only, not `--surface-raised`)
+- Main action (Start, Next, Continue): `--action`, `--action-hover`, `--on-action`. Cream, so it never looks like an answer
+- Answers: `--correct`, `--correct-text`, `--correct-tint`, `--wrong`, `--wrong-text`, `--wrong-tint`, `--on-answer`. The `-text` versions are for words on `--page`/`--surface`. White on `--wrong` passes only for large/bold text
+- "Look here" (selected square, warning, next stop, focus ring): `--highlight`, `--highlight-glow`, `--highlight-tint`. A fourth mark colour: `--mark-other`
+- Stars: `--star`, `--star-edge`
+- Board: `--board-light`, `--board-dark` (3.7:1 apart, so they differ without colour), `--board-move-dot`, `--board-target`
+- Plain-colour pieces / results bar: `--piece-white`, `--piece-black`, `--result-draw`
+- Route-puzzle walls: `--wall-brick`, `--wall-mortar`, `--wall-edge` (brown, so a wall isn't read as a `--wrong` square)
+- Breathwork orb: `--breath-rest`, `--breath-in`, `--breath-top`, `--breath-out`, `--breath-ink`
+- Overlays: `--scrim`, `--shadow`
+- One per bot (name + difficulty pips): `--bot-sloth`, `--bot-chick`, `--bot-frog`, `--bot-rabbit`, `--bot-panda`, `--bot-monkey`, `--bot-bear`, `--bot-owl`
+
+**Board marks** (`src/lib/board-marks.ts`): arrows and square highlights take a colour from `MARK` — `good` (`--correct`), `danger` (`--wrong`), `note` (`--highlight`), `other` (`--mark-other`). Lichess `[%cal]`/`[%csl]` letters map through `LICHESS_MARKS` (G→good, R→danger, Y→note, B→other), so a green arrow in a study shows in the app's "right move" blue. `highlight(squares, color, look?)` builds `SquareHighlight[]`; a look is `tint` (default), `solid` (better on small boards) or `ring`. Apply a mark with `style:fill={mark}` — an SVG presentation attribute like `fill={mark}` doesn't read `var()`.
+
+**`npm test` enforces it** (`src/design.test.ts`, reading app.css directly):
+- Contrast rules for every text/background pair that's actually used, including each `--bot-*` on `--page` and `--surface`
+- `--correct`, `--wrong`, `--highlight`, `--mark-other` and both board squares stay ≥ 25 ΔE apart under normal, deuteranopic, protanopic and tritanopic vision (and `--correct-text` vs `--wrong-text`)
+- No hex / `rgb()` / `hsl()` colour anywhere in `src/` outside app.css (HTML entities like `&#9733;` are fine)
+- No `font-family` other than `inherit` or `var(--font)`; no `font-size` below 14px; no `font-style: italic`/`oblique`
+- Every `var(--x)` that is read is defined somewhere — a misspelt token fails silently in the browser (the rule is dropped)
+
+Adding a colour = add a token to app.css (with its USWDS/Okabe-Ito source in a comment), add it to the relevant rule list in design.test.ts if it carries meaning, then use it via `var()`.
 
 ## Architecture
 
@@ -75,10 +115,26 @@ The puzzle-set `key` string is the join across all three. **Multi-level concepts
 ### Components (`src/lib/components/`)
 Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold/`, `game/`, `opening/`, `lessons/`, …). The exception is `ui/` — shared, generic presentational primitives used across many features. Put a component in its feature folder if it's specific to that feature; promote it to `ui/` only when it's a generic atom reused across several feature folders.
 - `ui/StarRating.svelte` — presentational atom: renders 3 ★ glyphs, `stars` (0–3) filled, `size` `'sm'|'md'|'lg'`. No behavior. Used in ~37 places app-wide (puzzles, blindfold/vision, endgame, curriculum path, hub pages)
-- `board/Board.svelte` — SVG-based 800x800 board with drag-and-drop, click-to-move, valid move indicators, target stars, arrows, slide animations, danger-square overlays. `readOnly` prop skips animations (used by game viewer). `playableColors` prop allows playing both sides (used by game viewer test mode). `dangerSquares` prop highlights squares with red semi-transparent overlay
+- `ui/` shared primitives (all read tokens from app.css):
+  - `Button` — `variant` `'primary'` (the one next thing on a screen: Start, Next, Continue — cream `--action`) or `'secondary'`; `size` `'normal'|'large'`; renders an `<a>` when given `href`
+  - `Choice` — pick one of a few options (difficulty, mode, order) as a row of buttons; radio buttons underneath, so arrow keys and screen readers work. `width: fit-content`, so the parent decides alignment
+  - `Page` — page wrapper: `title`, `subtitle`, `back` (`{ href, label }` → BackLink), `width` `'narrow'|'normal'|'wide'`
+  - `CardList` (optional `title` + a column of cards) and `LinkCard` (`href`, `icon`, `title`, `description`, `aside` snippet; leave out `href` and pass `reason` for something not openable yet)
+  - `BackLink` — the "← Back to …" link
+  - `ProgressBar` (`value`/`max`/`label`, `hurry` turns it `--highlight`) and `Countdown` (a ProgressBar of seconds left for timed trainers; hurries in the last 5 s, score in its `children`)
+  - `BestScore` — "Best: N" + stars; shows nothing until there is a best
+- `board/Board.svelte` — **the one board for every screen** (puzzles, games, trainers, review thumbnails, editor). SVG, drag-and-drop + click-to-move. Coordinates scale up so they're never under 14px on screen; turn them off with `coordinates={false}` on small boards. Props, grouped:
+  - Display: `board`, `label` (screen readers), `readOnly` (a picture: no input, no animation), `flipped`, `coordinates`
+  - Input: `selectedSquare`, `validMoves`, `dragValidMoves`, `draggablePiece`, `playableColors` (default white; `['w','b']` plays both sides; `[]` makes every tap a click, for placing pieces), `onSquareClick`, `onDrop`, `onDragStart`, `onDragEnd`
+  - Feedback: `wrongMoveSquare`, `pawnSlide`, `opponentSlide`
+  - Drawn on it: `targets` (stars), `reachedTargets` (ticks), `highlights` (`SquareHighlight[]` from `$lib/board-marks`), `arrows`, `obstacles` (drawn as brick walls), `route` (S, 1, 2… joined by a line), `children` (SVG on top, in board units)
+- `board/BoardLayout.svelte` — board + sidebar layout (`boardArea`, `sidebarArea`, optional `headerArea` that sits above the board on mobile). Its board area is `position: relative`, so a BoardOverlay covers the board
+- `board/BoardOverlay.svelte` (something over the board: a result, a choice, "tap to start"; `dim` adds the `--scrim`), `board/ResultSymbol.svelte` (🏆 win / ½ draw / 🏳️ resign — readable without reading), `board/PromotionPicker.svelte` (Q/R/B/N over the board), `board/MoveNav.svelte` (⏮ ◀ ▶ ⏭ + optional play/pause; symbols, not words), `board/Wall.svelte` (one brick-wall square)
+- `EMPTY_BOARD` (an empty `BoardState`) is in `$lib/logic/types`
 - `board/CoordinateTrainer.svelte` — Timed 30s square-naming mini-game. Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`). Standalone from puzzle progress system
 - `board/SetupTrainer.svelte` — 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup. Each stage individually addressable via `/setup/[stage]`. Exports `SETUP_STAGES` via `<script module>`. Supports click-click and drag-from-tray. Stars based on mistakes: 0=3, 1-2=2, 3+=1. Per-stage localStorage: `setup-{slug}-best-stars`
 - `puzzle/PuzzleShell.svelte` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
+- `puzzle/PuzzleSetCard.svelte` — a LinkCard for one puzzle set (`set: SubcategoryInfo`): solved/total, plus stars once every puzzle is solved. Used by the hub pages and `/learn/[piece]`
 - `game/GameViewer.svelte` — PGN game viewer with path-based navigation (`currentPath: GameNode[]`), auto-play, keyboard nav (`<svelte:window>`), comments, arrows. Variations display inline in the move grid. "Pause at variations" toggle stops auto-play at branch points. Test mode uses `extractMainLine()` for flat main-line-only memorization
 - `game/PgnExplorer.svelte` — Lightweight PGN explorer for embedding annotated move trees. Takes `pgn` + optional `fen` props, renders board + clickable move grid with variations, comments, and keyboard nav. Used by PawnEndingsLesson to show post-quiz analysis. Reuses `parseGamePgn()` tree + same move-grid visual pattern as GameViewer but without test/autoplay/explore modes
 - `game/GameShell.svelte` — Play vs Computer wrapper, accepts `botLevel` prop. Integrates bot character panel with reaction system (captures, checks, checkmate, thinking animations + speech bubbles). Also holds the Resign button (see Bot System)
@@ -90,10 +146,11 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 - `lessons/HowToWinLesson.svelte` + `how-to-win-data.ts` — 15-step guided lesson: check → escaping check (move/capture/block) → giving check → checkmate demo → stalemate demo → 5 mate-in-1 practice → 2 don't-stalemate practice. Validation modes: "any", "check", "checkmate", "no-stalemate". Stars based on mistakes. localStorage: `how-to-win-best-stars`
 - `nav/NavBar.svelte` — Sticky top nav with sections: Learn, Tactics, Checkmates, Endings, Play, Vision. Responsive title (text on wide screens, favicon on narrow via CSS media query at 640px). `isActive()` logic: each hub claims its routes, Learn catches the rest
 - `characters/BotAvatar.svelte` — Animated avatar with CSS keyframes (bob, rock, bounce, shake, jump, tilt, celebrate, droop). Props: `avatar`, `size`, `animation`
-- `characters/SpeechBubble.svelte` — Accent-colored speech bubble with fade-in animation on text change
+- `characters/SpeechBubble.svelte` — Speech bubble in the bot's colour with fade-in animation on text change
 - `characters/BotPanel.svelte` — Combines BotAvatar + name + SpeechBubble. Used by GameShell sidebar
 - `characters/bots.ts` — `BotCharacter` interface and `BOT_CHARACTERS` registry. Each character has `reactions` pools (greeting, thinking, capture, captured, check, checkmate, checkmated, draw, move). `getCharacter(level)` lookup. Currently: random → "The Sloth" (Kenney CC0 animal sprite)
 - `blindfold/` — 19 blindfold/visualization components (23 trainers total — BlindfoldMate handles 5 endgame types), all standalone localStorage keys. Includes: ColorOfSquare, SameDiagonal, SameRankFile, MoveCounting, KnightRoutes, BishopRoutes, PieceReachability, NeighborSquares, KnightSquares, WhatChanged, WhereDidItLand, FlashPosition, PieceCount, RookMaze, BlindTactics, BlindfoldPuzzle, KnightGauntlet, GuardingGame, BlindfoldMate
+  - Shared pieces: `AnswerInput` (text box + Go for typed squares/moves/numbers; grabs focus whenever enabled), `RouteTrail` (`e4 → f6 → ?`), `ReviewGrid` + `ReviewCard` (the mini boards after a timed trainer ends: frame and ✓/✗ in `--correct`/`--wrong`, highlights forced `solid` so they read at thumbnail size)
 
 ### Routing (`src/routes/`)
 - `/` — Landing page with curriculum path
@@ -136,7 +193,7 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 - **Node vs edge counts (the transposition gotcha)**: the explorer is *position*-keyed (Zobrist), so a response's **top-level** `white/draws/black` is the total games that ever reached that position **by any move order** (`nodeTotal`), while `moves[].white/draws/black` are **edge** counts — games that were at this position *and played that move*. Multiplying edge counts along a line therefore walks one rigid move order and misses transpositions (`e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6` misses the games that got there via `e4 c5 Nc3 d6 Nf3 Nf6 d4 cxd4 Nxd4`). The move-by-move percentages keep that per-order meaning on purpose; alongside them the page shows the position's **overall** frequency, `nodeTotal(current) / rootGames`, which is transposition-complete. `rootGames` (the start position's total = the whole database) is cached against `settingsKey(settings)` and refetched when the DB/rating/speed filters change; the overall figure hides itself rather than divide by a stale denominator. There is deliberately no per-mover split of the overall figure — a position total says how many games arrived, not whose move-order freedom got them there
 - `board-to-fen.ts` — `boardToFen()` serializer (the app's `parseFen` has no inverse); used for the "open in Lichess analysis" link and the "Copy FEN" button
 - `src/routes/probabilitizer/+page.svelte` — three-column layout (board + controls + paste | percentages + scrollable "Your line" | Database). Reuses the shared `Board` (`playableColors={['w','b']}`) for click/drag input. Paste-a-line uses `parseGamePgn` + `extractMainLine` (so it tolerates `{comments}`, `[%cal]`/`[%csl]` arrows, `$N` NAGs, `!?` marks, and `(variations)`), then replays the main line with a fetch per ply and a ~300ms gap to respect rate limits. Masters/Lichess DB toggle with rating + time-control filters; the rating buckets are bands (1600 = 1600–1800), not floors. Keyboard: `F` flips, `←` undoes. No persistence
-- **Sticky-header gotcha**: `--card-bg` is translucent (alpha 0.08), so a `position: sticky` table header inside a card needs an opaque background (`--background`) or scrolled rows show through; also use `border-collapse: separate` (sticky headers misrender under `collapse`)
+- **Sticky-header gotcha**: a `position: sticky` table header needs a background of its own (`--page`) or scrolled rows show through it; also use `border-collapse: separate` (sticky headers misrender under `collapse`)
 
 ### Lichess-Sourced Puzzles
 - Many practice puzzles were originally seeded from the Lichess puzzle database (CC0 public domain), then **hand-curated**. They live in the concept files alongside hand-authored puzzles (`pins.ts`, `forks.ts`, `skewers.ts`, `removing-defender.ts`, `discovered.ts`, `mate-in-1.ts`, `mate-in-2.ts`, `pawn-endings.ts`). Their ids keep the `lichess-*` prefix (those ids are localStorage progress keys — don't rename them)
@@ -172,7 +229,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 ### Styling
 - **Scoped CSS** in `<style>` blocks — no Tailwind
 - **Conditional classes** use array syntax (Svelte 5.16+): `class={['card', isActive && 'active']}` — NOT `class:active={isActive}` (legacy directive)
-- CSS custom properties for theming: `--background`, `--foreground`, `--card-bg`, `--card-border`, `--text-muted`, `--text-faint`, `--btn-bg`, `--btn-hover`
+- **Colours, type and sizes come only from the tokens in `src/app.css`** (`--page`, `--surface`, `--ink`, `--correct`, `--size-body`, …; full list under Design system). Never write a hex/`rgb()` colour, a `font-family`, a font size under 14px or italic in a component — `npm test` fails. Reach for a `ui/` or `board/` component before styling a new button, card, back link or overlay
 
 ### Events & DOM
 - **Event handlers**: `onclick`, `onkeydown`, `onsubmit` — NOT `on:click` (Svelte 4 syntax)
@@ -205,7 +262,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 
 ## Key Conventions
 
-- Many students using this app cannot read yet. All interactive elements (puzzles, lessons, trainers) should be figure-out-able from visual cues alone: arrows, colors, icons, and board state. Text instructions are helpful for those who can read but must not be the only signal. Use universal symbols (trophies, checkmarks, red/green colors) over text labels
+- Many students using this app cannot read yet. All interactive elements (puzzles, lessons, trainers) should be figure-out-able from visual cues alone: arrows, colors, icons, and board state. Text instructions are helpful for those who can read but must not be the only signal. Use universal symbols (trophies, ✓/✗, blue for right and vermillion for wrong — never red/green, which many colour-blind students can't tell apart) over text labels. Colour is never the only signal: right/wrong always comes with a ✓ or ✗
 - Landing page shows a curriculum path: 8 levels with ~9-10 stops each, rendered as a winding trail. Knight marker sits on the first incomplete stop. "Continue" button links to it. Everything is unlocked (no gating). Nav bar hubs (Practice, Study, Vision, etc.) remain for direct access
 - **Every level ends with its bot — the boss of that level.** The eight `play-*` stops are the closing stop of their chapter, and they report progress (`bot-beaten-{level}`), so the knight marker rests there until the student wins. Keep a new bot last in its chapter; a mid-chapter bot parks the marker before the level's content is done
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
@@ -226,11 +283,12 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - After completing a task, always offer to commit and push so Vercel can deploy
 - Run `npm run build` before committing to catch errors early
 - Run `npm run check` to catch type errors and Svelte warnings that the build doesn't flag
+- Run `npm test` after any styling change — it checks the design-system rules
 - The user often makes hand-edits to puzzle files while Claude works — always `git diff --stat` before committing and include their changed files
 - When pushing fails due to remote changes, `git pull --rebase` then push again
 - Do NOT try to programmatically verify checkmate positions — push and let the user test in-browser
 - Claude generates PGNs from memory and they often contain errors (wrong moves mid-game). Always flag generated PGNs as needing user verification. Major chess databases (chessgames.com, Wikipedia, 365chess) block WebFetch (403), but smaller sites may work. If a PGN fails parsing, diagnose the exact failing move and let the user fix it rather than burning tokens on speculative web searches
-- PGN annotations: `{comments}`, NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`). Lichess color convention: G=green, R=red, Y=yellow, B=blue
+- PGN annotations: `{comments}`, NAGs (`!`, `!!`), arrows (`[%cal Ge2e4]`). Lichess colour letters G/R/Y/B are drawn as good/danger/note/other (`LICHESS_MARKS` in `$lib/board-marks`), so a green Lichess arrow shows in the app's blue
 - When adding new components, routes, or significant features, update the relevant sections of this CLAUDE.md file so future conversations don't need to re-read code to discover what exists
 - After making UI layout changes, verify with a Chromebook-sized viewport (1366×768). CSS changes that look fine on a large monitor can break on smaller screens
 
