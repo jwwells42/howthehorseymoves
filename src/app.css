@@ -51,60 +51,63 @@
   --weight-medium: 500;
   --weight-strong: 700;
 
-  /* The page: the site's own olive and cream, its original dark mode. Cards,
-     buttons and borders are cream laid over the olive at 6%, 10% and 12%,
-     written out as solid colours so the contrast test can check them. */
-  --page: #2d4a22;
-  --surface: #3a542e; /* Cards and panels */
-  --surface-raised: #425b36; /* Buttons, and cards under the pointer */
-  --line: #465f3a; /* Borders */
+  /* Colours come from Radix Colors (github.com/radix-ui/colors, MIT licence),
+     a UI colour system whose scales are built to sit together. Each value is
+     an exact Radix step, named beside it: "lime 4" is step 4 of Radix's dark
+     Lime scale. Lime's dark steps are a warm meadow green (hue 91°). The
+     colours that carry meaning were chosen by a search over Radix's steps for
+     the softest set that still passes the contrast and colour-blind tests. */
 
-  /* Text. --ink goes on anything. --ink-muted goes on --page and --surface,
-     not on --surface-raised. */
-  --ink: #ede4cc;
-  --ink-muted: #b8c4a0;
+  /* The page: Radix Lime's dark ramp. */
+  --page: #29371d; /* lime 4 */
+  --surface: #334423; /* lime 5. Cards and panels */
+  --surface-raised: #3d522a; /* lime 6. Buttons, and cards under the pointer */
+  --line: #496231; /* lime 7. Borders */
+
+  /* Text: Radix's warm cream and tan. --ink goes on anything. --ink-muted goes
+     on --page and --surface, and just reaches 4.5:1 on --surface-raised. */
+  --ink: #e8e2d9; /* gold 12 */
+  --ink-muted: #cbb99f; /* gold 11 */
 
   /* The main action on a screen: Start, Next, Continue. Cream, so it never
      looks like an answer. */
-  --action: #ede4cc;
-  --action-hover: #e2d6b6;
-  --on-action: #2d4a22;
+  --action: #e8e2d9; /* gold 12 */
+  --action-hover: #cbb99f; /* gold 11 */
+  --on-action: #29371d; /* lime 4 */
 
-  /* Right and wrong. Okabe and Ito's blue and vermillion, which stay apart for
-     every common kind of colour blindness. Red and green do not. Always pair
-     them with a shape, ✓ or ✗, for students who cannot read. The -text
-     versions are lighter, for words on --page or --surface. White on --wrong
-     passes only for large or bold text, so use it for glyphs and bold labels. */
-  --correct: #0072b2; /* Okabe-Ito blue */
-  --correct-text: #a1d3ff; /* USWDS blue-vivid-20 */
-  --correct-tint: rgba(0, 114, 178, 0.25);
-  --wrong: #d55e00; /* Okabe-Ito vermillion */
-  --wrong-text: #fbbaa7; /* USWDS orange-warm-vivid-20 */
-  --wrong-tint: rgba(213, 94, 0, 0.25);
-  --on-answer: #ffffff;
+  /* Right and wrong: blue and coral, which stay apart for every common kind of
+     colour blindness (red and green do not). Always pair them with a shape,
+     ✓ or ✗, for students who cannot read. Both fills are light, so the text
+     or glyph on them (--on-answer) is the dark page green. */
+  --correct: #3b9eff; /* blue 10 */
+  --correct-text: #70b8ff; /* blue 11 */
+  --correct-tint: rgba(59, 158, 255, 0.25);
+  --wrong: #ff977d; /* tomato 11 */
+  --wrong-text: #ff977d; /* tomato 11 */
+  --wrong-tint: rgba(255, 151, 125, 0.25);
+  --on-answer: #29371d; /* lime 4 */
 
-  /* "Look here": the selected square, a warning, the next stop. Okabe-Ito
-     yellow. */
-  --highlight: #f0e442;
-  --highlight-glow: rgba(240, 228, 66, 0.45);
-  --highlight-tint: rgba(240, 228, 66, 0.15);
+  /* "Look here": the selected square, a warning, the next stop. */
+  --highlight: #ffc53d; /* amber 9 */
+  --highlight-glow: rgba(255, 197, 61, 0.45);
+  --highlight-tint: rgba(255, 197, 61, 0.15);
 
   /* A fourth colour for arrows and squares, after --correct, --wrong and
-     --highlight. USWDS blue-cool-vivid-30, a lighter blue than --correct so
-     the two stay apart. See src/lib/board-marks.ts. */
-  --mark-other: #59b9de;
+     --highlight. A lighter blue than --correct, so the two stay apart. See
+     src/lib/board-marks.ts. */
+  --mark-other: #75c7f0; /* sky 11 */
 
-  /* Stars are the reward. USWDS yellow-vivid-20, with a dark edge on the board. */
-  --star: #face00;
-  --star-edge: #5c4809; /* yellow-vivid-70 */
+  /* Stars are the reward, with a dark edge on the board. */
+  --star: #ffd60a; /* amber 10 */
+  --star-edge: #5c4809; /* USWDS yellow-vivid-70 */
 
-  /* The board: warm cream and khaki-sage. The squares are 3.2:1 apart, so
-     light and dark still differ without colour, and the dark square stays
-     clear of --wrong for colour-blind eyes. */
-  --board-light: #efe2c0;
-  --board-dark: #748450;
+  /* The board: Radix's light gold cream and the border green. The squares are
+     5:1 apart, so light and dark differ without colour. A lighter dark square
+     looks too like --wrong to protanopic eyes. */
+  --board-light: #e1dccf; /* gold 5 (light scale) */
+  --board-dark: #496231; /* lime 7 */
   --board-move-dot: rgba(0, 0, 0, 0.2);
-  --board-target: #c2850c; /* gold-vivid-40. A move onto a star */
+  --board-target: #c2850c; /* USWDS gold-vivid-40. A move onto a star */
 
   /* Pieces drawn in plain colour, where there is no piece image. A results
      bar puts draws between them in grey. */
@@ -131,16 +134,16 @@
   --shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 
   /* Each bot has a colour of its own, for its name and its difficulty pips.
-     All are USWDS grade-20 tints, so each reads on --page and --surface.
-     Chosen to suit the animal. */
-  --bot-sloth: #dec69a; /* gold-20 */
-  --bot-chick: #face00; /* yellow-vivid-20 */
-  --bot-frog: #70e17b; /* green-cool-vivid-20 */
-  --bot-rabbit: #ffb4cf; /* magenta-vivid-20 */
-  --bot-panda: #cac9c0; /* gray-warm-20 */
-  --bot-monkey: #ffbc78; /* orange-vivid-20 */
-  --bot-bear: #f3bf90; /* orange-20 */
-  --bot-owl: #d5bfff; /* violet-vivid-20 */
+     All are step 11 of a Radix scale (its readable-text step), chosen to suit
+     the animal. */
+  --bot-sloth: #dbb594; /* brown 11 */
+  --bot-chick: #f5e147; /* yellow 11 */
+  --bot-frog: #71d083; /* grass 11 */
+  --bot-rabbit: #d19dff; /* purple 11 */
+  --bot-panda: #afb5ad; /* olive 11 */
+  --bot-monkey: #ffa057; /* orange 11 */
+  --bot-bear: #ff977d; /* tomato 11 */
+  --bot-owl: #75c7f0; /* sky 11 */
 }
 
 *,
@@ -154,6 +157,8 @@
 body {
   background: var(--page);
   color: var(--ink);
+  /* Checkboxes, radios and sliders in the button colour, not the browser's blue. */
+  accent-color: var(--action);
   font-family: var(--font);
   font-size: var(--size-body);
   font-weight: var(--weight-regular);
