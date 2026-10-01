@@ -8,13 +8,22 @@
   Where each choice comes from is written up under "Design system" in CLAUDE.md.
 */
 
-/* One typeface, upright only. Atkinson Hyperlegible Next was drawn by the
-   Braille Institute with low-vision readers, so that I, l and 1 look different.
-   One variable file covers every weight. */
+/* One typeface, upright only: TeX Gyre Adventor, the GUST e-foundry's free
+   twin of Avant Garde Gothic, which Century Gothic (the site's original font)
+   was drawn to match. Research doesn't favour one clear sans-serif over
+   another for reading, so this one is chosen for the site's look. The files
+   are CTAN's originals, unchanged (GUST Font License, beside them). */
 @font-face {
-  font-family: "Atkinson Hyperlegible Next";
-  src: url("/fonts/atkinson-hyperlegible-next.woff2") format("woff2");
-  font-weight: 200 800;
+  font-family: "TeX Gyre Adventor";
+  src: url("/fonts/texgyreadventor-regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TeX Gyre Adventor";
+  src: url("/fonts/texgyreadventor-bold.otf") format("opentype");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -22,7 +31,7 @@
 :root {
   color-scheme: dark;
 
-  --font: "Atkinson Hyperlegible Next", Arial, sans-serif;
+  --font: "TeX Gyre Adventor", "Century Gothic", Arial, sans-serif;
 
   /* Type sizes. Children of 5 to 7 read faster as text gets larger, and no age
      reads worse for it (Hughes and Wilkins, 2000). Body text is 18px and
@@ -36,7 +45,8 @@
 
   /* Type weights. Every bold thing in the app (titles, buttons, labels,
      emphasis) uses --weight-strong, so how heavy the site looks is this one
-     line. The font is variable, so any number from 200 to 800 works. */
+     line. The font has two weights, regular (400) and bold (700); anything
+     from 500 down draws regular, and 600 up draws bold. */
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-strong: 700;

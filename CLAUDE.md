@@ -25,22 +25,22 @@ Every colour, the typeface and the type sizes live in **`src/app.css`** as custo
 
 **Where each choice comes from:**
 - **Right/wrong = blue/vermillion, never green/red.** Okabe & Ito, *Color Universal Design* (2008): their blue `#0072b2` and vermillion `#d55e00` stay apart for every common kind of colour blindness. The old green and red were 9 ΔE apart under deuteranopia. Always pair the colour with a shape (✓ / ✗) for non-readers
-- **Greens and tints are USWDS system tokens** (U.S. Web Design System colour grades, 0 = white → 100 = black). Two grades 50+ apart meet WCAG AA text contrast. The token comments in app.css name each USWDS grade
+- **The page colours are the site's own**: olive `#2d4a22` and cream `#ede4cc`, its original dark mode, with cards, buttons and borders as cream laid over the olive at 6%, 10% and 12% (written out as solid hex so the tests can check them). The 2026-10-01 overhaul briefly replaced these with a rule-built USWDS emerald, which read as generic; they came back the same day. Other tints (answer text, bot colours, walls) are USWDS grades, named in app.css comments
 - **Contrast is WCAG 2 AA**: 4.5:1 for text, 3:1 for large/bold text and shapes
-- **Colour-blind checks** simulate deuteranopia, protanopia and tritanopia with Machado, Oliveira & Fernandes (IEEE TVCG 2009) and require CIE76 ΔE ≥ 25 between colours that carry meaning
-- **Typeface: Atkinson Hyperlegible Next** (Braille Institute, SIL OFL 1.1), self-hosted at `static/fonts/` with one variable woff2 for all weights, preloaded in `app.html`. Drawn for low-vision readers so I, l and 1 differ
+- **Colour-blind checks** simulate deuteranopia and protanopia with Machado, Oliveira & Fernandes (IEEE TVCG 2009) and require CIE76 ΔE ≥ 25 between colours that carry meaning
+- **Typeface: TeX Gyre Adventor** (GUST e-foundry, GUST Font License), a free twin of Avant Garde Gothic, which the site's original Century Gothic was drawn to match. Research doesn't favour one clear sans-serif over another — the "dyslexia fonts" showed no benefit (Wery & Diliberto 2017; Kuster et al. 2018) — so it was picked on look, from a side-by-side test of ten fonts. Regular and bold only, self-hosted as CTAN's unmodified `.otf` files in `static/fonts/` (about 170 KB each; the licence asks that modified versions be renamed), regular preloaded in `app.html`. Fallbacks: Century Gothic, Arial
 - **Body text is 18px, nothing below 14px.** Children of 5–7 read faster as text gets larger, and no age reads worse for it (Hughes & Wilkins, 2000)
 - **Emphasis is bold, never italic.** Readers with dyslexia read italic more slowly (Rello & Baeza-Yates, 2013), and the font has no true italic. `em`/`i` are restyled to bold globally
 
-**Tokens** (see app.css for values and the USWDS grade of each):
-- Type: `--font`; sizes `--size-small` (14px, labels/counts/coordinates), `--size-secondary` (16px), `--size-body` (18px), `--size-large` (22px, card/trainer titles), `--size-title` (32px, one per page)
+**Tokens** (see app.css for values):
+- Type: `--font`; weights `--weight-regular`, `--weight-medium`, `--weight-strong` (every bold thing reads `--weight-strong`; the font has 400 and 700 only); sizes `--size-small` (14px, labels/counts/coordinates), `--size-secondary` (16px), `--size-body` (18px), `--size-large` (22px, card/trainer titles), `--size-title` (32px, one per page)
 - Page: `--page` (background), `--surface` (cards, panels — opaque), `--surface-raised` (buttons, hovered cards), `--line` (borders)
 - Text: `--ink` (on anything), `--ink-muted` (on `--page`/`--surface` only, not `--surface-raised`)
 - Main action (Start, Next, Continue): `--action`, `--action-hover`, `--on-action`. Cream, so it never looks like an answer
 - Answers: `--correct`, `--correct-text`, `--correct-tint`, `--wrong`, `--wrong-text`, `--wrong-tint`, `--on-answer`. The `-text` versions are for words on `--page`/`--surface`. White on `--wrong` passes only for large/bold text
 - "Look here" (selected square, warning, next stop, focus ring): `--highlight`, `--highlight-glow`, `--highlight-tint`. A fourth mark colour: `--mark-other`
 - Stars: `--star`, `--star-edge`
-- Board: `--board-light`, `--board-dark` (3.7:1 apart, so they differ without colour), `--board-move-dot`, `--board-target`
+- Board: `--board-light`, `--board-dark` (cream and khaki-sage, 3.2:1 apart, so they differ without colour), `--board-move-dot`, `--board-target`
 - Plain-colour pieces / results bar: `--piece-white`, `--piece-black`, `--result-draw`
 - Route-puzzle walls: `--wall-brick`, `--wall-mortar`, `--wall-edge` (brown, so a wall isn't read as a `--wrong` square)
 - Breathwork orb: `--breath-rest`, `--breath-in`, `--breath-top`, `--breath-out`, `--breath-ink`
@@ -54,9 +54,15 @@ Every colour, the typeface and the type sizes live in **`src/app.css`** as custo
 - `--correct`, `--wrong`, `--highlight`, `--mark-other` and both board squares stay ≥ 25 ΔE apart under normal, deuteranopic, protanopic and tritanopic vision (and `--correct-text` vs `--wrong-text`)
 - No hex / `rgb()` / `hsl()` colour anywhere in `src/` outside app.css (HTML entities like `&#9733;` are fine)
 - No `font-family` other than `inherit` or `var(--font)`; no `font-size` below 14px; no `font-style: italic`/`oblique`
+- No `font-weight` other than `var(--weight-*)` or `inherit`, so how bold the site looks stays one setting
 - Every `var(--x)` that is read is defined somewhere — a misspelt token fails silently in the browser (the rule is dropped)
 
 Adding a colour = add a token to app.css (with its USWDS/Okabe-Ito source in a comment), add it to the relevant rule list in design.test.ts if it carries meaning, then use it via `var()`.
+
+**Tuning the look by hand** — edit `src/app.css`, then run `npm test`; it says straight away if a change drops below the contrast floor or makes two meaning colours hard to tell apart for colour-blind students.
+- **These set the mood — change freely:** `--page`, `--surface`, `--surface-raised`, `--line`, `--ink`, `--ink-muted`, `--action`, `--action-hover`, `--on-action`, `--board-light`, `--board-dark`, `--font` (plus its `@font-face`), `--weight-strong`, and the `--bot-*` colours
+- **These carry meaning — leave them:** `--correct`, `--wrong` (and their `-text`/`-tint`), `--highlight`, `--mark-other`, `--star`. Students who can't read rely on them, and they were picked to stay apart for colour-blind eyes
+- **Comparing options:** the overhaul's look was chosen from headless-Chrome screenshots with candidate colours/fonts injected at runtime (nothing in the repo changes until one is picked). Show crops at full size and verify the font with DevTools' `CSS.getPlatformFontsForNode` — scaled-down screenshots make every font look the same
 
 ## Architecture
 

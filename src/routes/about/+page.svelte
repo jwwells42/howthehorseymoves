@@ -81,9 +81,9 @@
       </div>
       <div class="credit-card">
         <h3>Typeface</h3>
-        <p><em>Atkinson Hyperlegible Next</em>, by the
-        <a href="https://www.brailleinstitute.org/freefont/" target="_blank" rel="noopener noreferrer">Braille Institute</a>.
-        Licensed under the <em>SIL Open Font License 1.1</em>.</p>
+        <p><em>TeX Gyre Adventor</em>, by the
+        <a href="https://www.gust.org.pl/projects/e-foundry/tex-gyre" target="_blank" rel="noopener noreferrer">GUST e-foundry</a>.
+        Licensed under the <em>GUST Font License</em>.</p>
       </div>
       <div class="credit-card">
         <h3>Framework</h3>
