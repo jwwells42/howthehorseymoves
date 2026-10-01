@@ -15,10 +15,10 @@
     margin: 0 auto;
   }
   .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     display: inline-block;
     margin-bottom: 1rem;
   }
-  .back-link:hover { color: var(--foreground); }
+  .back-link:hover { color: var(--ink); }
 </style>

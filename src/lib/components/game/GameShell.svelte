@@ -1,6 +1,11 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
+  import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
+  import PromotionPicker from '$lib/components/board/PromotionPicker.svelte';
+  import ResultSymbol from '$lib/components/board/ResultSymbol.svelte';
+  import MoveNav from '$lib/components/board/MoveNav.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import BotPanel from '$lib/characters/BotPanel.svelte';
   import { getCharacter } from '$lib/characters/bots';
   import { createGameState } from '$lib/state/use-game.svelte';
@@ -8,7 +13,7 @@
   import { playSound } from '$lib/state/sound';
   import { getNextStopAfter } from '$lib/curriculum';
   import type { BotLevel } from '$lib/logic/bot';
-  import type { SquareId, PieceKind } from '$lib/logic/types';
+  import type { SquareId } from '$lib/logic/types';
 
   let { botLevel = 'random' }: { botLevel?: BotLevel } = $props();
 
@@ -78,8 +83,6 @@
     if (game.result !== 'playing' || game.waitingForBot || isReviewing || game.pendingPromotion) return;
     dragFrom = sq;
   }
-
-  const PROMO_PIECES: PieceKind[] = ['Q', 'R', 'B', 'N'];
 
   function onDragEnd() {
     dragFrom = null;
@@ -303,8 +306,6 @@
       board={displayBoard}
       selectedSquare={isReviewing ? null : game.selectedSquare}
       validMoves={isReviewing || game.pendingPromotion ? [] : game.validMoves}
-      targets={[]}
-      reachedTargets={[]}
       dragValidMoves={isReviewing || game.pendingPromotion ? [] : dragValidMoves}
       onSquareClick={onSquareClick}
       onDrop={onDrop}
@@ -313,40 +314,28 @@
       opponentSlide={isReviewing ? null : game.botSlide}
     />
     {#if game.result === 'checkmate-white' && reviewIndex === null}
-      <div class="result-overlay win-overlay">
-        <div class="win-card">
-          <div class="trophy">&#127942;</div>
-          <div class="win-buttons">
-            <button class="win-btn" onclick={startNewGame}>Play Again</button>
-            {#if nextStop}
-              <a class="win-btn next-btn" href={nextStop.href}>
-                {nextStop.name} &rarr;
-              </a>
-            {/if}
-          </div>
+      <BoardOverlay>
+        <ResultSymbol result="win" />
+        <div class="win-buttons">
+          <Button onclick={startNewGame}>Play Again</Button>
+          {#if nextStop}
+            <Button variant="primary" href={nextStop.href}>{nextStop.name} &rarr;</Button>
+          {/if}
         </div>
-      </div>
+      </BoardOverlay>
     {/if}
     {#if isDraw && reviewIndex === null && showDrawOverlay}
-      <div class="result-overlay" onclick={() => showDrawOverlay = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showDrawOverlay = false; }} role="button" tabindex="-1">
-        <div class="draw-symbol">&#189;</div>
-      </div>
+      <BoardOverlay dim={false} onclick={() => (showDrawOverlay = false)}>
+        <ResultSymbol result="draw" />
+      </BoardOverlay>
     {/if}
     {#if game.result === 'resigned' && reviewIndex === null && showResignOverlay}
-      <div class="result-overlay" onclick={() => showResignOverlay = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showResignOverlay = false; }} role="button" tabindex="-1">
-        <div class="resign-symbol">&#127987;&#65039;</div>
-      </div>
+      <BoardOverlay dim={false} onclick={() => (showResignOverlay = false)}>
+        <ResultSymbol result="resign" />
+      </BoardOverlay>
     {/if}
     {#if game.pendingPromotion}
-      <div class="promo-overlay">
-        <div class="promo-picker">
-          {#each PROMO_PIECES as p}
-            <button class="promo-btn" onclick={() => game.completePromotion(p)}>
-              <img src="/pieces/w{p}.svg" alt={p} width="60" height="60" />
-            </button>
-          {/each}
-        </div>
-      </div>
+      <PromotionPicker onpick={game.completePromotion} />
     {/if}
   {/snippet}
 
@@ -388,37 +377,17 @@
       </div>
     </div>
 
-    <div class="nav-controls">
-      <button
-        class="nav-btn"
-        onclick={goToStart}
-        disabled={!canGoBack}
-        aria-label="Start"
-      >&#x23EE;</button>
-      <button
-        class="nav-btn"
-        onclick={goBack}
-        disabled={!canGoBack}
-        aria-label="Back"
-      >&#x25C0;</button>
-      <button
-        class="nav-btn"
-        onclick={goForward}
-        disabled={!canGoForward}
-        aria-label="Forward"
-      >&#x25B6;</button>
-      <button
-        class="nav-btn"
-        onclick={goToEnd}
-        disabled={!canGoForward}
-        aria-label="End"
-      >&#x23ED;</button>
-    </div>
+    <MoveNav
+      {canGoBack}
+      {canGoForward}
+      onStart={goToStart}
+      onBack={goBack}
+      onForward={goForward}
+      onEnd={goToEnd}
+    />
 
     {#if game.result !== 'playing'}
-      <button class="new-game-btn" onclick={startNewGame}>
-        New Game
-      </button>
+      <Button variant="primary" onclick={startNewGame}>New Game</Button>
     {:else if confirmingResign}
       <div class="resign-confirm">
         <span class="resign-flag" aria-hidden="true">&#127987;&#65039;</span>
@@ -426,9 +395,9 @@
         <button class="confirm-btn confirm-no" onclick={() => confirmingResign = false} aria-label="No, keep playing">&#10007;</button>
       </div>
     {:else}
-      <button class="resign-btn" onclick={() => confirmingResign = true} aria-label="Resign">
+      <Button onclick={() => (confirmingResign = true)}>
         <span aria-hidden="true">&#127987;&#65039;</span> Resign
-      </button>
+      </Button>
     {/if}
 
   {/snippet}
@@ -441,13 +410,13 @@
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: 700;
     margin: 0 0 0.25rem;
   }
 
   .status {
-    color: #888;
+    color: var(--ink-muted);
     margin: 0;
   }
 
@@ -460,8 +429,8 @@
 
   .move-list {
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border, #333);
-    background: var(--card-bg, #1a1a1a);
+    border: 1px solid var(--line);
+    background: var(--surface);
     padding: 0.5rem;
     flex: 1;
     min-height: 0;
@@ -473,11 +442,11 @@
     grid-template-columns: 2rem 1fr 1fr;
     column-gap: 0.25rem;
     row-gap: 0.125rem;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
   }
 
   .move-num {
-    color: var(--text-faint, #666);
+    color: var(--ink-muted);
     text-align: right;
   }
 
@@ -488,80 +457,17 @@
     cursor: pointer;
     background: none;
     border: none;
-    color: inherit;
     font-size: inherit;
     transition: background-color 0.15s;
   }
 
   .move-btn:hover {
-    background: var(--btn-bg, #2a2a2a);
+    background: var(--surface-raised);
   }
 
   .move-active {
-    background: var(--btn-hover, #3a3a3a);
+    background: var(--line);
     font-weight: 700;
-  }
-
-  .nav-controls {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    flex-shrink: 0;
-  }
-
-  .nav-btn {
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    background: var(--btn-bg, #2a2a2a);
-    color: inherit;
-    border: none;
-    cursor: pointer;
-    font-size: 1.125rem;
-    transition: background-color 0.15s;
-  }
-
-  .nav-btn:hover:not(:disabled) {
-    background: var(--btn-hover, #3a3a3a);
-  }
-
-  .nav-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-
-  .new-game-btn {
-    padding: 0.5rem 1.5rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s;
-    flex-shrink: 0;
-  }
-
-  .new-game-btn:hover {
-    background: #15803d;
-  }
-
-  .resign-btn {
-    padding: 0.5rem 1.25rem;
-    background: var(--btn-bg, #2a2a2a);
-    color: var(--text-muted, #888);
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 0.9375rem;
-    cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
-    flex-shrink: 0;
-  }
-
-  .resign-btn:hover {
-    background: var(--btn-hover, #3a3a3a);
-    color: inherit;
   }
 
   .resign-confirm {
@@ -572,149 +478,40 @@
   }
 
   .resign-flag {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
   }
 
   .confirm-btn {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
     border: none;
     border-radius: 0.5rem;
-    font-size: 1.125rem;
+    font-size: var(--size-large);
     font-weight: 700;
-    color: white;
     cursor: pointer;
-    transition: filter 0.15s;
   }
 
-  .confirm-btn:hover {
-    filter: brightness(1.15);
-  }
-
+  /* Resigning is the danger: the ✓ that confirms it is the wrong colour.
+     Keeping on playing is the safe, ordinary choice. */
   .confirm-yes {
-    background: #dc2626;
+    background: var(--wrong);
+    color: var(--on-answer);
   }
 
   .confirm-no {
-    background: #16a34a;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
   }
 
-
-  /* Result overlays */
-  .result-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 5;
-    animation: fade-in 0.3s ease-out;
-  }
-  .result-overlay[role="button"] {
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  .trophy {
-    font-size: 6rem;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-    animation: trophy-pop 0.5s ease-out;
+  .confirm-no:hover {
+    background: var(--line);
   }
 
-  /* The win overlay takes pointer events back (.result-overlay disables them so
-     the draw symbol doesn't block the board) because it now holds buttons. */
-  .win-overlay {
-    pointer-events: auto;
-    background: rgba(0, 0, 0, 0.45);
-    border-radius: 0.5rem;
-  }
-  .win-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-  }
   .win-buttons {
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
     justify-content: center;
     max-width: 22rem;
-  }
-  .win-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-    background: var(--btn-bg);
-    color: inherit;
-    text-decoration: none;
-    transition: background 0.15s;
-  }
-  .win-btn:hover { background: var(--btn-hover); }
-  .next-btn { background: #16a34a; color: white; }
-  .next-btn:hover { background: #15803d; }
-  .resign-symbol {
-    font-size: 7rem;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-    animation: trophy-pop 0.5s ease-out;
-  }
-  .draw-symbol {
-    font-size: 8rem;
-    font-weight: bold;
-    color: #facc15;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    animation: trophy-pop 0.5s ease-out;
-  }
-  @keyframes trophy-pop {
-    0% { transform: scale(0); opacity: 0; }
-    60% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); }
-  }
-
-  /* Promotion picker */
-  .promo-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 0.25rem;
-    z-index: 10;
-  }
-
-  .promo-picker {
-    display: flex;
-    gap: 0.5rem;
-    background: var(--card-bg, #1a1a1a);
-    border: 2px solid var(--card-border, #333);
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-  }
-
-  .promo-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 4.5rem;
-    height: 4.5rem;
-    background: var(--btn-bg, #374151);
-    border: 2px solid transparent;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s;
-  }
-
-  .promo-btn:hover {
-    background: var(--btn-hover, #4b5563);
-    border-color: #22c55e;
-  }
-
-  .promo-btn img {
-    width: 3.5rem;
-    height: 3.5rem;
   }
 </style>

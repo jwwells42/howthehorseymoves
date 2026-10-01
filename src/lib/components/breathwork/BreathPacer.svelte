@@ -24,10 +24,10 @@
 
   // Warm on the way in, cool and settling on the way out.
   const COLOR: Record<Phase, string> = {
-    idle: '#c8d0b0',
-    inhale: '#f0e6cc',
-    topoff: '#ffe9a8',
-    exhale: '#a8d0b8',
+    idle: 'var(--breath-rest)',
+    inhale: 'var(--breath-in)',
+    topoff: 'var(--breath-top)',
+    exhale: 'var(--breath-out)',
   };
 
   const DEFAULT_LABEL: Record<Phase, string> = {
@@ -107,10 +107,9 @@
   }
 
   .label {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
-    color: #2d4a22;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+    color: var(--breath-ink);
     letter-spacing: 0.02em;
   }
 

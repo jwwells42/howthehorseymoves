@@ -109,14 +109,14 @@
   }
   .center { text-align: center; padding: 1.5rem; max-width: 56rem; margin: 0 auto; overflow: auto; }
   .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     display: inline-block;
     margin-bottom: 0.5rem;
     margin-left: 1rem;
     flex-shrink: 0;
   }
-  .back-link:hover { color: var(--foreground); }
-  .muted-link { color: var(--text-muted); }
+  .back-link:hover { color: var(--ink); }
+  .muted-link { color: var(--ink-muted); }
   .muted-link:hover { text-decoration: underline; }
 </style>

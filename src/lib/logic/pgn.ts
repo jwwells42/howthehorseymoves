@@ -1,13 +1,15 @@
 import type { BoardState, PieceKind, PieceColor, SquareId } from "./types";
 import { parseFen, createBoardState } from "./types";
 import { getLegalMoves } from "./attacks";
+import { LICHESS_MARKS, MARK } from "../board-marks";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export interface Arrow {
   from: SquareId;
   to: SquareId;
-  color: string; // hex color
+  /** A colour from MARK in $lib/board-marks. */
+  color: string;
 }
 
 export interface GameMove {
@@ -24,13 +26,6 @@ export interface ParsedGame {
   positions: BoardState[];
   moves: GameMove[];
 }
-
-const ARROW_COLORS: Record<string, string> = {
-  G: "#15803d", // green
-  R: "#dc2626", // red
-  Y: "#ca8a04", // yellow
-  B: "#2563eb", // blue
-};
 
 interface AnnotatedToken {
   san: string;
@@ -49,7 +44,7 @@ export function parseArrows(comment: string): { text: string; arrows: Arrow[] } 
         const colorCode = e[0].toUpperCase();
         const from = e.slice(1, 3) as SquareId;
         const to = e.slice(3, 5) as SquareId;
-        arrows.push({ from, to, color: ARROW_COLORS[colorCode] ?? ARROW_COLORS.G });
+        arrows.push({ from, to, color: LICHESS_MARKS[colorCode] ?? MARK.good });
       }
     }
     return "";

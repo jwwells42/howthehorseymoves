@@ -2,14 +2,11 @@
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import { parseFen, createBoardState } from '$lib/logic/types';
   import { isCheckmate, getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
   import type { BoardState, SquareId } from '$lib/logic/types';
-
-  const noop = () => {};
-  const noopSq = noop as (sq: SquareId) => void;
-  const noopDrop = noop as (from: SquareId, to: SquareId) => void;
 
   // Mate-in-1 puzzles where white delivers checkmate (all pieces invisible)
   const PUZZLES = [
@@ -139,11 +136,9 @@
         Pieces are invisible! Read the position description, then find checkmate by clicking squares. {PUZZLES.length} puzzles.
       </p>
       {#if bestStars > 0}
-        <div class="best"><StarRating stars={bestStars} size="sm" /></div>
+        <StarRating stars={bestStars} size="sm" />
       {/if}
-      <button class="btn-start" onclick={startGame}>
-        Start
-      </button>
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if phase === 'done'}
@@ -153,23 +148,21 @@
       {#if doneStars >= 1}
         <StarRating stars={doneStars} size="lg" />
       {/if}
-      <button class="btn-start" onclick={() => { phase = 'idle'; }}>
-        Play Again
-      </button>
+      <Button variant="primary" size="large" onclick={() => { phase = 'idle'; }}>Play Again</Button>
     </div>
 
   {:else if (phase === 'solved' || phase === 'wrong') && board}
     <div class="center-panel">
-      <p class={['result-text', phase === 'solved' && 'result-correct', phase === 'wrong' && 'result-wrong']}>
-        {phase === 'solved' ? 'Checkmate!' : 'Not checkmate!'}
+      <p class={['result-text', phase === 'solved' ? 'result-correct' : 'result-wrong']}>
+        {phase === 'solved' ? '✓ Checkmate!' : '✗ Not checkmate!'}
       </p>
       <div class="info-text">{correct}/{total} correct</div>
       <div class="board-container">
-        <Board board={board} readOnly selectedSquare={null} validMoves={[]} targets={[]} reachedTargets={[]} dragValidMoves={[]} onSquareClick={noopSq} onDrop={noopDrop} onDragStart={noopSq} onDragEnd={noop} />
+        <Board {board} readOnly />
       </div>
-      <button class="btn-action" onclick={nextPuzzle}>
+      <Button variant="primary" onclick={nextPuzzle}>
         {puzzleIdx + 1 >= PUZZLES.length ? 'See Results' : 'Next'}
-      </button>
+      </Button>
     </div>
 
   {:else}
@@ -189,13 +182,7 @@
           board={emptyBoard}
           selectedSquare={selectedSquare}
           validMoves={validMoves}
-          targets={[]}
-          reachedTargets={[]}
-          dragValidMoves={[]}
           onSquareClick={handleSquareClick}
-          onDrop={noopDrop}
-          onDragStart={noopSq}
-          onDragEnd={noop}
         />
       </div>
     </div>
@@ -221,88 +208,52 @@
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
   }
 
   .instructions {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-  }
-
-  .best {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .btn-start {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 0.5rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-start:hover {
-    background: rgba(255, 248, 230, 0.25);
+    color: var(--ink-muted);
+    font-size: var(--size-secondary);
   }
 
   .final-score {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
   .board-container {
     width: 100%;
-    max-width: 320px;
+    max-width: 24rem;
   }
 
   .info-text {
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   .desc-box {
     width: 100%;
     padding: 0.75rem;
     border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card);
+    border: 1px solid var(--line);
+    background: var(--surface);
     text-align: left;
-    font-size: 0.875rem;
-    font-family: monospace;
+    font-size: var(--size-secondary);
+    font-variant-numeric: tabular-nums;
     line-height: 1.625;
   }
 
   .result-text {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
   }
 
   .result-correct {
-    color: #4ade80;
+    color: var(--correct-text);
   }
 
   .result-wrong {
-    color: #f87171;
-  }
-
-  .btn-action {
-    padding: 0.5rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-action:hover {
-    background: rgba(255, 248, 230, 0.25);
+    color: var(--wrong-text);
   }
 </style>

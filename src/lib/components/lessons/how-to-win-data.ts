@@ -1,6 +1,6 @@
 import type { SquareId } from "$lib/logic/types";
 import type { Arrow } from "$lib/logic/pgn";
-import type { SquareHighlight } from "$lib/puzzles/parse-moves";
+import { MARK, type SquareHighlight } from "$lib/board-marks";
 
 /* ── Step types ──────────────────────────────────────────── */
 
@@ -61,7 +61,7 @@ const CHECK_STEPS: LessonStep[] = [
     instruction: "The rook attacks the king. That's check!",
     fen: "4r3/8/8/8/8/8/8/4K3 w - - 0 1",
     type: "demo",
-    arrows: [{ from: "e8" as SquareId, to: "e1" as SquareId, color: "#dc2626" }],
+    arrows: [{ from: "e8" as SquareId, to: "e1" as SquareId, color: MARK.danger }],
   },
   {
     slug: "move-the-king",
@@ -69,7 +69,7 @@ const CHECK_STEPS: LessonStep[] = [
     instruction: "Your king is in check! Move it to safety.",
     fen: "4r3/8/8/8/8/8/8/4K3 w - - 0 1",
     type: "interactive",
-    arrows: [{ from: "e8" as SquareId, to: "e1" as SquareId, color: "#dc2626" }],
+    arrows: [{ from: "e8" as SquareId, to: "e1" as SquareId, color: MARK.danger }],
     validation: "any",
   },
   {
@@ -79,8 +79,8 @@ const CHECK_STEPS: LessonStep[] = [
     fen: "5rk1/5pp1/8/8/8/6B1/5nPP/6RK w - - 0 1",
     type: "interactive",
     arrows: [
-      { from: "f2" as SquareId, to: "h1" as SquareId, color: "#dc2626" },
-      { from: "g3" as SquareId, to: "f2" as SquareId, color: "#22c55e" },
+      { from: "f2" as SquareId, to: "h1" as SquareId, color: MARK.danger },
+      { from: "g3" as SquareId, to: "f2" as SquareId, color: MARK.good },
     ],
     validation: "capture",
   },
@@ -91,8 +91,8 @@ const CHECK_STEPS: LessonStep[] = [
     fen: "4rbk1/6pp/8/8/8/5B2/r2P1P2/3RKR2 w - - 0 1",
     type: "interactive",
     arrows: [
-      { from: "e8" as SquareId, to: "e1" as SquareId, color: "#dc2626" },
-      { from: "f3" as SquareId, to: "e2" as SquareId, color: "#22c55e" },
+      { from: "e8" as SquareId, to: "e1" as SquareId, color: MARK.danger },
+      { from: "f3" as SquareId, to: "e2" as SquareId, color: MARK.good },
     ],
     validation: "any",
   },
@@ -113,10 +113,10 @@ const CHECKMATE_STEPS: LessonStep[] = [
     instruction: "The king is in check and can't escape. You win!",
     fen: "4R1k1/5ppp/8/8/8/8/8/6K1 b - - 0 1",
     type: "demo",
-    arrows: [{ from: "e8" as SquareId, to: "g8" as SquareId, color: "#22c55e" }],
+    arrows: [{ from: "e8" as SquareId, to: "g8" as SquareId, color: MARK.good }],
     highlights: [
-      { square: "f8" as SquareId, color: "#dc2626" },
-      { square: "h8" as SquareId, color: "#dc2626" },
+      { square: "f8" as SquareId, color: MARK.danger },
+      { square: "h8" as SquareId, color: MARK.danger },
     ],
     isVictory: true,
   },
@@ -135,9 +135,9 @@ const CHECKMATE_STEPS: LessonStep[] = [
     fen: "7k/8/6K1/8/8/8/8/R7 w - - 0 1",
     type: "interactive",
     arrows: [
-      { from: "g6" as SquareId, to: "f7" as SquareId, color: "#22c55e" },
-      { from: "g6" as SquareId, to: "g7" as SquareId, color: "#22c55e" },
-      { from: "g6" as SquareId, to: "h7" as SquareId, color: "#22c55e" },
+      { from: "g6" as SquareId, to: "f7" as SquareId, color: MARK.good },
+      { from: "g6" as SquareId, to: "g7" as SquareId, color: MARK.good },
+      { from: "g6" as SquareId, to: "h7" as SquareId, color: MARK.good },
     ],
     validation: "checkmate",
   },
@@ -175,15 +175,15 @@ const STALEMATE_STEPS: LessonStep[] = [
     fen: "k7/8/1Q6/8/8/8/8/6K1 b - - 0 1",
     type: "demo",
     arrows: [
-      { from: "b6" as SquareId, to: "a7" as SquareId, color: "#dc2626" },
-      { from: "b6" as SquareId, to: "b7" as SquareId, color: "#dc2626" },
-      { from: "b6" as SquareId, to: "b8" as SquareId, color: "#dc2626" },
+      { from: "b6" as SquareId, to: "a7" as SquareId, color: MARK.danger },
+      { from: "b6" as SquareId, to: "b7" as SquareId, color: MARK.danger },
+      { from: "b6" as SquareId, to: "b8" as SquareId, color: MARK.danger },
     ],
     highlights: [
-      { square: "a7" as SquareId, color: "#dc2626" },
-      { square: "b7" as SquareId, color: "#dc2626" },
-      { square: "b8" as SquareId, color: "#dc2626" },
-      { square: "a8" as SquareId, color: "#22c55e" },
+      { square: "a7" as SquareId, color: MARK.danger },
+      { square: "b7" as SquareId, color: MARK.danger },
+      { square: "b8" as SquareId, color: MARK.danger },
+      { square: "a8" as SquareId, color: MARK.good },
     ],
   },
   {

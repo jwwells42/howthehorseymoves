@@ -1,15 +1,17 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Board from '$lib/components/board/Board.svelte';
+  import AnswerInput from './AnswerInput.svelte';
+  import RouteTrail from './RouteTrail.svelte';
   import { playSound } from '$lib/state/sound';
+  import { createBoardState, type SquareId } from '$lib/logic/types';
+  import { MARK, highlight } from '$lib/board-marks';
 
   const KNIGHT_OFFSETS: [number, number][] = [
     [-2, -1], [-2, 1], [-1, -2], [-1, 2],
     [1, -2], [1, 2], [2, -1], [2, 1],
   ];
-
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
 
   function sqToFR(sq: string): [number, number] {
     return [sq.charCodeAt(0) - 97, parseInt(sq[1]) - 1];
@@ -121,16 +123,6 @@
     return 1;
   }
 
-  /* ── Board SVG helpers ─────────────────────────── */
-
-  const S = 36;
-  const B = S * 8;
-
-  function sqXY(sq: string): [number, number] {
-    const [f, r] = sqToFR(sq);
-    return [f * S + S / 2, (7 - r) * S + S / 2];
-  }
-
   /* ── State ─────────────────────────────────────── */
 
   let puzzle = $state(generatePuzzle());
@@ -138,24 +130,22 @@
   let input = $state('');
   let error = $state<string | null>(null);
   let result = $state<'playing' | 'won'>('playing');
-  let inputEl = $state<HTMLInputElement | null>(null);
-  let newRouteEl = $state<HTMLButtonElement | null>(null);
+  let newRouteButton = $state<Button>();
 
   let currentSquare = $derived(route.length > 0 ? route[route.length - 1] : puzzle.start);
   let moveCount = $derived(route.length);
   let stars = $derived(getStars(moveCount, puzzle.optimal));
   let allStops = $derived([puzzle.start, ...route]);
+  /** The queen's own square is where she stands, not a square she attacks. */
+  let attacked = $derived([...puzzle.danger].filter((sq) => sq !== puzzle.queenSq));
+  let queenBoard = $derived(createBoardState([{ piece: 'Q', color: 'b', square: puzzle.queenSq as SquareId }]));
 
+  // Once through the gauntlet, Enter starts the next one.
   $effect(() => {
-    if (result === 'playing') {
-      inputEl?.focus();
-    } else {
-      newRouteEl?.focus();
-    }
+    if (result === 'won') newRouteButton?.focus();
   });
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  function handleSubmit() {
     const sq = input.trim().toLowerCase();
     input = '';
 
@@ -196,120 +186,46 @@
     result = 'playing';
   }
 
-  function boardFill(sq: string, col: number, row: number): string {
-    const isLight = (col + row) % 2 === 0;
-    if (sq === puzzle.start || sq === puzzle.target) return '#4ade80';
-    if (allStops.includes(sq)) return '#60a5fa';
-    if (puzzle.danger.has(sq) && sq !== puzzle.queenSq) {
-      return isLight ? '#e8c0c0' : '#b06060';
-    }
-    return isLight ? LIGHT : DARK;
-  }
 </script>
 
-<div class="gauntlet">
-  <div class="header">
-    <h2 class="title">Knight Gauntlet</h2>
-    <p class="description">
-      Move the knight from <span class="bold">{puzzle.start}</span> to
-      <span class="bold">{puzzle.target}</span> without landing on any square
-      the queen on <span class="bold queen-sq">{puzzle.queenSq}</span> attacks.
+<div class="trainer">
+  <header class="header">
+    <h2>Knight Gauntlet</h2>
+    <p class="instructions">
+      Move the knight from <strong>{puzzle.start}</strong> to <strong>{puzzle.target}</strong>
+      without landing on any square the queen on <strong>{puzzle.queenSq}</strong> attacks.
     </p>
-    <p class="optimal-info">
-      Shortest safe path: {puzzle.optimal} moves
-    </p>
-  </div>
+    <p class="optimal">Shortest safe path: {puzzle.optimal} moves</p>
+  </header>
 
-  <!-- Route display -->
-  <div class="route-box">
-    <span class="route-sq">{puzzle.start}</span>
-    {#each route as sq, i}
-      <span class="route-step">
-        <span class="route-arrow">&rarr;</span>
-        <span class={['route-sq', sq === puzzle.target && 'target-reached']}>{sq}</span>
-      </span>
-    {/each}
-    {#if result === 'playing'}
-      <span class="route-arrow">&rarr; ?</span>
-    {/if}
-  </div>
+  <RouteTrail stops={allStops} target={puzzle.target} open={result === 'playing'} />
 
   {#if result === 'playing'}
-    <form class="input-row" onsubmit={handleSubmit}>
-      <input
-        bind:this={inputEl}
-        type="text"
-        bind:value={input}
-        placeholder="Next square..."
-        maxlength={2}
-        class="sq-input"
-        autocomplete="off"
-        autocapitalize="off"
-      />
-      <button type="submit" class="go-btn">Go</button>
-    </form>
-    {#if error}
-      <p class="error">{error}</p>
-    {/if}
+    <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
   {:else}
-    <div class="result-area">
-      <p class="result-text">Safe passage!</p>
-      <p class="result-detail">{moveCount} moves (optimal: {puzzle.optimal})</p>
+    <div class="result">
+      <p class="result-title">Safe passage!</p>
+      <p class="instructions">{moveCount} moves (optimal: {puzzle.optimal})</p>
       <StarRating {stars} size="lg" />
-
-      <!-- Post-game board -->
-      <svg viewBox="{-14} {-2} {B + 28} {B + 16}" class="gauntlet-board" role="img" aria-label="Knight route on chess board">
-        {#each Array(8) as _, i}
-          <text x={-6} y={(7 - i) * S + S / 2 + 3}
-            text-anchor="middle" font-size="8" fill="#888" class="label">{i + 1}</text>
-        {/each}
-        {#each Array(8) as _, i}
-          <text x={i * S + S / 2} y={B + 10}
-            text-anchor="middle" font-size="8" fill="#888" class="label">{String.fromCharCode(97 + i)}</text>
-        {/each}
-        {#each Array(8) as _, row}
-          {#each Array(8) as _, col}
-            {@const sq = frToSq(col, 7 - row)}
-            <rect x={col * S} y={row * S} width={S} height={S} fill={boardFill(sq, col, row)} />
-          {/each}
-        {/each}
-        <!-- Queen -->
-        {#if puzzle.queenSq}
-          {@const qxy = sqXY(puzzle.queenSq)}
-          <image href="/pieces/bQ.svg"
-            x={qxy[0] - S * 0.4} y={qxy[1] - S * 0.4}
-            width={S * 0.8} height={S * 0.8} />
-        {/if}
-        <!-- Lines connecting stops -->
-        {#each allStops.slice(1) as sq, i}
-          {@const p1 = sqXY(allStops[i])}
-          {@const p2 = sqXY(sq)}
-          <line x1={p1[0]} y1={p1[1]} x2={p2[0]} y2={p2[1]}
-            stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round" />
-        {/each}
-        <!-- Numbered dots -->
-        {#each allStops as sq, i}
-          {@const xy = sqXY(sq)}
-          {@const isEnd = sq === puzzle.target}
-          <circle cx={xy[0]} cy={xy[1]} r={S * 0.3}
-            fill={i === 0 || isEnd ? '#166534' : '#1e40af'}
-            stroke="white" stroke-width="1.5" />
-          <text x={xy[0]} y={xy[1] + 1} text-anchor="middle" dominant-baseline="central"
-            font-size="9" fill="white" font-weight="bold" class="label">
-            {i === 0 ? 'S' : i}
-          </text>
-        {/each}
-      </svg>
-
-      <button bind:this={newRouteEl} class="go-btn new-btn" onclick={newPuzzle}>
-        New Gauntlet
-      </button>
+      <div class="route-board">
+        <Board
+          board={queenBoard}
+          readOnly
+          route={allStops as SquareId[]}
+          highlights={[
+            ...highlight([puzzle.start, puzzle.target], MARK.note, 'solid'),
+            ...highlight(attacked, MARK.danger),
+          ]}
+          label="Knight route on chess board"
+        />
+      </div>
+      <Button bind:this={newRouteButton} variant="primary" onclick={newPuzzle}>New Gauntlet</Button>
     </div>
   {/if}
 </div>
 
 <style>
-  .gauntlet {
+  .trainer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -322,155 +238,29 @@
     text-align: center;
   }
 
-  .title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem;
+  .instructions {
+    margin-top: 0.5rem;
+    color: var(--ink-muted);
   }
 
-  .description {
-    color: var(--text-muted);
-    margin: 0;
+  .optimal {
+    margin-top: 0.25rem;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
-  .bold {
-    font-weight: 700;
-  }
-
-  .queen-sq {
-    color: #f87171;
-  }
-
-  .optimal-info {
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    margin: 0.25rem 0 0;
-  }
-
-  .route-box {
-    width: 100%;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    min-height: 3rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .route-sq {
-    font-family: monospace;
-    font-weight: 700;
-  }
-
-  .route-step {
-    font-family: monospace;
-  }
-
-  .route-arrow {
-    color: var(--text-faint);
-    margin: 0 0.25rem;
-  }
-
-  .target-reached {
-    color: #4ade80;
-  }
-
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .sq-input {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 1.125rem;
-    text-align: center;
-  }
-
-  .sq-input:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.4);
-  }
-
-  .go-btn {
-    padding: 0.5rem 1rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .go-btn:hover {
-    background: #15803d;
-  }
-
-  .new-btn {
-    padding: 0.5rem 1.5rem;
-  }
-
-  .error {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin: 0;
-  }
-
-  .result-area {
+  .result {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-    animation: fade-in 0.3s ease-out;
+    animation: fade-in 0.3s ease;
   }
-
-  .result-text {
-    font-weight: 700;
-    font-size: 1.125rem;
-    margin: 0;
+  .result-title {
+    font-weight: bold;
   }
-
-  .result-detail {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    margin: 0;
-  }
-
-  .gauntlet-board {
+  .route-board {
     width: 100%;
-    max-width: 280px;
-  }
-
-  @media (min-width: 640px) {
-    .gauntlet-board {
-      max-width: 360px;
-    }
-  }
-
-  .label {
-    pointer-events: none;
-    user-select: none;
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.5rem);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    max-width: 24rem;
   }
 </style>

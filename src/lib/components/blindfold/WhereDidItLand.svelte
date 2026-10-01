@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import AnswerInput from './AnswerInput.svelte';
   import { playSound } from '$lib/state/sound';
 
   const OPENINGS = [
@@ -166,14 +168,8 @@
   let isCorrect = $state(false);
   let bestStars = $state(0);
 
-  let inputEl = $state<HTMLInputElement | null>(null);
-
   onMount(() => {
     bestStars = parseInt(localStorage.getItem('blindfold-landed-best-stars') ?? '0', 10);
-  });
-
-  $effect(() => {
-    if ((phase === 'playing') && inputEl) inputEl.focus();
   });
 
   function startGame() {
@@ -185,8 +181,7 @@
     input = '';
   }
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  function handleSubmit() {
     if (!question || phase !== 'playing') return;
     const sq = input.trim().toLowerCase();
     input = '';
@@ -231,11 +226,9 @@
         Follow a sequence of opening moves mentally. Then answer: where is a specific piece? {ROUNDS} rounds.
       </p>
       {#if bestStars > 0}
-        <div class="best">
-          <StarRating stars={bestStars} size="sm" />
-        </div>
+        <StarRating stars={bestStars} size="sm" />
       {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
   {:else if phase === 'done'}
     <div class="center-col">
@@ -244,14 +237,14 @@
       {#if stars > 0}
         <StarRating {stars} size="lg" />
       {/if}
-      <button class="start-btn" onclick={goIdle}>Play Again</button>
+      <Button variant="primary" size="large" onclick={goIdle}>Play Again</Button>
     </div>
   {:else if phase === 'feedback' && question}
     {@const colorName = question.askColor === 'w' ? 'white' : 'black'}
     <div class="center-col">
       <div class="round-label">Round {round}/{ROUNDS}</div>
-      <p class={['feedback-text', isCorrect && 'correct-text', !isCorrect && 'wrong-text']}>
-        {isCorrect ? 'Correct!' : 'Wrong!'}
+      <p class={['feedback-text', isCorrect ? 'correct-text' : 'wrong-text']}>
+        {isCorrect ? '✓ Correct!' : '✗ Wrong!'}
       </p>
       <p class="muted">
         The {colorName} {PIECE_NAMES[question.askPiece]} is on <span class="mono-bold">{question.correctSquare}</span>
@@ -263,9 +256,9 @@
           <span>{#if i % 2 === 0}<span>{Math.floor(i / 2) + 1}. </span>{/if}{m} </span>
         {/each}
       </div>
-      <button class="go-btn" onclick={nextRound}>
+      <Button variant="primary" onclick={nextRound}>
         {round >= ROUNDS ? 'See Results' : 'Next'}
-      </button>
+      </Button>
     </div>
   {:else if phase === 'playing' && question}
     {@const colorName = question.askColor === 'w' ? 'white' : 'black'}
@@ -293,19 +286,7 @@
         />
       </div>
 
-      <form class="input-row" onsubmit={handleSubmit}>
-        <input
-          bind:this={inputEl}
-          type="text"
-          bind:value={input}
-          placeholder="Square..."
-          maxlength={2}
-          class="sq-input"
-          autocomplete="off"
-          autocapitalize="off"
-        />
-        <button type="submit" class="go-btn">Go</button>
-      </form>
+      <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Square" placeholder="Square..." />
     </div>
   {/if}
 </div>
@@ -329,42 +310,21 @@
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
   }
 
   .muted {
-    color: var(--text-muted);
-  }
-
-  .best {
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    color: var(--ink-muted);
   }
 
   .round-label {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: bold;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: rgba(255, 248, 230, 0.25);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   .big-score {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
@@ -372,23 +332,23 @@
     width: 100%;
     padding: 1rem;
     border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
   }
 
   .move-box-name {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     margin-bottom: 0.5rem;
   }
 
   .move-box-moves {
-    font-family: monospace;
-    font-size: 1.125rem;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--size-body);
   }
 
   .move-num {
-    color: var(--text-faint);
+    color: var(--ink-muted);
   }
 
   .move-san {
@@ -400,7 +360,7 @@
   }
 
   .question-text {
-    font-size: 1.125rem;
+    font-size: var(--size-body);
   }
 
   .bold {
@@ -414,66 +374,27 @@
     display: block;
   }
 
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 200px;
-  }
-
-  .sq-input {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 1.125rem;
-    text-align: center;
-  }
-
-  .sq-input:focus {
-    outline: none;
-    border-color: rgba(255, 248, 230, 0.4);
-  }
-
-  .go-btn {
-    padding: 0.5rem 1rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .go-btn:hover {
-    background: #15803d;
-  }
-
   .feedback-text {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
   }
 
   .correct-text {
-    color: #4ade80;
+    color: var(--correct-text);
   }
 
   .wrong-text {
-    color: #f87171;
+    color: var(--wrong-text);
   }
 
   .mono-bold {
-    font-family: monospace;
+    font-variant-numeric: tabular-nums;
     font-weight: bold;
   }
 
   .moves-summary {
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   .moves-name {

@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import MoveNav from '$lib/components/board/MoveNav.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import AnswerInput from './AnswerInput.svelte';
   import { type BoardState, type SquareId, type PieceKind, createBoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
@@ -120,7 +123,6 @@
   let boardHistory = $state<BoardState[]>([]);
   let reviewStep = $state(0);
 
-  let inputEl = $state<HTMLInputElement | null>(null);
   let movesEndEl = $state<HTMLDivElement | null>(null);
 
   let stars = $derived(mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
@@ -145,13 +147,6 @@
     movesEndEl?.scrollIntoView({ behavior: 'smooth' });
   });
 
-  /* Focus input when playing */
-  $effect(() => {
-    if (phase === 'playing' && !waitingForBot) {
-      inputEl?.focus();
-    }
-  });
-
   /* ── Actions ───────────────────────────────────── */
 
   function startGame() {
@@ -171,8 +166,7 @@
     phase = 'playing';
   }
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  function handleSubmit() {
     if (waitingForBot || phase !== 'playing') return;
 
     const parsed = parseSAN(input, board);
@@ -237,8 +231,6 @@
       waitingForBot = false;
     }, 600);
   }
-
-  function noop() {}
 </script>
 
 <div class="blindfold-mate">
@@ -253,22 +245,12 @@
         <StarRating stars={bestStars} size="sm" />
       {/if}
 
-      <!-- Hide move list toggle -->
       <label class="toggle-label">
-        <button
-          type="button"
-          role="switch"
-          aria-checked={hideHistory}
-          aria-label="Hide move list"
-          class={['toggle-track', hideHistory && 'active']}
-          onclick={() => hideHistory = !hideHistory}
-        >
-          <span class={['toggle-thumb', hideHistory && 'active']}></span>
-        </button>
+        <input type="checkbox" bind:checked={hideHistory} />
         Hide move list (harder)
       </label>
 
-      <button class="action-btn" onclick={startGame}>Start</button>
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else}
@@ -310,31 +292,15 @@
         </div>
       {/if}
 
-      <!-- Input -->
-      <form class="input-row" onsubmit={handleSubmit}>
-        <input
-          bind:this={inputEl}
-          type="text"
-          bind:value={input}
-          placeholder={waitingForBot ? '...' : 'e.g. Qd2'}
-          maxlength={6}
-          disabled={waitingForBot}
-          class="san-input"
-          autocomplete="off"
-          autocapitalize="off"
-        />
-        <button
-          type="submit"
-          disabled={waitingForBot}
-          class="go-btn"
-        >
-          Go
-        </button>
-      </form>
-
-      {#if error}
-        <p class="error">{error}</p>
-      {/if}
+      <AnswerInput
+        bind:value={input}
+        onsubmit={handleSubmit}
+        label="Your move"
+        placeholder={waitingForBot ? '...' : 'e.g. Qd2'}
+        maxlength={6}
+        disabled={waitingForBot}
+        {error}
+      />
 
       {#if mistakes > 0}
         <p class="mistake-count">
@@ -345,7 +311,7 @@
 
     {#if phase === 'won'}
       <div class="won-area">
-        <p class="checkmate-text">Checkmate!</p>
+        <p class="checkmate-text">✓ Checkmate!</p>
         <StarRating {stars} size="lg" />
         <p class="won-detail">
           {#if mistakes === 0}
@@ -363,48 +329,22 @@
               <Board
                 board={boardHistory[reviewStep]}
                 readOnly
-                selectedSquare={null}
-                validMoves={[]}
-                targets={[]}
-                reachedTargets={[]}
-                dragValidMoves={[]}
-                onSquareClick={noop}
-                onDrop={noop}
-                onDragStart={noop}
-                onDragEnd={noop}
               />
             </div>
 
             <!-- Navigation -->
-            <div class="review-nav">
-              <button
-                class="nav-btn"
-                onclick={() => reviewStep = 0}
-                disabled={reviewStep === 0}
-                aria-label="Go to start"
-              >&laquo;</button>
-              <button
-                class="nav-btn"
-                onclick={() => reviewStep = Math.max(0, reviewStep - 1)}
-                disabled={reviewStep === 0}
-                aria-label="Previous move"
-              >&lsaquo;</button>
+            <MoveNav
+              canGoBack={reviewStep > 0}
+              canGoForward={reviewStep < boardHistory.length - 1}
+              onStart={() => (reviewStep = 0)}
+              onBack={() => (reviewStep = Math.max(0, reviewStep - 1))}
+              onForward={() => (reviewStep = Math.min(boardHistory.length - 1, reviewStep + 1))}
+              onEnd={() => (reviewStep = boardHistory.length - 1)}
+            >
               <span class="nav-label">
                 {reviewStep === 0 ? 'Start' : (halfMoves[reviewStep - 1]?.notation ?? '')}
               </span>
-              <button
-                class="nav-btn"
-                onclick={() => reviewStep = Math.min(boardHistory.length - 1, reviewStep + 1)}
-                disabled={reviewStep >= boardHistory.length - 1}
-                aria-label="Next move"
-              >&rsaquo;</button>
-              <button
-                class="nav-btn"
-                onclick={() => reviewStep = boardHistory.length - 1}
-                disabled={reviewStep >= boardHistory.length - 1}
-                aria-label="Go to end"
-              >&raquo;</button>
-            </div>
+            </MoveNav>
 
             <!-- Full move list in review -->
             <div class="move-list">
@@ -420,7 +360,7 @@
           </div>
         {/if}
 
-        <button class="action-btn" onclick={startGame}>New Position</button>
+        <Button variant="primary" onclick={startGame}>New Position</Button>
       </div>
     {/if}
   {/if}
@@ -445,84 +385,57 @@
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: 700;
     margin: 0;
   }
 
   .description {
-    color: var(--text-muted);
+    color: var(--ink-muted);
     text-align: center;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     margin: 0;
   }
 
-  /* Toggle switch */
   .toggle-label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     cursor: pointer;
     user-select: none;
   }
-
-  .toggle-track {
-    position: relative;
-    width: 2.5rem;
+  .toggle-label input {
+    width: 1.25rem;
     height: 1.25rem;
-    border-radius: 9999px;
-    background: #52525b;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.15s;
-    padding: 0;
-  }
-
-  .toggle-track.active {
-    background: #16a34a;
-  }
-
-  .toggle-thumb {
-    position: absolute;
-    top: 0.125rem;
-    left: 0.125rem;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 9999px;
-    background: white;
-    transition: transform 0.15s;
-  }
-
-  .toggle-thumb.active {
-    transform: translateX(1.25rem);
+    accent-color: var(--action);
   }
 
   /* Position box */
   .position-box {
     width: 100%;
     border-radius: 0.5rem;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
+    background: var(--surface);
+    border: 1px solid var(--line);
     padding: 0.75rem;
-    font-size: 0.875rem;
-    font-family: monospace;
+    font-size: var(--size-secondary);
+    font-variant-numeric: tabular-nums;
   }
 
   .pos-label {
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
 
   /* Opponent move */
   .opponent-move-box {
     width: 100%;
     border-radius: 0.5rem;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
+    background: var(--surface);
+    border: 1px solid var(--line);
     padding: 0.75rem;
-    font-size: 0.875rem;
-    font-family: monospace;
+    font-size: var(--size-secondary);
+    font-variant-numeric: tabular-nums;
     text-align: center;
   }
 
@@ -534,92 +447,22 @@
   .move-list {
     width: 100%;
     border-radius: 0.5rem;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
+    background: var(--surface);
+    border: 1px solid var(--line);
     padding: 0.75rem;
-    font-size: 0.875rem;
-    font-family: monospace;
+    font-size: var(--size-secondary);
+    font-variant-numeric: tabular-nums;
     max-height: 12rem;
     overflow-y: auto;
   }
 
   .move-num {
-    color: var(--text-muted);
-  }
-
-  /* Input */
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .san-input {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 1.125rem;
-    text-align: center;
-  }
-
-  .san-input:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.4);
-  }
-
-  .san-input:disabled {
-    opacity: 0.5;
-  }
-
-  .go-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .go-btn:hover {
-    background: #15803d;
-  }
-
-  .go-btn:disabled {
-    opacity: 0.5;
-  }
-
-  .action-btn {
-    padding: 0.5rem 1.5rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .action-btn:hover {
-    background: #15803d;
-  }
-
-  .error {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin: 0;
+    color: var(--ink-muted);
   }
 
   .mistake-count {
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin: 0;
   }
 
@@ -634,14 +477,14 @@
   }
 
   .checkmate-text {
-    color: #22c55e;
+    color: var(--correct-text);
     font-weight: 700;
     margin: 0;
   }
 
   .won-detail {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin: 0;
   }
 
@@ -655,9 +498,9 @@
   }
 
   .review-label {
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     margin: 0;
   }
 
@@ -666,43 +509,10 @@
     max-width: 360px;
   }
 
-  .review-nav {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .nav-btn {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    font-family: monospace;
-    background: none;
-    border: none;
-    color: var(--foreground);
-    cursor: pointer;
-  }
-
-  .nav-btn:disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
-
   .nav-label {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     min-width: 4rem;
     text-align: center;
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.5rem);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 </style>

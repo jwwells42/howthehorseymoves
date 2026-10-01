@@ -1,27 +1,128 @@
-/* Global styles — ported from Next.js globals.css */
+/*
+  The design system: every colour, the typeface and the type sizes.
 
-:root {
-  --background: #436533;
-  --foreground: #f0e6cc;
-  --card-bg: rgba(255, 248, 230, 0.08);
-  --card-border: rgba(255, 248, 230, 0.15);
-  --text-muted: #c8d0b0;
-  --text-faint: #a0b088;
-  --btn-bg: rgba(255, 248, 230, 0.12);
-  --btn-hover: rgba(255, 248, 230, 0.2);
+  Components use these through var(). No component writes a colour of its own,
+  and src/design.test.ts fails if one does. That same test checks the
+  contrast and colour-blind rules described below, reading them from this file.
+
+  Where each choice comes from is written up under "Design system" in CLAUDE.md.
+*/
+
+/* One typeface, upright only. Atkinson Hyperlegible Next was drawn by the
+   Braille Institute with low-vision readers, so that I, l and 1 look different.
+   One variable file covers every weight. */
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  src: url("/fonts/atkinson-hyperlegible-next.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #2d4a22;
-    --foreground: #ede4cc;
-    --card-bg: rgba(255, 248, 230, 0.06);
-    --card-border: rgba(255, 248, 230, 0.12);
-    --text-muted: #b8c4a0;
-    --text-faint: #90a078;
-    --btn-bg: rgba(255, 248, 230, 0.1);
-    --btn-hover: rgba(255, 248, 230, 0.18);
-  }
+:root {
+  color-scheme: dark;
+
+  --font: "Atkinson Hyperlegible Next", Arial, sans-serif;
+
+  /* Type sizes. Children of 5 to 7 read faster as text gets larger, and no age
+     reads worse for it (Hughes and Wilkins, 2000). Body text is 18px and
+     nothing is set below 14px. Bigger display numbers are set where they are
+     used. */
+  --size-small: 0.875rem; /* labels beside something else: counts, coordinates */
+  --size-secondary: 1rem; /* text that supports other text */
+  --size-body: 1.125rem; /* anything a student is meant to read */
+  --size-large: 1.375rem; /* card and trainer titles */
+  --size-title: 2rem; /* one per page */
+
+  /* The page. Greens are USWDS system tokens, named beside each. A USWDS grade
+     runs from 0 (white) to 100 (black). Two grades 50 or more apart meet the
+     WCAG AA contrast for text. */
+  --page: #0d351e; /* mint-vivid-80 */
+  --surface: #204e34; /* mint-70. Cards and panels */
+  --surface-raised: #286846; /* mint-60. Buttons, and cards under the pointer */
+  --line: #2e8367; /* mint-50. Borders */
+
+  /* Text. --ink goes on anything. --ink-muted goes on --page and --surface,
+     not on --surface-raised. */
+  --ink: #f5f0e6; /* gold-5 */
+  --ink-muted: #b4d0b9; /* green-cool-20 */
+
+  /* The main action on a screen: Start, Next, Continue. Cream, so it never
+     looks like an answer. */
+  --action: #f5f0e6; /* gold-5 */
+  --action-hover: #f1e5cd; /* gold-10 */
+  --on-action: #0d351e; /* mint-vivid-80 */
+
+  /* Right and wrong. Okabe and Ito's blue and vermillion, which stay apart for
+     every common kind of colour blindness. Red and green do not. Always pair
+     them with a shape, ✓ or ✗, for students who cannot read. The -text
+     versions are lighter, for words on --page or --surface. White on --wrong
+     passes only for large or bold text, so use it for glyphs and bold labels. */
+  --correct: #0072b2; /* Okabe-Ito blue */
+  --correct-text: #a1d3ff; /* USWDS blue-vivid-20 */
+  --correct-tint: rgba(0, 114, 178, 0.25);
+  --wrong: #d55e00; /* Okabe-Ito vermillion */
+  --wrong-text: #fbbaa7; /* USWDS orange-warm-vivid-20 */
+  --wrong-tint: rgba(213, 94, 0, 0.25);
+  --on-answer: #ffffff;
+
+  /* "Look here": the selected square, a warning, the next stop. Okabe-Ito
+     yellow. */
+  --highlight: #f0e442;
+  --highlight-glow: rgba(240, 228, 66, 0.45);
+  --highlight-tint: rgba(240, 228, 66, 0.15);
+
+  /* A fourth colour for arrows and squares, after --correct, --wrong and
+     --highlight. USWDS blue-cool-vivid-30, a lighter blue than --correct so
+     the two stay apart. See src/lib/board-marks.ts. */
+  --mark-other: #59b9de;
+
+  /* Stars are the reward. USWDS yellow-vivid-20, with a dark edge on the board. */
+  --star: #face00;
+  --star-edge: #5c4809; /* yellow-vivid-70 */
+
+  /* The board. Its squares are 3.7:1 apart, so light and dark still differ
+     without colour. */
+  --board-light: #f1e5cd; /* gold-10 */
+  --board-dark: #4d8055; /* green-cool-50 */
+  --board-move-dot: rgba(0, 0, 0, 0.2);
+  --board-target: #c2850c; /* gold-vivid-40. A move onto a star */
+
+  /* Pieces drawn in plain colour, where there is no piece image. A results
+     bar puts draws between them in grey. */
+  --piece-white: #ffffff;
+  --piece-black: #1b1b1b; /* grade 90 */
+  --result-draw: #a9aeb1; /* gray-cool-30 */
+
+  /* The brick wall a route puzzle puts in the way. A dark brown brick, so it
+     is not mistaken for a --wrong square. */
+  --wall-brick: #805039; /* red-warm-60 */
+  --wall-mortar: #c7a97b; /* gold-30 */
+  --wall-edge: #4d4438; /* gold-70 */
+
+  /* The breathing orb on /breathwork: warm on the way in, cool on the way
+     out. Kept from the original tool. Its label is dark, as the orb is light. */
+  --breath-rest: #c8d0b0;
+  --breath-in: #f0e6cc;
+  --breath-top: #ffe9a8;
+  --breath-out: #a8d0b8;
+  --breath-ink: #2d4a22;
+
+  /* Things laid over the page. */
+  --scrim: rgba(0, 0, 0, 0.55);
+  --shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+
+  /* Each bot has a colour of its own, for its name and its difficulty pips.
+     All are USWDS grade-20 tints, so each reads on --page and --surface.
+     Chosen to suit the animal. */
+  --bot-sloth: #dec69a; /* gold-20 */
+  --bot-chick: #face00; /* yellow-vivid-20 */
+  --bot-frog: #70e17b; /* green-cool-vivid-20 */
+  --bot-rabbit: #ffb4cf; /* magenta-vivid-20 */
+  --bot-panda: #cac9c0; /* gray-warm-20 */
+  --bot-monkey: #ffbc78; /* orange-vivid-20 */
+  --bot-bear: #f3bf90; /* orange-20 */
+  --bot-owl: #d5bfff; /* violet-vivid-20 */
 }
 
 *,
@@ -33,11 +134,20 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--size-body);
+  line-height: 1.4;
+}
+
+/* Form controls do not inherit type by default. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
 }
 
 a {
@@ -45,7 +155,35 @@ a {
   text-decoration: none;
 }
 
-/* Shared utility */
+h1 {
+  font-size: var(--size-title);
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: var(--size-large);
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: var(--size-body);
+}
+
+/* Emphasis is bold, never slanted. Readers with dyslexia read italic text
+   more slowly (Rello and Baeza-Yates, 2013), and the font has no italic of
+   its own, so the browser would only fake one. */
+em,
+i {
+  font-style: normal;
+  font-weight: bold;
+}
+
+/* A clear ring for keyboard users, in the one colour that means "look here". */
+:focus-visible {
+  outline: 3px solid var(--highlight);
+  outline-offset: 2px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -57,30 +195,11 @@ a {
   border: 0;
 }
 
-/* Animations */
+/* Animations shared by several components. pawn-slide is named from an inline
+   style in Board.svelte, so it has to be global. */
 @keyframes pawn-slide {
   from { transform: translate(var(--slide-x), var(--slide-y)); }
   to { transform: translate(0, 0); }
-}
-
-@keyframes horsey-x {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(calc(100% - 4rem)); }
-}
-
-@keyframes horsey-y {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(calc(100% - 4rem)); }
-}
-
-@keyframes horsey-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes up-next-glow {
-  0%, 100% { box-shadow: 0 0 8px 2px rgba(250, 204, 21, 0.4); border-color: rgba(250, 204, 21, 0.6); }
-  50% { box-shadow: 0 0 16px 4px rgba(250, 204, 21, 0.7); border-color: rgba(250, 204, 21, 0.9); }
 }
 
 @keyframes fade-in {

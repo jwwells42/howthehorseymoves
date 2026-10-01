@@ -1,14 +1,14 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
+  import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
+  import PromotionPicker from '$lib/components/board/PromotionPicker.svelte';
   import PuzzleControls from './PuzzleControls.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import SuccessOverlay from './SuccessOverlay.svelte';
   import { createPuzzleState } from '$lib/state/use-puzzle.svelte';
   import type { Puzzle } from '$lib/puzzles/types';
   import type { PieceKind, SquareId } from '$lib/logic/types';
-
-  const PROMO_PIECES: PieceKind[] = ['Q', 'R', 'B', 'N'];
 
   interface Props {
     puzzle: Puzzle;
@@ -113,29 +113,19 @@
       {onDragEnd}
       wrongMoveSquare={ps.wrongMoveSquare}
       opponentSlide={ps.opponentSlide}
-      arrows={ps.arrows.length > 0 ? ps.arrows : undefined}
-      highlights={ps.highlights.length > 0 ? ps.highlights : undefined}
+      arrows={ps.arrows}
+      highlights={ps.highlights}
       {obstacles}
     />
     {#if showFindMovesIntro}
-      <div class="find-intro-overlay" role="button" tabindex="0" onclick={() => showFindMovesIntro = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showFindMovesIntro = false; }}>
-        <div class="find-intro-box">
-          <div class="find-intro-icon">&#10003;</div>
-          <p class="find-intro-text">Tap every square this piece can move to!</p>
-          <span class="find-intro-hint">Tap to start</span>
-        </div>
-      </div>
+      <BoardOverlay onclick={() => (showFindMovesIntro = false)}>
+        <div class="find-intro-icon" aria-hidden="true">&#10003;</div>
+        <p class="find-intro-text">Tap every square this piece can move to!</p>
+        <span class="find-intro-hint">Tap to start</span>
+      </BoardOverlay>
     {/if}
     {#if ps.pendingPromotion}
-      <div class="promo-overlay">
-        <div class="promo-picker">
-          {#each PROMO_PIECES as p}
-            <button class="promo-btn" onclick={() => ps.completePromotion(p)}>
-              <img src="/pieces/w{p}.svg" alt={p} width="60" height="60" />
-            </button>
-          {/each}
-        </div>
-      </div>
+      <PromotionPicker onpick={ps.completePromotion} />
     {/if}
     {#if ps.isComplete}
       <SuccessOverlay stars={ps.stars} {onNext} onRetry={ps.reset} {nextLabel} />
@@ -155,14 +145,14 @@
 
     {#if ps.stalemateTrigger}
       <div class="stalemate-warning">
-        <strong>Stalemate!</strong> The opponent has no legal moves but isn't in check. That's a draw, not a win.
+        <strong>✗ Stalemate!</strong> The opponent has no legal moves but isn't in check. That's a draw, not a win.
         <button class="stalemate-retry" onclick={ps.reset}>Try again</button>
       </div>
     {/if}
 
     {#if ps.currentHintIndex >= 0 && puzzle.hints?.[ps.currentHintIndex]}
       <div class="hint-box">
-        Hint: {puzzle.hints[ps.currentHintIndex]}
+        <span aria-hidden="true">💡</span> Hint: {puzzle.hints[ps.currentHintIndex]}
       </div>
     {/if}
 
@@ -189,17 +179,16 @@
 
 <style>
   .header { text-align: center; flex-shrink: 0; }
-  .title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
-  .instruction { color: var(--text-muted); }
-  .move-counter { font-size: 0.875rem; color: var(--text-faint); flex-shrink: 0; }
+  .title { font-size: var(--size-large); font-weight: bold; margin-bottom: 0.25rem; }
+  .instruction { color: var(--ink-muted); }
+  .move-counter { font-size: var(--size-secondary); color: var(--ink-muted); flex-shrink: 0; }
 
   .stalemate-warning {
-    background: rgba(127, 29, 29, 0.4);
-    border: 1px solid rgba(239, 68, 68, 0.5);
+    background: var(--wrong-tint);
+    border: 1px solid var(--wrong);
     border-radius: 0.5rem;
     padding: 0.75rem 1rem;
-    color: #fca5a5;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     text-align: center;
     flex-shrink: 0;
   }
@@ -213,12 +202,11 @@
     cursor: pointer;
   }
   .hint-box {
-    background: rgba(120, 53, 15, 0.4);
-    border: 1px solid rgba(245, 158, 11, 0.5);
+    background: var(--highlight-tint);
+    border: 1px solid var(--highlight);
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
-    color: #fcd34d;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     flex-shrink: 0;
   }
   .thresholds {
@@ -226,8 +214,8 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.125rem 0.375rem;
-    font-size: 0.6875rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     flex-shrink: 0;
   }
   .thresholds span {
@@ -237,89 +225,22 @@
     white-space: nowrap;
   }
 
-  /* Find-moves intro overlay */
-  .find-intro-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0.5rem;
-    z-index: 10;
-    cursor: pointer;
-    animation: fade-in 0.3s ease-out;
-  }
-  .find-intro-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 2rem;
-  }
+  /* Find-moves intro, over the board */
   .find-intro-icon {
     font-size: 4rem;
-    color: #4ade80;
-    filter: drop-shadow(0 2px 8px rgba(74, 222, 128, 0.5));
+    color: var(--correct-text);
   }
   .find-intro-text {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
-    color: white;
-    text-align: center;
     max-width: 16rem;
   }
   .find-intro-hint {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--ink-muted);
     animation: pulse 1.5s ease-in-out infinite;
   }
   @keyframes pulse {
     0%, 100% { opacity: 0.5; }
     50% { opacity: 1; }
-  }
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  /* Promotion picker */
-  .promo-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 0.25rem;
-    z-index: 10;
-  }
-  .promo-picker {
-    display: flex;
-    gap: 0.5rem;
-    background: var(--card-bg, #1a1a1a);
-    border: 2px solid var(--card-border, #333);
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-  }
-  .promo-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 4.5rem;
-    height: 4.5rem;
-    background: var(--btn-bg, #374151);
-    border: 2px solid transparent;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s;
-  }
-  .promo-btn:hover {
-    background: var(--btn-hover, #4b5563);
-    border-color: #22c55e;
-  }
-  .promo-btn img {
-    width: 3.5rem;
-    height: 3.5rem;
   }
 </style>

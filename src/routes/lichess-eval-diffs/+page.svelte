@@ -232,34 +232,34 @@
     margin: 0 auto;
   }
   .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     display: inline-block;
     margin-bottom: 1.5rem;
   }
-  .back-link:hover { color: var(--foreground); }
+  .back-link:hover { color: var(--ink); }
 
   h1 {
-    font-size: 1.5rem;
+    font-size: var(--size-large);
     font-weight: bold;
     margin-bottom: 0.25rem;
   }
   .subtitle {
-    color: var(--text-muted);
-    font-size: 0.875rem;
+    color: var(--ink-muted);
+    font-size: var(--size-secondary);
     margin-bottom: 1.25rem;
   }
   .subtitle a { text-decoration: underline; }
-  .subtitle a:hover { color: var(--foreground); }
+  .subtitle a:hover { color: var(--ink); }
 
   .explainer {
     margin-bottom: 1.25rem;
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     line-height: 1.6;
   }
   .explainer a { text-decoration: underline; }
-  .explainer a:hover { color: var(--foreground); }
+  .explainer a:hover { color: var(--ink); }
 
   .filters {
     display: flex;
@@ -273,9 +273,9 @@
     gap: 0.375rem;
   }
   .filter-group h3 {
-    font-size: 0.7rem;
+    font-size: var(--size-small);
     font-weight: 700;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: flex;
@@ -283,15 +283,15 @@
     gap: 0.5rem;
   }
   .toggle-btn {
-    font-size: 0.65rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     cursor: pointer;
     border: none;
     background: none;
     padding: 0;
     text-decoration: underline;
   }
-  .toggle-btn:hover { color: var(--foreground); }
+  .toggle-btn:hover { color: var(--ink); }
 
   .checkboxes {
     display: flex;
@@ -303,15 +303,15 @@
     align-items: center;
     gap: 0.2rem;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--size-small);
     user-select: none;
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
-  .cb input { cursor: pointer; accent-color: var(--foreground); }
+  .cb input { cursor: pointer; accent-color: var(--ink); }
 
   .pair-count {
-    color: var(--text-faint);
-    font-size: 0.8rem;
+    color: var(--ink-muted);
+    font-size: var(--size-small);
     margin-bottom: 0.5rem;
   }
 
@@ -321,23 +321,23 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: var(--size-secondary);
   }
   th {
-    background: var(--card-bg);
+    background: var(--surface);
     text-align: left;
     padding: 0.5rem 0.625rem;
-    border-bottom: 2px solid var(--card-border);
+    border-bottom: 2px solid var(--line);
     font-weight: 600;
     white-space: nowrap;
-    color: var(--foreground);
+    color: var(--ink);
   }
   td {
     padding: 0.4rem 0.625rem;
-    border-bottom: 1px solid var(--card-border);
-    color: var(--text-muted);
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-muted);
   }
-  tr:hover td { background: var(--btn-bg); }
+  tr:hover td { background: var(--surface-raised); }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
 
   .bar-cell {
@@ -352,24 +352,24 @@
     border-radius: 2px;
     pointer-events: none;
   }
-  .bar-better { background: #22a355; }
-  .bar-worse { background: #d94040; }
-  .pct { color: var(--text-faint); }
-  .empty { text-align: center; padding: 2.5rem; color: var(--text-faint); }
+  .bar-better { background: var(--correct); }
+  .bar-worse { background: var(--wrong); }
+  .pct { color: var(--ink-muted); }
+  .empty { text-align: center; padding: 2.5rem; color: var(--ink-muted); }
 
   .credits-section {
     margin-top: 2.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--card-border);
+    border-top: 1px solid var(--line);
   }
   .credits-section h2 {
-    font-size: 1rem;
+    font-size: var(--size-body);
     font-weight: bold;
     margin-bottom: 0.5rem;
   }
   .prose {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     line-height: 1.6;
   }
   .prose ul {
@@ -380,5 +380,5 @@
     gap: 0.25rem;
   }
   .prose a { text-decoration: underline; }
-  .prose a:hover { color: var(--foreground); }
+  .prose a:hover { color: var(--ink); }
 </style>

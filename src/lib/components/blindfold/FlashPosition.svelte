@@ -1,19 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Choice from '$lib/components/ui/Choice.svelte';
   import { playSound } from '$lib/state/sound';
-
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
-
-  type PieceColor = 'w' | 'b';
-  type PieceKind = 'K' | 'Q' | 'R' | 'B' | 'N' | 'P';
-
-  interface PiecePlacement {
-    piece: PieceKind;
-    color: PieceColor;
-    square: string;
-  }
+  import { createBoardState, type PieceColor, type PieceKind, type PiecePlacement, type SquareId } from '$lib/logic/types';
+  import { MARK, highlight } from '$lib/board-marks';
 
   const PIECE_POOL: { piece: PieceKind; color: PieceColor }[] = [
     { piece: 'Q', color: 'w' }, { piece: 'R', color: 'w' }, { piece: 'R', color: 'w' },
@@ -24,28 +17,28 @@
     { piece: 'N', color: 'b' }, { piece: 'P', color: 'b' },
   ];
 
-  function randomSquare(): string {
+  function randomSquare(): SquareId {
     const f = Math.floor(Math.random() * 8);
     const r = Math.floor(Math.random() * 8);
-    return String.fromCharCode(97 + f) + (r + 1);
+    return (String.fromCharCode(97 + f) + (r + 1)) as SquareId;
   }
 
   function generatePosition(numPieces: number): PiecePlacement[] {
     const usedSquares = new Set<string>();
     const placements: PiecePlacement[] = [];
 
-    let wkSq: string;
+    let wkSq: SquareId;
     do { wkSq = randomSquare(); } while (usedSquares.has(wkSq));
     usedSquares.add(wkSq);
     placements.push({ piece: 'K', color: 'w', square: wkSq });
 
-    let bkSq: string;
+    let bkSq: SquareId;
     do { bkSq = randomSquare(); } while (usedSquares.has(bkSq));
     usedSquares.add(bkSq);
     placements.push({ piece: 'K', color: 'b', square: bkSq });
 
     for (let i = 2; i < numPieces; i++) {
-      let sq: string;
+      let sq: SquareId;
       do { sq = randomSquare(); } while (usedSquares.has(sq));
       usedSquares.add(sq);
       const p = PIECE_POOL[Math.floor(Math.random() * PIECE_POOL.length)];
@@ -55,10 +48,6 @@
     return placements;
   }
 
-  function sqToCoords(sq: string): [number, number] {
-    return [sq.charCodeAt(0) - 97, 8 - parseInt(sq[1])];
-  }
-
   const LEVELS = [
     { pieces: 4, time: 8000, label: '4 pieces' },
     { pieces: 6, time: 8000, label: '6 pieces' },
@@ -66,8 +55,6 @@
   ];
 
   const ROUNDS = 5;
-  const SQ_SIZE = 40;
-  const BOARD_PX = SQ_SIZE * 8;
 
   const TRAY_PIECES: { piece: PieceKind; color: PieceColor }[] = [
     { piece: 'K', color: 'w' }, { piece: 'Q', color: 'w' }, { piece: 'R', color: 'w' },
@@ -75,6 +62,10 @@
     { piece: 'K', color: 'b' }, { piece: 'Q', color: 'b' }, { piece: 'R', color: 'b' },
     { piece: 'B', color: 'b' }, { piece: 'N', color: 'b' }, { piece: 'P', color: 'b' },
   ];
+
+  const PIECE_NAMES: Record<PieceKind, string> = {
+    K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight', P: 'pawn',
+  };
 
   type Phase = 'idle' | 'showing' | 'placing' | 'result' | 'done';
 
@@ -118,30 +109,21 @@
     startRound();
   }
 
-  function handleBoardClick(e: MouseEvent) {
+  function placePiece(sq: SquareId) {
     if (phase !== 'placing' || !selectedPiece) return;
-    const target = e.currentTarget as HTMLElement;
-    const svg = target.querySelector('svg') ?? target;
-    const rect = svg.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width * BOARD_PX;
-    const y = (e.clientY - rect.top) / rect.height * BOARD_PX;
-    const fi = Math.floor(x / SQ_SIZE);
-    const ri = Math.floor(y / SQ_SIZE);
-    if (fi >= 0 && fi < 8 && ri >= 0 && ri < 8) {
-      const sq = String.fromCharCode(97 + fi) + (8 - ri);
-      if (placed.some((p) => p.square === sq)) return;
-      placed = [...placed, { ...selectedPiece, square: sq }];
-    }
+    if (placed.some((p) => p.square === sq)) return;
+    placed = [...placed, { ...selectedPiece, square: sq }];
+  }
+
+  /** A placed piece is right if the same piece stood on that square. */
+  function isRight(p: PiecePlacement): boolean {
+    return position.some(
+      (orig) => orig.square === p.square && orig.piece === p.piece && orig.color === p.color
+    );
   }
 
   function checkAnswer() {
-    let correctCount = 0;
-    for (const p of placed) {
-      const match = position.find(
-        (orig) => orig.square === p.square && orig.piece === p.piece && orig.color === p.color
-      );
-      if (match) correctCount++;
-    }
+    const correctCount = placed.filter(isRight).length;
     totalCorrect += correctCount;
     totalPieces += position.length;
     playSound(correctCount === position.length ? 'correct' : 'wrong');
@@ -172,29 +154,8 @@
     phase = 'idle';
   }
 
-  let correctSquares = $derived.by(() => {
-    if (phase !== 'result') return new Set<string>();
-    const s = new Set<string>();
-    for (const p of placed) {
-      const match = position.find(
-        (orig) => orig.square === p.square && orig.piece === p.piece && orig.color === p.color
-      );
-      if (match) s.add(p.square);
-    }
-    return s;
-  });
-
-  let wrongSquares = $derived.by(() => {
-    if (phase !== 'result') return new Set<string>();
-    const s = new Set<string>();
-    for (const p of placed) {
-      const match = position.find(
-        (orig) => orig.square === p.square && orig.piece === p.piece && orig.color === p.color
-      );
-      if (!match) s.add(p.square);
-    }
-    return s;
-  });
+  let rightSquares = $derived(placed.filter(isRight).map((p) => p.square));
+  let wrongSquares = $derived(placed.filter((p) => !isRight(p)).map((p) => p.square));
 
   let overallStars = $derived.by(() => {
     if (totalPieces <= 0) return 0;
@@ -204,165 +165,96 @@
     if (pct >= 0.4) return 1;
     return 0;
   });
-
-  function boardFill(fi: number, ri: number, placedSqs?: Set<string>, wrongSqs?: Set<string>): string {
-    const isLight = (fi + ri) % 2 === 0;
-    const sqName = String.fromCharCode(97 + fi) + (8 - ri);
-    if (placedSqs?.has(sqName)) return '#a3d9a3';
-    if (wrongSqs?.has(sqName)) return '#f0a0a0';
-    return isLight ? LIGHT : DARK;
-  }
 </script>
 
 <div class="container">
   {#if phase === 'idle'}
     <div class="center-col">
-      <h2 class="title">Flash Position</h2>
+      <h2>Flash Position</h2>
       <p class="muted">
         A position flashes briefly. Then place the pieces from memory! {ROUNDS} rounds.
       </p>
-      <div class="level-picker">
-        <span class="level-label">Difficulty:</span>
-        {#each LEVELS as l, i}
-          <button
-            class={['level-btn', levelIdx === i && 'level-active']}
-            onclick={() => { levelIdx = i; }}
-          >
-            {l.label}
-          </button>
-        {/each}
-      </div>
+      <Choice
+        label="Difficulty"
+        options={LEVELS.map((l, i) => ({ value: i, label: l.label }))}
+        bind:value={levelIdx}
+      />
       {#if bestStars > 0}
-        <div class="best">
-          <StarRating stars={bestStars} size="sm" />
-        </div>
+        <StarRating stars={bestStars} size="sm" />
       {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
   {:else if phase === 'done'}
     <div class="center-col">
-      <h2 class="title">Complete!</h2>
+      <h2>Complete!</h2>
       <p class="big-score">{totalCorrect}/{totalPieces} pieces correct</p>
       {#if overallStars > 0}
         <StarRating stars={overallStars} size="lg" />
       {/if}
-      <button class="start-btn" onclick={goIdle}>Play Again</button>
+      <Button variant="primary" size="large" onclick={goIdle}>Play Again</Button>
     </div>
   {:else if phase === 'showing'}
     <div class="center-col">
-      <div class="round-label">Round {round}/{ROUNDS} &mdash; Memorize!</div>
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Chess position to memorize">
-        {#each Array(8) as _, ri}
-          {#each Array(8) as _, fi}
-            <rect
-              x={fi * SQ_SIZE}
-              y={ri * SQ_SIZE}
-              width={SQ_SIZE}
-              height={SQ_SIZE}
-              fill={boardFill(fi, ri)}
-            />
-          {/each}
-        {/each}
-        {#each position as p}
-          {@const [f, r] = sqToCoords(p.square)}
-          <image
-            href="/pieces/{p.color}{p.piece}.svg"
-            x={f * SQ_SIZE + SQ_SIZE * 0.1}
-            y={r * SQ_SIZE + SQ_SIZE * 0.1}
-            width={SQ_SIZE * 0.8}
-            height={SQ_SIZE * 0.8}
-          />
-        {/each}
-      </svg>
+      <div class="muted">Round {round}/{ROUNDS} &mdash; Memorize!</div>
+      <div class="board">
+        <Board board={createBoardState(position)} readOnly coordinates={false} label="Chess position to memorize" />
+      </div>
       <div class="studying">Studying...</div>
     </div>
   {:else if phase === 'result'}
     <div class="center-col">
-      <div class="round-label">Round {round}/{ROUNDS}</div>
-      <p class="result-count">{correctSquares.size}/{position.length} correct</p>
-      <div class="muted-xs">Correct answer:</div>
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Correct chess position">
-        {#each Array(8) as _, ri}
-          {#each Array(8) as _, fi}
-            <rect
-              x={fi * SQ_SIZE}
-              y={ri * SQ_SIZE}
-              width={SQ_SIZE}
-              height={SQ_SIZE}
-              fill={boardFill(fi, ri, correctSquares, wrongSquares)}
-            />
-          {/each}
-        {/each}
-        {#each position as p}
-          {@const [f, r] = sqToCoords(p.square)}
-          <image
-            href="/pieces/{p.color}{p.piece}.svg"
-            x={f * SQ_SIZE + SQ_SIZE * 0.1}
-            y={r * SQ_SIZE + SQ_SIZE * 0.1}
-            width={SQ_SIZE * 0.8}
-            height={SQ_SIZE * 0.8}
-          />
-        {/each}
-      </svg>
-      <button class="action-btn" onclick={nextRound}>
+      <div class="muted">Round {round}/{ROUNDS}</div>
+      <p class="result-count">{rightSquares.length}/{position.length} correct</p>
+      <div class="muted">Correct answer:</div>
+      <div class="board">
+        <Board
+          board={createBoardState(position)}
+          readOnly
+          coordinates={false}
+          highlights={[...highlight(rightSquares, MARK.good), ...highlight(wrongSquares, MARK.danger)]}
+          label="Correct chess position"
+        />
+      </div>
+      <Button variant="primary" onclick={nextRound}>
         {round >= ROUNDS ? 'See Results' : 'Next'}
-      </button>
+      </Button>
     </div>
   {:else}
     <!-- placing phase -->
-    <div class="placing-col">
-      <div class="round-label">Round {round}/{ROUNDS} &mdash; Place from memory!</div>
+    <div class="center-col">
+      <div class="muted">Round {round}/{ROUNDS} &mdash; Place from memory!</div>
 
-      <button
-        class="board-wrapper board-btn"
-        aria-label="Chess board — click to place pieces"
-        onclick={handleBoardClick}
-      >
-        <svg
-          viewBox="0 0 {BOARD_PX} {BOARD_PX}"
-          class="board-svg clickable"
-        >
-          {#each Array(8) as _, ri}
-            {#each Array(8) as _, fi}
-              <rect
-                x={fi * SQ_SIZE}
-                y={ri * SQ_SIZE}
-                width={SQ_SIZE}
-                height={SQ_SIZE}
-                fill={boardFill(fi, ri)}
-              />
-            {/each}
-          {/each}
-          {#each placed as p}
-            {@const [f, r] = sqToCoords(p.square)}
-            <image
-              href="/pieces/{p.color}{p.piece}.svg"
-              x={f * SQ_SIZE + 4}
-              y={r * SQ_SIZE + 4}
-              width={32}
-              height={32}
-            />
-          {/each}
-        </svg>
-      </button>
+      <div class="board">
+        <Board
+          board={createBoardState(placed)}
+          coordinates={false}
+          playableColors={[]}
+          onSquareClick={placePiece}
+          label="Chess board: tap a square to place the chosen piece"
+        />
+      </div>
 
       <div class="tray">
         {#each TRAY_PIECES as p}
           {@const isSelected = selectedPiece?.piece === p.piece && selectedPiece?.color === p.color}
           <button
-            class={['tray-btn', isSelected && 'tray-selected']}
+            class={['tray-piece', isSelected && 'selected']}
+            aria-pressed={isSelected}
             onclick={() => { selectedPiece = isSelected ? null : p; }}
           >
-            <img src="/pieces/{p.color}{p.piece}.svg" alt="{p.color}{p.piece}" class="tray-img" />
+            <img
+              src="/pieces/{p.color}{p.piece}.svg"
+              alt="{p.color === 'w' ? 'White' : 'Black'} {PIECE_NAMES[p.piece]}"
+            />
           </button>
         {/each}
       </div>
 
       <div class="actions">
-        <button class="clear-btn" onclick={clearPlaced}>Clear</button>
-        <button class="action-btn" onclick={checkAnswer}>
+        <Button onclick={clearPlaced}>Clear</Button>
+        <Button variant="primary" onclick={checkAnswer}>
           Check ({placed.length}/{level.pieces})
-        </button>
+        </Button>
       </div>
     </div>
   {/if}
@@ -383,91 +275,16 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    width: 100%;
     text-align: center;
   }
 
-  .placing-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
-  }
-
   .muted {
-    color: var(--text-muted);
-  }
-
-  .muted-xs {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-
-  .best {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .round-label {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .level-picker {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .level-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
-  .level-btn {
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: 1px solid var(--card-border);
-    background: transparent;
-    color: var(--text-faint);
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
-  }
-
-  .level-btn:hover {
-    color: var(--foreground);
-  }
-
-  .level-active {
-    background: #16a34a;
-    color: white;
-    border-color: #16a34a;
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: bold;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: rgba(255, 248, 230, 0.25);
+    color: var(--ink-muted);
   }
 
   .big-score {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
@@ -475,39 +292,15 @@
     font-weight: bold;
   }
 
-  .board-svg {
+  .board {
     width: 100%;
-    max-width: 280px;
-    display: block;
-  }
-
-  @media (min-width: 640px) {
-    .board-svg {
-      max-width: 320px;
-    }
-  }
-
-  .clickable {
-    cursor: pointer;
-  }
-
-  .board-wrapper {
-    position: relative;
-  }
-
-  .board-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
+    max-width: 24rem;
   }
 
   .studying {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     animation: pulse 2s ease-in-out infinite;
   }
-
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
@@ -519,64 +312,32 @@
     gap: 0.25rem;
   }
 
-  .tray-btn {
-    width: 2.5rem;
-    height: 2.5rem;
+  .tray-piece {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
     border-radius: 0.25rem;
-    border: 2px solid var(--card-border);
+    border: 2px solid var(--line);
     background: transparent;
     cursor: pointer;
-    padding: 0;
     transition: border-color 0.15s;
   }
-
-  .tray-btn:hover {
-    border-color: rgba(255, 248, 230, 0.3);
+  .tray-piece:hover {
+    border-color: var(--ink-muted);
   }
-
-  .tray-selected {
-    border-color: #22c55e;
-    background: rgba(34, 197, 94, 0.2);
+  /* The chosen piece is the one to look at. */
+  .tray-piece.selected {
+    border-color: var(--highlight);
+    background: var(--highlight-tint);
   }
-
-  .tray-img {
+  .tray-piece img {
+    display: block;
     width: 100%;
     height: 100%;
-    display: block;
   }
 
   .actions {
     display: flex;
     gap: 0.75rem;
-  }
-
-  .clear-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: transparent;
-    color: var(--text-faint);
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: color 0.15s;
-  }
-
-  .clear-btn:hover {
-    color: var(--foreground);
-  }
-
-  .action-btn {
-    padding: 0.5rem 1.5rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .action-btn:hover {
-    background: #15803d;
   }
 </style>

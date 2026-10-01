@@ -2,6 +2,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import { playSound } from '$lib/state/sound';
   import { type BoardState, type SquareId, createBoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
@@ -196,8 +197,6 @@
       {board}
       {selectedSquare}
       {validMoves}
-      targets={[]}
-      reachedTargets={[]}
       {dragValidMoves}
       onSquareClick={handleSquareClick}
       onDrop={handleDrop}
@@ -214,7 +213,7 @@
     </div>
 
     {#if feedback && result === 'playing'}
-      <p class="feedback">{feedback}</p>
+      <p class="feedback">✗ {feedback}</p>
     {/if}
 
     {#if result === 'won'}
@@ -230,9 +229,7 @@
         {#if bestStars > 0 && bestStars > stars}
           <p class="best-text">Best: {bestStars} stars</p>
         {/if}
-        <button class="new-position-btn" onclick={reset}>
-          New Position
-        </button>
+        <Button variant="primary" onclick={reset}>New Position</Button>
       </div>
     {/if}
   {/snippet}
@@ -245,20 +242,20 @@
   }
 
   .title {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: var(--size-large);
     margin: 0 0 0.25rem;
   }
 
   .status {
-    color: #888;
+    color: var(--ink-muted);
     margin: 0;
   }
 
+  /* A move that was not good enough. */
   .feedback {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
+    color: var(--wrong-text);
+    font-size: var(--size-secondary);
+    font-weight: bold;
     margin: 0;
     flex-shrink: 0;
   }
@@ -272,42 +269,10 @@
     flex-shrink: 0;
   }
 
-  .result-text {
-    font-size: 0.875rem;
-    color: #888;
-    margin: 0;
-  }
-
+  .result-text,
   .best-text {
-    font-size: 0.75rem;
-    color: #666;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin: 0;
-  }
-
-  .new-position-btn {
-    padding: 0.5rem 1.5rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .new-position-btn:hover {
-    background: #15803d;
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.5rem);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 </style>

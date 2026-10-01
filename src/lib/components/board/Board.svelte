@@ -1,19 +1,25 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import { type BoardState, FILES, RANKS, type SquareId, type PieceKind, type PieceColor, squareToCoords } from '$lib/logic/types';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import type { Arrow } from '$lib/logic/pgn';
-  import type { SquareHighlight } from '$lib/puzzles/parse-moves';
+  import type { SquareHighlight } from '$lib/board-marks';
+  import Wall from './Wall.svelte';
+
+  /**
+   * Every chess board in the app. Given only `board`, it is a still picture,
+   * and each other prop adds one thing. It fills the width of whatever holds
+   * it, as a square.
+   *
+   * It is drawn 800 units across, 100 to a square, so anything inside it,
+   * text included, is sized in those units.
+   */
 
   const SQUARE_SIZE = 100;
   const BOARD_SIZE = SQUARE_SIZE * 8;
 
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
-  const SELECTED_COLOR = '#f0e060';
-  const VALID_MOVE_COLOR = '#00000033';
-  const TARGET_COLOR = '#d4920a';
-  const LAST_MOVE_COLOR = '#a8c4f0';
-  const WRONG_MOVE_COLOR = '#ef4444';
+  /** How far a ring highlight sits inside its square. */
+  const RING_INSET = 14;
 
   interface DragState {
     from: SquareId;
@@ -25,63 +31,107 @@
 
   interface Props {
     board: BoardState;
-    selectedSquare: SquareId | null;
-    validMoves: SquareId[];
-    targets: SquareId[];
-    reachedTargets: SquareId[];
-    dragValidMoves: SquareId[];
-    draggablePiece?: PieceKind;
-    onSquareClick: (sq: SquareId) => void;
-    onDrop: (from: SquareId, to: SquareId) => void;
-    onDragStart: (sq: SquareId) => void;
-    onDragEnd: () => void;
-    pawnSlide?: { from: SquareId; to: SquareId };
-    wrongMoveSquare?: SquareId | null;
-    opponentSlide?: SlideAnimation | null;
+    /** Read out by screen readers. */
+    label?: string;
+    /** No moving pieces, no clicks, no animation: a picture. */
     readOnly?: boolean;
-    arrows?: Arrow[];
-    playableColors?: PieceColor[];
-    highlights?: SquareHighlight[];
-    obstacles?: SquareId[];
+    /** Black at the bottom. */
     flipped?: boolean;
+    /** Letters and numbers in the edge squares. Turn them off on a small board. */
+    coordinates?: boolean;
+
+    // Moving pieces
+    selectedSquare?: SquareId | null;
+    validMoves?: SquareId[];
+    /** The moves to show while a piece is being dragged. */
+    dragValidMoves?: SquareId[];
+    /** Only pieces of this kind can be dragged. */
+    draggablePiece?: PieceKind;
+    /** The colours that can be dragged: white unless given. An empty list
+        makes every tap a click, for placing pieces. */
+    playableColors?: PieceColor[];
+    onSquareClick?: (sq: SquareId) => void;
+    onDrop?: (from: SquareId, to: SquareId) => void;
+    onDragStart?: (sq: SquareId) => void;
+    onDragEnd?: () => void;
+
+    // Showing what just happened
+    wrongMoveSquare?: SquareId | null;
+    pawnSlide?: { from: SquareId; to: SquareId };
+    opponentSlide?: SlideAnimation | null;
+
+    // Drawn on the board
+    /** Squares to reach, each marked with a star. */
+    targets?: SquareId[];
+    /** Targets already reached, marked with a tick. */
+    reachedTargets?: SquareId[];
+    highlights?: SquareHighlight[];
+    arrows?: Arrow[];
+    /** Squares whose piece is drawn as a brick wall. */
+    obstacles?: SquareId[];
+    /** A path to number, square by square: S, 1, 2, … joined by a line. */
+    route?: SquareId[];
+    /** Drawn on top of everything, in board units. */
+    children?: Snippet;
   }
 
   let {
     board,
-    selectedSquare,
-    validMoves,
-    targets,
-    reachedTargets,
-    dragValidMoves,
+    label = 'Chess board',
+    readOnly = false,
+    flipped = false,
+    coordinates = true,
+    selectedSquare = null,
+    validMoves = [],
+    dragValidMoves = [],
     draggablePiece,
+    playableColors,
     onSquareClick,
     onDrop,
     onDragStart,
     onDragEnd,
-    pawnSlide,
     wrongMoveSquare,
+    pawnSlide,
     opponentSlide,
-    readOnly = false,
-    arrows,
-    playableColors,
-    highlights,
-    obstacles,
-    flipped = false,
+    targets = [],
+    reachedTargets = [],
+    highlights = [],
+    arrows = [],
+    obstacles = [],
+    route = [],
+    children,
   }: Props = $props();
 
   let svgEl = $state<SVGSVGElement | undefined>(undefined);
   let drag = $state<DragState | null>(null);
   let clickSquare = $state<SquareId | null>(null);
 
+  // The board's size on screen, in pixels.
+  let width = $state(0);
+  let height = $state(0);
+
+  /** Coordinates stay at least 14px on screen, however small the board is drawn. */
+  let coordinateSize = $derived.by(() => {
+    const drawn = Math.min(width, height);
+    return drawn > 0 ? Math.max(24, (14 * BOARD_SIZE) / drawn) : 24;
+  });
+
   let displayRanks = $derived(flipped ? [...RANKS].reverse() : RANKS);
   let displayFiles = $derived(flipped ? [...FILES].reverse() : FILES);
 
+  let shownMoves = $derived(drag ? dragValidMoves : validMoves);
+
+  /** A square's column and row on screen, counted from the top left. */
   function sqToXY(sq: SquareId): [number, number] {
     const [fx, fy] = squareToCoords(sq);
     return flipped ? [7 - fx, 7 - fy] : [fx, fy];
   }
 
-  let allHighlightedMoves = $derived(drag ? dragValidMoves : validMoves);
+  /** The middle of a square, in board units. */
+  function centre(sq: SquareId): [number, number] {
+    const [fx, fy] = sqToXY(sq);
+    return [fx * SQUARE_SIZE + SQUARE_SIZE / 2, fy * SQUARE_SIZE + SQUARE_SIZE / 2];
+  }
 
   function pointerToSvg(e: PointerEvent): { x: number; y: number } | null {
     if (!svgEl) return null;
@@ -113,7 +163,7 @@
       if (canPlay && (!draggablePiece || p.piece === draggablePiece)) {
         (e.target as Element).setPointerCapture(e.pointerId);
         drag = { from: sq, piece: p.piece, color: p.color, x: svgPt.x, y: svgPt.y };
-        onDragStart(sq);
+        onDragStart?.(sq);
         return;
       }
     }
@@ -137,29 +187,25 @@
         if (dropSq && dropSq !== drag.from) {
           // Snap the drag preview to the drop square so the piece
           // stays visible while the board state updates.
-          const [dx, dy] = sqToXY(dropSq);
-          drag = {
-            ...drag,
-            x: dx * SQUARE_SIZE + SQUARE_SIZE / 2,
-            y: dy * SQUARE_SIZE + SQUARE_SIZE / 2,
-          };
-          onDrop(drag.from, dropSq);
+          const [x, y] = centre(dropSq);
+          drag = { ...drag, x, y };
+          onDrop?.(drag.from, dropSq);
           // Clear drag after a microtick so the new board state
           // renders before the preview disappears.
-          queueMicrotask(() => { drag = null; onDragEnd(); });
+          queueMicrotask(() => { drag = null; onDragEnd?.(); });
           return;
         } else {
-          onSquareClick(drag.from);
+          onSquareClick?.(drag.from);
         }
       }
       drag = null;
-      onDragEnd();
+      onDragEnd?.();
     } else if (clickSquare) {
       const svgPt = pointerToSvg(e);
       if (svgPt) {
         const upSq = svgToSquare(svgPt.x, svgPt.y);
         if (upSq === clickSquare) {
-          onSquareClick(clickSquare);
+          onSquareClick?.(clickSquare);
         }
       }
       clickSquare = null;
@@ -191,12 +237,8 @@
   }
 
   function getArrowPath(arrow: Arrow) {
-    const [fx, fy] = sqToXY(arrow.from);
-    const [tx, ty] = sqToXY(arrow.to);
-    const x1 = fx * SQUARE_SIZE + SQUARE_SIZE / 2;
-    const y1 = fy * SQUARE_SIZE + SQUARE_SIZE / 2;
-    const x2 = tx * SQUARE_SIZE + SQUARE_SIZE / 2;
-    const y2 = ty * SQUARE_SIZE + SQUARE_SIZE / 2;
+    const [x1, y1] = centre(arrow.from);
+    const [x2, y2] = centre(arrow.to);
     const dx = x2 - x1;
     const dy = y2 - y1;
     const len = Math.sqrt(dx * dx + dy * dy);
@@ -216,10 +258,12 @@
 
 <svg
   bind:this={svgEl}
+  bind:clientWidth={width}
+  bind:clientHeight={height}
   viewBox="0 0 {BOARD_SIZE} {BOARD_SIZE}"
-  class="board-svg"
-  role="application"
-  aria-label="Chess board"
+  class={['board-svg', readOnly && 'still']}
+  role={readOnly ? 'img' : 'application'}
+  aria-label={label}
   tabindex="-1"
   onpointerdown={handlePointerDown}
   onpointermove={handlePointerMove}
@@ -229,111 +273,105 @@
   {#each displayRanks as rank, ri}
     {#each displayFiles as file, fi}
       {@const sq = `${file}${rank}` as SquareId}
+      {@const x = fi * SQUARE_SIZE}
+      {@const y = ri * SQUARE_SIZE}
       {@const isLight = (fi + ri) % 2 === 0}
       {@const isSelected = sq === selectedSquare || (drag !== null && sq === drag.from)}
       {@const isTarget = targets.includes(sq) && !reachedTargets.includes(sq)}
       {@const isReached = reachedTargets.includes(sq)}
       {@const hasOccupant = board.pieces.has(sq)}
       {@const isPawnSlideSquare = pawnSlide && (sq === pawnSlide.from || sq === pawnSlide.to)}
-      {@const isWrongMove = sq === wrongMoveSquare}
-      {@const highlight = highlights?.find(h => h.square === sq)}
-      {@const fill = isWrongMove ? WRONG_MOVE_COLOR : isSelected ? SELECTED_COLOR : isPawnSlideSquare ? LAST_MOVE_COLOR : isLight ? LIGHT : DARK}
+      <!-- If a square is highlighted twice, the first one wins. -->
+      {@const highlight = highlights.find((h) => h.square === sq)}
       <g
         role="button"
         tabindex="-1"
         aria-label={sq}
-        class="square"
       >
         <rect
-          x={fi * SQUARE_SIZE}
-          y={ri * SQUARE_SIZE}
+          {x}
+          {y}
           width={SQUARE_SIZE}
           height={SQUARE_SIZE}
-          {fill}
+          class={[
+            isLight ? 'light' : 'dark',
+            sq === wrongMoveSquare ? 'wrong' : isSelected ? 'selected' : isPawnSlideSquare && 'moved',
+          ]}
         />
-        {#if highlight}
+        {#if highlight?.look === 'ring'}
           <rect
-            x={fi * SQUARE_SIZE}
-            y={ri * SQUARE_SIZE}
+            x={x + RING_INSET}
+            y={y + RING_INSET}
+            width={SQUARE_SIZE - 2 * RING_INSET}
+            height={SQUARE_SIZE - 2 * RING_INSET}
+            class="no-pointer ring-edge"
+          />
+          <rect
+            x={x + RING_INSET}
+            y={y + RING_INSET}
+            width={SQUARE_SIZE - 2 * RING_INSET}
+            height={SQUARE_SIZE - 2 * RING_INSET}
+            style:stroke={highlight.color}
+            class="no-pointer ring"
+          />
+        {:else if highlight}
+          <rect
+            {x}
+            {y}
             width={SQUARE_SIZE}
             height={SQUARE_SIZE}
-            fill={highlight.color + "99"}
-            class="no-pointer"
+            style:fill={highlight.color}
+            class={['no-pointer', highlight.look !== 'solid' && 'tint']}
           />
         {/if}
-        {#if ri === 7}
+        {#if coordinates && ri === 7}
           <text
-            x={fi * SQUARE_SIZE + 5}
-            y={ri * SQUARE_SIZE + SQUARE_SIZE - 5}
-            font-size="14"
-            fill={isLight ? DARK : LIGHT}
-            font-weight="bold"
-            class="no-pointer label"
+            x={x + 6}
+            y={y + SQUARE_SIZE - 8}
+            style:font-size="{coordinateSize}px"
+            class={['no-pointer', 'label', 'coordinate', isLight ? 'on-light' : 'on-dark']}
           >{file}</text>
         {/if}
-        {#if fi === 0}
+        {#if coordinates && fi === 0}
           <text
-            x={5}
-            y={ri * SQUARE_SIZE + 16}
-            font-size="14"
-            fill={isLight ? DARK : LIGHT}
-            font-weight="bold"
-            class="no-pointer label"
+            x={x + 6}
+            y={y + coordinateSize + 2}
+            style:font-size="{coordinateSize}px"
+            class={['no-pointer', 'label', 'coordinate', isLight ? 'on-light' : 'on-dark']}
           >{rank}</text>
         {/if}
         {#if isTarget && !hasOccupant}
           <text
-            x={fi * SQUARE_SIZE + SQUARE_SIZE / 2}
-            y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 18}
-            font-size="70"
+            x={x + SQUARE_SIZE / 2}
+            y={y + SQUARE_SIZE / 2 + 18}
             text-anchor="middle"
-            fill="#f5c518"
-            stroke="#8b6914"
-            stroke-width="2"
-            class="no-pointer label"
-            style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4))"
+            class="no-pointer label star"
           >&#9733;</text>
         {/if}
         {#if isReached}
           <text
-            x={fi * SQUARE_SIZE + SQUARE_SIZE / 2}
-            y={ri * SQUARE_SIZE + SQUARE_SIZE / 2 + 14}
-            font-size="56"
-            font-weight="bold"
+            x={x + SQUARE_SIZE / 2}
+            y={y + SQUARE_SIZE / 2 + 14}
             text-anchor="middle"
-            fill="#4ade80"
-            stroke="#166534"
-            stroke-width="2.5"
-            class="no-pointer label"
-            style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4))"
+            class="no-pointer label reached"
           >&#10003;</text>
         {/if}
       </g>
     {/each}
   {/each}
 
-  <!-- Valid move indicators -->
-  {#each allHighlightedMoves as sq}
-    {@const [fx, fy] = sqToXY(sq)}
-    {@const occupant = board.pieces.get(sq)}
+  <!-- Where the selected piece can go: a ring around a piece it can take, a dot on an empty square. -->
+  {#each shownMoves as sq}
+    {@const [cx, cy] = centre(sq)}
     {@const isTarget = targets.includes(sq)}
-    {#if occupant}
-      <circle
-        cx={fx * SQUARE_SIZE + SQUARE_SIZE / 2}
-        cy={fy * SQUARE_SIZE + SQUARE_SIZE / 2}
-        r={SQUARE_SIZE * 0.45}
-        fill="none"
-        stroke={isTarget ? TARGET_COLOR : VALID_MOVE_COLOR}
-        stroke-width={4}
-        class="no-pointer"
-      />
+    {#if board.pieces.has(sq)}
+      <circle {cx} {cy} r={SQUARE_SIZE * 0.45} class={['no-pointer', 'move-ring', isTarget && 'onto-target']} />
     {:else}
       <circle
-        cx={fx * SQUARE_SIZE + SQUARE_SIZE / 2}
-        cy={fy * SQUARE_SIZE + SQUARE_SIZE / 2}
+        {cx}
+        {cy}
         r={isTarget ? SQUARE_SIZE * 0.25 : SQUARE_SIZE * 0.15}
-        fill={isTarget ? `${TARGET_COLOR}88` : VALID_MOVE_COLOR}
-        class="no-pointer"
+        class={['no-pointer', 'move-dot', isTarget && 'onto-target']}
       />
     {/if}
   {/each}
@@ -342,34 +380,8 @@
   {#each [...board.pieces.entries()] as [sq, { piece, color }]}
     {#if !(drag && sq === drag.from)}
       {@const [fx, fy] = sqToXY(sq)}
-      {@const slideStyle = getSlideStyle(sq, piece)}
-      {#if obstacles?.includes(sq)}
-        {@const bx = fx * SQUARE_SIZE + 12}
-        {@const by = fy * SQUARE_SIZE + 12}
-        {@const bw = SQUARE_SIZE - 24}
-        {@const bh = SQUARE_SIZE - 24}
-        {@const rowH = bh / 3}
-        {@const mortar = "#8b7355"}
-        {@const brickColors = ["#b5543a", "#c4604a", "#a84e36", "#bf5c42", "#c96850", "#ab5038", "#be5a40", "#c26248", "#b05340"]}
-        <g class="no-pointer">
-          <!-- Mortar background -->
-          <rect x={bx} y={by} width={bw} height={bh} rx="4" fill={mortar}/>
-          <!-- Row 1: 3 bricks -->
-          <rect x={bx + 1.5} y={by + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[0]}/>
-          <rect x={bx + bw * 0.33 + 1.5} y={by + 1.5} width={bw * 0.34 - 3} height={rowH - 3} rx="2" fill={brickColors[1]}/>
-          <rect x={bx + bw * 0.67 + 1.5} y={by + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[2]}/>
-          <!-- Row 2: 3 bricks, offset -->
-          <rect x={bx + 1.5} y={by + rowH + 1.5} width={bw * 0.17 - 2} height={rowH - 3} rx="2" fill={brickColors[3]}/>
-          <rect x={bx + bw * 0.17 + 1.5} y={by + rowH + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[4]}/>
-          <rect x={bx + bw * 0.5 + 1.5} y={by + rowH + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[5]}/>
-          <rect x={bx + bw * 0.83 + 1.5} y={by + rowH + 1.5} width={bw * 0.17 - 2} height={rowH - 3} rx="2" fill={brickColors[6]}/>
-          <!-- Row 3: 3 bricks -->
-          <rect x={bx + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[7]}/>
-          <rect x={bx + bw * 0.33 + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.34 - 3} height={rowH - 3} rx="2" fill={brickColors[8]}/>
-          <rect x={bx + bw * 0.67 + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={brickColors[0]}/>
-          <!-- Outer border -->
-          <rect x={bx} y={by} width={bw} height={bh} rx="4" fill="none" stroke="#6b5740" stroke-width="1.5"/>
-        </g>
+      {#if obstacles.includes(sq)}
+        <Wall x={fx * SQUARE_SIZE} y={fy * SQUARE_SIZE} size={SQUARE_SIZE} />
       {:else}
         <image
           href="/pieces/{color}{piece}.svg"
@@ -378,7 +390,7 @@
           width={SQUARE_SIZE - 10}
           height={SQUARE_SIZE - 10}
           class="no-pointer"
-          style={slideStyle}
+          style={getSlideStyle(sq, piece)}
         />
       {/if}
     {/if}
@@ -387,39 +399,45 @@
   <!-- Stars on top of target pieces -->
   {#each targets as sq}
     {#if !reachedTargets.includes(sq) && board.pieces.has(sq)}
-      {@const [fx, fy] = sqToXY(sq)}
-      <text
-        x={fx * SQUARE_SIZE + SQUARE_SIZE / 2}
-        y={fy * SQUARE_SIZE + SQUARE_SIZE / 2 + 18}
-        font-size="70"
-        text-anchor="middle"
-        fill="#f5c518"
-        stroke="#8b6914"
-        stroke-width="2"
-        class="no-pointer label"
-        style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4))"
-      >&#9733;</text>
+      {@const [cx, cy] = centre(sq)}
+      <text x={cx} y={cy + 18} text-anchor="middle" class="no-pointer label star">&#9733;</text>
     {/if}
   {/each}
 
-  <!-- Arrows -->
-  {#if arrows}
-    {#each arrows as arrow, i}
-      {@const a = getArrowPath(arrow)}
-      <g class="no-pointer" opacity="0.75">
-        <line
-          x1={a.x1} y1={a.y1} x2={a.sx} y2={a.sy}
-          stroke={a.color}
-          stroke-width={a.shaftW}
-          stroke-linecap="round"
-        />
-        <polygon
-          points="{a.x2},{a.y2} {a.sx + a.px * a.hw},{a.sy + a.py * a.hw} {a.sx - a.px * a.hw},{a.sy - a.py * a.hw}"
-          fill={a.color}
-        />
-      </g>
-    {/each}
+  <!-- Route: each stop numbered, joined by a line -->
+  {#if route.length > 0}
+    <g class="no-pointer">
+      {#each route.slice(1) as sq, i}
+        {@const [x1, y1] = centre(route[i])}
+        {@const [x2, y2] = centre(sq)}
+        <line {x1} {y1} {x2} {y2} class="route-leg" />
+      {/each}
+      {#each route as sq, i}
+        {@const [cx, cy] = centre(sq)}
+        <circle {cx} {cy} r={SQUARE_SIZE * 0.3} class="route-stop" />
+        <text x={cx} y={cy} class="label route-number">{i === 0 ? 'S' : i}</text>
+      {/each}
+    </g>
   {/if}
+
+  <!-- Arrows -->
+  {#each arrows as arrow}
+    {@const a = getArrowPath(arrow)}
+    <g class="no-pointer arrow">
+      <line
+        x1={a.x1} y1={a.y1} x2={a.sx} y2={a.sy}
+        style:stroke={a.color}
+        stroke-width={a.shaftW}
+        stroke-linecap="round"
+      />
+      <polygon
+        points="{a.x2},{a.y2} {a.sx + a.px * a.hw},{a.sy + a.py * a.hw} {a.sx - a.px * a.hw},{a.sy - a.py * a.hw}"
+        style:fill={a.color}
+      />
+    </g>
+  {/each}
+
+  {@render children?.()}
 
   <!-- Dragged piece following cursor -->
   {#if drag}
@@ -437,24 +455,98 @@
 
 <style>
   .board-svg {
+    display: block;
     width: 100%;
     max-height: 80dvh;
     aspect-ratio: 1;
+    cursor: pointer;
+    /* A drag moves a piece, not the page. */
     touch-action: none;
   }
-
   @media (min-height: 32rem) and (min-width: 32rem) {
     .board-svg {
       max-height: 100%;
     }
   }
-  .square {
-    cursor: pointer;
+  .still {
+    cursor: auto;
+    touch-action: auto;
   }
+
   .no-pointer {
     pointer-events: none;
   }
   .label {
     user-select: none;
   }
+
+  .light { fill: var(--board-light); }
+  .dark { fill: var(--board-dark); }
+  .selected { fill: var(--highlight); }
+  .moved { fill: var(--highlight); fill-opacity: 0.6; }
+  .wrong { fill: var(--wrong); }
+
+  .tint { fill-opacity: 0.6; }
+  /* A dark edge either side, so a ring shows on light and dark squares. */
+  .ring-edge {
+    fill: none;
+    stroke: var(--scrim);
+    stroke-width: 28;
+  }
+  .ring {
+    fill: none;
+    stroke-width: 16;
+  }
+
+  /* Each coordinate takes the colour of the squares it is not on. Its size
+     is set in the markup, from the board's size on screen. */
+  .coordinate {
+    font-weight: bold;
+  }
+  .coordinate.on-light { fill: var(--board-dark); }
+  .coordinate.on-dark { fill: var(--board-light); }
+
+  .star {
+    font-size: 70px;
+    fill: var(--star);
+    stroke: var(--star-edge);
+    stroke-width: 2;
+  }
+  .reached {
+    font-size: 56px;
+    font-weight: bold;
+    fill: var(--correct);
+    stroke: var(--on-answer);
+    stroke-width: 3;
+  }
+
+  .move-dot { fill: var(--board-move-dot); }
+  .move-ring {
+    fill: none;
+    stroke: var(--board-move-dot);
+    stroke-width: 4;
+  }
+  .move-dot.onto-target { fill: var(--board-target); }
+  .move-ring.onto-target { stroke: var(--board-target); }
+
+  .route-leg {
+    stroke: var(--page);
+    stroke-opacity: 0.6;
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .route-stop {
+    fill: var(--page);
+    stroke: var(--ink);
+    stroke-width: 4;
+  }
+  .route-number {
+    font-size: 36px;
+    font-weight: bold;
+    fill: var(--ink);
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  .arrow { opacity: 0.8; }
 </style>

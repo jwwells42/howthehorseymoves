@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import GameShell from '$lib/components/game/GameShell.svelte';
+  import BackLink from '$lib/components/ui/BackLink.svelte';
   import { getCharacter } from '$lib/characters/bots';
   import { BOT_LADDER, BOT_SPECS, type BotLevel } from '$lib/logic/bot';
 
@@ -18,27 +18,21 @@
     return BOT_LADDER.includes(p as BotLevel) ? (p as BotLevel) : null;
   });
 
-  // Which bots the student has already beaten (trophy on the card).
+  // Which bots the student has already beaten (trophy on the card). Read each
+  // time the ladder shows, because the student may have just won a trophy.
   let beaten = $state<Record<string, boolean>>({});
 
-  function readBeaten() {
+  $effect(() => {
+    if (level) return;
     const found: Record<string, boolean> = {};
     for (const l of BOT_LADDER) {
       found[l] = (parseInt(localStorage.getItem(`bot-beaten-${l}`) ?? '0', 10) || 0) > 0;
     }
     beaten = found;
-  }
-
-  onMount(readBeaten);
+  });
 
   function play(botLevel: BotLevel) {
     goto(`/play?level=${botLevel}`);
-  }
-
-  function changeOpponent() {
-    // Re-read first: the student may have just won a trophy on the card behind us.
-    readBeaten();
-    goto('/play');
   }
 
   const MAX_RUNG = BOT_LADDER.length;
@@ -47,11 +41,11 @@
 
 {#if !level}
   <main class="page">
-    <a href="/" class="back-link">&larr; Back to home</a>
-    <div class="header">
+    <BackLink href="/">Back to home</BackLink>
+    <header class="header">
       <h1>Play vs Computer</h1>
-      <p class="muted">Choose your opponent</p>
-    </div>
+      <p class="subtitle">Choose your opponent</p>
+    </header>
     <div class="level-list">
       {#each BOT_LADDER as botLevel (botLevel)}
         {@const char = getCharacter(botLevel)}
@@ -82,7 +76,7 @@
   </main>
 {:else}
   <main class="page">
-    <button class="back-link" onclick={changeOpponent}>&larr; Change opponent</button>
+    <BackLink href="/play">Change opponent</BackLink>
     {#key level}
       <GameShell botLevel={level} />
     {/key}
@@ -103,16 +97,8 @@
       overflow: hidden;
     }
   }
-  .back-link {
-    font-size: 0.875rem; color: var(--text-muted); display: inline-block;
-    margin-bottom: 1rem; background: none; border: none; cursor: pointer; padding: 0;
-    flex-shrink: 0;
-  }
-  .back-link:hover { color: var(--foreground); }
-  .muted { color: var(--text-muted); }
-
   .header { text-align: center; margin-bottom: 2rem; }
-  .header h1 { font-size: 1.875rem; font-weight: bold; margin-bottom: 0.5rem; }
+  .subtitle { margin-top: 0.25rem; color: var(--ink-muted); }
 
   /* Two columns where there's room — eight rungs don't fit in one column on a
      Chromebook (1366x768), and .page clips overflow at that size. */
@@ -127,26 +113,24 @@
   }
   .level-card {
     width: 100%; padding: 0.875rem 1rem; border-radius: 0.75rem;
-    border: 1px solid var(--card-border); background: var(--card-bg);
-    text-align: left; cursor: pointer; color: inherit;
-    transition: all 0.15s;
+    border: 1px solid var(--line); background: var(--surface);
+    text-align: left; cursor: pointer;
+    transition: background 0.15s;
   }
-  .level-card:hover { border-color: rgba(240, 230, 204, 0.3); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-  .level-card h3 { font-weight: bold; }
-  .level-desc { font-size: 0.8125rem; color: var(--text-muted); line-height: 1.35; }
+  .level-card:hover { background: var(--surface-raised); }
+  .level-card:hover .level-desc { color: var(--ink); }
+  .level-desc { font-size: var(--size-small); color: var(--ink-muted); line-height: 1.35; }
   .char-card { display: flex; align-items: center; gap: 0.75rem; }
   .char-text { min-width: 0; }
   .char-avatar { object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
 
   .name-row { display: flex; align-items: center; gap: 0.4rem; }
-  .trophy { font-size: 1rem; line-height: 1; }
+  .trophy { font-size: var(--size-body); line-height: 1; }
 
   /* Difficulty meter — readable without being able to read. */
   .pips { display: flex; gap: 3px; margin: 0.25rem 0 0.35rem; }
   .pip {
     width: 0.5rem; height: 0.5rem; border-radius: 50%;
-    background: var(--card-border);
-    opacity: 0.5;
+    background: var(--line);
   }
-  .pip.filled { opacity: 1; }
 </style>

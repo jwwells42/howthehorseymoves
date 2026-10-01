@@ -42,8 +42,8 @@
   }
 
   .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted, #888);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     display: inline-block;
     margin-bottom: 1rem;
     margin-left: 1rem;
@@ -51,11 +51,11 @@
   }
 
   .back-link:hover {
-    color: var(--foreground, #f0e6cc);
+    color: var(--ink);
   }
 
   .muted-link {
-    color: var(--text-muted, #888);
+    color: var(--ink-muted);
   }
 
   .muted-link:hover {

@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Board from '$lib/components/board/Board.svelte';
+  import AnswerInput from './AnswerInput.svelte';
+  import RouteTrail from './RouteTrail.svelte';
   import { playSound } from '$lib/state/sound';
-
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
+  import { EMPTY_BOARD, type SquareId } from '$lib/logic/types';
+  import { MARK, highlight } from '$lib/board-marks';
 
   function isValidSquare(sq: string): boolean {
     if (sq.length !== 2) return false;
@@ -23,13 +25,6 @@
     const df = Math.abs(from.charCodeAt(0) - to.charCodeAt(0));
     const dr = Math.abs(parseInt(from[1]) - parseInt(to[1]));
     return df === dr && df > 0;
-  }
-
-  function shortestPath(from: string, to: string): number {
-    if (!sameColor(from, to)) return -1;
-    if (from === to) return 0;
-    if (isBishopMove(from, to)) return 1;
-    return 2;
   }
 
   function generatePair(): { start: string; target: string; optimal: number; possible: boolean } {
@@ -63,37 +58,22 @@
     return 1;
   }
 
-  function sqXY(sq: string, S: number): [number, number] {
-    const f = sq.charCodeAt(0) - 97;
-    const r = parseInt(sq[1]) - 1;
-    return [f * S + S / 2, (7 - r) * S + S / 2];
-  }
-
   let puzzle = $state(generatePair());
   let route = $state<string[]>([]);
   let input = $state('');
   let error = $state<string | null>(null);
   let result = $state<'playing' | 'won' | 'correct-impossible'>('playing');
-  let inputEl = $state<HTMLInputElement | null>(null);
-  let newRouteEl = $state<HTMLButtonElement | null>(null);
+  let newRouteButton = $state<Button>();
 
   let currentSquare = $derived(route.length > 0 ? route[route.length - 1] : puzzle.start);
   let moveCount = $derived(route.length);
   let stars = $derived(result === 'correct-impossible' ? 3 : getStars(moveCount, puzzle.optimal));
 
-  // RouteBoard constants
-  const RB_S = 36;
-  const RB_B = RB_S * 8;
-
   let allStops = $derived([puzzle.start, ...route]);
-  let stopSet = $derived(new Set(allStops));
 
+  // Once the puzzle is done, Enter starts the next one.
   $effect(() => {
-    if (result === 'playing') {
-      inputEl?.focus();
-    } else {
-      newRouteEl?.focus();
-    }
+    if (result !== 'playing') newRouteButton?.focus();
   });
 
   function handleKeydown(e: KeyboardEvent) {
@@ -104,8 +84,7 @@
     }
   }
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  function handleSubmit() {
     const sq = input.trim().toLowerCase();
     input = '';
 
@@ -153,112 +132,50 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="container">
-  <div class="header">
-    <h2 class="title">Bishop Routes</h2>
-    <p class="subtitle">
-      Find a bishop path from <span class="bold">{puzzle.start}</span> to
-      <span class="bold">{puzzle.target}</span> — or spot when it's impossible!
+<div class="trainer">
+  <header class="header">
+    <h2>Bishop Routes</h2>
+    <p class="instructions">
+      Find a bishop path from <strong>{puzzle.start}</strong> to <strong>{puzzle.target}</strong>
+      — or spot when it's impossible!
     </p>
-  </div>
+  </header>
 
-  <!-- Route display -->
-  <div class="route-display">
-    <span class="route-sq">{puzzle.start}</span>
-    {#each route as sq, i}
-      <span class="route-step">
-        <span class="route-arrow">&rarr;</span>
-        <span class={['route-sq', sq === puzzle.target && 'route-sq-target']}>{sq}</span>
-      </span>
-    {/each}
-    {#if result === 'playing'}
-      <span class="route-arrow">&rarr; ?</span>
-    {/if}
-  </div>
+  <RouteTrail stops={allStops} target={puzzle.target} open={result === 'playing'} />
 
   {#if result === 'playing'}
-    <form class="input-row" onsubmit={handleSubmit}>
-      <input
-        bind:this={inputEl}
-        type="text"
-        bind:value={input}
-        placeholder="Next square..."
-        maxlength={2}
-        class="text-input"
-        autocomplete="off"
-        autocapitalize="off"
-      />
-      <button type="submit" class="go-btn">Go</button>
-    </form>
-    <button class="impossible-btn" onclick={handleImpossible}>
-      Can't reach! <span class="shortcut-hint">(Esc)</span>
-    </button>
-    {#if error}
-      <p class="error">{error}</p>
-    {/if}
+    <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
+    <Button onclick={handleImpossible}>Can't reach! <span class="shortcut">(Esc)</span></Button>
   {:else}
-    <div class="result-area">
+    <div class="result">
       {#if result === 'correct-impossible'}
         <p class="result-title">Correct! Impossible!</p>
-        <p class="result-detail">
+        <p class="instructions">
           {puzzle.start} and {puzzle.target} are on different color squares — a bishop can never reach it.
         </p>
       {:else}
         <p class="result-title">Route complete!</p>
-        <p class="result-detail">{moveCount} move{moveCount !== 1 ? 's' : ''} (optimal: {puzzle.optimal})</p>
+        <p class="instructions">{moveCount} move{moveCount !== 1 ? 's' : ''} (optimal: {puzzle.optimal})</p>
       {/if}
       <StarRating {stars} size="lg" />
       {#if result === 'won'}
-        <!-- RouteBoard inline -->
-        <svg viewBox="-14 -2 {RB_B + 28} {RB_B + 16}" class="route-board" role="img" aria-label="Bishop route on chess board">
-          {#each Array(8) as _, i}
-            <text x={-6} y={(7 - i) * RB_S + RB_S / 2 + 3}
-              text-anchor="middle" font-size="8" fill="#888">{i + 1}</text>
-          {/each}
-          {#each Array(8) as _, i}
-            <text x={i * RB_S + RB_S / 2} y={RB_B + 10}
-              text-anchor="middle" font-size="8" fill="#888">{String.fromCharCode(97 + i)}</text>
-          {/each}
-          {#each Array(8) as _, row}
-            {#each Array(8) as _, col}
-              {@const sq = String.fromCharCode(97 + col) + (8 - row)}
-              {@const isLight = (col + row) % 2 === 0}
-              {@const fill = sq === puzzle.start || sq === puzzle.target ? '#4ade80' : stopSet.has(sq) ? '#60a5fa' : isLight ? LIGHT : DARK}
-              <rect x={col * RB_S} y={row * RB_S} width={RB_S} height={RB_S} {fill} />
-            {/each}
-          {/each}
-          {#each allStops.slice(1) as sq, i}
-            {@const [x1, y1] = sqXY(allStops[i], RB_S)}
-            {@const [x2, y2] = sqXY(sq, RB_S)}
-            <line {x1} {y1} {x2} {y2}
-              stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round" />
-          {/each}
-          {#each allStops as sq, i}
-            {@const [x, y] = sqXY(sq, RB_S)}
-            {@const isEnd = sq === puzzle.target}
-            <circle cx={x} cy={y} r={RB_S * 0.3}
-              fill={i === 0 || isEnd ? '#166534' : '#1e40af'}
-              stroke="white" stroke-width="1.5" />
-            <text x={x} y={y + 1} text-anchor="middle" dominant-baseline="central"
-              font-size="9" fill="white" font-weight="bold" class="label">
-              {i === 0 ? 'S' : i}
-            </text>
-          {/each}
-        </svg>
+        <div class="route-board">
+          <Board
+            board={EMPTY_BOARD}
+            readOnly
+            route={allStops as SquareId[]}
+            highlights={highlight([puzzle.start, puzzle.target], MARK.note, 'solid')}
+            label="Bishop route on chess board"
+          />
+        </div>
       {/if}
-      <button
-        bind:this={newRouteEl}
-        class="go-btn"
-        onclick={newPuzzle}
-      >
-        New Route
-      </button>
+      <Button bind:this={newRouteButton} variant="primary" onclick={newPuzzle}>New Route</Button>
     </div>
   {/if}
 </div>
 
 <style>
-  .container {
+  .trainer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -271,150 +188,28 @@
     text-align: center;
   }
 
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
+  .instructions {
+    margin-top: 0.5rem;
+    color: var(--ink-muted);
   }
 
-  .subtitle {
-    color: var(--text-muted);
+  .shortcut {
+    font-weight: normal;
   }
 
-  .bold {
-    font-weight: bold;
-  }
-
-  .route-display {
-    width: 100%;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    min-height: 3rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .route-sq {
-    font-family: monospace;
-    font-weight: bold;
-  }
-
-  .route-sq-target {
-    color: #4ade80;
-  }
-
-  .route-step {
-    font-family: monospace;
-  }
-
-  .route-arrow {
-    color: var(--text-faint);
-    margin: 0 0.25rem;
-  }
-
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .text-input {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 1.125rem;
-    text-align: center;
-  }
-
-  .text-input:focus {
-    outline: none;
-    border-color: rgba(255, 248, 230, 0.4);
-  }
-
-  .text-input::placeholder {
-    color: var(--text-faint);
-  }
-
-  .go-btn {
-    padding: 0.5rem 1rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .go-btn:hover {
-    background: #15803d;
-  }
-
-  .impossible-btn {
-    padding: 0.5rem 1.5rem;
-    border-radius: 0.5rem;
-    border: 2px solid #ef4444;
-    background: transparent;
-    color: #f87171;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .impossible-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-  }
-
-  .shortcut-hint {
-    font-size: 0.75rem;
-    opacity: 0.6;
-  }
-
-  .error {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .result-area {
+  .result {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
+    text-align: center;
     animation: fade-in 0.3s ease;
   }
-
   .result-title {
     font-weight: bold;
-    font-size: 1.125rem;
   }
-
-  .result-detail {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
   .route-board {
     width: 100%;
-    max-width: 280px;
-  }
-
-  @media (min-width: 640px) {
-    .route-board {
-      max-width: 360px;
-    }
-  }
-
-  .label {
-    pointer-events: none;
-    user-select: none;
+    max-width: 24rem;
   }
 </style>

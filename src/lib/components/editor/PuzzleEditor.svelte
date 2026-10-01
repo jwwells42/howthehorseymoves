@@ -1,16 +1,23 @@
 <script lang="ts">
-  import { type SquareId, type PieceKind, type PieceColor, FILES, RANKS, squareToCoords } from '$lib/logic/types';
+  import { type SquareId, type PieceKind, type PieceColor, type PiecePlacement, FILES, createBoardState } from '$lib/logic/types';
   import { getValidMoves } from '$lib/logic/moves';
   import type { BoardState } from '$lib/logic/types';
   import type { Arrow } from '$lib/logic/pgn';
-
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
-  const SQ = 100;
-  const BOARD = SQ * 8;
+  import { LICHESS_MARKS, MARK, highlight, type SquareHighlight } from '$lib/board-marks';
+  import Board from '$lib/components/board/Board.svelte';
+  import Wall from '$lib/components/board/Wall.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Choice from '$lib/components/ui/Choice.svelte';
 
   const ALL_PIECES: PieceKind[] = ['K', 'Q', 'R', 'B', 'N', 'P'];
-  const ARROW_COLORS = ['#15803d', '#dc2626', '#2563eb', '#ca8a04'];
+
+  /** The arrow colours to pick from: the board's four mark colours. */
+  const ARROW_COLORS = Object.entries(MARK);
+
+  /** The Lichess letter for each mark colour, for `[%cal Ge2e4]` in a PGN. */
+  const LICHESS_LETTER: Record<string, string> = Object.fromEntries(
+    Object.entries(LICHESS_MARKS).map(([letter, color]) => [color, letter])
+  );
 
   type EditorMode = 'route' | 'position';
   type RouteTool = PieceKind | 'wall' | 'star' | 'erase' | 'arrow';
@@ -40,7 +47,7 @@
   /* ── Arrow state (shared) ───────────────────────── */
 
   let arrows = $state<Arrow[]>([]);
-  let arrowColor = $state('#15803d');
+  let arrowColor = $state<string>(MARK.good);
   let arrowStart = $state<SquareId | null>(null);
 
   /* ── Shared state ───────────────────────────────── */
@@ -142,7 +149,26 @@
     return solve(studentPiece, studentSquare, targets, obstacles);
   });
 
-  let solutionPath = $derived(routeResult ? new Set(routeResult.solution) : new Set<SquareId>());
+  /** What the board shows. In route mode the walls stand on the board as white pawns. */
+  let editorBoard = $derived.by(() => {
+    if (mode === 'position') {
+      return createBoardState([...positionPieces].map(([square, p]) => ({ ...p, square })));
+    }
+    const placements: PiecePlacement[] = obstacles.map((square) => ({ piece: 'P', color: 'w', square }));
+    if (studentSquare) placements.push({ piece: studentPiece, color: 'w', square: studentSquare });
+    return createBoardState(placements);
+  });
+
+  /** The shortest route, square by square, and the square an arrow starts from. */
+  let editorHighlights = $derived.by((): SquareHighlight[] => {
+    const marks: SquareHighlight[] = [];
+    if (arrowStart) marks.push(...highlight([arrowStart], MARK.note));
+    if (mode === 'route' && routeResult) {
+      const path = routeResult.solution.filter((sq) => sq !== studentSquare && !targets.includes(sq));
+      marks.push(...highlight(path, MARK.other));
+    }
+    return marks;
+  });
 
   let outputCode = $derived.by(() => {
     const id = puzzleId || (mode === 'route' ? `${studentPiece.toLowerCase()}-XX` : 'puzzle-XX');
@@ -191,10 +217,7 @@ ${position.join(',\n')},
         `  pgn: "",`,
       ];
       if (arrows.length > 0) {
-        const calEntries = arrows.map(a => {
-          const colorCode = a.color === '#dc2626' ? 'R' : a.color === '#2563eb' ? 'B' : a.color === '#ca8a04' ? 'Y' : 'G';
-          return `${colorCode}${a.from}${a.to}`;
-        });
+        const calEntries = arrows.map(a => `${LICHESS_LETTER[a.color] ?? 'G'}${a.from}${a.to}`);
         lines.push(`  // Arrows as PGN annotation: {[%cal ${calEntries.join(',')}]}`);
       }
       lines.push(`  starThresholds: { three: ${posMaxMoves}, two: ${posMaxMoves + 1}, one: ${posMaxMoves + 2} },`);
@@ -204,29 +227,6 @@ ${position.join(',\n')},
   });
 
   /* ── Arrow helpers ──────────────────────────────── */
-
-  function getArrowPath(arrow: Arrow) {
-    const [fx, fy] = squareToCoords(arrow.from);
-    const [tx, ty] = squareToCoords(arrow.to);
-    const x1 = fx * SQ + SQ / 2;
-    const y1 = fy * SQ + SQ / 2;
-    const x2 = tx * SQ + SQ / 2;
-    const y2 = ty * SQ + SQ / 2;
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const headLen = 40;
-    const headW = 55;
-    const shaftW = 18;
-    const ux = dx / len;
-    const uy = dy / len;
-    const sx = x2 - ux * headLen;
-    const sy = y2 - uy * headLen;
-    const px = -uy;
-    const py = ux;
-    const hw = headW / 2;
-    return { x1, y1, sx, sy, x2, y2, px, py, hw, shaftW, color: arrow.color };
-  }
 
   function handleArrowClick(sq: SquareId) {
     if (!arrowStart) {
@@ -338,24 +338,20 @@ ${position.join(',\n')},
 <div class="editor">
   <h1 class="heading">Puzzle Editor</h1>
 
-  <!-- Mode toggle -->
-  <div class="mode-toggle">
-    <button class={['mode-btn', mode === 'route' && 'active']} onclick={() => switchMode('route')}>
-      Route
-    </button>
-    <button class={['mode-btn', mode === 'position' && 'active']} onclick={() => switchMode('position')}>
-      Position
-    </button>
-  </div>
+  <Choice
+    label="Puzzle type"
+    options={[
+      { value: 'route', label: 'Route' },
+      { value: 'position', label: 'Position' },
+    ]}
+    bind:value={() => mode, switchMode}
+  />
 
   <!-- Toolbar: one row -->
   {#if mode === 'route'}
     <div class="toolbar">
       {#each ALL_PIECES as p}
-        <button
-          class={['tool-btn', routeTool === p && 'active']}
-          onclick={() => { routeTool = p; }}
-        >
+        <button class={['tool-btn', routeTool === p && 'active']} onclick={() => { routeTool = p; }}>
           <img src="/pieces/w{p}.svg" alt={p} class="tool-icon" />
         </button>
       {/each}
@@ -363,39 +359,27 @@ ${position.join(',\n')},
       <span class="divider"></span>
 
       <button class={['tool-btn', routeTool === 'wall' && 'active']} onclick={() => routeTool = 'wall'} aria-label="Wall">
-        <svg viewBox="0 0 24 24" class="tool-icon" aria-label="Wall">
-          <rect x="1" y="1" width="22" height="22" rx="2" fill="#8b7355"/>
-          <rect x="2" y="2" width="6.3" height="5.5" rx="1" fill="#b5543a"/>
-          <rect x="9" y="2" width="6" height="5.5" rx="1" fill="#c4604a"/>
-          <rect x="15.7" y="2" width="6.3" height="5.5" rx="1" fill="#a84e36"/>
-          <rect x="2" y="8.5" width="3.7" height="5.5" rx="1" fill="#bf5c42"/>
-          <rect x="6.4" y="8.5" width="6" height="5.5" rx="1" fill="#c96850"/>
-          <rect x="13.1" y="8.5" width="6" height="5.5" rx="1" fill="#ab5038"/>
-          <rect x="19.8" y="8.5" width="2.2" height="5.5" rx="1" fill="#be5a40"/>
-          <rect x="2" y="15" width="6.3" height="5.5" rx="1" fill="#c26248"/>
-          <rect x="9" y="15" width="6" height="5.5" rx="1" fill="#b05340"/>
-          <rect x="15.7" y="15" width="6.3" height="5.5" rx="1" fill="#b5543a"/>
-          <rect x="1" y="1" width="22" height="22" rx="2" fill="none" stroke="#6b5740" stroke-width="1"/>
+        <svg viewBox="12 12 76 76" class="tool-icon" aria-hidden="true">
+          <Wall x={0} y={0} size={100} />
         </svg>
       </button>
-      <button class={['tool-btn', routeTool === 'star' && 'active']} onclick={() => routeTool = 'star'}>
+      <button class={['tool-btn', routeTool === 'star' && 'active']} onclick={() => routeTool = 'star'} aria-label="Star">
         <span class="star-icon">&#9733;</span>
       </button>
       <button class={['tool-btn', routeTool === 'arrow' && 'active']} onclick={() => { routeTool = 'arrow'; arrowStart = null; }} aria-label="Arrow">
         <span class="arrow-icon">&rarr;</span>
       </button>
-      <button class={['tool-btn', routeTool === 'erase' && 'active']} onclick={() => routeTool = 'erase'}>
+      <button class={['tool-btn', routeTool === 'erase' && 'active']} onclick={() => routeTool = 'erase'} aria-label="Erase">
         <span class="erase-icon">&#10005;</span>
       </button>
-      <button class="tool-btn clear-btn" onclick={clearBoard}>Clear</button>
+      <div class="clear">
+        <Button onclick={clearBoard}>Clear</Button>
+      </div>
     </div>
   {:else}
     <div class="toolbar">
       {#each ALL_PIECES as p}
-        <button
-          class={['tool-btn', posTool === p && 'active']}
-          onclick={() => { posTool = p; }}
-        >
+        <button class={['tool-btn', posTool === p && 'active']} onclick={() => { posTool = p; }}>
           <img src="/pieces/{posColor}{p}.svg" alt={p} class="tool-icon" />
         </button>
       {/each}
@@ -407,155 +391,51 @@ ${position.join(',\n')},
         onclick={() => posColor = posColor === 'w' ? 'b' : 'w'}
         aria-label="Toggle piece color"
       >
-        <span class="color-swatch" style="background: {posColor === 'w' ? '#fff' : '#333'}; border-color: {posColor === 'w' ? '#aaa' : '#666'}"></span>
+        <span class={['color-swatch', posColor === 'w' ? 'white' : 'black']}></span>
         <span class="tool-text-sm">{posColor === 'w' ? 'White' : 'Black'}</span>
       </button>
       <button class={['tool-btn', posTool === 'arrow' && 'active']} onclick={() => { posTool = 'arrow'; arrowStart = null; }} aria-label="Arrow">
         <span class="arrow-icon">&rarr;</span>
       </button>
-      <button class={['tool-btn', posTool === 'erase' && 'active']} onclick={() => posTool = 'erase'}>
+      <button class={['tool-btn', posTool === 'erase' && 'active']} onclick={() => posTool = 'erase'} aria-label="Erase">
         <span class="erase-icon">&#10005;</span>
       </button>
-      <button class="tool-btn clear-btn" onclick={clearBoard}>Clear</button>
+      <div class="clear">
+        <Button onclick={clearBoard}>Clear</Button>
+      </div>
     </div>
   {/if}
 
   <!-- Arrow color picker (shown when arrow tool active) -->
   {#if (mode === 'route' && routeTool === 'arrow') || (mode === 'position' && posTool === 'arrow')}
     <div class="arrow-controls">
-      <span class="arrow-hint">
+      <span>
         {arrowStart ? `Click destination for arrow from ${arrowStart}` : 'Click start square, then end square'}
       </span>
       <div class="arrow-colors">
-        {#each ARROW_COLORS as c}
+        {#each ARROW_COLORS as [name, color]}
           <button
-            class={['color-dot', arrowColor === c && 'color-dot-active']}
-            style="background: {c}"
-            onclick={() => arrowColor = c}
-            aria-label="Arrow color {c}"
+            class={['color-dot', arrowColor === color && 'color-dot-active']}
+            style:background={color}
+            onclick={() => arrowColor = color}
+            aria-label="{name} arrow"
           ></button>
         {/each}
       </div>
     </div>
   {/if}
 
-  <!-- Board -->
-  <div class="board-area">
-    <svg viewBox="-24 -2 {BOARD + 28} {BOARD + 24}" class="board-svg">
-      {#each RANKS as rank, ri}
-        <text x={-12} y={ri * SQ + SQ / 2 + 4} text-anchor="middle" font-size="14" fill="#888">{rank}</text>
-      {/each}
-      {#each FILES as file, fi}
-        <text x={fi * SQ + SQ / 2} y={BOARD + 16} text-anchor="middle" font-size="14" fill="#888">{file}</text>
-      {/each}
-
-      {#each RANKS as rank, ri}
-        {#each FILES as file, fi}
-          {@const sq = `${file}${rank}` as SquareId}
-          {@const isLight = (fi + ri) % 2 === 0}
-
-          <g
-            onclick={() => handleClick(sq)}
-            onkeydown={() => {}}
-            role="button"
-            tabindex="-1"
-            aria-label={sq}
-            style="cursor: pointer"
-          >
-            <rect
-              x={fi * SQ} y={ri * SQ}
-              width={SQ} height={SQ}
-              fill={isLight ? LIGHT : DARK}
-            />
-
-            {#if mode === 'route'}
-              {@const isStudent = sq === studentSquare}
-              {@const isObstacle = obstacles.includes(sq)}
-              {@const isTarget = targets.includes(sq)}
-              {@const isOnPath = solutionPath.has(sq) && !isStudent && !isTarget}
-
-              {#if isOnPath}
-                <rect x={fi * SQ} y={ri * SQ} width={SQ} height={SQ} fill="rgba(96, 165, 250, 0.3)" />
-              {/if}
-
-              {#if isTarget}
-                <text
-                  x={fi * SQ + SQ / 2} y={ri * SQ + SQ / 2 + 4}
-                  text-anchor="middle" dominant-baseline="central"
-                  font-size="48" fill="#fbbf24" class="no-select"
-                >&#9733;</text>
-              {/if}
-
-              {#if isStudent}
-                <image
-                  href="/pieces/w{studentPiece}.svg"
-                  x={fi * SQ + 8} y={ri * SQ + 8}
-                  width={SQ - 16} height={SQ - 16}
-                />
-              {:else if isObstacle}
-                {@const bx = fi * SQ + 12}
-                {@const by = ri * SQ + 12}
-                {@const bw = SQ - 24}
-                {@const bh = SQ - 24}
-                {@const rowH = bh / 3}
-                {@const mortar = "#8b7355"}
-                {@const bc = ["#b5543a", "#c4604a", "#a84e36", "#bf5c42", "#c96850", "#ab5038", "#be5a40", "#c26248", "#b05340"]}
-                <rect x={bx} y={by} width={bw} height={bh} rx="4" fill={mortar}/>
-                <rect x={bx + 1.5} y={by + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={bc[0]}/>
-                <rect x={bx + bw * 0.33 + 1.5} y={by + 1.5} width={bw * 0.34 - 3} height={rowH - 3} rx="2" fill={bc[1]}/>
-                <rect x={bx + bw * 0.67 + 1.5} y={by + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={bc[2]}/>
-                <rect x={bx + 1.5} y={by + rowH + 1.5} width={bw * 0.17 - 2} height={rowH - 3} rx="2" fill={bc[3]}/>
-                <rect x={bx + bw * 0.17 + 1.5} y={by + rowH + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={bc[4]}/>
-                <rect x={bx + bw * 0.5 + 1.5} y={by + rowH + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={bc[5]}/>
-                <rect x={bx + bw * 0.83 + 1.5} y={by + rowH + 1.5} width={bw * 0.17 - 2} height={rowH - 3} rx="2" fill={bc[6]}/>
-                <rect x={bx + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={bc[7]}/>
-                <rect x={bx + bw * 0.33 + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.34 - 3} height={rowH - 3} rx="2" fill={bc[8]}/>
-                <rect x={bx + bw * 0.67 + 1.5} y={by + rowH * 2 + 1.5} width={bw * 0.33 - 3} height={rowH - 3} rx="2" fill={bc[0]}/>
-                <rect x={bx} y={by} width={bw} height={bh} rx="4" fill="none" stroke="#6b5740" stroke-width="1.5"/>
-              {/if}
-
-            {:else}
-              {@const posPiece = positionPieces.get(sq)}
-              {#if posPiece}
-                <image
-                  href="/pieces/{posPiece.color}{posPiece.piece}.svg"
-                  x={fi * SQ + 8} y={ri * SQ + 8}
-                  width={SQ - 16} height={SQ - 16}
-                />
-              {/if}
-            {/if}
-          </g>
-        {/each}
-      {/each}
-
-      <!-- Arrow start highlight -->
-      {#if arrowStart}
-        {@const [asx, asy] = squareToCoords(arrowStart)}
-        <rect
-          x={asx * SQ} y={asy * SQ}
-          width={SQ} height={SQ}
-          fill="rgba(37, 99, 235, 0.3)"
-          class="no-select"
-        />
-      {/if}
-
-      <!-- Arrows -->
-      {#each arrows as arrow}
-        {@const a = getArrowPath(arrow)}
-        <g class="no-select" opacity="0.75">
-          <line
-            x1={a.x1} y1={a.y1} x2={a.sx} y2={a.sy}
-            stroke={a.color}
-            stroke-width={a.shaftW}
-            stroke-linecap="round"
-          />
-          <polygon
-            points="{a.x2},{a.y2} {a.sx + a.px * a.hw},{a.sy + a.py * a.hw} {a.sx - a.px * a.hw},{a.sy - a.py * a.hw}"
-            fill={a.color}
-          />
-        </g>
-      {/each}
-    </svg>
+  <div class="board">
+    <Board
+      board={editorBoard}
+      label="Puzzle editor board"
+      playableColors={[]}
+      onSquareClick={handleClick}
+      targets={mode === 'route' ? targets : []}
+      obstacles={mode === 'route' ? obstacles : []}
+      highlights={editorHighlights}
+      {arrows}
+    />
   </div>
 
   <!-- Arrow list -->
@@ -563,8 +443,8 @@ ${position.join(',\n')},
     <div class="arrow-list">
       <span class="arrow-list-label">Arrows:</span>
       {#each arrows as arrow, i}
-        <span class="arrow-tag" style="border-color: {arrow.color}">
-          <span class="arrow-tag-dot" style="background: {arrow.color}"></span>
+        <span class="arrow-tag" style:border-color={arrow.color}>
+          <span class="arrow-tag-dot" style:background={arrow.color}></span>
           {arrow.from}&rarr;{arrow.to}
           <button class="arrow-tag-x" onclick={() => removeArrow(i)} aria-label="Remove arrow">&times;</button>
         </span>
@@ -593,13 +473,13 @@ ${position.join(',\n')},
         <p class="muted">Place at least one target star.</p>
       {:else if routeResult}
         <p class="solution-text">
-          Solution: {routeResult.solution.join(' \u2192 ')} ({routeResult.moves} move{routeResult.moves !== 1 ? 's' : ''})
+          Solution: {routeResult.solution.join(' → ')} ({routeResult.moves} move{routeResult.moves !== 1 ? 's' : ''})
         </p>
         <p class="stars-text">
-          Stars: 3\u2605 \u2264 {routeResult.moves} &nbsp; 2\u2605 \u2264 {routeResult.moves + 1} &nbsp; 1\u2605 \u2264 {routeResult.moves + 2}
+          Stars: 3★ ≤ {routeResult.moves} &nbsp; 2★ ≤ {routeResult.moves + 1} &nbsp; 1★ ≤ {routeResult.moves + 2}
         </p>
       {:else}
-        <p class="error-text">No solution found \u2014 target is unreachable.</p>
+        <p class="error-text">✗ No solution found — target is unreachable.</p>
       {/if}
     </div>
   {:else}
@@ -643,9 +523,7 @@ ${position.join(',\n')},
     <div class="output-section">
       <div class="output-header">
         <span class="output-label">Puzzle JSON</span>
-        <button class="copy-btn" onclick={copyOutput}>
-          {copied ? 'Copied!' : 'Copy'}
-        </button>
+        <Button onclick={copyOutput}>{copied ? 'Copied!' : 'Copy'}</Button>
       </div>
       <pre class="output-code">{outputCode}</pre>
     </div>
@@ -660,37 +538,7 @@ ${position.join(',\n')},
   }
 
   .heading {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-
-  .mode-toggle {
-    display: flex;
-    gap: 0;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    border: 1px solid var(--card-border);
-    width: fit-content;
-  }
-
-  .mode-btn {
-    padding: 0.5rem 1.25rem;
-    border: none;
-    background: var(--card-bg);
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: background 0.15s, color 0.15s;
-  }
-
-  .mode-btn:hover {
-    background: var(--btn-hover);
-  }
-
-  .mode-btn.active {
-    background: rgba(74, 222, 128, 0.15);
-    color: var(--foreground);
+    font-size: var(--size-large);
   }
 
   .toolbar {
@@ -703,7 +551,7 @@ ${position.join(',\n')},
   .divider {
     width: 1px;
     height: 1.5rem;
-    background: var(--card-border);
+    background: var(--line);
     margin: 0 0.25rem;
   }
 
@@ -713,20 +561,20 @@ ${position.join(',\n')},
     gap: 0.25rem;
     padding: 0.375rem 0.5rem;
     border-radius: 0.375rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
+    border: 1px solid var(--line);
+    background: var(--surface);
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
   }
 
   .tool-btn:hover {
-    background: var(--btn-hover);
+    background: var(--line);
   }
 
+  /* The tool in hand is the one to look at. */
   .tool-btn.active {
-    border-color: #4ade80;
-    background: rgba(74, 222, 128, 0.15);
+    border-color: var(--highlight);
+    background: var(--highlight-tint);
   }
 
   .tool-icon {
@@ -735,7 +583,7 @@ ${position.join(',\n')},
   }
 
   .tool-text-sm {
-    font-size: 0.7rem;
+    font-size: var(--size-small);
   }
 
   .color-swatch {
@@ -743,38 +591,40 @@ ${position.join(',\n')},
     width: 14px;
     height: 14px;
     border-radius: 3px;
-    border: 1.5px solid;
+    border: 1.5px solid var(--line);
   }
+  .color-swatch.white { background: var(--piece-white); }
+  .color-swatch.black { background: var(--piece-black); }
 
   .star-icon {
-    font-size: 1.25rem;
-    color: #fbbf24;
+    font-size: var(--size-large);
+    color: var(--star);
     line-height: 1;
   }
 
   .erase-icon {
-    font-size: 1rem;
-    color: #f87171;
+    font-size: var(--size-body);
+    color: var(--wrong-text);
     line-height: 1;
     font-weight: bold;
   }
 
   .arrow-icon {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     line-height: 1;
     font-weight: bold;
+  }
+
+  .clear {
+    margin-left: auto;
   }
 
   .arrow-controls {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
-
-  .arrow-hint {
-    font-style: italic;
+    font-size: var(--size-small);
+    color: var(--ink-muted);
   }
 
   .arrow-colors {
@@ -783,8 +633,8 @@ ${position.join(',\n')},
   }
 
   .color-dot {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
@@ -793,7 +643,7 @@ ${position.join(',\n')},
   }
 
   .color-dot-active {
-    border-color: var(--foreground);
+    border-color: var(--ink);
   }
 
   .arrow-list {
@@ -801,11 +651,11 @@ ${position.join(',\n')},
     align-items: center;
     gap: 0.5rem;
     flex-wrap: wrap;
-    font-size: 0.8rem;
+    font-size: var(--size-small);
   }
 
   .arrow-list-label {
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
 
   .arrow-tag {
@@ -815,9 +665,8 @@ ${position.join(',\n')},
     padding: 0.2rem 0.5rem;
     border-radius: 0.25rem;
     border: 1px solid;
-    background: var(--card-bg);
-    font-family: monospace;
-    font-size: 0.75rem;
+    background: var(--surface);
+    font-variant-numeric: tabular-nums;
   }
 
   .arrow-tag-dot {
@@ -829,36 +678,21 @@ ${position.join(',\n')},
   .arrow-tag-x {
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: var(--size-secondary);
     padding: 0 0.125rem;
     line-height: 1;
   }
 
   .arrow-tag-x:hover {
-    color: #f87171;
+    color: var(--wrong-text);
   }
 
-  .clear-btn {
-    margin-left: auto;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-
-  .board-area {
-    display: flex;
-    justify-content: center;
-  }
-
-  .board-svg {
+  .board {
     width: 100%;
-    max-width: 520px;
-  }
-
-  .no-select {
-    pointer-events: none;
-    user-select: none;
+    max-width: 32.5rem;
+    margin: 0 auto;
   }
 
   .meta-row {
@@ -870,24 +704,19 @@ ${position.join(',\n')},
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     flex: 1;
   }
 
   .meta-input {
     padding: 0.375rem 0.625rem;
     border-radius: 0.375rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 0.875rem;
-  }
-
-  .meta-input:focus {
-    outline: none;
-    border-color: rgba(255, 248, 230, 0.4);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--size-secondary);
   }
 
   .pos-controls {
@@ -904,36 +733,36 @@ ${position.join(',\n')},
   .solution-info {
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
   }
 
   .muted {
-    color: var(--text-muted);
-    font-size: 0.875rem;
+    color: var(--ink-muted);
+    font-size: var(--size-secondary);
   }
 
   .solution-text {
-    font-family: monospace;
-    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--size-secondary);
   }
 
   .stars-text {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin-top: 0.25rem;
   }
 
   .error-text {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
+    color: var(--wrong-text);
+    font-size: var(--size-secondary);
+    font-weight: bold;
   }
 
   .output-section {
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
     overflow: hidden;
   }
 
@@ -942,34 +771,19 @@ ${position.join(',\n')},
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--line);
   }
 
   .output-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
-  .copy-btn {
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.25rem;
-    border: 1px solid var(--card-border);
-    background: var(--btn-bg);
-    color: var(--foreground);
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .copy-btn:hover {
-    background: var(--btn-hover);
-  }
-
   .output-code {
     padding: 1rem;
-    font-size: 0.8125rem;
+    font-size: var(--size-small);
     line-height: 1.5;
     overflow-x: auto;
     margin: 0;

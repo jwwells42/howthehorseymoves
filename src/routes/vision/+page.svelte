@@ -1,5 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Page from '$lib/components/ui/Page.svelte';
+  import CardList from '$lib/components/ui/CardList.svelte';
+  import LinkCard from '$lib/components/ui/LinkCard.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
 
   interface Trainer {
@@ -24,7 +27,7 @@
         { key: 'blindfold-color', name: 'Color of Square', description: 'Dark or light? Identify the color from the name.', icon: '/pieces/wP.svg', storageKey: 'blindfold-color-best-stars' },
         { key: 'blindfold-diagonals', name: 'Same Diagonal?', description: 'Are these two squares on the same diagonal?', icon: '/pieces/wB.svg', storageKey: 'blindfold-diagonal-best-stars' },
         { key: 'blindfold-rankfile', name: 'Same Rank or File?', description: 'Do these two squares share a rank or file?', icon: '/pieces/wR.svg', storageKey: 'blindfold-rankfile-best-stars' },
-{ key: 'blindfold-knightsquares', name: 'Knight Squares', description: 'Name every square a knight can reach from a given square.', icon: '/pieces/wN.svg', storageKey: 'blindfold-knightsquares-best-stars' },
+        { key: 'blindfold-knightsquares', name: 'Knight Squares', description: 'Name every square a knight can reach from a given square.', icon: '/pieces/wN.svg', storageKey: 'blindfold-knightsquares-best-stars' },
       ],
     },
     {
@@ -85,84 +88,27 @@
   let completedTrainers = $derived(Object.values(stars).filter(s => s > 0).length);
 </script>
 
-<main class="page">
-  <a href="/" class="back-link">&larr; Back to home</a>
-
-  <h1>Vision</h1>
-  <p class="subtitle">{totalTrainers} blindfold and visualization trainers &middot; {completedTrainers} completed</p>
-
+<Page
+  title="Vision"
+  subtitle="{totalTrainers} blindfold and visualization trainers · {completedTrainers} completed"
+  back={{ href: '/', label: 'Back to home' }}
+>
   {#each GROUPS as group}
-    <h2 class="group-title">{group.title}</h2>
-    <div class="trainer-list">
+    <CardList title={group.title}>
       {#each group.trainers as trainer}
-        <a href={trainer.href ?? `/vision/${trainer.key.replace('blindfold-', '')}`} class="trainer-item">
-          <div class="trainer-left">
-            <img src={trainer.icon} alt={trainer.name} class="trainer-icon" />
-            <div>
-              <h3>{trainer.name}</h3>
-              <p class="trainer-desc">{trainer.description}</p>
-            </div>
-          </div>
-          <div class="trainer-right">
+        <LinkCard
+          href={trainer.href ?? `/vision/${trainer.key.replace('blindfold-', '')}`}
+          icon={trainer.icon}
+          title={trainer.name}
+          description={trainer.description}
+        >
+          {#snippet aside()}
             {#if (stars[trainer.key] ?? 0) > 0}
               <StarRating stars={stars[trainer.key]} size="sm" />
             {/if}
-          </div>
-        </a>
+          {/snippet}
+        </LinkCard>
       {/each}
-    </div>
+    </CardList>
   {/each}
-</main>
-
-<style>
-  .page {
-    min-height: 100vh;
-    padding: 1.5rem;
-    max-width: 48rem;
-    margin: 0 auto;
-  }
-  .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    display: inline-block;
-    margin-bottom: 1rem;
-  }
-  .back-link:hover { color: var(--foreground); }
-
-  h1 { font-size: 1.875rem; font-weight: bold; margin-bottom: 0.25rem; }
-  .subtitle { color: var(--text-muted); margin-bottom: 2rem; }
-
-  .group-title {
-    font-size: 1.125rem;
-    font-weight: bold;
-    margin-bottom: 0.75rem;
-    margin-top: 2rem;
-    color: var(--text-muted);
-  }
-  .group-title:first-of-type { margin-top: 0; }
-
-  .trainer-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .trainer-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    transition: all 0.15s;
-  }
-  .trainer-item:hover {
-    border-color: rgba(240, 230, 204, 0.3);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  }
-  .trainer-left { display: flex; align-items: center; gap: 1rem; }
-  .trainer-icon { width: 2.25rem; height: 2.25rem; }
-  .trainer-left h3 { font-weight: bold; }
-  .trainer-desc { font-size: 0.875rem; color: var(--text-muted); }
-  .trainer-right { text-align: right; flex-shrink: 0; }
-</style>
+</Page>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import BreathPacer from './BreathPacer.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import { BreathEngine, type BreathPhaseName } from '$lib/breathwork/engine';
   import { BreathDrone } from '$lib/breathwork/audio';
   import { loadSighExhale, saveSighExhale } from '$lib/breathwork/prefs';
@@ -145,7 +146,7 @@
       </fieldset>
     </div>
 
-    <button type="button" class="start" onclick={start}>Begin</button>
+    <Button variant="primary" size="large" onclick={start}>Begin</Button>
 
     <details class="why">
       <summary>What</summary>
@@ -159,7 +160,7 @@
       </p>
     </details>
   {:else}
-    <button type="button" class="stop" onclick={stop}>Stop</button>
+    <Button size="large" onclick={stop}>Stop</Button>
   {/if}
 </div>
 
@@ -176,15 +177,15 @@
   }
   .timer {
     margin-top: 0.5rem;
-    font-size: 1.5rem;
+    font-size: var(--size-large);
     font-weight: bold;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     font-variant-numeric: tabular-nums;
   }
   .done {
     margin-top: 0.5rem;
-    font-size: 1.125rem;
-    color: var(--foreground);
+    font-size: var(--size-body);
+    color: var(--ink);
   }
 
   .controls {
@@ -195,15 +196,15 @@
     gap: 1.25rem;
   }
   fieldset {
-    border: 1px solid var(--card-border);
+    border: 1px solid var(--line);
     border-radius: 0.75rem;
-    background: var(--card-bg);
+    background: var(--surface);
     padding: 1rem 1.25rem 1.25rem;
   }
   legend {
     padding: 0 0.5rem;
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     font-weight: bold;
   }
   .preset-row {
@@ -220,79 +221,61 @@
     gap: 0.15rem;
     padding: 0.75rem 0.5rem;
     border-radius: 0.6rem;
-    border: 1px solid var(--card-border);
-    background: var(--btn-bg);
-    color: var(--foreground);
+    border: 1px solid var(--line);
+    background: var(--surface-raised);
+    color: var(--ink);
     cursor: pointer;
     transition: all 0.15s;
   }
   .preset:hover {
-    background: var(--btn-hover);
+    background: var(--line);
   }
   .preset.active {
-    border-color: var(--foreground);
-    background: var(--btn-hover);
-    box-shadow: 0 0 0 1px var(--foreground) inset;
+    border-color: var(--ink);
+    background: var(--line);
+    box-shadow: 0 0 0 1px var(--ink) inset;
   }
   .preset-label {
     font-weight: bold;
   }
   .preset-sub {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
   }
 
   .slider {
     display: block;
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
   .slider input {
     width: 100%;
     margin-top: 0.4rem;
-    accent-color: var(--foreground);
+    accent-color: var(--ink);
   }
   .readout {
     margin-top: 0.5rem;
     text-align: center;
-    font-size: 0.95rem;
-    color: var(--foreground);
-  }
-
-  .start,
-  .stop {
-    padding: 0.85rem 3rem;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border-radius: 999px;
-    border: 1px solid var(--card-border);
-    background: var(--btn-bg);
-    color: var(--foreground);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .start:hover,
-  .stop:hover {
-    background: var(--btn-hover);
+    font-size: var(--size-secondary);
+    color: var(--ink);
   }
 
   .why {
     width: 100%;
     max-width: 32rem;
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
   .why summary {
     cursor: pointer;
     font-weight: bold;
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
   .why p {
     margin-top: 0.5rem;
     line-height: 1.5;
   }
   .why .tip {
-    color: var(--text-faint);
-    font-style: italic;
+    color: var(--ink-muted);
   }
 </style>

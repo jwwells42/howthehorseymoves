@@ -75,15 +75,12 @@
   }
 
   .chapter-heading h2 {
-    font-size: 1.125rem;
-    font-weight: bold;
     white-space: nowrap;
-    margin: 0;
   }
 
   .divider {
     flex: 1;
-    border-top: 1px solid rgba(240, 230, 204, 0.15);
+    border-top: 1px solid var(--line);
   }
 
   .grid {
@@ -94,37 +91,38 @@
   @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
 
-  /* Cards — exact old landing page style */
   .card {
     border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
     padding: 1.5rem;
-    transition: all 0.15s;
+    transition: background 0.15s;
     display: flex;
     flex-direction: column;
     position: relative;
     height: 100%;
-    text-decoration: none;
-    color: var(--foreground);
   }
   .card:hover {
-    border-color: rgba(240, 230, 204, 0.3);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: var(--surface-raised);
+  }
+  .card:hover .card-desc {
+    color: var(--ink);
   }
 
+  /* The next stop to do, in the colour that means "look here". */
   .card.up-next {
+    border-color: var(--highlight);
     animation: up-next-glow 2s ease-in-out infinite;
   }
 
   @keyframes up-next-glow {
-    0%, 100% { box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.15); }
-    50% { box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25), 0 0 12px rgba(250, 204, 21, 0.1); }
+    0%, 100% { box-shadow: 0 0 0 1px var(--highlight-tint); }
+    50% { box-shadow: 0 0 12px 3px var(--highlight-glow); }
   }
 
+  /* A stop that records no progress, such as a lesson you read. */
   .card.no-track {
     border-style: dashed;
-    opacity: 0.85;
   }
 
   /* Step badge — top-left corner */
@@ -138,16 +136,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    font-size: var(--size-small);
     font-weight: bold;
-    border: 2px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--text-faint);
+    border: 2px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-muted);
   }
   .step-badge.complete {
-    background: #16a34a;
-    border-color: #22c55e;
-    color: white;
+    background: var(--correct);
+    border-color: var(--correct);
+    color: var(--on-answer);
   }
 
   /* Card header — icon + title */
@@ -157,11 +155,6 @@
     gap: 1rem;
     margin-bottom: 0.75rem;
   }
-  .card-header h3 {
-    font-size: 1.125rem;
-    font-weight: bold;
-    margin: 0;
-  }
   .card-icon {
     width: 3rem;
     height: 3rem;
@@ -169,16 +162,16 @@
 
   /* Card description */
   .card-desc {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin-bottom: 0.75rem;
     flex: 1;
   }
 
   /* Card footer — stars */
   .card-footer {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
   }
 
   /* Knight marker on up-next card */
@@ -189,7 +182,7 @@
     width: 1.75rem;
     height: 1.75rem;
     animation: bounce 1.5s ease-in-out infinite;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 2px 4px var(--scrim));
   }
 
   @keyframes bounce {

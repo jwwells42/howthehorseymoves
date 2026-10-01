@@ -1,11 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import AnswerInput from './AnswerInput.svelte';
+  import ReviewCard from './ReviewCard.svelte';
+  import ReviewGrid from './ReviewGrid.svelte';
   import { playSound } from '$lib/state/sound';
+  import { MARK, highlight, type SquareHighlight } from '$lib/board-marks';
 
   const GAME_DURATION = 30;
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
 
   interface Attempt {
     square: string;
@@ -48,26 +53,13 @@
     return 0;
   }
 
-  function sqToCoords(sq: string): [number, number] {
-    return [sq.charCodeAt(0) - 97, 8 - parseInt(sq[1])];
-  }
-
-  // Mini board constants
-  const MB_S = 10;
-  const MB_B = MB_S * 8;
-
-  function getMiniBoardFill(attempt: Attempt, fi: number, ri: number): string {
-    const [cf, cr] = sqToCoords(attempt.square);
-    const sqName = String.fromCharCode(97 + fi) + (8 - ri);
-    const isCenter = fi === cf && ri === cr;
-    const isFound = attempt.found.includes(sqName);
-    const isMissed = attempt.missed.includes(sqName);
-    const isLight = (fi + ri) % 2 === 0;
-
-    if (isCenter) return '#5b9bd5';
-    if (isFound) return '#a3d9a3';
-    if (isMissed) return '#f0a0a0';
-    return isLight ? LIGHT : DARK;
+  /** The square asked about, and every answer square: found or missed. */
+  function reviewMarks(attempt: Attempt): SquareHighlight[] {
+    return [
+      ...highlight([attempt.square], MARK.note),
+      ...highlight(attempt.found, MARK.good),
+      ...highlight(attempt.missed, MARK.danger),
+    ];
   }
 
   let gameState = $state<'idle' | 'playing' | 'done'>('idle');
@@ -80,14 +72,12 @@
   let bestScore = $state(0);
   let bestStars = $state(0);
   let history = $state<Attempt[]>([]);
-  let inputEl = $state<HTMLInputElement | null>(null);
 
   let timerRef: ReturnType<typeof setInterval> | null = null;
 
   let neighbors = $derived(getNeighbors(target));
   let stars = $derived(getStars(score));
-  let timerColor = $derived(timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#fb923c' : '#22c55e');
-  let wrongOnes = $derived(history.filter((a) => !a.correct));
+  let mistakes = $derived(history.filter((a) => !a.correct));
 
   onMount(() => {
     bestScore = parseInt(localStorage.getItem('blindfold-neighbors-best') ?? '0', 10);
@@ -96,12 +86,6 @@
     return () => {
       if (timerRef) clearInterval(timerRef);
     };
-  });
-
-  $effect(() => {
-    if (gameState === 'playing') {
-      inputEl?.focus();
-    }
   });
 
   function startGame() {
@@ -159,8 +143,7 @@
     error = null;
   }
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  function handleSubmit() {
     if (gameState !== 'playing') return;
     const sq = input.trim().toLowerCase();
     input = '';
@@ -199,163 +182,70 @@
   }
 </script>
 
-<div class="container">
+{#snippet review(title: string, attempts: Attempt[])}
+  <ReviewGrid {title}>
+    {#each attempts as attempt}
+      <ReviewCard correct={attempt.correct} highlights={reviewMarks(attempt)}>
+        <strong>{attempt.square}</strong><br />
+        <span class={attempt.correct ? 'correct' : 'wrong'}>{attempt.found.length}/{attempt.neighbors.length}</span>
+        {#if attempt.missed.length > 0}
+          <span class="muted">missed: {attempt.missed.join(', ')}</span>
+        {/if}
+      </ReviewCard>
+    {/each}
+  </ReviewGrid>
+{/snippet}
+
+<div class="trainer">
   {#if gameState === 'idle'}
-    <div class="center-col">
-      <h2 class="title">Neighbor Squares</h2>
-      <p class="subtitle">
-        A square appears. Type all adjacent squares (where a king could move). Find them all, then the next square appears. You have 30 seconds!
-      </p>
-      {#if bestScore > 0}
-        <div class="best">
-          Best: {bestScore}
-          {#if bestStars > 0}
-            <StarRating stars={bestStars} size="sm" />
-          {/if}
-        </div>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+    <div class="screen">
+      <h2>Neighbor Squares</h2>
+      <p class="instructions">A square appears. Type all adjacent squares (where a king could move). Find them all, then the next square appears. You have 30 seconds!</p>
+      <BestScore score={bestScore} stars={bestStars} />
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
+
   {:else if gameState === 'done'}
-    <div class="center-col">
-      <h2 class="title">Time's up!</h2>
-      <p class="big-score">{score} completed</p>
+    <div class="screen">
+      <h2>Time's up!</h2>
+      <p class="final-score">{score} completed</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />
       {/if}
-      {#if bestScore > 0}
-        <p class="best-text">Personal best: {bestScore}</p>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Play Again</button>
+      <BestScore score={bestScore} />
+      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
 
-      {#if wrongOnes.length > 0}
-        <div class="section-divider">
-          <h3 class="section-title">Incomplete ({wrongOnes.length})</h3>
-          <div class="mini-grid">
-            {#each wrongOnes as attempt}
-              <div class="mini-board-wrap">
-                <svg
-                  viewBox="0 0 {MB_B} {MB_B}"
-                  class="mini-board"
-                  style="border-color: {attempt.correct ? '#22c55e' : '#ef4444'};"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      <rect
-                        x={fi * MB_S} y={ri * MB_S}
-                        width={MB_S} height={MB_S}
-                        fill={getMiniBoardFill(attempt, fi, ri)}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mono bold">{attempt.square}</span>
-                  <br />
-                  <span class="text-red">
-                    {attempt.found.length}/{attempt.neighbors.length}
-                    {#if attempt.missed.length > 0}
-                      <span class="faint"> missed: {attempt.missed.join(', ')}</span>
-                    {/if}
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+      {#if mistakes.length > 0}
+        {@render review(`Incomplete (${mistakes.length})`, mistakes)}
       {/if}
-
       {#if history.length > 0}
-        <div class="section-divider">
-          <h3 class="section-title">All squares ({history.length})</h3>
-          <div class="mini-grid">
-            {#each history as attempt}
-              <div class="mini-board-wrap">
-                <svg
-                  viewBox="0 0 {MB_B} {MB_B}"
-                  class="mini-board"
-                  style="border-color: {attempt.correct ? '#22c55e' : '#ef4444'};"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      <rect
-                        x={fi * MB_S} y={ri * MB_S}
-                        width={MB_S} height={MB_S}
-                        fill={getMiniBoardFill(attempt, fi, ri)}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mono bold">{attempt.square}</span>
-                  <br />
-                  <span class={attempt.correct ? 'text-green' : 'text-red'}>
-                    {attempt.found.length}/{attempt.neighbors.length}
-                    {#if attempt.missed.length > 0}
-                      <span class="faint"> missed: {attempt.missed.join(', ')}</span>
-                    {/if}
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+        {@render review(`All squares (${history.length})`, history)}
       {/if}
     </div>
+
   {:else}
-    <!-- Playing state -->
-    <div class="timer-bar-track">
-      <div
-        class="timer-bar-fill"
-        style="width: {(timeLeft / GAME_DURATION) * 100}%; background: {timerColor};"
-      ></div>
-    </div>
+    <Countdown remaining={timeLeft} total={GAME_DURATION}>Completed: {score}</Countdown>
 
-    <div class="hud">
-      <span>Completed: {score}</span>
-      <span>{timeLeft}s</span>
-    </div>
-
-    <div class="target-square">{target}</div>
-    <div class="progress-label">
-      {entered.length}/{neighbors.length} neighbors found
-    </div>
+    <div class="target">{target}</div>
+    <p class="progress">{entered.length}/{neighbors.length} neighbors found</p>
 
     {#if entered.length > 0}
-      <div class="entered-list">
+      <ul class="entered">
         {#each entered as sq}
-          <span class="entered-tag">{sq}</span>
+          <li>{sq}</li>
         {/each}
-      </div>
+      </ul>
     {/if}
 
-    <div class="input-area">
-      <form class="input-row" onsubmit={handleSubmit}>
-        <input
-          bind:this={inputEl}
-          type="text"
-          bind:value={input}
-          placeholder="Square..."
-          maxlength={2}
-          class="text-input"
-          autocomplete="off"
-          autocapitalize="off"
-        />
-        <button type="submit" class="go-btn">Go</button>
-      </form>
-      <button class="skip-btn" onclick={handleSkip}>
-        Skip
-      </button>
+    <div class="answer-row">
+      <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Square" placeholder="Square..." {error} />
+      <Button onclick={handleSkip}>Skip</Button>
     </div>
-
-    {#if error}
-      <p class="error">{error}</p>
-    {/if}
   {/if}
 </div>
 
 <style>
-  .container {
+  .trainer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -364,240 +254,52 @@
     margin: 0 auto;
   }
 
-  .center-col {
+  .screen {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
     text-align: center;
-    max-width: 42rem;
-    margin: 0 auto;
   }
 
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
+  .instructions,
+  .progress {
+    color: var(--ink-muted);
   }
 
-  .subtitle {
-    color: var(--text-muted);
-  }
-
-  .best {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .best-text {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .big-score {
-    font-size: 1.875rem;
-    font-weight: bold;
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 0.5rem;
-    background: #16a34a;
-    color: white;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: #15803d;
-  }
-
-  .timer-bar-track {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .timer-bar-fill {
-    height: 100%;
-    transition: width 1s linear, background 0.5s;
-  }
-
-  .hud {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .target-square {
+  .target {
     font-size: 3rem;
     font-weight: bold;
-    padding: 1rem 0;
   }
 
-  .progress-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
-  .entered-list {
+  .entered {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
     justify-content: center;
+    gap: 0.5rem;
+    list-style: none;
   }
-
-  .entered-tag {
+  .entered li {
     padding: 0.25rem 0.5rem;
-    background: rgba(22, 163, 74, 0.2);
-    color: #4ade80;
     border-radius: 0.25rem;
-    font-family: monospace;
-    font-size: 0.875rem;
+    background: var(--correct-tint);
+    color: var(--correct-text);
     font-weight: bold;
   }
 
-  .input-area {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 240px;
-  }
-
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-    flex: 1;
-  }
-
-  .text-input {
-    flex: 1;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 1.125rem;
-    text-align: center;
-  }
-
-  .text-input:focus {
-    outline: none;
-    border-color: rgba(255, 248, 230, 0.4);
-  }
-
-  .text-input::placeholder {
-    color: var(--text-faint);
-  }
-
-  .go-btn {
-    padding: 0.5rem 0.75rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .go-btn:hover {
-    background: #15803d;
-  }
-
-  .skip-btn {
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: transparent;
-    color: var(--text-faint);
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: color 0.15s;
-  }
-
-  .skip-btn:hover {
-    color: var(--foreground);
-  }
-
-  .error {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .section-divider {
-    width: 100%;
-    border-top: 1px solid rgba(255, 248, 230, 0.1);
-    margin-top: 0.5rem;
-    padding-top: 1rem;
-  }
-
-  .section-title {
-    font-weight: bold;
-    font-size: 0.875rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .mini-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    justify-items: center;
-  }
-
-  @media (min-width: 640px) {
-    .mini-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  .mini-board-wrap {
+  .answer-row {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.75rem;
   }
 
-  .mini-board {
-    width: 5rem;
-    height: 5rem;
-    border: 3px solid;
-    border-radius: 4px;
-  }
-
-  .mini-label {
-    font-size: 0.75rem;
-    text-align: center;
-  }
-
-  .mono {
-    font-family: monospace;
-  }
-
-  .bold {
+  .final-score {
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
-  .text-green {
-    color: #4ade80;
-  }
-
-  .text-red {
-    color: #f87171;
-  }
-
-  .faint {
-    color: var(--text-faint);
-  }
+  .correct { color: var(--correct-text); }
+  .wrong { color: var(--wrong-text); }
+  .muted { color: var(--ink-muted); }
 </style>

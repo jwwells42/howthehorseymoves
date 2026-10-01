@@ -1,15 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { FILES, RANKS, type SquareId } from '$lib/logic/types';
+  import { EMPTY_BOARD, FILES, RANKS, type SquareId } from '$lib/logic/types';
+  import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Countdown from '$lib/components/ui/Countdown.svelte';
   import { playSound } from '$lib/state/sound';
+  import { MARK, highlight } from '$lib/board-marks';
 
-  const SQUARE_SIZE = 100;
-  const BOARD_SIZE = SQUARE_SIZE * 8;
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
-  const CORRECT_COLOR = '#4ade80';
-  const WRONG_COLOR = '#ef4444';
   const GAME_DURATION = 30;
 
   const ALL_SQUARES: SquareId[] = [];
@@ -40,8 +39,8 @@
   let target = $state<SquareId>(randomSquare());
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
-  let flashSquare = $state<SquareId | null>(null);
-  let flashColor = $state('');
+  /** The square just tapped, for a moment, and whether it was the right one. */
+  let flash = $state<{ square: SquareId; right: boolean } | null>(null);
   let bestScore = $state(0);
   let bestStars = $state(0);
 
@@ -62,7 +61,7 @@
     score = 0;
     timeLeft = GAME_DURATION;
     target = randomSquare();
-    flashSquare = null;
+    flash = null;
     gameState = 'playing';
 
     if (timerRef) clearInterval(timerRef);
@@ -98,63 +97,44 @@
 
     if (flashRef) clearTimeout(flashRef);
 
-    if (sq === target) {
-      flashSquare = sq;
-      flashColor = CORRECT_COLOR;
+    const right = sq === target;
+    flash = { square: sq, right };
+    if (right) {
       score += 1;
       target = randomSquare(target);
       playSound('correct');
     } else {
-      flashSquare = sq;
-      flashColor = WRONG_COLOR;
       playSound('wrong');
     }
 
     flashRef = setTimeout(() => {
-      flashSquare = null;
+      flash = null;
     }, 200);
   }
 
-  function squareColor(fileIdx: number, rankIdx: number): string {
-    return (fileIdx + rankIdx) % 2 === 0 ? LIGHT : DARK;
-  }
-
-  function timerBarColor(t: number): string {
-    if (t > 20) return '#4ade80';
-    if (t > 10) return '#facc15';
-    return '#ef4444';
-  }
-
-  const DISPLAY_RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
+  let flashHighlights = $derived(
+    flash ? highlight([flash.square], flash.right ? MARK.good : MARK.danger, 'solid') : []
+  );
 </script>
 
 <div class="trainer">
   {#if gameState === 'idle'}
-    <div class="start-screen">
+    <div class="screen">
       <p class="instructions">Click the correct square as fast as you can!</p>
       <div class="thresholds">
         <span class="threshold"><StarRating stars={1} size="sm" /> 3 correct</span>
         <span class="threshold"><StarRating stars={2} size="sm" /> 5 correct</span>
         <span class="threshold"><StarRating stars={3} size="sm" /> 10 correct</span>
       </div>
-      {#if bestScore > 0}
-        <p class="best">Best: {bestScore} <StarRating stars={bestStars} size="sm" /></p>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <BestScore score={bestScore} stars={bestStars} />
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
   {:else if gameState === 'playing'}
-    <div class="hud">
-      <div class="score">Score: {score}</div>
-      <div class="timer">{timeLeft}s</div>
-    </div>
-    <div class="timer-bar-track">
-      <div
-        class="timer-bar-fill"
-        style="width: {(timeLeft / GAME_DURATION) * 100}%; background: {timerBarColor(timeLeft)};"
-      ></div>
+    <div class="countdown">
+      <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
     </div>
   {:else}
-    <div class="done-screen">
+    <div class="screen">
       <div class="final-score">{score}</div>
       <StarRating stars={scoreToStars(score)} size="lg" />
       <div class="thresholds done-thresholds">
@@ -162,86 +142,23 @@
         <span class={['threshold', score >= 5 && 'achieved']}><StarRating stars={2} size="sm" /> 5</span>
         <span class={['threshold', score >= 10 && 'achieved']}><StarRating stars={3} size="sm" /> 10</span>
       </div>
-      {#if bestScore > 0}
-        <p class="best">Best: {bestScore} <StarRating stars={bestStars} size="sm" /></p>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Play Again</button>
+      <BestScore score={bestScore} stars={bestStars} />
+      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
       <a href="/setup" class="setup-link">Place the Pieces! &rarr;</a>
     </div>
   {/if}
 
   <div class="board-wrapper">
-    <svg
-      viewBox="0 0 {BOARD_SIZE} {BOARD_SIZE}"
-      class="board-svg"
-      xmlns="http://www.w3.org/2000/svg"
-      role="application"
-      aria-label="Chess board"
-      tabindex="-1"
+    <Board
+      board={EMPTY_BOARD}
+      readOnly={gameState !== 'playing'}
+      onSquareClick={handleSquareClick}
+      highlights={flashHighlights}
     >
-      {#each FILES as file, fi}
-        {#each DISPLAY_RANKS as rank, ri}
-          {@const sq = `${file}${rank}` as SquareId}
-          {@const x = fi * SQUARE_SIZE}
-          {@const y = ri * SQUARE_SIZE}
-          {@const fill =
-            flashSquare === sq ? flashColor : squareColor(fi, ri)}
-          <rect
-            {x}
-            {y}
-            width={SQUARE_SIZE}
-            height={SQUARE_SIZE}
-            {fill}
-            onclick={() => handleSquareClick(sq)}
-            onkeydown={() => {}}
-            role="button"
-            tabindex="-1"
-            aria-label={sq}
-            style="cursor: {gameState === 'playing' ? 'pointer' : 'default'}"
-          />
-        {/each}
-      {/each}
-
-      <!-- File labels (a-h along bottom) -->
-      {#each FILES as file, fi}
-        <text
-          x={fi * SQUARE_SIZE + SQUARE_SIZE / 2}
-          y={BOARD_SIZE - 6}
-          text-anchor="middle"
-          font-size="14"
-          font-weight="bold"
-          fill={fi % 2 === 0 ? DARK : LIGHT}
-          class="label"
-        >{file}</text>
-      {/each}
-
-      <!-- Rank labels (1-8 along left) -->
-      {#each DISPLAY_RANKS as rank, ri}
-        <text
-          x={6}
-          y={ri * SQUARE_SIZE + 16}
-          font-size="14"
-          font-weight="bold"
-          fill={ri % 2 === 0 ? DARK : LIGHT}
-          class="label"
-        >{rank}</text>
-      {/each}
-
-      <!-- Big coordinate text in center -->
       {#if gameState === 'playing'}
-        <text
-          x={BOARD_SIZE / 2}
-          y={BOARD_SIZE / 2}
-          text-anchor="middle"
-          dominant-baseline="central"
-          font-size="160"
-          font-weight="bold"
-          fill="white"
-          opacity="0.85"
-          class="label"
-        >{target}</text>
+        <text x="400" y="400" class="target-name">{target}</text>
       {/if}
-    </svg>
+    </Board>
   </div>
 </div>
 
@@ -275,54 +192,28 @@
     }
   }
 
-  .board-svg {
-    width: 100%;
-    max-height: 80dvh;
-    aspect-ratio: 1;
-    display: block;
-    border-radius: 4px;
-    touch-action: none;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-svg {
-      max-height: 100%;
-    }
-  }
-
-  .label {
+  /* The square to find, written large across the board. A dark edge keeps it
+     readable on both light and dark squares. */
+  .target-name {
+    font-size: 160px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: central;
+    fill: var(--ink);
+    stroke: var(--page);
+    stroke-width: 10px;
+    paint-order: stroke;
+    opacity: 0.9;
     pointer-events: none;
     user-select: none;
   }
 
-  /* HUD */
-  .hud {
-    display: flex;
-    justify-content: space-between;
+  .countdown {
     width: 100%;
-    font-size: 1.25rem;
-    font-weight: bold;
     flex-shrink: 0;
   }
 
-  .timer-bar-track {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 4px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .timer-bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 1s linear, background 0.5s;
-  }
-
-  /* Start / Done screens */
-  .start-screen,
-  .done-screen {
+  .screen {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -331,15 +222,14 @@
   }
 
   .instructions {
-    color: var(--text-muted);
-    font-size: 1rem;
+    color: var(--ink-muted);
   }
 
   .thresholds {
     display: flex;
     gap: 1.25rem;
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   .threshold {
@@ -354,15 +244,7 @@
 
   .done-thresholds .threshold.achieved {
     opacity: 1;
-    color: var(--foreground);
-  }
-
-  .best {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    color: var(--ink);
   }
 
   .final-score {
@@ -370,37 +252,13 @@
     font-weight: bold;
   }
 
-  .start-btn {
-    padding: 0.75rem 2.5rem;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 0.5rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: rgba(255, 248, 230, 0.25);
-  }
-
   .setup-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin-top: 0.25rem;
   }
 
   .setup-link:hover {
-    color: var(--foreground);
-  }
-
-  .score {
-    color: var(--foreground);
-  }
-
-  .timer {
-    color: var(--foreground);
+    color: var(--ink);
   }
 </style>

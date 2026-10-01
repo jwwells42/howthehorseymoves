@@ -1,5 +1,6 @@
 import type { SquareId, PiecePlacement } from '$lib/logic/types';
 import type { Arrow } from '$lib/logic/pgn';
+import { MARK } from '$lib/board-marks';
 
 // A diagram slide: static board with key-square stars
 export interface DiagramStep {
@@ -70,10 +71,10 @@ export const pawnEndingSteps: LessonStep[] = [
     fen: '8/8/8/P7/8/8/8/K7 w - - 0 1',
     keySquares: [],
     arrows: [
-      { from: 'a5' as SquareId, to: 'a8' as SquareId, color: '#facc15' },
-      { from: 'a8' as SquareId, to: 'd8' as SquareId, color: '#facc15' },
-      { from: 'd8' as SquareId, to: 'd5' as SquareId, color: '#facc15' },
-      { from: 'd5' as SquareId, to: 'a5' as SquareId, color: '#facc15' },
+      { from: 'a5' as SquareId, to: 'a8' as SquareId, color: MARK.note },
+      { from: 'a8' as SquareId, to: 'd8' as SquareId, color: MARK.note },
+      { from: 'd8' as SquareId, to: 'd5' as SquareId, color: MARK.note },
+      { from: 'd5' as SquareId, to: 'a5' as SquareId, color: MARK.note },
     ],
   },
   {
@@ -186,7 +187,7 @@ export const pawnEndingSteps: LessonStep[] = [
     fen: '8/4k3/8/4K3/8/4P3/8/8 w - - 0 1',
     keySquares: [],
     arrows: [
-      { from: 'e3' as SquareId, to: 'e4' as SquareId, color: '#facc15' },
+      { from: 'e3' as SquareId, to: 'e4' as SquareId, color: MARK.note },
     ],
   },
   {
@@ -212,7 +213,7 @@ export const pawnEndingSteps: LessonStep[] = [
     fen: '8/5k2/8/4K3/4P3/8/8/8 w - - 0 1',
     keySquares: [],
     arrows: [
-      { from: 'e5' as SquareId, to: 'd6' as SquareId, color: '#facc15' },
+      { from: 'e5' as SquareId, to: 'd6' as SquareId, color: MARK.note },
     ],
   },
   {

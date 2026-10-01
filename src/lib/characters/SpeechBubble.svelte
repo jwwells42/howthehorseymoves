@@ -1,10 +1,11 @@
 <script lang="ts">
   interface Props {
     text: string;
+    /** The bot's colour, a --bot-* custom property. */
     color?: string;
   }
 
-  let { text, color = '#f59e0b' }: Props = $props();
+  let { text, color = 'var(--line)' }: Props = $props();
 </script>
 
 {#key text}
@@ -16,11 +17,11 @@
 <style>
   .bubble {
     position: relative;
-    font-size: 0.8125rem;
+    font-size: var(--size-secondary);
     padding: 0.375rem 0.625rem;
     border-radius: 0.75rem;
-    border: 1.5px solid;
-    background: var(--card-bg, #1a1a1a);
+    border: 2px solid;
+    background: var(--surface);
     text-align: center;
     animation: bubble-in 0.2s ease-out;
     max-width: 12rem;

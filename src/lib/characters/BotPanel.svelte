@@ -41,6 +41,6 @@
 
   .bot-name {
     font-weight: 700;
-    font-size: 1rem;
+    font-size: var(--size-body);
   }
 </style>

@@ -84,9 +84,9 @@
     }
   }
   .center { text-align: center; }
-  .back-link { font-size: 0.875rem; color: var(--text-muted); display: inline-block; margin-bottom: 1rem; flex-shrink: 0; }
-  .back-link:hover { color: var(--foreground); }
-  .muted-link { color: var(--text-muted); }
+  .back-link { font-size: var(--size-secondary); color: var(--ink-muted); display: inline-block; margin-bottom: 1rem; flex-shrink: 0; }
+  .back-link:hover { color: var(--ink); }
+  .muted-link { color: var(--ink-muted); }
   .muted-link:hover { text-decoration: underline; }
   .blindfold-page { max-width: 42rem; margin: 0 auto; }
   .blindfold-wide { max-width: 64rem; margin: 0 auto; }

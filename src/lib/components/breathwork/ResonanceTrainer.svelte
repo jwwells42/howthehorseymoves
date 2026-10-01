@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import BreathPacer from './BreathPacer.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import { BreathEngine, type BreathPhaseName } from '$lib/breathwork/engine';
   import { BreathDrone } from '$lib/breathwork/audio';
   import { loadRate, saveRate, loadSessionMins, saveSessionMins } from '$lib/breathwork/prefs';
@@ -160,7 +161,7 @@
       </fieldset>
     </div>
 
-    <button type="button" class="start" onclick={start}>Begin</button>
+    <Button variant="primary" size="large" onclick={start}>Begin</Button>
 
     <details class="why">
       <summary>Why this works</summary>
@@ -171,7 +172,7 @@
       </p>
     </details>
   {:else}
-    <button type="button" class="stop" onclick={stop}>Stop</button>
+    <Button size="large" onclick={stop}>Stop</Button>
   {/if}
 </div>
 
@@ -196,15 +197,15 @@
   }
   .timer {
     margin-top: 0.5rem;
-    font-size: 1.5rem;
+    font-size: var(--size-large);
     font-weight: bold;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     font-variant-numeric: tabular-nums;
   }
   .done {
     margin-top: 0.5rem;
-    font-size: 1.125rem;
-    color: var(--foreground);
+    font-size: var(--size-body);
+    color: var(--ink);
   }
 
   .controls {
@@ -215,85 +216,68 @@
     gap: 1.25rem;
   }
   fieldset {
-    border: 1px solid var(--card-border);
+    border: 1px solid var(--line);
     border-radius: 0.75rem;
-    background: var(--card-bg);
+    background: var(--surface);
     padding: 1rem 1.25rem 1.25rem;
   }
   legend {
     padding: 0 0.5rem;
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     font-weight: bold;
   }
   .science {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: var(--size-secondary);
     font-variant-numeric: tabular-nums;
   }
   .science th,
   .science td {
     padding: 0.3rem 0.5rem;
     text-align: right;
-    border-bottom: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--line);
   }
   .science th:first-child,
   .science td:first-child {
     text-align: left;
   }
   .science th {
-    color: var(--text-muted);
+    color: var(--ink-muted);
     font-weight: bold;
   }
   .science .cm {
-    color: var(--text-faint);
-    font-size: 0.8rem;
+    color: var(--ink-muted);
+    font-size: var(--size-small);
   }
   .slider {
     display: block;
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
   .slider input {
     width: 100%;
     margin-top: 0.4rem;
-    accent-color: var(--foreground);
+    accent-color: var(--ink);
   }
   .readout {
     margin-top: 0.5rem;
     text-align: center;
-    font-size: 1rem;
-    color: var(--foreground);
-  }
-
-  .start,
-  .stop {
-    padding: 0.85rem 3rem;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border-radius: 999px;
-    border: 1px solid var(--card-border);
-    background: var(--btn-bg);
-    color: var(--foreground);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .start:hover,
-  .stop:hover {
-    background: var(--btn-hover);
+    font-size: var(--size-body);
+    color: var(--ink);
   }
 
   .why {
     width: 100%;
     max-width: 32rem;
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
   .why summary {
     cursor: pointer;
     font-weight: bold;
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
   .why p {
     margin-top: 0.5rem;

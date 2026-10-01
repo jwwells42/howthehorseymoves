@@ -1,8 +1,8 @@
-<main class="page">
-  <a href="/" class="back-link">&larr; Back to home</a>
+<script lang="ts">
+  import Page from '$lib/components/ui/Page.svelte';
+</script>
 
-  <h1>About How The Horsey Moves</h1>
-
+<Page title="About How The Horsey Moves" back={{ href: '/', label: 'Back to home' }} width="narrow">
   <section>
     <h2>What is this?</h2>
     <div class="prose">
@@ -80,6 +80,12 @@
         <a href="https://kenney.nl" target="_blank" rel="noopener noreferrer">kenney.nl</a>.</p>
       </div>
       <div class="credit-card">
+        <h3>Typeface</h3>
+        <p><em>Atkinson Hyperlegible Next</em>, by the
+        <a href="https://www.brailleinstitute.org/freefont/" target="_blank" rel="noopener noreferrer">Braille Institute</a>.
+        Licensed under the <em>SIL Open Font License 1.1</em>.</p>
+      </div>
+      <div class="credit-card">
         <h3>Framework</h3>
         <p>Built with <em>SvelteKit, Svelte 5, and TypeScript</em>. Hosted on Vercel.</p>
       </div>
@@ -105,35 +111,13 @@
       </p>
     </div>
   </section>
-</main>
+</Page>
 
 <style>
-  .page {
-    min-height: 100vh;
-    padding: 1.5rem;
-    max-width: 48rem;
-    margin: 0 auto;
-  }
-  .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    display: inline-block;
-    margin-bottom: 1.5rem;
-  }
-  .back-link:hover { color: var(--foreground); }
-
-  h1 {
-    font-size: 1.875rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-  }
-
   section {
     margin-bottom: 2rem;
   }
   section h2 {
-    font-size: 1.25rem;
-    font-weight: bold;
     margin-bottom: 0.75rem;
   }
 
@@ -141,14 +125,12 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    font-size: 0.875rem;
-    color: var(--text-muted);
     line-height: 1.6;
   }
-  .prose a {
+  .prose a,
+  .credit-card a {
     text-decoration: underline;
   }
-  .prose a:hover { color: var(--foreground); }
   .prose ul {
     list-style: disc;
     padding-left: 1.5rem;
@@ -165,21 +147,14 @@
   .credit-card {
     padding: 1rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
   }
   .credit-card h3 {
-    font-weight: bold;
-    color: var(--foreground);
     margin-bottom: 0.25rem;
   }
   .credit-card p {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
     line-height: 1.6;
   }
-  .credit-card a {
-    text-decoration: underline;
-  }
-  .credit-card a:hover { color: var(--foreground); }
 </style>

@@ -2,6 +2,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import { playSound } from '$lib/state/sound';
   import { type BoardState, type SquareId, type PiecePlacement, type PieceColor, createBoardState, boardToKey } from '$lib/logic/types';
   import { getLegalMoves, getAllLegalMoves, isCheckmate, isStalemate } from '$lib/logic/attacks';
@@ -514,8 +515,6 @@
       {board}
       {selectedSquare}
       {validMoves}
-      targets={[]}
-      reachedTargets={[]}
       {dragValidMoves}
       onSquareClick={handleSquareClick}
       onDrop={handleDrop}
@@ -533,7 +532,7 @@
     </div>
 
     {#if feedback && result === 'playing'}
-      <p class="feedback">{feedback}</p>
+      <p class="feedback">✗ {feedback}</p>
     {/if}
 
     {#if result === 'draw'}
@@ -549,28 +548,24 @@
         {#if bestStars > 0 && bestStars > stars}
           <p class="best-text">Best: {bestStars} stars</p>
         {/if}
-        <button class="try-again-btn" onclick={reset}>
-          Try Again
-        </button>
-        {#if onNext}
-          <button class="try-again-btn" onclick={onNext}>
-            Continue
-          </button>
-        {/if}
+        <div class="result-buttons">
+          <Button onclick={reset}>Try Again</Button>
+          {#if onNext}
+            <Button variant="primary" onclick={onNext}>Continue</Button>
+          {/if}
+        </div>
       </div>
     {/if}
 
     {#if result === 'lost'}
       <div class="result">
-        <p class="result-text">The opponent broke through.</p>
-        <button class="try-again-btn" onclick={reset}>
-          Try Again
-        </button>
-        {#if onNext}
-          <button class="try-again-btn" onclick={onNext}>
-            Continue
-          </button>
-        {/if}
+        <p class="result-text">✗ The opponent broke through.</p>
+        <div class="result-buttons">
+          <Button variant="primary" onclick={reset}>Try Again</Button>
+          {#if onNext}
+            <Button onclick={onNext}>Continue</Button>
+          {/if}
+        </div>
       </div>
     {/if}
   {/snippet}
@@ -583,20 +578,20 @@
   }
 
   .title {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: var(--size-large);
     margin: 0 0 0.25rem;
   }
 
   .status {
-    color: #888;
+    color: var(--ink-muted);
     margin: 0;
   }
 
+  /* A move that was not good enough. */
   .feedback {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
+    color: var(--wrong-text);
+    font-size: var(--size-secondary);
+    font-weight: bold;
     margin: 0;
     flex-shrink: 0;
   }
@@ -610,42 +605,15 @@
     flex-shrink: 0;
   }
 
-  .result-text {
-    font-size: 0.875rem;
-    color: #888;
-    margin: 0;
-  }
-
+  .result-text,
   .best-text {
-    font-size: 0.75rem;
-    color: #666;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin: 0;
   }
 
-  .try-again-btn {
-    padding: 0.5rem 1.5rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .try-again-btn:hover {
-    background: #15803d;
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.5rem);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .result-buttons {
+    display: flex;
+    gap: 0.75rem;
   }
 </style>

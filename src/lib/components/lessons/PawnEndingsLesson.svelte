@@ -2,7 +2,10 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
+  import ResultSymbol from '$lib/components/board/ResultSymbol.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
   import DrawTrainer from '$lib/components/endgame/DrawTrainer.svelte';
   import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';
@@ -263,28 +266,16 @@
           <div class="board-wrap">
             <Board
               board={explorerBoard ?? board}
-              selectedSquare={null}
-              validMoves={[]}
               targets={keySquares}
-              reachedTargets={[]}
-              dragValidMoves={[]}
-              onSquareClick={() => {}}
-              onDrop={() => {}}
-              onDragStart={() => {}}
-              onDragEnd={() => {}}
               opponentSlide={explorerBoard ? null : opponentSlide}
               arrows={explorerBoard ? explorerArrows : diagramArrows}
             />
 
             <!-- Result overlay (hide when exploring) -->
             {#if phase === 'result' && quizStep && !explorerBoard}
-              <div class="result-overlay">
-                {#if quizStep.endState === 'promotion'}
-                  <div class="trophy">&#127942;</div>
-                {:else}
-                  <div class="draw-symbol">&#189;</div>
-                {/if}
-              </div>
+              <BoardOverlay dim={false}>
+                <ResultSymbol result={quizStep.endState === 'promotion' ? 'win' : 'draw'} />
+              </BoardOverlay>
             {/if}
           </div>
         </div>
@@ -292,7 +283,7 @@
         <!-- Diagram: Next button -->
         {#if phase === 'diagram'}
           <div class="nav-row">
-            <button class="btn-primary" onclick={nextStep}>Next</button>
+            <Button variant="primary" onclick={nextStep}>Next</Button>
           </div>
         {/if}
 
@@ -328,17 +319,17 @@
 
         {#if phase === 'animating'}
           <p class="animating-text">Watch the continuation...</p>
-          <button class="btn-secondary skip-btn" onclick={skipToResult}>Skip</button>
+          <Button onclick={skipToResult}>Skip</Button>
         {/if}
 
         {#if phase === 'result'}
           <div class="result-area">
             <StarRating {stars} size="lg" />
             <div class="result-buttons">
-              <button class="btn-secondary" onclick={retry}>Try Again</button>
-              <button class="btn-primary" onclick={nextStep}>
+              <Button onclick={retry}>Try Again</Button>
+              <Button variant="primary" onclick={nextStep}>
                 {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
-              </button>
+              </Button>
             </div>
           </div>
         {/if}
@@ -368,9 +359,9 @@
   }
 
   .header { text-align: center; flex-shrink: 0; }
-  .title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
-  .instruction { color: var(--text-muted); font-size: 0.9rem; max-width: 28rem; }
-  .progress { color: var(--text-faint); font-size: 0.75rem; margin-top: 0.25rem; }
+  .title { font-size: var(--size-large); font-weight: bold; margin-bottom: 0.25rem; }
+  .instruction { color: var(--ink-muted); font-size: var(--size-secondary); max-width: 28rem; }
+  .progress { color: var(--ink-muted); font-size: var(--size-small); margin-top: 0.25rem; }
 
   /* Side to move */
   .side-to-move {
@@ -379,20 +370,20 @@
     gap: 0.5rem;
     padding: 0.25rem 0.75rem;
     border-radius: 999px;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
+    background: var(--surface);
+    border: 1px solid var(--line);
   }
   .side-dot {
     width: 0.875rem;
     height: 0.875rem;
     border-radius: 0.15rem;
-    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border: 1.5px solid var(--line);
   }
-  .side-dot.white { background: #e8e0d0; }
-  .side-dot.black { background: #111; border-color: rgba(255, 255, 255, 0.15); }
+  .side-dot.white { background: var(--piece-white); }
+  .side-dot.black { background: var(--piece-black); }
   .side-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     font-weight: 500;
   }
 
@@ -455,35 +446,6 @@
     }
   }
 
-  /* Result overlay */
-  .result-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 5;
-  }
-  .trophy {
-    font-size: 6rem;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-    animation: pop 0.5s ease-out;
-  }
-  .draw-symbol {
-    font-size: 8rem;
-    font-weight: bold;
-    color: #facc15;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    animation: pop 0.5s ease-out;
-  }
-
-  @keyframes pop {
-    0% { transform: scale(0); opacity: 0; }
-    60% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); }
-  }
-
   /* Navigation */
   .nav-row {
     display: flex;
@@ -506,22 +468,22 @@
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
     border-radius: 0.75rem;
-    border: 2px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
+    border: 2px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     font-weight: 500;
     transition: border-color 0.15s, background 0.15s;
     min-width: 5rem;
   }
   .answer-btn:hover {
-    border-color: rgba(240, 230, 204, 0.4);
-    background: var(--btn-bg);
+    border-color: var(--ink-muted);
+    background: var(--surface-raised);
   }
   .answer-btn.wrong-flash {
-    border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.15);
+    border-color: var(--wrong);
+    background: var(--wrong-tint);
     animation: shake 0.3s;
   }
 
@@ -529,13 +491,13 @@
     width: 2rem;
     height: 2rem;
     border-radius: 0.25rem;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid var(--line);
   }
-  .answer-square.white { background: #e8e0d0; }
-  .answer-square.black { background: #111; border-color: rgba(255, 255, 255, 0.15); }
+  .answer-square.white { background: var(--piece-white); }
+  .answer-square.black { background: var(--piece-black); }
 
   .draw-icon {
-    font-size: 1.5rem;
+    font-size: var(--size-large);
     font-weight: bold;
     line-height: 2rem;
   }
@@ -547,13 +509,8 @@
   }
 
   .animating-text {
-    color: var(--text-muted);
-    font-style: italic;
+    color: var(--ink-muted);
     margin-bottom: 0;
-  }
-  .skip-btn {
-    font-size: 0.875rem;
-    padding: 0.375rem 1rem;
   }
 
   /* Result area */
@@ -567,29 +524,6 @@
     display: flex;
     gap: 0.75rem;
   }
-  .btn-primary {
-    padding: 0.625rem 1.5rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-primary:hover { background: #15803d; }
-  .btn-secondary {
-    padding: 0.625rem 1.5rem;
-    background: var(--btn-bg);
-    color: var(--foreground);
-    border: 1px solid var(--card-border);
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-secondary:hover { background: var(--btn-hover); }
 
   /* Trainer (inline EndgameShell / DrawTrainer) */
   .trainer-lesson {

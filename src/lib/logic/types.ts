@@ -42,6 +42,9 @@ export function createBoardState(
   return { pieces, enPassantSquare: options?.enPassantSquare, castlingRights: options?.castlingRights };
 }
 
+/** A board with nothing on it. Safe to share, as a board state is never changed. */
+export const EMPTY_BOARD: BoardState = createBoardState([]);
+
 const FEN_PIECES: Record<string, { piece: PieceKind; color: PieceColor }> = {
   K: { piece: "K", color: "w" }, Q: { piece: "Q", color: "w" },
   R: { piece: "R", color: "w" }, B: { piece: "B", color: "w" },

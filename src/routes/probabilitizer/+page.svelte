@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import { parseFen, createBoardState, type BoardState, type SquareId, type PieceKind, type PieceColor } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { applyMove, parseGamePgn, extractMainLine, type GameMove } from '$lib/logic/pgn';
@@ -415,7 +416,7 @@
     <section class="signin card">
       <h2>Sign in with Lichess to continue</h2>
       {#if authError}<p class="error">{authError}</p>{/if}
-      <button type="button" class="signin-btn" onclick={login}>Sign in with Lichess</button>
+      <Button variant="primary" onclick={login}>Sign in with Lichess</Button>
     </section>
   {:else}
   <div class="signed-in-row">
@@ -431,8 +432,6 @@
           {board}
           {selectedSquare}
           {validMoves}
-          targets={[]}
-          reachedTargets={[]}
           {dragValidMoves}
           {onSquareClick}
           {onDrop}
@@ -595,34 +594,34 @@
     margin: 0 auto;
   }
   .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     display: inline-block;
     margin-bottom: 1rem;
   }
   .back-link:hover {
-    color: var(--foreground);
+    color: var(--ink);
   }
   h1 {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
     margin-bottom: 0.5rem;
   }
   .tagline {
-    color: var(--text-muted);
+    color: var(--ink-muted);
     max-width: 42rem;
     line-height: 1.5;
     margin-bottom: 0.5rem;
   }
   .credit {
-    font-size: 0.8rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     margin-top: 2.5rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--card-border);
+    border-top: 1px solid var(--line);
   }
   .credit a {
-    color: var(--text-muted);
+    color: var(--ink-muted);
     text-decoration: underline;
   }
 
@@ -630,42 +629,29 @@
     max-width: 34rem;
   }
   .signin p {
-    color: var(--text-muted);
+    color: var(--ink-muted);
     line-height: 1.5;
     margin-bottom: 1rem;
-  }
-  .signin-btn {
-    padding: 0.6rem 1.1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--btn-bg);
-    color: var(--foreground);
-    font-size: 0.95rem;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  .signin-btn:hover {
-    background: var(--btn-hover);
   }
   .signed-in-row {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 1rem;
-    font-size: 0.85rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
   .signed-in-row button {
     padding: 0.25rem 0.6rem;
     border-radius: 0.4rem;
-    border: 1px solid var(--card-border);
-    background: var(--btn-bg);
-    color: var(--foreground);
+    border: 1px solid var(--line);
+    background: var(--surface-raised);
+    color: var(--ink);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--size-small);
   }
   .signed-in-row button:hover {
-    background: var(--btn-hover);
+    background: var(--line);
   }
 
   .layout {
@@ -703,17 +689,17 @@
   .btn-link {
     padding: 0.45rem 0.8rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--btn-bg);
-    color: var(--foreground);
+    border: 1px solid var(--line);
+    background: var(--surface-raised);
+    color: var(--ink);
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     white-space: nowrap;
   }
   .board-controls button:hover,
   .paste button:hover,
   .btn-link:hover {
-    background: var(--btn-hover);
+    background: var(--line);
   }
   .board-controls button:disabled {
     opacity: 0.4;
@@ -729,8 +715,8 @@
   }
   .paste label {
     display: block;
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     margin-bottom: 0.35rem;
   }
   .paste-row {
@@ -741,20 +727,20 @@
     flex: 1;
     padding: 0.45rem 0.6rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-size: 0.875rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: var(--size-secondary);
   }
 
   .card {
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
     border-radius: 0.75rem;
     padding: 1rem;
   }
   .card h2 {
-    font-size: 1rem;
+    font-size: var(--size-body);
     font-weight: bold;
     margin-bottom: 0.6rem;
   }
@@ -763,20 +749,20 @@
     margin-bottom: 0.4rem;
   }
   .muted {
-    color: var(--text-faint);
+    color: var(--ink-muted);
   }
   .totals .overall {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--card-border);
+    border-top: 1px solid var(--line);
   }
   .totals .small {
-    font-size: 0.75rem;
+    font-size: var(--size-small);
     line-height: 1.35;
   }
   .error {
-    color: #dc2626;
-    font-size: 0.875rem;
+    color: var(--wrong-text);
+    font-size: var(--size-secondary);
   }
 
   .line-scroll {
@@ -787,20 +773,20 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
   }
   .line-table thead th {
     position: sticky;
     top: 0;
-    background: var(--background);
+    background: var(--page);
     z-index: 1;
-    border-bottom: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--line);
   }
   .line-table th,
   .line-table td {
     text-align: left;
     padding: 0.3rem 0.4rem;
-    border-bottom: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--line);
   }
   .line-table th:nth-child(2),
   .line-table td:nth-child(2),
@@ -833,12 +819,12 @@
     background: transparent;
     border: none;
     border-radius: 0.4rem;
-    color: var(--foreground);
+    color: var(--ink);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--size-small);
   }
   .explorer-move:hover {
-    background: var(--btn-hover);
+    background: var(--line);
   }
   .em-san {
     font-weight: bold;
@@ -846,45 +832,45 @@
   }
   .em-games {
     text-align: right;
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
   .em-rate {
     text-align: right;
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
   .em-bar {
     display: flex;
     height: 14px;
     border-radius: 3px;
     overflow: hidden;
-    border: 1px solid var(--card-border);
+    border: 1px solid var(--line);
   }
   .em-white {
-    background: #f0f0f0;
+    background: var(--piece-white);
   }
   .em-draw {
-    background: #9ca3af;
+    background: var(--result-draw);
   }
   .em-black {
-    background: #374151;
+    background: var(--piece-black);
   }
 
   .db-controls {
     margin-bottom: 0.85rem;
     padding-bottom: 0.85rem;
-    border-bottom: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--line);
   }
   .radio-row {
     display: flex;
     gap: 1rem;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
   }
   .filters {
     margin-top: 0.75rem;
   }
   .filter-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     margin: 0.5rem 0 0.3rem;
   }
   .chips {
@@ -893,13 +879,13 @@
     gap: 0.4rem;
   }
   .chip {
-    font-size: 0.8rem;
+    font-size: var(--size-small);
     padding: 0.2rem 0.45rem;
-    border: 1px solid var(--card-border);
+    border: 1px solid var(--line);
     border-radius: 0.4rem;
   }
   .spinner {
-    color: var(--text-faint);
+    color: var(--ink-muted);
     font-weight: normal;
   }
 </style>

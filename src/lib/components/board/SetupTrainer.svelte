@@ -48,6 +48,8 @@
   import { type BoardState, type PieceColor, RANKS } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import BackLink from '$lib/components/ui/BackLink.svelte';
   import { playSound } from '$lib/state/sound';
 
   function mistakesToStars(m: number): number {
@@ -55,8 +57,6 @@
     if (m <= 2) return 2;
     return 1;
   }
-
-  const noop = () => {};
 
   interface TrayDrag {
     piece: PieceKind;
@@ -160,9 +160,14 @@
   function clientToSquare(clientX: number, clientY: number): SquareId | null {
     const svg = boardEl?.querySelector('svg');
     if (!svg) return null;
+    // When height is short the svg box is wider than the board, which is
+    // drawn square in the middle of it.
     const rect = svg.getBoundingClientRect();
-    const fx = Math.floor((clientX - rect.left) / rect.width * 8);
-    const fy = Math.floor((clientY - rect.top) / rect.height * 8);
+    const size = Math.min(rect.width, rect.height);
+    const left = rect.left + (rect.width - size) / 2;
+    const top = rect.top + (rect.height - size) / 2;
+    const fx = Math.floor((clientX - left) / size * 8);
+    const fy = Math.floor((clientY - top) / size * 8);
     if (fx < 0 || fx > 7 || fy < 0 || fy > 7) return null;
     return `${FILES[fx]}${RANKS[fy]}` as SquareId;
   }
@@ -265,8 +270,8 @@
     </div>
     <StarRating stars={doneStars} size="lg" />
     <div class="btn-row">
-      <button class="btn-secondary" onclick={restart}>Play Again</button>
-      <a href="/play?level=random" class="btn-primary">Play a Game!</a>
+      <Button onclick={restart}>Play Again</Button>
+      <Button variant="primary" href="/play?level=random">Play a Game!</Button>
     </div>
   </div>
 {:else}
@@ -292,17 +297,9 @@
         <div bind:this={boardEl} class="board-wrapper">
           <Board
             {board}
-            selectedSquare={null}
-            validMoves={[]}
-            targets={[]}
-            reachedTargets={[]}
-            dragValidMoves={[]}
+            playableColors={[]}
             onSquareClick={handleSquareClick}
-            onDrop={noop as (from: SquareId, to: SquareId) => void}
-            onDragStart={noop as (sq: SquareId) => void}
-            onDragEnd={noop}
             wrongMoveSquare={wrongSquare}
-            readOnly
           />
         </div>
 
@@ -362,7 +359,7 @@
           </a>
         {/each}
       </div>
-      <a href="/" class="back-link">&larr; Back to home</a>
+      <BackLink href="/">Back to home</BackLink>
     </div>
 
     <!-- Drag ghost -->
@@ -392,39 +389,19 @@
     text-align: center;
   }
   .screen-text h2 {
-    font-size: 1.5rem;
+    font-size: var(--size-large);
     font-weight: bold;
     margin-bottom: 0.5rem;
   }
-  .muted { color: var(--text-muted); }
-  .faint { color: var(--text-faint); }
-  .small { font-size: 0.875rem; }
+  .muted { color: var(--ink-muted); }
+  .faint { color: var(--ink-muted); }
+  .small { font-size: var(--size-secondary); }
   .tada { font-size: 3rem; margin-bottom: 0.75rem; }
 
   .btn-row {
     display: flex;
     gap: 0.75rem;
   }
-  .btn-secondary {
-    padding: 0.5rem 1.5rem;
-    border-radius: 0.5rem;
-    background: var(--btn-bg);
-    color: var(--foreground);
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-secondary:hover { background: var(--btn-hover); }
-  .btn-primary {
-    padding: 0.5rem 1.5rem;
-    border-radius: 0.5rem;
-    background: #16a34a;
-    color: white;
-    font-weight: 500;
-    transition: background 0.15s;
-  }
-  .btn-primary:hover { background: #15803d; }
 
   /* ── Layout (matches GameViewer / OpeningTrainer) ─── */
   .setup-layout {
@@ -469,7 +446,7 @@
     flex-shrink: 0;
   }
   .stage-title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
   }
 
@@ -516,8 +493,8 @@
     }
   }
   .tray-label {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     text-align: center;
     display: none;
   }
@@ -539,8 +516,8 @@
     width: 3rem;
     height: 3rem;
     border-radius: 0.5rem;
-    border: 2px solid var(--card-border);
-    background: var(--card-bg);
+    border: 2px solid var(--line);
+    background: var(--surface);
     cursor: pointer;
     touch-action: none;
     transition: border-color 0.15s, background 0.15s;
@@ -556,11 +533,12 @@
     }
   }
   .tray-piece:hover {
-    border-color: rgba(240, 230, 204, 0.3);
+    border-color: var(--ink-muted);
   }
+  /* The chosen piece is the one to look at. */
   .tray-piece.selected {
-    border-color: #facc15;
-    background: rgba(250, 204, 21, 0.2);
+    border-color: var(--highlight);
+    background: var(--highlight-tint);
   }
   .tray-img {
     width: 100%;
@@ -583,8 +561,8 @@
 
   .stage-list {
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border, #333);
-    background: var(--card-bg, #1a1a1a);
+    border: 1px solid var(--line);
+    background: var(--surface);
     padding: 0.5rem;
     display: flex;
     flex-direction: column;
@@ -597,19 +575,19 @@
     gap: 0.5rem;
     padding: 0.5rem 0.625rem;
     border-radius: 0.375rem;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     transition: background 0.1s;
   }
   .stage-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-raised);
   }
   .stage-item.active {
-    background: rgba(250, 204, 21, 0.12);
+    background: var(--highlight-tint);
   }
 
   .stage-num {
-    color: var(--text-faint);
-    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-size: var(--size-small);
     min-width: 1.25rem;
   }
   .stage-icon {
@@ -622,13 +600,6 @@
   .stage-stars {
     margin-left: auto;
   }
-
-  .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    padding: 0.25rem 0.625rem;
-  }
-  .back-link:hover { color: var(--foreground); }
 
   /* Drag ghost */
   .drag-ghost {

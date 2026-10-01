@@ -1,7 +1,11 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
+  import ResultSymbol from '$lib/components/board/ResultSymbol.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
   import { playSound } from '$lib/state/sound';
   import {
     type BoardState,
@@ -38,7 +42,6 @@
   let mistakesKey = $derived(`how-to-win-${section}-mistakes`);
   let stepIndex = $derived(getStepIndex(section, stepSlug));
   let step = $derived(steps[stepIndex]);
-  let progress = $derived(((stepIndex + 1) / steps.length) * 100);
 
   /* ── Move application (simplified, no en passant needed) ─ */
 
@@ -305,25 +308,17 @@
     </div>
     <StarRating stars={doneStars} size="lg" />
     <div class="done-buttons">
-      <button class="btn btn-secondary" onclick={playAgain}>
-        Play Again
-      </button>
-      <button class="btn btn-primary" onclick={goToNextSection}>
-        {#if nextSection}
-          Continue to {nextSection.title}!
-        {:else}
-          Play vs Computer!
-        {/if}
-      </button>
+      <Button onclick={playAgain}>Play Again</Button>
+      <Button variant="primary" onclick={goToNextSection}>
+        {nextSection ? `Continue to ${nextSection.title}!` : 'Play vs Computer!'}
+      </Button>
     </div>
   </div>
 {:else if step}
   <div class="container">
     <!-- Progress bar -->
     <div class="progress-wrapper">
-      <div class="progress-track">
-        <div class="progress-fill" style="width: {progress}%"></div>
-      </div>
+      <ProgressBar value={stepIndex + 1} max={steps.length} label="Lesson progress" />
       <p class="progress-label">{stepIndex + 1} / {steps.length}</p>
     </div>
 
@@ -336,16 +331,14 @@
     <!-- Board -->
     <div class="board-wrapper">
       {#if showTrophy}
-        <div class="trophy-overlay">
-          <div class="trophy">&#127942;</div>
-        </div>
+        <BoardOverlay dim={false}>
+          <ResultSymbol result="win" />
+        </BoardOverlay>
       {/if}
       <Board
         {board}
         {selectedSquare}
         {validMoves}
-        targets={[]}
-        reachedTargets={[]}
         {dragValidMoves}
         onSquareClick={handleSquareClick}
         onDrop={handleDrop}
@@ -361,20 +354,16 @@
 
     <!-- Feedback message -->
     {#if feedbackMessage}
-      <p class="feedback">{feedbackMessage}</p>
+      <p class="feedback">✗ {feedbackMessage}</p>
     {/if}
 
     <!-- Controls -->
     {#if step.type === 'demo'}
-      <button class="btn btn-primary btn-large" onclick={goToNext}>
-        Next
-      </button>
+      <Button variant="primary" size="large" onclick={goToNext}>Next</Button>
     {:else if solved}
       <div class="solved-controls">
-        <p class="correct-label">Correct!</p>
-        <button class="btn btn-primary btn-large" onclick={goToNext}>
-          Next
-        </button>
+        <p class="correct-label">✓ Correct!</p>
+        <Button variant="primary" size="large" onclick={goToNext}>Next</Button>
       </div>
     {/if}
   </div>
@@ -399,46 +388,29 @@
     }
   }
 
-  /* Progress bar */
   .progress-wrapper {
     width: 100%;
     max-width: 28rem;
   }
-  .progress-track {
-    height: 0.5rem;
-    border-radius: 9999px;
-    background: var(--card-border, #374151);
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: 9999px;
-    background: #22c55e;
-    transition: width 0.5s ease;
-  }
   .progress-label {
-    font-size: 0.75rem;
-    color: var(--text-faint, #6b7280);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     margin-top: 0.25rem;
     text-align: center;
   }
 
-  /* Step info */
   .step-info {
     text-align: center;
   }
   .step-title {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: var(--size-large);
     margin: 0;
   }
   .step-instruction {
-    font-size: 0.875rem;
-    color: var(--text-muted, #9ca3af);
+    color: var(--ink-muted);
     margin-top: 0.25rem;
   }
 
-  /* Board wrapper */
   .board-wrapper {
     width: 100%;
     position: relative;
@@ -454,26 +426,10 @@
     }
   }
 
-  /* Trophy overlay */
-  .trophy-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    pointer-events: none;
-  }
-  .trophy {
-    font-size: 8rem;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-  }
-
-  /* Feedback */
+  /* A move that was not good enough. */
   .feedback {
-    color: #ef4444;
-    font-weight: 700;
-    font-size: 0.875rem;
+    color: var(--wrong-text);
+    font-weight: bold;
     animation: pulse 1s ease-in-out infinite;
   }
   @keyframes pulse {
@@ -481,7 +437,6 @@
     50% { opacity: 0.5; }
   }
 
-  /* Solved controls */
   .solved-controls {
     display: flex;
     flex-direction: column;
@@ -489,41 +444,11 @@
     gap: 0.5rem;
   }
   .correct-label {
-    color: #22c55e;
-    font-weight: 700;
+    color: var(--correct-text);
+    font-weight: bold;
     margin: 0;
   }
 
-  /* Buttons */
-  .btn {
-    border: none;
-    border-radius: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-  }
-  .btn-large {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
-  }
-  .btn-primary {
-    background: #16a34a;
-    color: #fff;
-    padding: 0.5rem 1.5rem;
-  }
-  .btn-primary:hover {
-    background: #15803d;
-  }
-  .btn-secondary {
-    background: var(--btn-bg, #374151);
-    color: var(--foreground, #e5e7eb);
-    padding: 0.5rem 1.5rem;
-  }
-  .btn-secondary:hover {
-    background: var(--btn-hover, #4b5563);
-  }
-
-  /* Done screen */
   .done-center {
     text-align: center;
   }
@@ -532,12 +457,11 @@
     margin-bottom: 0.75rem;
   }
   .done-title {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: var(--size-large);
     margin: 0 0 0.5rem;
   }
   .done-subtitle {
-    color: var(--text-muted, #9ca3af);
+    color: var(--ink-muted);
     margin: 0;
   }
   .done-buttons {

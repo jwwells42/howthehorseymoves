@@ -1,11 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import AnswerInput from './AnswerInput.svelte';
+  import ReviewCard from './ReviewCard.svelte';
+  import ReviewGrid from './ReviewGrid.svelte';
   import { playSound } from '$lib/state/sound';
+  import { MARK, highlight, type SquareHighlight } from '$lib/board-marks';
 
   const GAME_DURATION = 30;
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
 
   type PieceType = 'N' | 'B' | 'R' | 'Q' | 'K';
 
@@ -95,24 +100,15 @@
     return 0;
   }
 
-  // Mini board helper
-  const MB_S = 10;
-  const MB_B = MB_S * 8;
-
-  function getMiniBoardFill(attempt: Attempt, fi: number, ri: number): string {
-    const f = attempt.square.charCodeAt(0) - 97;
-    const r = parseInt(attempt.square[1]) - 1;
-    const svgR = 7 - r;
-    const attacked = getAttackedSquares(attempt.piece, f, r);
-    const attackedSet = new Set(attacked.map(([af, ar]) => `${af},${7 - ar}`));
-
-    const isLight = (fi + ri) % 2 === 0;
-    const isPiece = fi === f && ri === svgR;
-    const isAttacked = attackedSet.has(`${fi},${ri}`);
-
-    if (isPiece) return '#5b9bd5';
-    if (isAttacked) return attempt.correct ? '#a3d9a3' : '#f0a0a0';
-    return isLight ? LIGHT : DARK;
+  /** The piece's square, and every square it controls. */
+  function reviewMarks(attempt: Attempt): SquareHighlight[] {
+    const file = attempt.square.charCodeAt(0) - 97;
+    const rank = parseInt(attempt.square[1]) - 1;
+    const controlled = getAttackedSquares(attempt.piece, file, rank).map(([f, r]) => 'abcdefgh'[f] + (r + 1));
+    return [
+      ...highlight([attempt.square], MARK.note),
+      ...highlight(controlled, attempt.correct ? MARK.good : MARK.danger),
+    ];
   }
 
   let gameState = $state<'idle' | 'playing' | 'done'>('idle');
@@ -124,14 +120,12 @@
   let bestScore = $state(0);
   let bestStars = $state(0);
   let history = $state<Attempt[]>([]);
-  let inputEl = $state<HTMLInputElement | null>(null);
 
   let timerRef: ReturnType<typeof setInterval> | null = null;
   let flashTimeout: ReturnType<typeof setTimeout> | null = null;
 
   let stars = $derived(getStars(score));
-  let timerColor = $derived(timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#fb923c' : '#22c55e');
-  let wrongOnes = $derived(history.filter((a) => !a.correct));
+  let mistakes = $derived(history.filter((a) => !a.correct));
 
   onMount(() => {
     bestScore = parseInt(localStorage.getItem('blindfold-counting-best') ?? '0', 10);
@@ -141,12 +135,6 @@
       if (timerRef) clearInterval(timerRef);
       if (flashTimeout) clearTimeout(flashTimeout);
     };
-  });
-
-  $effect(() => {
-    if (gameState === 'playing') {
-      inputEl?.focus();
-    }
   });
 
   function startGame() {
@@ -186,8 +174,7 @@
     }
   }
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  function handleSubmit() {
     if (gameState !== 'playing') return;
     const answer = parseInt(input.trim());
     if (isNaN(answer)) return;
@@ -216,147 +203,64 @@
   }
 </script>
 
-<div class="container">
+{#snippet review(title: string, attempts: Attempt[])}
+  <ReviewGrid {title}>
+    {#each attempts as attempt}
+      <ReviewCard correct={attempt.correct} highlights={reviewMarks(attempt)}>
+        <strong>{PIECE_NAMES[attempt.piece]} {attempt.square}</strong><br />
+        <span class={attempt.correct ? 'correct' : 'wrong'}>{attempt.expected} squares</span>
+        {#if !attempt.correct}
+          <span class="muted">(you: {attempt.answer})</span>
+        {/if}
+      </ReviewCard>
+    {/each}
+  </ReviewGrid>
+{/snippet}
+
+<div class="trainer">
   {#if gameState === 'idle'}
-    <div class="center-col">
-      <h2 class="title">Move Counting</h2>
-      <p class="subtitle">
+    <div class="screen">
+      <h2>Move Counting</h2>
+      <p class="instructions">
         A piece appears on a square. How many squares does it control on an empty board? You have 30 seconds!
       </p>
-      {#if bestScore > 0}
-        <div class="best">
-          Best: {bestScore}
-          {#if bestStars > 0}
-            <StarRating stars={bestStars} size="sm" />
-          {/if}
-        </div>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <BestScore score={bestScore} stars={bestStars} />
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
+
   {:else if gameState === 'done'}
-    <div class="center-col">
-      <h2 class="title">Time's up!</h2>
-      <p class="big-score">{score}/{history.length} correct</p>
+    <div class="screen">
+      <h2>Time's up!</h2>
+      <p class="final-score">{score}/{history.length} correct</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />
       {/if}
-      {#if bestScore > 0}
-        <p class="best-text">Personal best: {bestScore}</p>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Play Again</button>
+      <BestScore score={bestScore} />
+      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
 
-      {#if wrongOnes.length > 0}
-        <div class="section-divider">
-          <h3 class="section-title">Mistakes ({wrongOnes.length})</h3>
-          <div class="mini-grid">
-            {#each wrongOnes as attempt, i}
-              <div class="mini-board-wrap">
-                <svg
-                  viewBox="0 0 {MB_B} {MB_B}"
-                  class="mini-board"
-                  style="border-color: {attempt.correct ? '#22c55e' : '#ef4444'};"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      <rect
-                        x={fi * MB_S} y={ri * MB_S}
-                        width={MB_S} height={MB_S}
-                        fill={getMiniBoardFill(attempt, fi, ri)}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mono bold">{PIECE_NAMES[attempt.piece]} {attempt.square}</span>
-                  <br />
-                  <span class="text-red">{attempt.expected} squares
-                    <span class="faint"> (you: {attempt.answer})</span>
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+      {#if mistakes.length > 0}
+        {@render review(`Mistakes (${mistakes.length})`, mistakes)}
       {/if}
-
       {#if history.length > 0}
-        <div class="section-divider">
-          <h3 class="section-title">All answers ({history.length})</h3>
-          <div class="mini-grid">
-            {#each history as attempt, i}
-              <div class="mini-board-wrap">
-                <svg
-                  viewBox="0 0 {MB_B} {MB_B}"
-                  class="mini-board"
-                  style="border-color: {attempt.correct ? '#22c55e' : '#ef4444'};"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      <rect
-                        x={fi * MB_S} y={ri * MB_S}
-                        width={MB_S} height={MB_S}
-                        fill={getMiniBoardFill(attempt, fi, ri)}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mono bold">{PIECE_NAMES[attempt.piece]} {attempt.square}</span>
-                  <br />
-                  <span class={attempt.correct ? 'text-green' : 'text-red'}>
-                    {attempt.expected} squares
-                    {#if !attempt.correct}
-                      <span class="faint"> (you: {attempt.answer})</span>
-                    {/if}
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+        {@render review(`All answers (${history.length})`, history)}
       {/if}
     </div>
+
   {:else}
-    <!-- Playing state -->
-    <div class="timer-bar-track">
-      <div
-        class="timer-bar-fill"
-        style="width: {(timeLeft / GAME_DURATION) * 100}%; background: {timerColor};"
-      ></div>
+    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
+
+    <div class="question">
+      <img src={PIECE_ICONS[question.piece]} alt={PIECE_NAMES[question.piece]} class="piece" />
+      <div class={['square', flash]}>{question.square}</div>
+      <p class="instructions">How many squares?</p>
     </div>
 
-    <div class="hud">
-      <span>Score: {score}</span>
-      <span>{timeLeft}s</span>
-    </div>
-
-    <div class="question-area">
-      <img src={PIECE_ICONS[question.piece]} alt={PIECE_NAMES[question.piece]} class="piece-img" />
-      <div class={['square-display', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}>
-        {question.square}
-      </div>
-      <div class="question-label">How many squares?</div>
-    </div>
-
-    <form class="input-row" onsubmit={handleSubmit}>
-      <input
-        bind:this={inputEl}
-        type="text"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        bind:value={input}
-        placeholder="#"
-        maxlength={2}
-        class="text-input"
-        autocomplete="off"
-      />
-      <button type="submit" class="go-btn">Go</button>
-    </form>
+    <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Number of squares" placeholder="#" numeric />
   {/if}
 </div>
 
 <style>
-  .container {
+  .trainer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -365,217 +269,40 @@
     margin: 0 auto;
   }
 
-  .center-col {
+  .screen {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
     text-align: center;
-    max-width: 42rem;
-    margin: 0 auto;
   }
 
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
+  .instructions {
+    color: var(--ink-muted);
   }
 
-  .subtitle {
-    color: var(--text-muted);
-  }
-
-  .best {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .best-text {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .big-score {
-    font-size: 1.875rem;
-    font-weight: bold;
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 0.5rem;
-    background: #16a34a;
-    color: white;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: #15803d;
-  }
-
-  .timer-bar-track {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .timer-bar-fill {
-    height: 100%;
-    transition: width 1s linear, background 0.5s;
-  }
-
-  .hud {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .question-area {
+  .question {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    padding: 1rem 0;
   }
-
-  .piece-img {
+  .piece {
     width: 4rem;
     height: 4rem;
   }
-
-  .square-display {
-    font-size: 2.25rem;
+  .square {
+    font-size: var(--size-title);
     font-weight: bold;
     transition: color 0.1s;
   }
 
-  .flash-correct {
-    color: #4ade80;
-  }
-
-  .flash-wrong {
-    color: #f87171;
-  }
-
-  .question-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 200px;
-  }
-
-  .text-input {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 1.5rem;
-    text-align: center;
-  }
-
-  .text-input:focus {
-    outline: none;
-    border-color: rgba(255, 248, 230, 0.4);
-  }
-
-  .text-input::placeholder {
-    color: var(--text-faint);
-  }
-
-  .go-btn {
-    padding: 0.5rem 1rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .go-btn:hover {
-    background: #15803d;
-  }
-
-  .section-divider {
-    width: 100%;
-    border-top: 1px solid rgba(255, 248, 230, 0.1);
-    margin-top: 0.5rem;
-    padding-top: 1rem;
-  }
-
-  .section-title {
-    font-weight: bold;
-    font-size: 0.875rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .mini-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    justify-items: center;
-  }
-
-  @media (min-width: 640px) {
-    .mini-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  .mini-board-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .mini-board {
-    width: 5rem;
-    height: 5rem;
-    border: 3px solid;
-    border-radius: 4px;
-  }
-
-  .mini-label {
-    font-size: 0.75rem;
-    text-align: center;
-  }
-
-  .mono {
-    font-family: monospace;
-  }
-
-  .bold {
+  .final-score {
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
-  .text-green {
-    color: #4ade80;
-  }
-
-  .text-red {
-    color: #f87171;
-  }
-
-  .faint {
-    color: var(--text-faint);
-  }
+  .correct { color: var(--correct-text); }
+  .wrong { color: var(--wrong-text); }
+  .muted { color: var(--ink-muted); }
 </style>

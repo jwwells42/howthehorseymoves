@@ -1,11 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import ReviewCard from './ReviewCard.svelte';
+  import ReviewGrid from './ReviewGrid.svelte';
   import { playSound } from '$lib/state/sound';
+  import { MARK, highlight, type SquareHighlight } from '$lib/board-marks';
 
   const GAME_DURATION = 30;
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
 
   interface Attempt {
     sq1: string;
@@ -77,9 +81,7 @@
   let flashRef: ReturnType<typeof setTimeout> | null = null;
 
   let stars = $derived(getStars(score));
-  let timerBarColor = $derived(
-    timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#fb923c' : '#22c55e'
-  );
+  let mistakes = $derived(history.filter((a) => !a.correct));
 
   onMount(() => {
     bestScore = parseInt(localStorage.getItem('blindfold-diagonal-best') ?? '0', 10);
@@ -146,9 +148,6 @@
     flashRef = setTimeout(() => { flash = null; }, 200);
   }
 
-  const S = 10;
-  const B = S * 8;
-
   function getDiagonalSquares(attempt: Attempt): [number, number][] {
     if (!attempt.same) return [];
     const [f1, r1] = sqToCoords(attempt.sq1);
@@ -171,150 +170,66 @@
     }
     return squares;
   }
+
+  const squareName = ([file, row]: [number, number]) => 'abcdefgh'[file] + (8 - row);
+
+  /** The two squares asked about, and the line they share if they share one. */
+  function reviewMarks(attempt: Attempt): SquareHighlight[] {
+    return [
+      ...highlight([attempt.sq1, attempt.sq2], MARK.note),
+      ...highlight(getDiagonalSquares(attempt).map(squareName), attempt.correct ? MARK.good : MARK.danger),
+    ];
+  }
 </script>
+
+{#snippet review(title: string, attempts: Attempt[])}
+  <ReviewGrid {title}>
+    {#each attempts as attempt}
+      <ReviewCard correct={attempt.correct} highlights={reviewMarks(attempt)}>
+        <strong>{attempt.sq1} — {attempt.sq2}</strong><br />
+        <span class={attempt.correct ? 'correct' : 'wrong'}>{attempt.same ? 'Yes' : 'No'}</span>
+        {#if !attempt.correct}
+          <span class="muted">(you: {attempt.same ? 'No' : 'Yes'})</span>
+        {/if}
+      </ReviewCard>
+    {/each}
+  </ReviewGrid>
+{/snippet}
 
 <div class="trainer">
   {#if gameState === 'idle'}
     <div class="screen">
-      <h2 class="title">Same Diagonal?</h2>
-      <p class="instructions">
-        Two squares will appear. Are they on the same diagonal? You have 30 seconds!
-      </p>
-      {#if bestScore > 0}
-        <div class="best">
-          Best: {bestScore}
-          {#if bestStars > 0}
-            <StarRating stars={bestStars} size="sm" />
-          {/if}
-        </div>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <h2>Same Diagonal?</h2>
+      <p class="instructions">Two squares will appear. Are they on the same diagonal? You have 30 seconds!</p>
+      <BestScore score={bestScore} stars={bestStars} />
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if gameState === 'playing'}
-    <div class="timer-bar-track">
-      <div
-        class="timer-bar-fill"
-        style="width: {(timeLeft / GAME_DURATION) * 100}%; background: {timerBarColor};"
-      ></div>
-    </div>
+    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
 
-    <div class="hud">
-      <span>Score: {score}</span>
-      <span>{timeLeft}s</span>
-    </div>
+    <div class={['target', flash]}>{pair.sq1} &mdash; {pair.sq2}</div>
 
-    <div
-      class={['target-pair', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}
-    >
-      {pair.sq1} &mdash; {pair.sq2}
-    </div>
-
-    <div class="answer-buttons">
-      <button class="yes-btn" onclick={() => handleAnswer(true)}>Yes</button>
-      <button class="no-btn" onclick={() => handleAnswer(false)}>No</button>
+    <div class="answers">
+      <Button size="large" onclick={() => handleAnswer(true)}>Yes</Button>
+      <Button size="large" onclick={() => handleAnswer(false)}>No</Button>
     </div>
 
   {:else}
-    {@const wrongOnes = history.filter((a) => !a.correct)}
-
     <div class="screen">
-      <h2 class="title">Time's up!</h2>
+      <h2>Time's up!</h2>
       <p class="final-score">{score}/{history.length} correct</p>
       {#if stars > 0}
-        <StarRating stars={stars} size="lg" />
+        <StarRating {stars} size="lg" />
       {/if}
-      {#if bestScore > 0}
-        <p class="best-small">Personal best: {bestScore}</p>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Play Again</button>
+      <BestScore score={bestScore} />
+      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
 
-      {#if wrongOnes.length > 0}
-        <div class="review-section">
-          <h3 class="review-heading">Mistakes ({wrongOnes.length})</h3>
-          <div class="mini-grid">
-            {#each wrongOnes as attempt}
-              {@const [f1, r1] = sqToCoords(attempt.sq1)}
-              {@const [f2, r2] = sqToCoords(attempt.sq2)}
-              {@const diagSquares = getDiagonalSquares(attempt)}
-              {@const borderColor = attempt.correct ? '#22c55e' : '#ef4444'}
-              <div class="mini-item">
-                <svg
-                  viewBox="0 0 {B} {B}"
-                  class="mini-svg"
-                  style="border: 3px solid {borderColor}; border-radius: 4px;"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      {@const isLight = (fi + ri) % 2 === 0}
-                      {@const isDiag = diagSquares.some(([df, dr]) => df === fi && dr === ri)}
-                      {@const isSq = (fi === f1 && ri === r1) || (fi === f2 && ri === r2)}
-                      <rect
-                        x={fi * S}
-                        y={ri * S}
-                        width={S}
-                        height={S}
-                        fill={isSq ? '#5b9bd5' : isDiag ? (attempt.correct ? '#a3d9a3' : '#f0a0a0') : isLight ? LIGHT : DARK}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mini-square">{attempt.sq1} — {attempt.sq2}</span><br />
-                  <span class="text-red">
-                    {attempt.same ? 'Yes' : 'No'}
-                    <span class="text-faint"> (you: {attempt.same ? 'No' : 'Yes'})</span>
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+      {#if mistakes.length > 0}
+        {@render review(`Mistakes (${mistakes.length})`, mistakes)}
       {/if}
-
       {#if history.length > 0}
-        <div class="review-section">
-          <h3 class="review-heading">All answers ({history.length})</h3>
-          <div class="mini-grid">
-            {#each history as attempt}
-              {@const [f1, r1] = sqToCoords(attempt.sq1)}
-              {@const [f2, r2] = sqToCoords(attempt.sq2)}
-              {@const diagSquares = getDiagonalSquares(attempt)}
-              {@const borderColor = attempt.correct ? '#22c55e' : '#ef4444'}
-              <div class="mini-item">
-                <svg
-                  viewBox="0 0 {B} {B}"
-                  class="mini-svg"
-                  style="border: 3px solid {borderColor}; border-radius: 4px;"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      {@const isLight = (fi + ri) % 2 === 0}
-                      {@const isDiag = diagSquares.some(([df, dr]) => df === fi && dr === ri)}
-                      {@const isSq = (fi === f1 && ri === r1) || (fi === f2 && ri === r2)}
-                      <rect
-                        x={fi * S}
-                        y={ri * S}
-                        width={S}
-                        height={S}
-                        fill={isSq ? '#5b9bd5' : isDiag ? (attempt.correct ? '#a3d9a3' : '#f0a0a0') : isLight ? LIGHT : DARK}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mini-square">{attempt.sq1} — {attempt.sq2}</span><br />
-                  <span class={attempt.correct ? 'text-green' : 'text-red'}>
-                    {attempt.same ? 'Yes' : 'No'}
-                    {#if !attempt.correct}
-                      <span class="text-faint"> (you: {attempt.same ? 'No' : 'Yes'})</span>
-                    {/if}
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+        {@render review(`All answers (${history.length})`, history)}
       {/if}
     </div>
   {/if}
@@ -336,190 +251,30 @@
     align-items: center;
     gap: 1rem;
     text-align: center;
-    max-width: 42rem;
-  }
-
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
   }
 
   .instructions {
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
 
-  .best {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .best-small {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 0.5rem;
-    background: #16a34a;
-    color: white;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: #15803d;
-  }
-
-  /* Timer */
-  .timer-bar-track {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .timer-bar-fill {
-    height: 100%;
-    border-radius: 9999px;
-    transition: width 1s linear, background 0.5s;
-  }
-
-  .hud {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  /* Target pair */
-  .target-pair {
+  .target {
     font-size: 3rem;
     font-weight: bold;
     padding: 2rem 0;
     transition: color 0.1s;
   }
 
-  .target-pair.flash-correct {
-    color: #4ade80;
-  }
-
-  .target-pair.flash-wrong {
-    color: #ef4444;
-  }
-
-  /* Answer buttons */
-  .answer-buttons {
+  .answers {
     display: flex;
     gap: 1rem;
   }
 
-  .yes-btn,
-  .no-btn {
-    padding: 1rem 2.5rem;
-    border-radius: 0.75rem;
-    font-weight: bold;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-    background: transparent;
-  }
-
-  .yes-btn:active,
-  .no-btn:active {
-    transform: scale(0.95);
-  }
-
-  .yes-btn {
-    border: 2px solid #16a34a;
-    color: #4ade80;
-  }
-
-  .yes-btn:hover {
-    background: rgba(22, 163, 74, 0.2);
-  }
-
-  .no-btn {
-    border: 2px solid #ef4444;
-    color: #f87171;
-  }
-
-  .no-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-  }
-
-  /* Final score */
   .final-score {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
-  /* Review */
-  .review-section {
-    width: 100%;
-    border-top: 1px solid rgba(255, 248, 230, 0.1);
-    margin-top: 0.5rem;
-    padding-top: 1rem;
-  }
-
-  .review-heading {
-    font-weight: bold;
-    font-size: 0.875rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .mini-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    justify-items: center;
-  }
-
-  @media (min-width: 640px) {
-    .mini-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  .mini-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .mini-svg {
-    width: 5rem;
-    height: 5rem;
-  }
-
-  .mini-label {
-    font-size: 0.75rem;
-    text-align: center;
-  }
-
-  .mini-square {
-    font-family: monospace;
-    font-weight: bold;
-  }
-
-  .text-green {
-    color: #4ade80;
-  }
-
-  .text-red {
-    color: #ef4444;
-  }
-
-  .text-faint {
-    color: var(--text-faint);
-  }
+  .correct { color: var(--correct-text); }
+  .wrong { color: var(--wrong-text); }
+  .muted { color: var(--ink-muted); }
 </style>

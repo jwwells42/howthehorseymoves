@@ -81,17 +81,17 @@
     margin: 0 auto;
   }
   .back-link {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     display: inline-block;
     margin-bottom: 1rem;
   }
   .back-link:hover {
-    color: var(--foreground);
+    color: var(--ink);
   }
 
   h1 {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
     margin-bottom: 1.5rem;
   }
@@ -108,26 +108,26 @@
     gap: 0.2rem;
     padding: 0.85rem 1rem;
     border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
     text-align: left;
     cursor: pointer;
     transition: all 0.15s;
   }
   .tab:hover {
-    background: var(--btn-hover);
+    background: var(--line);
   }
   .tab.active {
-    border-color: var(--foreground);
-    box-shadow: 0 0 0 1px var(--foreground) inset;
+    border-color: var(--ink);
+    box-shadow: 0 0 0 1px var(--ink) inset;
   }
   .tab-title {
     font-weight: bold;
   }
   .tab-sub {
-    font-size: 0.8rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
   }
 
   .stage {
@@ -135,9 +135,9 @@
   }
 
   .safety {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    border-top: 1px solid var(--card-border);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
+    border-top: 1px solid var(--line);
     padding-top: 1rem;
   }
   .safety summary {

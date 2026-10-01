@@ -24,8 +24,8 @@
       overflow: hidden;
     }
   }
-  .back-link { font-size: 0.875rem; color: var(--text-muted); display: inline-block; margin-bottom: 1rem; flex-shrink: 0; }
-  .back-link:hover { color: var(--foreground); }
+  .back-link { font-size: var(--size-secondary); color: var(--ink-muted); display: inline-block; margin-bottom: 1rem; flex-shrink: 0; }
+  .back-link:hover { color: var(--ink); }
   .header { text-align: center; margin-bottom: 1.5rem; flex-shrink: 0; }
-  .header h1 { font-size: 1.5rem; font-weight: bold; }
+  .header h1 { font-size: var(--size-large); font-weight: bold; }
 </style>

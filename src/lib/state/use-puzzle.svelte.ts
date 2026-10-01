@@ -4,10 +4,11 @@ import { isCheckmate, isStalemate, getLegalMoves, isSquareAttacked } from '$lib/
 import { applyMove } from '$lib/logic/pgn';
 import type { Arrow } from '$lib/logic/pgn';
 import type { Puzzle, RoutePuzzle, TacticPuzzle, ConversionPuzzle, FindMovesPuzzle } from '$lib/puzzles/types';
-import { parsePuzzleMoves, type MoveNode, type SquareHighlight } from '$lib/puzzles/parse-moves';
+import { parsePuzzleMoves, type MoveNode } from '$lib/puzzles/parse-moves';
 import { pickBotMove } from '$lib/logic/bot';
 import { completePuzzle as saveComplete } from '$lib/state/progress-store';
 import { playSound } from '$lib/state/sound';
+import { MARK, type SquareHighlight } from '$lib/board-marks';
 
 export interface SlideAnimation {
   piece: PieceKind;
@@ -74,7 +75,7 @@ function createRouteState(puzzle: RoutePuzzle) {
     return dangers;
   });
 
-  // Red highlights for attacked squares (exclude walls — they're already blocked)
+  // Danger highlights for attacked squares (exclude walls — they're already blocked)
   let dangerHighlights = $derived.by(() => {
     if (!puzzle.threats) return [] as SquareHighlight[];
     const result: SquareHighlight[] = [];
@@ -84,7 +85,7 @@ function createRouteState(puzzle: RoutePuzzle) {
         for (const m of getAttackSquares(sq, p, board)) {
           if (!seen.has(m) && !wallSet.has(m)) {
             seen.add(m);
-            result.push({ square: m, color: '#dc2626' });
+            result.push({ square: m, color: MARK.danger });
           }
         }
       }
@@ -797,13 +798,13 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     return 1;
   });
 
-  // Guided mode: show correct squares as green highlights
+  // Guided mode: show the squares still to find
   const highlights = $derived.by(() => {
     if (mode !== 'guided') return [] as SquareHighlight[];
     const result: SquareHighlight[] = [];
     for (const sq of correctSquaresArr) {
       if (!foundSquares.has(sq)) {
-        result.push({ square: sq, color: '#22c55e' });
+        result.push({ square: sq, color: MARK.good });
       }
     }
     return result;

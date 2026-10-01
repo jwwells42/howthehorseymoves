@@ -2,7 +2,11 @@
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
+  import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
   import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Choice from '$lib/components/ui/Choice.svelte';
+  import { MARK } from '$lib/board-marks';
   import { type SquareId, type BoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import type { Arrow } from '$lib/logic/pgn';
@@ -154,7 +158,7 @@
     const hintArrows: Arrow[] = [];
     if (showArrow) {
       const move = currentLine[moveIdx];
-      hintArrows.push({ from: move.from, to: move.to, color: '#15803d' });
+      hintArrows.push({ from: move.from, to: move.to, color: MARK.good });
     }
     const all = [...annotationArrows, ...hintArrows];
     return all.length > 0 ? all : undefined;
@@ -259,8 +263,9 @@
     resetDrill(0, 0, startBoard);
   }
 
-  function toggleMode() {
-    phase = phase === 'learn' ? 'practice' : 'learn';
+  function setMode(mode: 'learn' | 'practice') {
+    if (mode === phase) return;
+    phase = mode;
     showHint = false;
   }
 
@@ -523,8 +528,8 @@
     </div>
 
     <div class="setup-controls">
-      <button class="btn btn-sm" onclick={selectAll}>All</button>
-      <button class="btn btn-sm" onclick={selectNone}>None</button>
+      <Button onclick={selectAll}>All</Button>
+      <Button onclick={selectNone}>None</Button>
     </div>
 
     <div class="line-list">
@@ -541,35 +546,31 @@
       {/each}
     </div>
 
-    <div class="order-toggle">
-      <button class={['toggle-btn', order === 'depth' && 'active']} onclick={() => (order = 'depth')}>
-        One line at a time
-      </button>
-      <button class={['toggle-btn', order === 'breadth' && 'active']} onclick={() => (order = 'breadth')}>
-        {STEP} moves at a time
-      </button>
-    </div>
+    <Choice
+      label="Order"
+      options={[
+        { value: 'depth', label: 'One line at a time' },
+        { value: 'breadth', label: `${STEP} moves at a time` },
+      ]}
+      bind:value={order}
+    />
 
     {#if order === 'breadth' && canStart}
       <div class="stage-progress">
         {@render stagePips()}
         {#if learnedDepth > 0}
           <span>{learnedDepth >= maxDepth ? 'All moves learned' : `Learned moves 1–${learnedDepth}`}</span>
-          <button class="btn btn-sm btn-secondary" onclick={startOver}>Start over</button>
+          <Button onclick={startOver}>Start over</Button>
         {/if}
       </div>
     {/if}
 
     <div class="setup-actions">
-      <button class="btn" onclick={() => startDrilling('learn')} disabled={!canStart}>
+      <Button variant="primary" onclick={() => startDrilling('learn')} disabled={!canStart}>
         {order === 'breadth' && learnedDepth > 0 && learnedDepth < maxDepth ? 'Keep learning' : 'Start learning'}
-      </button>
-      <button class="btn btn-secondary" onclick={() => startDrilling('practice')} disabled={!canStart}>
-        Start practicing
-      </button>
-      <button class="btn btn-secondary" onclick={() => phase = 'explore'}>
-        Explore
-      </button>
+      </Button>
+      <Button onclick={() => startDrilling('practice')} disabled={!canStart}>Start practicing</Button>
+      <Button onclick={() => (phase = 'explore')}>Explore</Button>
     </div>
   </div>
 {:else if phase === 'explore'}
@@ -577,15 +578,6 @@
     {#snippet boardArea()}
       <Board
         board={exploreBoard}
-        selectedSquare={null}
-        validMoves={[]}
-        targets={[]}
-        reachedTargets={[]}
-        dragValidMoves={[]}
-        onSquareClick={() => {}}
-        onDrop={() => {}}
-        onDragStart={() => {}}
-        onDragEnd={() => {}}
         readOnly
         arrows={exploreArrows}
         {flipped}
@@ -594,9 +586,9 @@
 
     {#snippet sidebarArea()}
       <PgnExplorer pgn={opening.pgn} {flipped} noBoard onBoardChange={onExploreBoardChange} />
-      <button class="btn btn-secondary btn-back" onclick={backToSetup}>
-        Back to setup
-      </button>
+      <div class="back">
+        <Button onclick={backToSetup}>Back to setup</Button>
+      </div>
     {/snippet}
   </BoardLayout>
 {:else}
@@ -606,8 +598,6 @@
         {board}
         {selectedSquare}
         {validMoves}
-        targets={[]}
-        reachedTargets={[]}
         dragValidMoves={dragMoves}
         onSquareClick={handleSquareClick}
         onDrop={handleDrop}
@@ -620,42 +610,26 @@
         playableColors={[playerColor]}
       />
       {#if allDone}
-        <div class="done-overlay">
-          <div class="done-content">
-            {#if !fullDepth}
-              <!-- A stage in breadth order is done, but the lines go deeper -->
-              <div class="done-check">&#10003;</div>
-              {@render stagePips()}
-              <p class="done-title">Moves 1–{stageDepth} {phase === 'learn' ? 'learned' : 'practiced'}!</p>
-              {#if phase === 'learn'}
-                <button class="btn" onclick={goDeeper}>Keep going</button>
-              {:else}
-                <button class="btn" onclick={() => startDrilling('learn')}>Keep learning</button>
-              {/if}
-              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
-                Back to setup
-              </button>
-            {:else if phase === 'learn'}
-              <div class="done-check">&#10003;</div>
-              <p class="done-title">Lines learned!</p>
-              <button class="btn" onclick={() => startDrilling('practice')}>
-                Practice now
-              </button>
-              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
-                Back to setup
-              </button>
+        <BoardOverlay>
+          <div class="done-check" aria-hidden="true">&#10003;</div>
+          {#if !fullDepth}
+            <!-- A stage in breadth order is done, but the lines go deeper -->
+            {@render stagePips()}
+            <p class="done-title">Moves 1–{stageDepth} {phase === 'learn' ? 'learned' : 'practiced'}!</p>
+            {#if phase === 'learn'}
+              <Button variant="primary" onclick={goDeeper}>Keep going</Button>
             {:else}
-              <div class="done-check">&#10003;</div>
-              <p class="done-title">Lines mastered!</p>
-              <button class="btn" onclick={() => startDrilling('practice')}>
-                Practice again
-              </button>
-              <button class="btn btn-secondary done-btn" onclick={backToSetup}>
-                Back to setup
-              </button>
+              <Button variant="primary" onclick={() => startDrilling('learn')}>Keep learning</Button>
             {/if}
-          </div>
-        </div>
+          {:else if phase === 'learn'}
+            <p class="done-title">Lines learned!</p>
+            <Button variant="primary" onclick={() => startDrilling('practice')}>Practice now</Button>
+          {:else}
+            <p class="done-title">Lines mastered!</p>
+            <Button variant="primary" onclick={() => startDrilling('practice')}>Practice again</Button>
+          {/if}
+          <Button onclick={backToSetup}>Back to setup</Button>
+        </BoardOverlay>
       {/if}
     {/snippet}
 
@@ -680,8 +654,15 @@
       </div>
 
       <div class="info-row">
-        <button class={['mode-btn', phase === 'learn' && 'mode-active']} onclick={() => { if (phase !== 'learn') toggleMode(); }}>Learn</button>
-        <button class={['mode-btn', phase === 'practice' && 'mode-active']} onclick={() => { if (phase !== 'practice') toggleMode(); }}>Practice</button>
+        <!-- Read the mode from phase, and change it through setMode. -->
+        <Choice
+          label="Mode"
+          options={[
+            { value: 'learn', label: 'Learn' },
+            { value: 'practice', label: 'Practice' },
+          ]}
+          bind:value={() => phase as 'learn' | 'practice', setMode}
+        />
         <label class="toggle-label">
           <input type="checkbox" bind:checked={autoNext} />
           Auto-advance
@@ -691,14 +672,10 @@
       <div class="status">
         {#if lineComplete && !allDone}
           <div class="line-complete">
-            <span class="complete-text">Line complete!</span>
-            <button class="btn btn-sm" onclick={advanceLine}>
-              {#if lineIdx + 1 < drillLines.length}
-                Next variation
-              {:else}
-                Finish
-              {/if}
-            </button>
+            <span class="complete-text">✓ Line complete!</span>
+            <Button variant="primary" onclick={advanceLine}>
+              {lineIdx + 1 < drillLines.length ? 'Next variation' : 'Finish'}
+            </Button>
           </div>
         {/if}
         {#if !lineComplete && !allDone && atFrontier && isPlayerTurn && !waiting}
@@ -760,9 +737,9 @@
         </div>
       </div>
 
-      <button class="btn btn-secondary btn-back" onclick={backToSetup}>
-        Back to setup
-      </button>
+      <div class="back">
+        <Button onclick={backToSetup}>Back to setup</Button>
+      </div>
     {/snippet}
   </BoardLayout>
 {/if}
@@ -783,13 +760,13 @@
   }
 
   .header h2 {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
     margin-bottom: 0.25rem;
   }
 
   .description {
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
 
   .drill-info {
@@ -797,21 +774,20 @@
   }
 
   .drill-opening-name {
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     font-weight: 700;
   }
 
-  .btn-back {
+  .back {
     margin-top: 0.75rem;
-    width: 100%;
   }
 
 
   /* === Setup === */
 
   .setup-summary {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   .setup-controls {
@@ -824,9 +800,9 @@
     max-width: 32rem;
     max-height: 20rem;
     overflow-y: auto;
-    border: 1px solid var(--card-border);
+    border: 1px solid var(--line);
     border-radius: 0.5rem;
-    background: var(--card-bg);
+    background: var(--surface);
   }
 
   .line-item {
@@ -834,9 +810,9 @@
     align-items: baseline;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
+    font-size: var(--size-small);
     cursor: pointer;
-    border-bottom: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--line);
     line-height: 1.4;
   }
 
@@ -845,7 +821,7 @@
   }
 
   .line-item:hover {
-    background: var(--btn-bg);
+    background: var(--surface-raised);
   }
 
   .line-item input[type="checkbox"] {
@@ -854,13 +830,13 @@
   }
 
   .line-num {
-    color: var(--text-faint);
+    color: var(--ink-muted);
     flex-shrink: 0;
     min-width: 1.5rem;
   }
 
   .line-preview {
-    color: var(--text-muted);
+    color: var(--ink-muted);
     word-break: break-word;
   }
 
@@ -869,38 +845,12 @@
     gap: 0.75rem;
   }
 
-  .order-toggle {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .toggle-btn {
-    padding: 0.375rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: all 0.15s;
-  }
-
-  .toggle-btn.active {
-    background: var(--btn-bg);
-    color: inherit;
-    border-color: var(--foreground);
-  }
-
-  .toggle-btn:hover {
-    background: var(--btn-hover);
-  }
-
   .stage-progress {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   /* Stage dots — readable without being able to read */
@@ -917,15 +867,15 @@
     width: 0.625rem;
     height: 0.625rem;
     border-radius: 50%;
-    background: var(--card-border);
+    background: var(--line);
   }
 
   .pip.filled {
-    background: #4ade80;
+    background: var(--correct);
   }
 
   .pip.current {
-    outline: 2px solid var(--foreground);
+    outline: 2px solid var(--ink);
     outline-offset: 1px;
   }
 
@@ -935,19 +885,19 @@
     display: flex;
     align-items: center;
     gap: 0.375rem;
-    font-size: 0.8125rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     flex-wrap: nowrap;
     margin-top: 0.25rem;
     flex-shrink: 0;
   }
 
   .nav-btn {
-    background: var(--btn-bg);
+    background: var(--surface-raised);
     border: none;
     color: inherit;
     cursor: pointer;
-    font-size: 1.125rem;
+    font-size: var(--size-body);
     line-height: 1;
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
@@ -955,7 +905,7 @@
   }
 
   .nav-btn:hover:not(:disabled) {
-    background: var(--btn-hover);
+    background: var(--line);
   }
 
   .nav-btn:disabled {
@@ -963,36 +913,13 @@
     cursor: default;
   }
 
-  .mode-btn {
-    padding: 0.25rem 0.625rem;
-    border-radius: 0.375rem;
-    background: none;
-    border: 1px solid var(--card-border);
-    color: var(--text-faint);
-    cursor: pointer;
-    font-size: 0.8125rem;
-    transition: all 0.15s;
-  }
-
-  .mode-btn:hover {
-    background: var(--btn-bg);
-    color: inherit;
-  }
-
-  .mode-btn.mode-active {
-    background: var(--btn-hover);
-    color: inherit;
-    font-weight: 600;
-    border-color: transparent;
-  }
-
   .toggle-label {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
     cursor: pointer;
-    font-size: 0.8125rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     margin-left: auto;
   }
 
@@ -1000,35 +927,14 @@
     margin: 0;
   }
 
-  .done-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 0.5rem;
-  }
-
-  .done-content {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
   .done-check {
     font-size: 2.5rem;
+    color: var(--correct-text);
   }
 
   .done-title {
-    font-size: 1.125rem;
+    font-size: var(--size-body);
     font-weight: bold;
-  }
-
-  .done-btn {
-    margin-top: 0.25rem;
   }
 
   /* === Status & comments === */
@@ -1044,22 +950,21 @@
   }
 
   .comment-area:has(.comment-text) {
-    border-color: var(--card-border);
-    background: var(--card-bg);
+    border-color: var(--line);
+    background: var(--surface);
     padding: 0.5rem 0.75rem;
   }
 
   .comment-text {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    font-style: italic;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     text-align: center;
     margin: 0;
     line-height: 1.5;
   }
 
   .status {
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     margin-top: 0.75rem;
     min-height: 2rem;
     flex-shrink: 0;
@@ -1073,20 +978,20 @@
   }
 
   .complete-text {
-    color: #4ade80;
-    font-weight: 500;
+    color: var(--correct-text);
+    font-weight: bold;
   }
 
   .muted {
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
 
   /* === Move list === */
 
   .move-list {
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
     padding: 0.75rem;
     flex: 1;
     min-height: 0;
@@ -1098,11 +1003,11 @@
     grid-template-columns: 2rem 1fr 1fr;
     column-gap: 0.25rem;
     row-gap: 0.125rem;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
   }
 
   .move-num {
-    color: var(--text-faint);
+    color: var(--ink-muted);
     text-align: right;
   }
 
@@ -1113,14 +1018,14 @@
     cursor: pointer;
     background: none;
     border: none;
-    color: var(--text-faint);
+    color: var(--ink-muted);
     font-family: inherit;
     font-size: inherit;
     transition: background-color 0.15s;
   }
 
   .move-btn:hover:not(:disabled) {
-    background: var(--btn-bg);
+    background: var(--surface-raised);
   }
 
   .move-btn:disabled {
@@ -1128,47 +1033,12 @@
   }
 
   .move-btn.move-played {
-    color: var(--foreground);
+    color: var(--ink);
   }
 
   .move-btn.move-active {
-    background: var(--btn-hover);
+    background: var(--line);
     font-weight: 700;
   }
 
-  /* === Buttons === */
-
-  .btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: var(--btn-bg);
-    color: inherit;
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: background 0.15s;
-  }
-
-  .btn:hover:not(:disabled) {
-    background: var(--btn-hover);
-  }
-
-  .btn:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-
-  .btn-secondary {
-    background: transparent;
-    border: 1px solid var(--card-border);
-  }
-
-  .btn-secondary:hover:not(:disabled) {
-    background: var(--btn-bg);
-  }
-
-  .btn-sm {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem;
-  }
 </style>

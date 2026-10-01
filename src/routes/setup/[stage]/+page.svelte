@@ -33,6 +33,6 @@
     }
   }
   .center { text-align: center; }
-  .muted-link { color: var(--text-muted); }
+  .muted-link { color: var(--ink-muted); }
   .muted-link:hover { text-decoration: underline; }
 </style>

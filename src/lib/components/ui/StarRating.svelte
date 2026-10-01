@@ -6,9 +6,9 @@
   let { stars, size = 'md' }: Props = $props();
 </script>
 
-<span class="star-rating {size}">
+<span class={['star-rating', size]} role="img" aria-label="{stars} of 3 stars">
   {#each [1, 2, 3] as i}
-    <span class={i <= stars ? 'filled' : 'empty'}>&#9733;</span>
+    <span class={i <= stars ? 'filled' : 'empty'} aria-hidden="true">&#9733;</span>
   {/each}
 </span>
 
@@ -16,9 +16,9 @@
   .star-rating {
     display: inline-flex;
   }
-  .sm { font-size: 0.875rem; }
-  .md { font-size: 1.5rem; }
-  .lg { font-size: 2.25rem; }
-  .filled { color: #facc15; }
-  .empty { color: var(--text-faint); opacity: 0.4; }
+  .sm { font-size: var(--size-body); }
+  .md { font-size: var(--size-large); }
+  .lg { font-size: var(--size-title); }
+  .filled { color: var(--star); }
+  .empty { color: var(--line); }
 </style>

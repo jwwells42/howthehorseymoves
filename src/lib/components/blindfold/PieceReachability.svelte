@@ -1,11 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import ReviewCard from './ReviewCard.svelte';
+  import ReviewGrid from './ReviewGrid.svelte';
   import { playSound } from '$lib/state/sound';
+  import { MARK, highlight } from '$lib/board-marks';
 
   const GAME_DURATION = 30;
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
 
   type PieceType = 'N' | 'B';
 
@@ -98,26 +102,6 @@
     return 0;
   }
 
-  function sqToCoords(sq: string): [number, number] {
-    return [sq.charCodeAt(0) - 97, 8 - parseInt(sq[1])];
-  }
-
-  // Mini board constants
-  const MB_S = 10;
-  const MB_B = MB_S * 8;
-
-  function getMiniBoardFill(attempt: Attempt, fi: number, ri: number): string {
-    const [f1, r1] = sqToCoords(attempt.from);
-    const [f2, r2] = sqToCoords(attempt.to);
-    const isLight = (fi + ri) % 2 === 0;
-    const isSq1 = fi === f1 && ri === r1;
-    const isSq2 = fi === f2 && ri === r2;
-
-    if (isSq1) return '#5b9bd5';
-    if (isSq2) return attempt.reachable ? '#4ade80' : '#ef4444';
-    return isLight ? LIGHT : DARK;
-  }
-
   let gameState = $state<'idle' | 'playing' | 'done'>('idle');
   let score = $state(0);
   let timeLeft = $state(GAME_DURATION);
@@ -131,8 +115,7 @@
   let flashTimeout: ReturnType<typeof setTimeout> | null = null;
 
   let stars = $derived(getStars(score));
-  let timerColor = $derived(timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#fb923c' : '#22c55e');
-  let wrongOnes = $derived(history.filter((a) => !a.correct));
+  let mistakes = $derived(history.filter((a) => !a.correct));
 
   // Extract move count from question.reason for display
   let questionMoveCount = $derived(question.reason.match(/\d+/)?.[0] ?? '?');
@@ -203,156 +186,77 @@
   }
 </script>
 
-<div class="container">
+{#snippet review(title: string, attempts: Attempt[])}
+  <ReviewGrid {title}>
+    {#each attempts as attempt}
+      <ReviewCard
+        correct={attempt.correct}
+        highlights={[...highlight([attempt.from], MARK.note), ...highlight([attempt.to], MARK.note, 'ring')]}
+      >
+        <strong>{PIECE_NAMES[attempt.piece]}</strong><br />
+        {attempt.from} &rarr; {attempt.to}<br />
+        <span class={attempt.correct ? 'correct' : 'wrong'}>{attempt.reachable ? 'Yes' : 'No'}</span>
+        {#if !attempt.correct}
+          <span class="muted">(you: {attempt.reachable ? 'No' : 'Yes'})</span>
+        {/if}
+      </ReviewCard>
+    {/each}
+  </ReviewGrid>
+{/snippet}
+
+<div class="trainer">
   {#if gameState === 'idle'}
-    <div class="center-col">
-      <h2 class="title">Piece Reachability</h2>
-      <p class="subtitle">
+    <div class="screen">
+      <h2>Piece Reachability</h2>
+      <p class="instructions">
         Can the piece reach the target square? Bishops need same-color squares. Knights need the right number of moves. You have 30 seconds!
       </p>
-      {#if bestScore > 0}
-        <div class="best">
-          Best: {bestScore}
-          {#if bestStars > 0}
-            <StarRating stars={bestStars} size="sm" />
-          {/if}
-        </div>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <BestScore score={bestScore} stars={bestStars} />
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
+
   {:else if gameState === 'done'}
-    <div class="center-col">
-      <h2 class="title">Time's up!</h2>
-      <p class="big-score">{score}/{history.length} correct</p>
+    <div class="screen">
+      <h2>Time's up!</h2>
+      <p class="final-score">{score}/{history.length} correct</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />
       {/if}
-      {#if bestScore > 0}
-        <p class="best-text">Personal best: {bestScore}</p>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Play Again</button>
+      <BestScore score={bestScore} />
+      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
 
-      {#if wrongOnes.length > 0}
-        <div class="section-divider">
-          <h3 class="section-title">Mistakes ({wrongOnes.length})</h3>
-          <div class="mini-grid">
-            {#each wrongOnes as attempt}
-              <div class="mini-board-wrap">
-                <svg
-                  viewBox="0 0 {MB_B} {MB_B}"
-                  class="mini-board"
-                  style="border-color: {attempt.correct ? '#22c55e' : '#ef4444'};"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      <rect
-                        x={fi * MB_S} y={ri * MB_S}
-                        width={MB_S} height={MB_S}
-                        fill={getMiniBoardFill(attempt, fi, ri)}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mono bold">{PIECE_NAMES[attempt.piece]}</span>
-                  <br />
-                  <span class="mono">{attempt.from} &rarr; {attempt.to}</span>
-                  <br />
-                  <span class="text-red">
-                    {attempt.reachable ? 'Yes' : 'No'}
-                    <span class="faint"> (you: {attempt.reachable ? 'No' : 'Yes'})</span>
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+      {#if mistakes.length > 0}
+        {@render review(`Mistakes (${mistakes.length})`, mistakes)}
       {/if}
-
       {#if history.length > 0}
-        <div class="section-divider">
-          <h3 class="section-title">All answers ({history.length})</h3>
-          <div class="mini-grid">
-            {#each history as attempt}
-              <div class="mini-board-wrap">
-                <svg
-                  viewBox="0 0 {MB_B} {MB_B}"
-                  class="mini-board"
-                  style="border-color: {attempt.correct ? '#22c55e' : '#ef4444'};"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      <rect
-                        x={fi * MB_S} y={ri * MB_S}
-                        width={MB_S} height={MB_S}
-                        fill={getMiniBoardFill(attempt, fi, ri)}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mono bold">{PIECE_NAMES[attempt.piece]}</span>
-                  <br />
-                  <span class="mono">{attempt.from} &rarr; {attempt.to}</span>
-                  <br />
-                  <span class={attempt.correct ? 'text-green' : 'text-red'}>
-                    {attempt.reachable ? 'Yes' : 'No'}
-                    {#if !attempt.correct}
-                      <span class="faint"> (you: {attempt.reachable ? 'No' : 'Yes'})</span>
-                    {/if}
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+        {@render review(`All answers (${history.length})`, history)}
       {/if}
     </div>
+
   {:else}
-    <!-- Playing state -->
-    <div class="timer-bar-track">
-      <div
-        class="timer-bar-fill"
-        style="width: {(timeLeft / GAME_DURATION) * 100}%; background: {timerColor};"
-      ></div>
-    </div>
+    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
 
-    <div class="hud">
-      <span>Score: {score}</span>
-      <span>{timeLeft}s</span>
-    </div>
-
-    <div class="question-area">
-      <img
-        src="/pieces/w{question.piece}.svg"
-        alt={PIECE_NAMES[question.piece]}
-        class="piece-img"
-      />
-      <div class={['square-display', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}>
-        {question.from} &rarr; {question.to}
-      </div>
-      <div class="question-label">
+    <div class="question">
+      <img src="/pieces/w{question.piece}.svg" alt={PIECE_NAMES[question.piece]} class="piece" />
+      <div class={['squares', flash]}>{question.from} &rarr; {question.to}</div>
+      <p class="instructions">
         {#if question.piece === 'B'}
           Can a bishop reach it?
         {:else}
           Can a knight reach it in &le;{questionMoveCount} moves?
         {/if}
-      </div>
+      </p>
     </div>
 
-    <div class="answer-buttons">
-      <button class="yes-btn" onclick={() => handleAnswer(true)}>
-        Yes
-      </button>
-      <button class="no-btn" onclick={() => handleAnswer(false)}>
-        No
-      </button>
+    <div class="answers">
+      <Button size="large" onclick={() => handleAnswer(true)}>Yes</Button>
+      <Button size="large" onclick={() => handleAnswer(false)}>No</Button>
     </div>
   {/if}
 </div>
 
 <style>
-  .container {
+  .trainer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -361,219 +265,45 @@
     margin: 0 auto;
   }
 
-  .center-col {
+  .screen {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
     text-align: center;
-    max-width: 42rem;
-    margin: 0 auto;
   }
 
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
+  .instructions {
+    color: var(--ink-muted);
   }
 
-  .subtitle {
-    color: var(--text-muted);
-  }
-
-  .best {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .best-text {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .big-score {
-    font-size: 1.875rem;
-    font-weight: bold;
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 0.5rem;
-    background: #16a34a;
-    color: white;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: #15803d;
-  }
-
-  .timer-bar-track {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .timer-bar-fill {
-    height: 100%;
-    transition: width 1s linear, background 0.5s;
-  }
-
-  .hud {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .question-area {
+  .question {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    padding: 1rem 0;
   }
-
-  .piece-img {
+  .piece {
     width: 3rem;
     height: 3rem;
   }
-
-  .square-display {
-    font-size: 1.875rem;
+  .squares {
+    font-size: var(--size-title);
     font-weight: bold;
     transition: color 0.1s;
   }
 
-  .flash-correct {
-    color: #4ade80;
-  }
-
-  .flash-wrong {
-    color: #f87171;
-  }
-
-  .question-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
-  .answer-buttons {
+  .answers {
     display: flex;
     gap: 1rem;
   }
 
-  .yes-btn {
-    padding: 1rem 2.5rem;
-    border-radius: 0.75rem;
-    border: 2px solid #16a34a;
-    background: transparent;
-    color: #4ade80;
-    font-weight: bold;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-  }
-
-  .yes-btn:hover {
-    background: rgba(22, 163, 74, 0.2);
-  }
-
-  .yes-btn:active {
-    transform: scale(0.95);
-  }
-
-  .no-btn {
-    padding: 1rem 2.5rem;
-    border-radius: 0.75rem;
-    border: 2px solid #ef4444;
-    background: transparent;
-    color: #f87171;
-    font-weight: bold;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-  }
-
-  .no-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-  }
-
-  .no-btn:active {
-    transform: scale(0.95);
-  }
-
-  .section-divider {
-    width: 100%;
-    border-top: 1px solid rgba(255, 248, 230, 0.1);
-    margin-top: 0.5rem;
-    padding-top: 1rem;
-  }
-
-  .section-title {
-    font-weight: bold;
-    font-size: 0.875rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .mini-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    justify-items: center;
-  }
-
-  @media (min-width: 640px) {
-    .mini-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  .mini-board-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .mini-board {
-    width: 5rem;
-    height: 5rem;
-    border: 3px solid;
-    border-radius: 4px;
-  }
-
-  .mini-label {
-    font-size: 0.75rem;
-    text-align: center;
-  }
-
-  .mono {
-    font-family: monospace;
-  }
-
-  .bold {
+  .final-score {
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
-  .text-green {
-    color: #4ade80;
-  }
-
-  .text-red {
-    color: #f87171;
-  }
-
-  .faint {
-    color: var(--text-faint);
-  }
+  .correct { color: var(--correct-text); }
+  .wrong { color: var(--wrong-text); }
+  .muted { color: var(--ink-muted); }
 </style>

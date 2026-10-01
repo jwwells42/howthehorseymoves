@@ -3,6 +3,7 @@
   import { progressState } from '$lib/state/progress-store';
   import { CURRICULUM, getAllStopStars, getFirstIncompleteId, getFirstIncompleteStop } from '$lib/curriculum';
   import CurriculumPath from '$lib/components/curriculum/CurriculumPath.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
 
   let stopStars = $state<Record<string, number>>({});
   let mounted = $state(false);
@@ -35,16 +36,18 @@
 </script>
 
 <main class="page">
-  <div class="hero">
+  <header class="hero">
     <h1>How The Horsey Moves</h1>
     <p class="subtitle">Learn how each chess piece moves through interactive puzzles</p>
-  </div>
+  </header>
 
   {#if continueTarget}
-    <a href={continueTarget.href} class="continue-btn">
-      <img src="/pieces/wN.svg" alt="" class="continue-icon" width="32" height="32" />
-      Continue: {continueTarget.name}
-    </a>
+    <div class="continue">
+      <Button variant="primary" size="large" href={continueTarget.href}>
+        <img src="/pieces/wN.svg" alt="" width="32" height="32" />
+        Continue: {continueTarget.name}
+      </Button>
+    </div>
   {/if}
 
   <CurriculumPath chapters={CURRICULUM} {stopStars} {firstIncompleteId} />
@@ -56,7 +59,6 @@
 
 <style>
   .page {
-    min-height: 100vh;
     padding: 1.5rem;
     max-width: 56rem;
     margin: 0 auto;
@@ -65,46 +67,28 @@
     text-align: center;
     margin-bottom: 2rem;
   }
-  .hero h1 {
-    font-size: 2.25rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
+  .subtitle {
+    margin-top: 0.5rem;
+    color: var(--ink-muted);
   }
-  .subtitle { color: var(--text-muted); }
 
-  .continue-btn {
+  .continue {
     display: flex;
-    align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
-    background: #16a34a;
-    color: white;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.125rem;
-    transition: background 0.15s;
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-  .continue-btn:hover { background: #15803d; }
-  .continue-icon { filter: brightness(0) invert(1); }
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
-    50% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+    margin-bottom: 2rem;
   }
 
   .footer {
     margin-top: 3rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(240, 230, 204, 0.1);
+    border-top: 1px solid var(--line);
     text-align: center;
   }
   .footer a {
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    transition: color 0.15s;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
-  .footer a:hover { color: var(--text-muted); }
+  .footer a:hover {
+    color: var(--ink);
+  }
 </style>

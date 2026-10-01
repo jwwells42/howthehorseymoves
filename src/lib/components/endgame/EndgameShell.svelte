@@ -2,6 +2,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import { playSound } from '$lib/state/sound';
   import {
     type BoardState,
@@ -282,8 +283,6 @@
       {board}
       {selectedSquare}
       {validMoves}
-      targets={[]}
-      reachedTargets={[]}
       {dragValidMoves}
       onSquareClick={handleSquareClick}
       onDrop={handleDrop}
@@ -300,20 +299,16 @@
     </div>
 
     {#if feedback && result === 'playing'}
-      <p class="feedback">{feedback}</p>
+      <p class="feedback">✗ {feedback}</p>
     {/if}
 
     {#if result === 'won'}
       <div class="result">
         <StarRating {stars} size="lg" />
         <div class="result-buttons">
-          <button class="play-again-btn secondary" onclick={reset}>
-            Play Again
-          </button>
+          <Button onclick={reset}>Play Again</Button>
           {#if onNext}
-            <button class="play-again-btn" onclick={onNext}>
-              Continue
-            </button>
+            <Button variant="primary" onclick={onNext}>Continue</Button>
           {/if}
         </div>
       </div>
@@ -328,20 +323,20 @@
   }
 
   .title {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: var(--size-large);
     margin: 0 0 0.25rem;
   }
 
   .status {
-    color: #888;
+    color: var(--ink-muted);
     margin: 0;
   }
 
+  /* A move that was not good enough. */
   .feedback {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
+    color: var(--wrong-text);
+    font-size: var(--size-secondary);
+    font-weight: bold;
     margin: 0;
     flex-shrink: 0;
   }
@@ -358,41 +353,5 @@
   .result-buttons {
     display: flex;
     gap: 0.75rem;
-  }
-
-  .play-again-btn {
-    padding: 0.5rem 1.5rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .play-again-btn:hover {
-    background: #15803d;
-  }
-
-  .play-again-btn.secondary {
-    background: var(--btn-bg, #2a2a2a);
-    color: var(--foreground, white);
-    border: 1px solid var(--card-border, #333);
-  }
-  .play-again-btn.secondary:hover {
-    background: var(--btn-hover, #3a3a3a);
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.5rem);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 </style>

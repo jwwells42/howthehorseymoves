@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Countdown from '$lib/components/ui/Countdown.svelte';
   import { playSound } from '$lib/state/sound';
 
   const GAME_DURATION = 30;
@@ -162,10 +165,6 @@
     flashTimeout = setTimeout(() => { flash = null; }, 200);
   }
 
-  let timerColor = $derived(
-    timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#f97316' : '#22c55e'
-  );
-
   let stars = $derived(getStars(score));
 
   let wrongOnes = $derived(history.filter((a) => !a.correct));
@@ -178,12 +177,8 @@
       <p class="muted">
         Where is the second square relative to the first? Click the direction arrow. You have 30 seconds!
       </p>
-      {#if bestScore > 0}
-        <div class="best">
-          Best: {bestScore} {#if bestStars > 0}<StarRating stars={bestStars} size="sm" />{/if}
-        </div>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <BestScore score={bestScore} stars={bestStars} />
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
   {:else if gameState === 'done'}
     <div class="center-col">
@@ -192,10 +187,8 @@
       {#if stars > 0}
         <StarRating {stars} size="lg" />
       {/if}
-      {#if bestScore > 0}
-        <p class="best">Personal best: {bestScore}</p>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Play Again</button>
+      <BestScore score={bestScore} />
+      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
 
       {#if wrongOnes.length > 0}
         <div class="mistakes-section">
@@ -216,17 +209,7 @@
     </div>
   {:else}
     <div class="play-col">
-      <div class="timer-bar-track">
-        <div
-          class="timer-bar-fill"
-          style="width: {(timeLeft / GAME_DURATION) * 100}%; background: {timerColor};"
-        ></div>
-      </div>
-
-      <div class="hud">
-        <span>Score: {score}</span>
-        <span>{timeLeft}s</span>
-      </div>
+      <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
 
       <div class="question-area">
         <div class="question-label">
@@ -279,62 +262,17 @@
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
   }
 
   .muted {
-    color: var(--text-muted);
-  }
-
-  .best {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: bold;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: rgba(255, 248, 230, 0.25);
+    color: var(--ink-muted);
   }
 
   .big-score {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
-  }
-
-  .timer-bar-track {
-    width: 100%;
-    height: 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .timer-bar-fill {
-    height: 100%;
-    transition: width 1s linear, background 0.5s;
-  }
-
-  .hud {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    font-size: 0.875rem;
-    color: var(--text-faint);
   }
 
   .question-area {
@@ -343,8 +281,8 @@
   }
 
   .question-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin-bottom: 0.25rem;
   }
 
@@ -353,17 +291,17 @@
   }
 
   .question-main {
-    font-size: 2.25rem;
+    font-size: var(--size-title);
     font-weight: bold;
     transition: color 0.1s;
   }
 
   .flash-correct {
-    color: #4ade80;
+    color: var(--correct-text);
   }
 
   .flash-wrong {
-    color: #f87171;
+    color: var(--wrong-text);
   }
 
   .dpad {
@@ -383,16 +321,16 @@
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 0.5rem;
-    border: 2px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-size: 1.5rem;
+    border: 2px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: var(--size-large);
     cursor: pointer;
     transition: border-color 0.15s;
   }
 
   .dir-btn:hover {
-    border-color: rgba(255, 248, 230, 0.4);
+    border-color: var(--ink-muted);
   }
 
   .dir-btn:active {
@@ -401,14 +339,14 @@
 
   .mistakes-section {
     width: 100%;
-    border-top: 1px solid rgba(255, 248, 230, 0.1);
+    border-top: 1px solid var(--line);
     margin-top: 0.5rem;
     padding-top: 1rem;
   }
 
   .mistakes-title {
     font-weight: bold;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     margin-bottom: 0.75rem;
   }
 
@@ -419,19 +357,19 @@
   }
 
   .mistake-row {
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
   }
 
   .mono-bold {
-    font-family: monospace;
+    font-variant-numeric: tabular-nums;
     font-weight: bold;
   }
 
   .correct-label {
-    color: #4ade80;
+    color: var(--correct-text);
   }
 
   .faint {
-    color: var(--text-faint);
+    color: var(--ink-muted);
   }
 </style>

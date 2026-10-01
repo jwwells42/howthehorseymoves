@@ -3,11 +3,7 @@ import { parseFen, createBoardState } from '$lib/logic/types';
 import { parseSan, applyMove } from '$lib/logic/pgn';
 import type { Arrow } from '$lib/logic/pgn';
 import { isCheckmate } from '$lib/logic/attacks';
-
-export interface SquareHighlight {
-  square: SquareId;
-  color: string;
-}
+import { LICHESS_MARKS, MARK, type SquareHighlight } from '$lib/board-marks';
 
 export interface MoveNode {
   san: string;
@@ -32,13 +28,6 @@ export interface MoveTree {
   initialHighlights?: SquareHighlight[];
 }
 
-const ARROW_COLORS: Record<string, string> = {
-  G: "#15803d",
-  R: "#dc2626",
-  Y: "#ca8a04",
-  B: "#2563eb",
-};
-
 function parseAnnotations(comment: string): { arrows: Arrow[]; highlights: SquareHighlight[] } {
   const arrows: Arrow[] = [];
   const highlights: SquareHighlight[] = [];
@@ -51,7 +40,7 @@ function parseAnnotations(comment: string): { arrows: Arrow[]; highlights: Squar
         const colorCode = e[0].toUpperCase();
         const from = e.slice(1, 3) as SquareId;
         const to = e.slice(3, 5) as SquareId;
-        arrows.push({ from, to, color: ARROW_COLORS[colorCode] ?? ARROW_COLORS.G });
+        arrows.push({ from, to, color: LICHESS_MARKS[colorCode] ?? MARK.good });
       }
     }
     return "";
@@ -64,7 +53,7 @@ function parseAnnotations(comment: string): { arrows: Arrow[]; highlights: Squar
       if (e.length >= 3) {
         const colorCode = e[0].toUpperCase();
         const square = e.slice(1, 3) as SquareId;
-        highlights.push({ square, color: ARROW_COLORS[colorCode] ?? ARROW_COLORS.G });
+        highlights.push({ square, color: LICHESS_MARKS[colorCode] ?? MARK.good });
       }
     }
     return "";

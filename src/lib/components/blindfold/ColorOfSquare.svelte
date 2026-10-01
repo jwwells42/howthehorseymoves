@@ -1,7 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import ReviewCard from './ReviewCard.svelte';
+  import ReviewGrid from './ReviewGrid.svelte';
   import { playSound } from '$lib/state/sound';
+  import { MARK, highlight } from '$lib/board-marks';
 
   const GAME_DURATION = 30;
   const ALL_SQUARES: string[] = [];
@@ -28,22 +34,10 @@
     return 0;
   }
 
-  const DARK_COLOR = '#2c2c2c';
-  const LIGHT_COLOR = '#f0ead6';
-  const BOARD_LIGHT = '#d4c4a0';
-  const BOARD_DARK = '#7a9e6e';
-
   interface Attempt {
     square: string;
     dark: boolean;
     correct: boolean;
-  }
-
-  function miniHighlight(attempt: Attempt): string {
-    if (attempt.dark && attempt.correct) return '#2a5a2a';
-    if (attempt.dark && !attempt.correct) return '#5a2a2a';
-    if (!attempt.dark && attempt.correct) return '#b8e0b8';
-    return '#e0b8b8';
   }
 
   type GameState = 'idle' | 'playing' | 'done';
@@ -61,9 +55,7 @@
   let flashRef: ReturnType<typeof setTimeout> | null = null;
 
   let stars = $derived(getStars(score));
-  let timerBarColor = $derived(
-    timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#fb923c' : '#22c55e'
-  );
+  let mistakes = $derived(history.filter((a) => !a.correct));
 
   onMount(() => {
     bestScore = parseInt(localStorage.getItem('blindfold-color-best') ?? '0', 10);
@@ -130,165 +122,64 @@
     flashRef = setTimeout(() => { flash = null; }, 200);
   }
 
-  const S = 10;
-  const B = S * 8;
-
-  function miniSquareCoords(sq: string): { f: number; svgR: number } {
-    const f = sq.charCodeAt(0) - 97;
-    const r = parseInt(sq[1]) - 1;
-    return { f, svgR: 7 - r };
-  }
+  const colourName = (dark: boolean) => (dark ? 'Dark' : 'Light');
 </script>
+
+{#snippet review(title: string, attempts: Attempt[])}
+  <ReviewGrid {title}>
+    {#each attempts as attempt}
+      <!-- A ring, so the square's own colour shows: that is the answer. -->
+      <ReviewCard correct={attempt.correct} highlights={highlight([attempt.square], MARK.note, 'ring')}>
+        <strong>{attempt.square}</strong><br />
+        <span class={attempt.correct ? 'correct' : 'wrong'}>{colourName(attempt.dark)}</span>
+        {#if !attempt.correct}
+          <span class="muted">(you: {colourName(!attempt.dark)})</span>
+        {/if}
+      </ReviewCard>
+    {/each}
+  </ReviewGrid>
+{/snippet}
 
 <div class="trainer">
   {#if gameState === 'idle'}
     <div class="screen">
-      <h2 class="title">Color of Square</h2>
+      <h2>Color of Square</h2>
       <p class="instructions">
         A square will appear. Click the correct color — dark or light. You have 30 seconds!
       </p>
-      <div class="color-preview">
-        <div class="preview-swatch dark-swatch"></div>
-        <div class="preview-swatch light-swatch"></div>
+      <div class="swatches">
+        <div class="swatch dark"></div>
+        <div class="swatch light"></div>
       </div>
-      {#if bestScore > 0}
-        <div class="best">
-          Best: {bestScore}
-          {#if bestStars > 0}
-            <StarRating stars={bestStars} size="sm" />
-          {/if}
-        </div>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <BestScore score={bestScore} stars={bestStars} />
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if gameState === 'playing'}
-    <div class="timer-bar-track">
-      <div
-        class="timer-bar-fill"
-        style="width: {(timeLeft / GAME_DURATION) * 100}%; background: {timerBarColor};"
-      ></div>
-    </div>
+    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
 
-    <div class="hud">
-      <span>Score: {score}</span>
-      <span>{timeLeft}s</span>
-    </div>
+    <div class={['target', flash]}>{target}</div>
 
-    <div
-      class={['target-square', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}
-    >
-      {target}
-    </div>
-
-    <div class="answer-buttons">
-      <button
-        class="color-btn dark-btn"
-        onclick={() => handleAnswer(true)}
-        aria-label="Dark square"
-      ></button>
-      <button
-        class="color-btn light-btn"
-        onclick={() => handleAnswer(false)}
-        aria-label="Light square"
-      ></button>
+    <div class="answers">
+      <button class="swatch-button dark" onclick={() => handleAnswer(true)} aria-label="Dark square"></button>
+      <button class="swatch-button light" onclick={() => handleAnswer(false)} aria-label="Light square"></button>
     </div>
 
   {:else}
-    {@const wrongOnes = history.filter((a) => !a.correct)}
-
     <div class="screen">
-      <h2 class="title">Time's up!</h2>
+      <h2>Time's up!</h2>
       <p class="final-score">{score}/{history.length} correct</p>
       {#if stars > 0}
-        <StarRating stars={stars} size="lg" />
+        <StarRating {stars} size="lg" />
       {/if}
-      {#if bestScore > 0}
-        <p class="best-small">Personal best: {bestScore}</p>
-      {/if}
-      <button class="start-btn" onclick={startGame}>Play Again</button>
+      <BestScore score={bestScore} />
+      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
 
-      {#if wrongOnes.length > 0}
-        <div class="review-section">
-          <h3 class="review-heading">Mistakes ({wrongOnes.length})</h3>
-          <div class="mini-grid">
-            {#each wrongOnes as attempt}
-              {@const coords = miniSquareCoords(attempt.square)}
-              {@const highlight = miniHighlight(attempt)}
-              {@const borderColor = attempt.correct ? '#22c55e' : '#ef4444'}
-              <div class="mini-item">
-                <svg
-                  viewBox="0 0 {B} {B}"
-                  class="mini-svg"
-                  style="border: 3px solid {borderColor}; border-radius: 4px;"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      {@const isLight = (fi + ri) % 2 === 0}
-                      {@const isTarget = fi === coords.f && ri === coords.svgR}
-                      <rect
-                        x={fi * S}
-                        y={ri * S}
-                        width={S}
-                        height={S}
-                        fill={isTarget ? highlight : isLight ? BOARD_LIGHT : BOARD_DARK}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mini-square">{attempt.square}</span><br />
-                  <span class="text-red">{attempt.dark ? 'Dark' : 'Light'}
-                    <span class="text-faint"> (you: {attempt.dark ? 'Light' : 'Dark'})</span>
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+      {#if mistakes.length > 0}
+        {@render review(`Mistakes (${mistakes.length})`, mistakes)}
       {/if}
-
       {#if history.length > 0}
-        <div class="review-section">
-          <h3 class="review-heading">All answers ({history.length})</h3>
-          <div class="mini-grid">
-            {#each history as attempt}
-              {@const coords = miniSquareCoords(attempt.square)}
-              {@const highlight = miniHighlight(attempt)}
-              {@const borderColor = attempt.correct ? '#22c55e' : '#ef4444'}
-              <div class="mini-item">
-                <svg
-                  viewBox="0 0 {B} {B}"
-                  class="mini-svg"
-                  style="border: 3px solid {borderColor}; border-radius: 4px;"
-                >
-                  {#each Array(8) as _, ri}
-                    {#each Array(8) as _, fi}
-                      {@const isLight = (fi + ri) % 2 === 0}
-                      {@const isTarget = fi === coords.f && ri === coords.svgR}
-                      <rect
-                        x={fi * S}
-                        y={ri * S}
-                        width={S}
-                        height={S}
-                        fill={isTarget ? highlight : isLight ? BOARD_LIGHT : BOARD_DARK}
-                      />
-                    {/each}
-                  {/each}
-                </svg>
-                <div class="mini-label">
-                  <span class="mini-square">{attempt.square}</span><br />
-                  <span class={attempt.correct ? 'text-green' : 'text-red'}>
-                    {attempt.dark ? 'Dark' : 'Light'}
-                    {#if !attempt.correct}
-                      <span class="text-faint"> (you: {attempt.dark ? 'Light' : 'Dark'})</span>
-                    {/if}
-                  </span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
+        {@render review(`All answers (${history.length})`, history)}
       {/if}
     </div>
   {/if}
@@ -310,201 +201,61 @@
     align-items: center;
     gap: 1rem;
     text-align: center;
-    max-width: 42rem;
-  }
-
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
   }
 
   .instructions {
-    color: var(--text-muted);
+    color: var(--ink-muted);
   }
 
-  .color-preview {
+  /* The answer buttons are the board's own two square colours. */
+  .dark { background: var(--board-dark); }
+  .light { background: var(--board-light); }
+
+  .swatches {
     display: flex;
     gap: 1rem;
   }
-
-  .preview-swatch {
+  .swatch {
     width: 4rem;
     height: 4rem;
     border-radius: 0.5rem;
-    border: 2px solid rgba(255, 248, 230, 0.2);
+    border: 2px solid var(--line);
   }
 
-  .dark-swatch {
-    background-color: #2c2c2c;
-  }
-
-  .light-swatch {
-    background-color: #f0ead6;
-  }
-
-  .best {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .best-small {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 0.5rem;
-    background: #16a34a;
-    color: white;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: #15803d;
-  }
-
-  /* Timer */
-  .timer-bar-track {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .timer-bar-fill {
-    height: 100%;
-    border-radius: 9999px;
-    transition: width 1s linear, background 0.5s;
-  }
-
-  .hud {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  /* Target */
-  .target-square {
+  .target {
     font-size: 3.75rem;
     font-weight: bold;
     padding: 2rem 0;
     transition: color 0.1s;
   }
+  .target.correct { color: var(--correct-text); }
+  .target.wrong { color: var(--wrong-text); }
 
-  .target-square.flash-correct {
-    color: #4ade80;
-  }
-
-  .target-square.flash-wrong {
-    color: #ef4444;
-  }
-
-  /* Answer buttons */
-  .answer-buttons {
+  .answers {
     display: flex;
     gap: 1.5rem;
   }
-
-  .color-btn {
+  .swatch-button {
     width: 7rem;
     height: 7rem;
     border-radius: 0.75rem;
-    border: 4px solid rgba(255, 248, 230, 0.2);
+    border: 4px solid var(--line);
     cursor: pointer;
     transition: border-color 0.15s, transform 0.1s;
   }
-
-  .color-btn:hover {
-    border-color: rgba(255, 248, 230, 0.5);
+  .swatch-button:hover {
+    border-color: var(--ink);
   }
-
-  .color-btn:active {
+  .swatch-button:active {
     transform: scale(0.95);
   }
 
-  .dark-btn {
-    background-color: #2c2c2c;
-  }
-
-  .light-btn {
-    background-color: #f0ead6;
-  }
-
-  /* Final score */
   .final-score {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
-  /* Review */
-  .review-section {
-    width: 100%;
-    border-top: 1px solid rgba(255, 248, 230, 0.1);
-    margin-top: 0.5rem;
-    padding-top: 1rem;
-  }
-
-  .review-heading {
-    font-weight: bold;
-    font-size: 0.875rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .mini-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    justify-items: center;
-  }
-
-  @media (min-width: 640px) {
-    .mini-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  .mini-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .mini-svg {
-    width: 5rem;
-    height: 5rem;
-  }
-
-  .mini-label {
-    font-size: 0.75rem;
-    text-align: center;
-  }
-
-  .mini-square {
-    font-family: monospace;
-    font-weight: bold;
-  }
-
-  .text-green {
-    color: #4ade80;
-  }
-
-  .text-red {
-    color: #ef4444;
-  }
-
-  .text-faint {
-    color: var(--text-faint);
-  }
+  .correct { color: var(--correct-text); }
+  .wrong { color: var(--wrong-text); }
+  .muted { color: var(--ink-muted); }
 </style>

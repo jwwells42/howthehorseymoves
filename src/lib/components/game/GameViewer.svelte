@@ -1,6 +1,9 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
+  import MoveNav from '$lib/components/board/MoveNav.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import { MARK } from '$lib/board-marks';
   import { parseGamePgn, extractMainLine } from '$lib/logic/pgn';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
@@ -446,7 +449,7 @@
       testSelected = null;
       playSound('move');
     } else {
-      testHintArrow = { from: expected.from, to: expected.to, color: '#15803d' };
+      testHintArrow = { from: expected.from, to: expected.to, color: MARK.good };
       testSelected = null;
       playSound('wrong');
     }
@@ -657,8 +660,6 @@
     viewerDragFrom = null;
   }
 
-  function noop() {}
-
   function formatVariationSan(node: { node: GameNode; moveNumber: number; isWhite: boolean }): string {
     const prefix = node.isWhite ? `${node.moveNumber}.` : (node === node ? `${node.moveNumber}...` : '');
     return `${prefix}${node.node.san}${node.node.nag ?? ''}`;
@@ -679,8 +680,6 @@
         board={testMode ? testBoard : displayBoard}
         selectedSquare={testMode ? testSelected : viewerSelected}
         validMoves={testMode ? testValidMoves : viewerValidMoves}
-        targets={[]}
-        reachedTargets={[]}
         dragValidMoves={testMode ? testDragMoves : viewerDragMoves}
         onSquareClick={testMode ? handleTestClick : handleViewerClick}
         onDrop={testMode ? handleTestDrop : handleViewerDrop}
@@ -701,7 +700,7 @@
     {#if !testMode && exploring}
       <div class="explore-indicator">
         <span class="explore-label">Exploring</span>
-        <button class="explore-back-btn" onclick={exitExplore}>Back to game</button>
+        <Button onclick={exitExplore}>Back to game</Button>
       </div>
     {/if}
 
@@ -710,9 +709,9 @@
         <h2 class="test-title">Test Yourself</h2>
         <p class="test-status">{testStatusText}</p>
         {#if testComplete}
-          <button class="btn-try-again" onclick={retryTest}>
-            Try Again
-          </button>
+          <div class="try-again">
+            <Button variant="primary" onclick={retryTest}>Try Again</Button>
+          </div>
         {/if}
       </div>
     {:else}
@@ -809,38 +808,17 @@
       </div>
     {/if}
 
-    <div class="nav-controls">
-      <button
-        class="nav-btn"
-        onclick={goToStart}
-        disabled={!canGoBack}
-        aria-label="Start"
-      >&#x23EE;</button>
-      <button
-        class="nav-btn"
-        onclick={goBack}
-        disabled={!canGoBack}
-        aria-label="Back"
-      >&#x25C0;</button>
-      <button
-        class="nav-btn nav-btn-wide"
-        onclick={togglePlay}
-        disabled={testMode}
-        aria-label={isPlaying ? 'Pause' : 'Play'}
-      >{isPlaying ? '\u23F8' : '\u25B6'}</button>
-      <button
-        class="nav-btn"
-        onclick={goForward}
-        disabled={!canGoForward}
-        aria-label="Forward"
-      >&#x25B6;</button>
-      <button
-        class="nav-btn"
-        onclick={goToEnd}
-        disabled={!canGoForward}
-        aria-label="End"
-      >&#x23ED;</button>
-    </div>
+    <MoveNav
+      {canGoBack}
+      {canGoForward}
+      onStart={goToStart}
+      onBack={goBack}
+      onForward={goForward}
+      onEnd={goToEnd}
+      onTogglePlay={togglePlay}
+      playing={isPlaying}
+      playDisabled={testMode}
+    />
 
     {#if !testMode}
       <div class="sub-controls">
@@ -853,13 +831,9 @@
 
     <div class="test-btn-wrap">
       {#if testMode}
-        <button class="btn-test" onclick={exitTestMode}>
-          Back to Viewer
-        </button>
+        <Button onclick={exitTestMode}>Back to Viewer</Button>
       {:else}
-        <button class="btn-test" onclick={startTestMode}>
-          Test Yourself
-        </button>
+        <Button onclick={startTestMode}>Test Yourself</Button>
       {/if}
     </div>
   {/snippet}
@@ -873,30 +847,18 @@
   }
 
   .test-title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: 700;
     margin: 0 0 0.25rem;
   }
 
   .test-status {
-    color: var(--text-muted, #888);
+    color: var(--ink-muted);
     margin: 0;
   }
 
-  .btn-try-again {
-    padding: 0.5rem 1.25rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
+  .try-again {
     margin-top: 0.75rem;
-    transition: background-color 0.15s;
-  }
-
-  .btn-try-again:hover {
-    background: #15803d;
   }
 
   /* --- Player labels --- */
@@ -912,20 +874,20 @@
     width: 0.75rem;
     height: 0.75rem;
     border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--line);
   }
 
   .player-dot-black {
-    background: #1a1a1a;
+    background: var(--piece-black);
   }
 
   .player-dot-white {
-    background: white;
+    background: var(--piece-white);
   }
 
   .player-name {
-    font-size: 0.875rem;
-    color: var(--text-muted, #888);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   /* --- Board column (player labels + board) --- */
@@ -937,7 +899,7 @@
     height: 100%;
   }
 
-  /* --- Explore indicator --- */
+  /* --- Explore indicator: off the game's own moves, so "look here". --- */
   .explore-indicator {
     display: flex;
     align-items: center;
@@ -945,64 +907,15 @@
     gap: 0.75rem;
     padding: 0.375rem 0.75rem;
     border-radius: 0.5rem;
-    background: rgba(234, 179, 8, 0.1);
-    border: 1px solid rgba(234, 179, 8, 0.3);
+    background: var(--highlight-tint);
+    border: 1px solid var(--highlight);
     flex-shrink: 0;
   }
 
   .explore-label {
-    font-size: 0.8rem;
+    font-size: var(--size-small);
     font-weight: 600;
-    color: #eab308;
-  }
-
-  .explore-back-btn {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.375rem;
-    border: 1px solid var(--card-border, #333);
-    background: var(--card-bg, #1a1a1a);
-    color: inherit;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .explore-back-btn:hover {
-    background: var(--btn-hover, #2a2a2a);
-  }
-
-  /* --- Nav controls --- */
-  .nav-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-  }
-
-  .nav-btn {
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    background: var(--btn-bg, #2a2a2a);
-    color: inherit;
-    border: none;
-    cursor: pointer;
-    font-size: 1.125rem;
-    transition: background-color 0.15s;
-  }
-
-  .nav-btn:hover:not(:disabled) {
-    background: var(--btn-hover, #3a3a3a);
-  }
-
-  .nav-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-
-  .nav-btn-wide {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+    color: var(--highlight);
   }
 
   /* --- Sub controls --- */
@@ -1013,8 +926,8 @@
   }
 
   .variation-toggle {
-    font-size: 0.75rem;
-    color: var(--text-faint, #666);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1032,38 +945,21 @@
     flex-shrink: 0;
   }
 
-  .btn-test {
-    padding: 0.5rem 1.25rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border, #333);
-    background: var(--card-bg, #1a1a1a);
-    color: inherit;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .btn-test:hover {
-    background: var(--btn-hover, #2a2a2a);
-  }
-
   /* --- Comment area --- */
   .comment-area {
     flex-shrink: 0;
   }
 
   .comment-text {
-    font-size: 0.875rem;
-    color: var(--text-muted, #888);
-    font-style: italic;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     text-align: center;
     padding: 0 0.5rem;
     margin: 0;
   }
 
   .game-info {
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     margin-bottom: 0.5rem;
   }
 
@@ -1072,20 +968,20 @@
   }
 
   .game-year {
-    color: var(--text-faint, #666);
+    color: var(--ink-muted);
     margin-left: 0.5rem;
   }
 
   .game-desc {
-    font-size: 0.75rem;
-    color: var(--text-muted, #888);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     margin: 0 0 0.75rem;
   }
 
   .move-list {
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border, #333);
-    background: var(--card-bg, #1a1a1a);
+    border: 1px solid var(--line);
+    background: var(--surface);
     padding: 0.75rem;
     flex: 1;
     min-height: 0;
@@ -1097,11 +993,11 @@
     grid-template-columns: 2rem 1fr 1fr;
     column-gap: 0.25rem;
     row-gap: 0.125rem;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
   }
 
   .move-num {
-    color: var(--text-faint, #666);
+    color: var(--ink-muted);
     text-align: right;
   }
 
@@ -1118,45 +1014,43 @@
   }
 
   .move-btn:hover {
-    background: var(--btn-bg, #2a2a2a);
+    background: var(--surface-raised);
   }
 
   .move-active {
-    background: rgba(34, 197, 94, 0.35);
+    background: var(--line);
     font-weight: 700;
-    border-radius: 0.25rem;
-    outline: 1px solid rgba(34, 197, 94, 0.5);
   }
 
   .move-on-path {
-    color: var(--foreground, #f0e6cc);
+    color: var(--ink);
   }
 
   .move-ellipsis {
-    color: var(--text-faint, #666);
+    color: var(--ink-muted);
     padding: 0.125rem 0.375rem;
   }
 
   .game-result {
     text-align: center;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     font-weight: 700;
-    color: var(--text-muted, #888);
+    color: var(--ink-muted);
     margin-top: 0.5rem;
   }
 
   /* --- Variation rows --- */
   .variation-row {
     grid-column: 1 / -1;
-    font-size: 0.8rem;
-    color: var(--text-muted, #888);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     padding: 0.125rem 0.25rem 0.125rem 2.25rem;
   }
 
   .var-move-btn {
     background: none;
     border: none;
-    color: var(--text-muted, #888);
+    color: var(--ink-muted);
     cursor: pointer;
     font-size: inherit;
     padding: 0.0625rem 0.125rem;
@@ -1165,29 +1059,29 @@
   }
 
   .var-move-btn:hover {
-    background: var(--btn-bg, #2a2a2a);
+    background: var(--surface-raised);
     color: inherit;
   }
 
   .var-move-btn.move-active {
-    background: rgba(34, 197, 94, 0.2);
+    background: var(--line);
     color: inherit;
     font-weight: 700;
   }
 
   /* --- Explore variation inline --- */
   .explore-var {
-    color: #eab308;
+    color: var(--highlight);
   }
 
   .explore-line-num {
-    color: var(--text-faint, #666);
+    color: var(--ink-muted);
   }
 
   .explore-line-btn {
     background: none;
     border: none;
-    color: #eab308;
+    color: var(--highlight);
     cursor: pointer;
     font-size: inherit;
     padding: 0.0625rem 0.125rem;
@@ -1196,11 +1090,11 @@
   }
 
   .explore-line-btn:hover {
-    background: var(--btn-bg, #2a2a2a);
+    background: var(--surface-raised);
   }
 
   .explore-line-btn.move-active {
-    background: rgba(234, 179, 8, 0.15);
+    background: var(--highlight-tint);
     font-weight: 700;
   }
 </style>

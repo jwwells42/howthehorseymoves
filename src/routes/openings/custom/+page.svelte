@@ -3,6 +3,9 @@
   import type { Opening } from '$lib/openings';
   import { parseOpeningPgn, extractLines } from '$lib/openings';
   import OpeningTrainer from '$lib/components/opening/OpeningTrainer.svelte';
+  import Page from '$lib/components/ui/Page.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Choice from '$lib/components/ui/Choice.svelte';
 
   let pgnInput = $state('');
   let selectedColor = $state<PieceColor>('w');
@@ -43,94 +46,64 @@
 </script>
 
 {#if activeOpening}
-  <main class="page">
-    <button class="back-btn" onclick={goBack}>&larr; Change PGN</button>
+  <main class="trainer-page">
+    <div class="change">
+      <Button onclick={goBack}>&larr; Change PGN</Button>
+    </div>
     {#key activeOpening.pgn + activeOpening.color}
       <OpeningTrainer opening={activeOpening} />
     {/key}
   </main>
 {:else}
-  <main class="page page-form">
-    <a href="/openings" class="back-link">&larr; Back to openings</a>
-
-    <h1>Paste your own PGN</h1>
-    <p class="subtitle">Paste opening moves from your coach, a book, or Lichess.</p>
-
+  <Page
+    title="Paste your own PGN"
+    subtitle="Paste opening moves from your coach, a book, or Lichess."
+    back={{ href: '/openings', label: 'Back to openings' }}
+    width="narrow"
+  >
     <div class="form">
       <textarea
         class="pgn-input"
+        aria-label="PGN"
         placeholder="1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 (3...Nf6 4.Ng5 d5)"
         bind:value={pgnInput}
         rows="6"
       ></textarea>
 
-      <div class="color-toggle">
-        <span class="toggle-label">I'm playing as:</span>
-        <button
-          class={['toggle-btn', selectedColor === 'w' && 'active']}
-          onclick={() => (selectedColor = 'w')}
-        >
-          White
-        </button>
-        <button
-          class={['toggle-btn', selectedColor === 'b' && 'active']}
-          onclick={() => (selectedColor = 'b')}
-        >
-          Black
-        </button>
-      </div>
+      <Choice
+        label="I'm playing as"
+        options={[
+          { value: 'w', label: 'White' },
+          { value: 'b', label: 'Black' },
+        ]}
+        bind:value={selectedColor}
+      />
 
       {#if error}
-        <p class="error">{error}</p>
+        <p class="error" role="alert">✗ {error}</p>
       {/if}
 
-      <button class="btn start-btn" onclick={start}>Start drilling</button>
+      <div>
+        <Button variant="primary" onclick={start}>Start drilling</Button>
+      </div>
     </div>
-  </main>
+  </Page>
 {/if}
 
 <style>
-  .page {
+  .trainer-page {
     min-height: 100vh;
     padding: 1rem;
   }
 
-  .page-form {
-    padding: 1.5rem;
-    max-width: 42rem;
-    margin: 0 auto;
-  }
-
-  .back-link, .back-btn {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    display: inline-block;
+  .change {
     margin-bottom: 1rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    font-family: inherit;
-  }
-
-  .back-link:hover, .back-btn:hover {
-    color: var(--foreground);
-  }
-
-  h1 {
-    font-size: 1.875rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-  }
-
-  .subtitle {
-    color: var(--text-muted);
-    margin-bottom: 2rem;
   }
 
   .form {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 1rem;
   }
 
@@ -138,72 +111,20 @@
     width: 100%;
     padding: 0.75rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: inherit;
-    font-family: monospace;
-    font-size: 0.875rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--size-secondary);
     resize: vertical;
   }
 
   .pgn-input::placeholder {
-    color: var(--text-faint);
-  }
-
-  .color-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .toggle-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    margin-right: 0.25rem;
-  }
-
-  .toggle-btn {
-    padding: 0.375rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: all 0.15s;
-  }
-
-  .toggle-btn.active {
-    background: var(--btn-bg);
-    color: inherit;
-    border-color: var(--foreground);
-  }
-
-  .toggle-btn:hover {
-    background: var(--btn-hover);
+    color: var(--ink-muted);
   }
 
   .error {
-    color: #ef4444;
-    font-size: 0.875rem;
-  }
-
-  .btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: var(--btn-bg);
-    color: inherit;
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: background 0.15s;
-  }
-
-  .btn:hover {
-    background: var(--btn-hover);
-  }
-
-  .start-btn {
-    align-self: flex-start;
+    color: var(--wrong-text);
+    font-size: var(--size-secondary);
+    font-weight: bold;
   }
 </style>

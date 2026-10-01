@@ -89,14 +89,14 @@
     gap: 1rem;
     height: 3rem;
     padding: 0 1rem;
-    background: var(--background);
-    border-bottom: 1px solid var(--card-border);
+    background: var(--page);
+    border-bottom: 1px solid var(--line);
   }
   .site-title {
     font-weight: bold;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     white-space: nowrap;
-    color: var(--foreground);
+    color: var(--ink);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -117,20 +117,20 @@
     -webkit-overflow-scrolling: touch;
   }
   .nav-link {
-    font-size: 0.8125rem;
+    font-size: var(--size-small);
     padding: 0.375rem 0.625rem;
     border-radius: 0.375rem;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     white-space: nowrap;
     transition: color 0.15s, background 0.15s;
   }
   .nav-link:hover {
-    color: var(--foreground);
-    background: var(--btn-bg);
+    color: var(--ink);
+    background: var(--surface-raised);
   }
   .nav-link.active {
-    color: var(--foreground);
-    background: var(--btn-bg);
+    color: var(--ink);
+    background: var(--surface-raised);
     font-weight: bold;
   }
   .mute-btn {
@@ -138,7 +138,7 @@
     flex-shrink: 0;
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     cursor: pointer;
     padding: 0.25rem;
     border-radius: 0.25rem;
@@ -148,6 +148,6 @@
     transition: color 0.15s;
   }
   .mute-btn:hover {
-    color: var(--foreground);
+    color: var(--ink);
   }
 </style>

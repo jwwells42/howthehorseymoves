@@ -1,25 +1,19 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Choice from '$lib/components/ui/Choice.svelte';
+  import AnswerInput from './AnswerInput.svelte';
   import { playSound } from '$lib/state/sound';
-
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
-
-  type PieceColor = 'w' | 'b';
-  type PieceKind = 'K' | 'Q' | 'R' | 'B' | 'N' | 'P';
-
-  interface PiecePlacement {
-    piece: PieceKind;
-    color: PieceColor;
-    square: string;
-  }
+  import { createBoardState, type PieceColor, type PieceKind, type PiecePlacement, type SquareId } from '$lib/logic/types';
+  import { MARK, highlight } from '$lib/board-marks';
 
   interface Challenge {
     before: PiecePlacement[];
     after: PiecePlacement[];
     movedPiece: PiecePlacement;
-    movedTo: string;
+    movedTo: SquareId;
     answer: string;
   }
 
@@ -31,29 +25,29 @@
     { piece: 'B', color: 'b' }, { piece: 'N', color: 'b' }, { piece: 'P', color: 'b' },
   ];
 
-  function randomSquare(): string {
-    const f = Math.floor(Math.random() * 8);
-    const r = Math.floor(Math.random() * 8);
-    return String.fromCharCode(97 + f) + (r + 1);
+  function toSquare(f: number, r: number): SquareId {
+    return (String.fromCharCode(97 + f) + (r + 1)) as SquareId;
+  }
+
+  function randomSquare(): SquareId {
+    return toSquare(Math.floor(Math.random() * 8), Math.floor(Math.random() * 8));
   }
 
   /** Random square avoiding ranks 1 and 8 (for pawns) */
-  function randomPawnSquare(): string {
-    const f = Math.floor(Math.random() * 8);
-    const r = 1 + Math.floor(Math.random() * 6); // ranks 2-7
-    return String.fromCharCode(97 + f) + (r + 1);
+  function randomPawnSquare(): SquareId {
+    return toSquare(Math.floor(Math.random() * 8), 1 + Math.floor(Math.random() * 6));
   }
 
   /** Get squares reachable by piece type from a given square (ignoring obstacles) */
-  function getReachableSquares(piece: PieceKind, color: PieceColor, sq: string, occupied: Set<string>): string[] {
+  function getReachableSquares(piece: PieceKind, color: PieceColor, sq: string, occupied: Set<string>): SquareId[] {
     const f = sq.charCodeAt(0) - 97;
     const r = parseInt(sq[1]) - 1;
-    const results: string[] = [];
+    const results: SquareId[] = [];
 
     function addIfValid(df: number, dr: number) {
       const nf = f + df, nr = r + dr;
       if (nf >= 0 && nf < 8 && nr >= 0 && nr < 8) {
-        const s = String.fromCharCode(97 + nf) + (nr + 1);
+        const s = toSquare(nf, nr);
         if (!occupied.has(s)) {
           // Pawns can't land on rank 1 or 8
           if (piece === 'P' && (nr === 0 || nr === 7)) return;
@@ -66,7 +60,7 @@
       for (let d = 1; d < 8; d++) {
         const nf = f + df * d, nr = r + dr * d;
         if (nf < 0 || nf >= 8 || nr < 0 || nr >= 8) break;
-        const s = String.fromCharCode(97 + nf) + (nr + 1);
+        const s = toSquare(nf, nr);
         if (occupied.has(s)) break;
         results.push(s);
       }
@@ -109,7 +103,7 @@
 
       // Always place one white king and one black king
       for (const color of ['w', 'b'] as PieceColor[]) {
-        let sq: string;
+        let sq: SquareId;
         do { sq = randomSquare(); } while (usedSquares.has(sq));
         usedSquares.add(sq);
         placements.push({ piece: 'K', color, square: sq });
@@ -118,7 +112,7 @@
       // Fill remaining slots with random non-king pieces
       for (let i = 2; i < numPieces; i++) {
         const p = EXTRA_POOL[Math.floor(Math.random() * EXTRA_POOL.length)];
-        let sq: string;
+        let sq: SquareId;
         if (p.piece === 'P') {
           do { sq = randomPawnSquare(); } while (usedSquares.has(sq));
         } else {
@@ -152,7 +146,7 @@
           after,
           movedPiece,
           movedTo: newSq,
-          answer: `${colorName} ${movedPiece.piece} ${movedPiece.square} \u2192 ${newSq}`,
+          answer: `${colorName} ${movedPiece.piece} ${movedPiece.square} → ${newSq}`,
         };
       }
     }
@@ -167,12 +161,8 @@
       after: [{ piece: 'K', color: 'w', square: 'e2' }, { piece: 'K', color: 'b', square: 'e8' }],
       movedPiece: placements[0],
       movedTo: 'e2',
-      answer: 'White K e1 \u2192 e2',
+      answer: 'White K e1 → e2',
     };
-  }
-
-  function sqToCoords(sq: string): [number, number] {
-    return [sq.charCodeAt(0) - 97, 8 - parseInt(sq[1])];
   }
 
   function getStars(correct: number, total: number): number {
@@ -185,8 +175,6 @@
 
   const ROUNDS = 10;
   const SHOW_TIME = 4000;
-  const SQ_SIZE = 40;
-  const BOARD_PX = SQ_SIZE * 8;
 
   type Phase = 'idle' | 'showing' | 'guessing' | 'feedback' | 'done';
 
@@ -200,7 +188,6 @@
   let isCorrect = $state(false);
   let bestStars = $state(0);
 
-  let inputEl = $state<HTMLInputElement | null>(null);
   let showTimerRef: ReturnType<typeof setTimeout> | null = null;
 
   onMount(() => {
@@ -209,10 +196,6 @@
     return () => {
       if (showTimerRef) clearTimeout(showTimerRef);
     };
-  });
-
-  $effect(() => {
-    if (phase === 'guessing' && inputEl) inputEl.focus();
   });
 
   function startGame() {
@@ -227,8 +210,7 @@
     }, SHOW_TIME);
   }
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  function handleSubmit() {
     if (!challenge || phase !== 'guessing') return;
     const sq = input.trim().toLowerCase();
     input = '';
@@ -266,152 +248,67 @@
   }
 
   let stars = $derived(getStars(correct, total));
-
-  function squareFill(fi: number, ri: number, highlight?: { from?: string; to?: string }): string {
-    const isLight = (fi + ri) % 2 === 0;
-    const sqName = String.fromCharCode(97 + fi) + (8 - ri);
-    if (highlight?.from === sqName) return '#f0a0a0';
-    if (highlight?.to === sqName) return '#a3d9a3';
-    return isLight ? LIGHT : DARK;
-  }
 </script>
 
 <div class="container">
   {#if phase === 'idle'}
     <div class="center-col">
-      <h2 class="title">What Changed?</h2>
+      <h2>What Changed?</h2>
       <p class="muted">
         Memorize a position, then identify what moved. {ROUNDS} rounds &mdash; type the square something moved to (or from).
       </p>
-      <div class="level-picker">
-        <span class="level-label">Pieces:</span>
-        {#each [4, 6, 8] as n}
-          <button
-            class={['level-btn', level === n && 'level-active']}
-            onclick={() => { level = n; }}
-          >
-            {n}
-          </button>
-        {/each}
-      </div>
+      <Choice label="Pieces" options={[4, 6, 8].map((n) => ({ value: n, label: String(n) }))} bind:value={level} />
       {#if bestStars > 0}
-        <div class="best">
-          <StarRating stars={bestStars} size="sm" />
-        </div>
+        <StarRating stars={bestStars} size="sm" />
       {/if}
-      <button class="start-btn" onclick={startGame}>Start</button>
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
   {:else if phase === 'done'}
     <div class="center-col">
-      <h2 class="title">Complete!</h2>
+      <h2>Complete!</h2>
       <p class="big-score">{correct}/{total} correct</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />
       {/if}
-      <button class="start-btn" onclick={goIdle}>Play Again</button>
+      <Button variant="primary" size="large" onclick={goIdle}>Play Again</Button>
     </div>
   {:else if phase === 'showing' && challenge}
     <div class="center-col">
-      <div class="round-label">Round {round}/{ROUNDS} &mdash; Memorize this position!</div>
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Chess position to memorize">
-        {#each Array(8) as _, ri}
-          {#each Array(8) as _, fi}
-            <rect
-              x={fi * SQ_SIZE}
-              y={ri * SQ_SIZE}
-              width={SQ_SIZE}
-              height={SQ_SIZE}
-              fill={squareFill(fi, ri)}
-            />
-          {/each}
-        {/each}
-        {#each challenge.before as p}
-          {@const [f, r] = sqToCoords(p.square)}
-          <image
-            href="/pieces/{p.color}{p.piece}.svg"
-            x={f * SQ_SIZE + SQ_SIZE * 0.1}
-            y={r * SQ_SIZE + SQ_SIZE * 0.1}
-            width={SQ_SIZE * 0.8}
-            height={SQ_SIZE * 0.8}
-          />
-        {/each}
-      </svg>
+      <div class="muted">Round {round}/{ROUNDS} &mdash; Memorize this position!</div>
+      <div class="board">
+        <Board board={createBoardState(challenge.before)} readOnly coordinates={false} label="Chess position to memorize" />
+      </div>
       <div class="studying">Studying...</div>
     </div>
   {:else if phase === 'guessing' && challenge}
     <div class="center-col">
-      <div class="round-label">Round {round}/{ROUNDS} &mdash; What moved?</div>
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Chess position after move">
-        {#each Array(8) as _, ri}
-          {#each Array(8) as _, fi}
-            <rect
-              x={fi * SQ_SIZE}
-              y={ri * SQ_SIZE}
-              width={SQ_SIZE}
-              height={SQ_SIZE}
-              fill={squareFill(fi, ri)}
-            />
-          {/each}
-        {/each}
-        {#each challenge.after as p}
-          {@const [f, r] = sqToCoords(p.square)}
-          <image
-            href="/pieces/{p.color}{p.piece}.svg"
-            x={f * SQ_SIZE + SQ_SIZE * 0.1}
-            y={r * SQ_SIZE + SQ_SIZE * 0.1}
-            width={SQ_SIZE * 0.8}
-            height={SQ_SIZE * 0.8}
-          />
-        {/each}
-      </svg>
-      <p class="muted-sm">One piece moved. Type the square it moved <strong>to</strong> or <strong>from</strong>.</p>
-      <form class="input-row" onsubmit={handleSubmit}>
-        <input
-          bind:this={inputEl}
-          type="text"
-          bind:value={input}
-          placeholder="Square..."
-          maxlength={2}
-          class="sq-input"
-          autocomplete="off"
-          autocapitalize="off"
-        />
-        <button type="submit" class="go-btn">Go</button>
-      </form>
+      <div class="muted">Round {round}/{ROUNDS} &mdash; What moved?</div>
+      <div class="board">
+        <Board board={createBoardState(challenge.after)} readOnly coordinates={false} label="Chess position after the move" />
+      </div>
+      <p class="muted">One piece moved. Type the square it moved <strong>to</strong> or <strong>from</strong>.</p>
+      <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Square" placeholder="Square..." />
     </div>
   {:else if phase === 'feedback' && challenge}
     <div class="center-col">
-      <div class="round-label">Round {round}/{ROUNDS}</div>
-      <p class={['feedback-text', isCorrect && 'correct-text', !isCorrect && 'wrong-text']}>
-        {isCorrect ? 'Correct!' : 'Wrong!'}
+      <div class="muted">Round {round}/{ROUNDS}</div>
+      <p class={['feedback', isCorrect ? 'correct' : 'wrong']}>
+        {isCorrect ? '✓ Correct!' : '✗ Wrong!'}
       </p>
-      <p class="muted-sm">{challenge.answer}</p>
-      <svg viewBox="0 0 {BOARD_PX} {BOARD_PX}" class="board-svg" role="img" aria-label="Chess position showing the move">
-        {#each Array(8) as _, ri}
-          {#each Array(8) as _, fi}
-            <rect
-              x={fi * SQ_SIZE}
-              y={ri * SQ_SIZE}
-              width={SQ_SIZE}
-              height={SQ_SIZE}
-              fill={squareFill(fi, ri, { from: challenge.movedPiece.square, to: challenge.movedTo })}
-            />
-          {/each}
-        {/each}
-        {#each challenge.after as p}
-          {@const [f, r] = sqToCoords(p.square)}
-          <image
-            href="/pieces/{p.color}{p.piece}.svg"
-            x={f * SQ_SIZE + SQ_SIZE * 0.1}
-            y={r * SQ_SIZE + SQ_SIZE * 0.1}
-            width={SQ_SIZE * 0.8}
-            height={SQ_SIZE * 0.8}
-          />
-        {/each}
-      </svg>
-      <button class="go-btn next-btn" onclick={nextRound}>
+      <p class="muted">{challenge.answer}</p>
+      <div class="board">
+        <Board
+          board={createBoardState(challenge.after)}
+          readOnly
+          coordinates={false}
+          highlights={highlight([challenge.movedPiece.square, challenge.movedTo], MARK.note)}
+          arrows={[{ from: challenge.movedPiece.square, to: challenge.movedTo, color: MARK.note }]}
+          label="Chess position showing the move"
+        />
+      </div>
+      <Button variant="primary" onclick={nextRound}>
         {round >= ROUNDS ? 'See Results' : 'Next'}
-      </button>
+      </Button>
     </div>
   {/if}
 </div>
@@ -431,163 +328,37 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    width: 100%;
     text-align: center;
   }
 
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
-  }
-
   .muted {
-    color: var(--text-muted);
-  }
-
-  .muted-sm {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
-  .best {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .round-label {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .level-picker {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .level-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
-  .level-btn {
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: 1px solid var(--card-border);
-    background: transparent;
-    color: var(--text-faint);
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
-  }
-
-  .level-btn:hover {
-    color: var(--foreground);
-  }
-
-  .level-active {
-    background: #16a34a;
-    color: white;
-    border-color: #16a34a;
-  }
-
-  .start-btn {
-    padding: 0.75rem 2rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: bold;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .start-btn:hover {
-    background: rgba(255, 248, 230, 0.25);
+    color: var(--ink-muted);
   }
 
   .big-score {
-    font-size: 1.875rem;
+    font-size: var(--size-title);
     font-weight: bold;
   }
 
-  .board-svg {
+  .board {
     width: 100%;
-    max-width: 280px;
-    display: block;
-  }
-
-  @media (min-width: 640px) {
-    .board-svg {
-      max-width: 320px;
-    }
+    max-width: 24rem;
   }
 
   .studying {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     animation: pulse 2s ease-in-out infinite;
   }
-
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
 
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 200px;
-  }
-
-  .sq-input {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 1.125rem;
-    text-align: center;
-  }
-
-  .sq-input:focus {
-    outline: none;
-    border-color: rgba(255, 248, 230, 0.4);
-  }
-
-  .go-btn {
-    padding: 0.5rem 1rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .go-btn:hover {
-    background: #15803d;
-  }
-
-  .next-btn {
-    padding: 0.5rem 1.5rem;
-  }
-
-  .feedback-text {
-    font-size: 1.25rem;
+  .feedback {
+    font-size: var(--size-large);
     font-weight: bold;
   }
-
-  .correct-text {
-    color: #4ade80;
-  }
-
-  .wrong-text {
-    color: #f87171;
-  }
+  .correct { color: var(--correct-text); }
+  .wrong { color: var(--wrong-text); }
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
+  import MoveNav from '$lib/components/board/MoveNav.svelte';
   import { parseGamePgn } from '$lib/logic/pgn';
   import type { GameNode } from '$lib/logic/pgn';
   import type { BoardState } from '$lib/logic/types';
@@ -242,12 +243,14 @@
 }} />
 
 {#snippet navControls()}
-  <div class="nav-controls">
-    <button class="nav-btn" onclick={goToStart} disabled={!canGoBack} aria-label="Start">&#x23EE;</button>
-    <button class="nav-btn" onclick={goBack} disabled={!canGoBack} aria-label="Back">&#x25C0;</button>
-    <button class="nav-btn" onclick={goForward} disabled={!canGoForward} aria-label="Forward">&#x25B6;</button>
-    <button class="nav-btn" onclick={goToEnd} disabled={!canGoForward} aria-label="End">&#x23ED;</button>
-  </div>
+  <MoveNav
+    {canGoBack}
+    {canGoForward}
+    onStart={goToStart}
+    onBack={goBack}
+    onForward={goForward}
+    onEnd={goToEnd}
+  />
 {/snippet}
 
 {#snippet moveGrid()}
@@ -320,15 +323,6 @@
       <div class="board-area">
         <Board
           {board}
-          selectedSquare={null}
-          validMoves={[]}
-          targets={[]}
-          reachedTargets={[]}
-          dragValidMoves={[]}
-          onSquareClick={() => {}}
-          onDrop={() => {}}
-          onDragStart={() => {}}
-          onDragEnd={() => {}}
           readOnly
           arrows={currentArrows}
           {flipped}
@@ -404,30 +398,9 @@
     }
   }
 
-  .nav-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-  }
-  .nav-btn {
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    background: var(--btn-bg, #2a2a2a);
-    color: inherit;
-    border: none;
-    cursor: pointer;
-    font-size: 1.125rem;
-    transition: background-color 0.15s;
-  }
-  .nav-btn:hover:not(:disabled) { background: var(--btn-hover, #3a3a3a); }
-  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
   .comment-text {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    font-style: italic;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     text-align: center;
     padding: 0 0.5rem;
     margin: 0;
@@ -437,8 +410,8 @@
   .move-list {
     width: 100%;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border, #333);
-    background: var(--card-bg, #1a1a1a);
+    border: 1px solid var(--line);
+    background: var(--surface);
     padding: 0.75rem;
     flex: 1;
     min-height: 0;
@@ -450,11 +423,11 @@
     grid-template-columns: 2rem 1fr 1fr;
     column-gap: 0.25rem;
     row-gap: 0.125rem;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
   }
 
   .move-num {
-    color: var(--text-faint);
+    color: var(--ink-muted);
     text-align: right;
   }
 
@@ -469,37 +442,35 @@
     font-size: inherit;
     transition: background-color 0.15s;
   }
-  .move-btn:hover { background: var(--btn-bg); }
+  .move-btn:hover { background: var(--surface-raised); }
 
   .move-active {
-    background: rgba(34, 197, 94, 0.35);
+    background: var(--line);
     font-weight: 700;
-    border-radius: 0.25rem;
-    outline: 1px solid rgba(34, 197, 94, 0.5);
   }
 
   .move-ellipsis {
-    color: var(--text-faint);
+    color: var(--ink-muted);
     padding: 0.125rem 0.375rem;
   }
 
   .variation-row {
     grid-column: 1 / -1;
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     padding: 0.125rem 0.25rem 0.125rem 2.25rem;
   }
 
   .var-move-btn {
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     cursor: pointer;
     font-size: inherit;
     padding: 0.0625rem 0.125rem;
     border-radius: 0.125rem;
     transition: background-color 0.15s;
   }
-  .var-move-btn:hover { background: var(--btn-bg); color: inherit; }
-  .var-move-btn.move-active { background: rgba(34, 197, 94, 0.2); color: inherit; font-weight: 700; }
+  .var-move-btn:hover { background: var(--surface-raised); color: inherit; }
+  .var-move-btn.move-active { background: var(--line); color: inherit; font-weight: 700; }
 </style>

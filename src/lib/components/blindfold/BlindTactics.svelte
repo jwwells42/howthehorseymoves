@@ -2,14 +2,12 @@
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Choice from '$lib/components/ui/Choice.svelte';
   import { parseFen, createBoardState } from '$lib/logic/types';
   import { isCheckmate, getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
   import type { BoardState, SquareId, PieceKind, PieceColor } from '$lib/logic/types';
-
-  const noop = () => {};
-  const noopSq = noop as (sq: SquareId) => void;
-  const noopDrop = noop as (from: SquareId, to: SquareId) => void;
 
   // Curated mate-in-1 positions where white delivers checkmate
   const PUZZLES = [
@@ -185,30 +183,22 @@
         See a position, then it disappears. Find the checkmate blindfolded!
         With delay moves, extra moves play before the board hides.
       </p>
-      <div class="delay-row">
-        <span class="delay-label">Delay moves:</span>
-        {#each [0, 1, 2] as n}
-          <button
-            onclick={() => { delayMoves = n; }}
-            class={['delay-btn', delayMoves === n && 'delay-active']}
-          >
-            {n}
-          </button>
-        {/each}
-      </div>
+      <Choice
+        label="Delay moves"
+        options={[0, 1, 2].map((n) => ({ value: n, label: String(n) }))}
+        bind:value={delayMoves}
+      />
       {#if bestStars > 0}
-        <div class="best"><StarRating stars={bestStars} size="sm" /></div>
+        <StarRating stars={bestStars} size="sm" />
       {/if}
-      <button class="btn-start" onclick={startGame}>
-        Start
-      </button>
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if phase === 'sighted' && originalBoard}
     <div class="center-panel">
       <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length} &mdash; Memorize!</div>
       <div class="board-container">
-        <Board board={originalBoard} readOnly selectedSquare={null} validMoves={[]} targets={[]} reachedTargets={[]} dragValidMoves={[]} onSquareClick={noopSq} onDrop={noopDrop} onDragStart={noopSq} onDragEnd={noop} />
+        <Board board={originalBoard} readOnly />
       </div>
       {#if delayedMoves.length > 0}
         <div class="info-text">
@@ -220,16 +210,16 @@
 
   {:else if (phase === 'solved' || phase === 'wrong') && currentBoard}
     <div class="center-panel">
-      <p class={['result-text', phase === 'solved' && 'result-correct', phase === 'wrong' && 'result-wrong']}>
-        {phase === 'solved' ? 'Checkmate!' : 'Not checkmate \u2014 try to remember the position!'}
+      <p class={['result-text', phase === 'solved' ? 'result-correct' : 'result-wrong']}>
+        {phase === 'solved' ? '\u2713 Checkmate!' : '\u2717 Not checkmate \u2014 try to remember the position!'}
       </p>
       <div class="info-text">{correct}/{total} correct</div>
       <div class="board-container">
-        <Board board={currentBoard} readOnly selectedSquare={null} validMoves={[]} targets={[]} reachedTargets={[]} dragValidMoves={[]} onSquareClick={noopSq} onDrop={noopDrop} onDragStart={noopSq} onDragEnd={noop} />
+        <Board board={currentBoard} readOnly />
       </div>
-      <button class="btn-action" onclick={nextPuzzle}>
+      <Button variant="primary" onclick={nextPuzzle}>
         {puzzleIdx + 1 >= PUZZLES.length ? 'See Results' : 'Next'}
-      </button>
+      </Button>
     </div>
 
   {:else}
@@ -242,13 +232,7 @@
           board={emptyBoard}
           selectedSquare={selectedSquare}
           validMoves={validMoves}
-          targets={[]}
-          reachedTargets={[]}
-          dragValidMoves={[]}
           onSquareClick={handleSquareClick}
-          onDrop={noopDrop}
-          onDragStart={noopSq}
-          onDragEnd={noop}
         />
       </div>
       <div class="info-small">{correct}/{total} correct so far</div>
@@ -275,87 +259,33 @@
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
   }
 
   .instructions {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-  }
-
-  .delay-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .delay-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
-  .delay-btn {
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: 1px solid var(--card-border);
-    background: transparent;
-    color: var(--text-faint);
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
-
-  .delay-btn:hover {
-    color: var(--foreground);
-  }
-
-  .delay-active {
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    border-color: transparent;
-  }
-
-  .best {
-    font-size: 0.875rem;
-    color: var(--text-faint);
-  }
-
-  .btn-start {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 0.5rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-start:hover {
-    background: rgba(255, 248, 230, 0.25);
+    color: var(--ink-muted);
+    font-size: var(--size-secondary);
   }
 
   .board-container {
     width: 100%;
-    max-width: 320px;
+    max-width: 24rem;
   }
 
   .info-text {
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   .info-small {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
   }
 
   .pulse-text {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     animation: pulse 2s infinite;
   }
 
@@ -365,30 +295,15 @@
   }
 
   .result-text {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: bold;
   }
 
   .result-correct {
-    color: #4ade80;
+    color: var(--correct-text);
   }
 
   .result-wrong {
-    color: #f87171;
-  }
-
-  .btn-action {
-    padding: 0.5rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-action:hover {
-    background: rgba(255, 248, 230, 0.25);
+    color: var(--wrong-text);
   }
 </style>

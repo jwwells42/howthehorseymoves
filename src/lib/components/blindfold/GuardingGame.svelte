@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
   import { playSound } from '$lib/state/sound';
+  import { createBoardState, type BoardState, type SquareId } from '$lib/logic/types';
 
   const PIECE_TYPES = ['Q', 'N', 'R', 'B'] as const;
   type PT = (typeof PIECE_TYPES)[number];
@@ -123,12 +126,10 @@
     return 0;
   }
 
-  /* ── Board constants ────────────────────────────── */
-
-  const SQ = 44;
-  const BD = SQ * 8;
-  const LT = '#d4c4a0';
-  const DKC = '#7a9e6e';
+  /** All four pieces are white, so none can take another. */
+  function toBoard(pieces: Piece[]): BoardState {
+    return createBoardState(pieces.map((p) => ({ piece: p.type, color: 'w', square: p.square as SquareId })));
+  }
 
   /* ── State ──────────────────────────────────────── */
 
@@ -246,7 +247,7 @@
           {/if}
         </div>
       {/if}
-      <button class="action-btn" onclick={startGame}>Start</button>
+      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if phase === 'done'}
@@ -262,28 +263,9 @@
 
       <!-- Actual positions board -->
       <div class="board-label">Actual positions</div>
-      <svg viewBox="{-14} {-2} {BD + 28} {BD + 16}" class="board-svg" role="img" aria-label="Actual piece positions">
-        {#each Array(8) as _, i}
-          <text x={-6} y={(7 - i) * SQ + SQ / 2 + 4}
-            text-anchor="middle" font-size="9" fill="#888" class="label">{i + 1}</text>
-        {/each}
-        {#each Array(8) as _, i}
-          <text x={i * SQ + SQ / 2} y={BD + 11}
-            text-anchor="middle" font-size="9" fill="#888" class="label">{String.fromCharCode(97 + i)}</text>
-        {/each}
-        {#each Array(8) as _, row}
-          {#each Array(8) as _, col}
-            <rect x={col * SQ} y={row * SQ}
-              width={SQ} height={SQ} fill={(col + row) % 2 === 0 ? LT : DKC} />
-          {/each}
-        {/each}
-        {#each secret as p}
-          {@const fr = sqFR(p.square)}
-          <image href={SVGS[p.type]}
-            x={fr[0] * SQ + 2} y={(7 - fr[1]) * SQ + 2}
-            width={SQ - 4} height={SQ - 4} />
-        {/each}
-      </svg>
+      <div class="board">
+        <Board board={toBoard(secret)} readOnly label="Actual piece positions" />
+      </div>
 
       {#if moves.length > 0}
         <div class="move-history">
@@ -299,7 +281,7 @@
         </div>
       {/if}
 
-      <button class="action-btn" onclick={startGame}>New Game</button>
+      <Button variant="primary" size="large" onclick={startGame}>New Game</Button>
     </div>
 
   {:else}
@@ -318,28 +300,9 @@
           {#if moves.length > 0}
             <div class="board-label">Board (original positions)</div>
           {/if}
-          <svg viewBox="{-14} {-2} {BD + 28} {BD + 16}" class="board-svg board-lg" role="img" aria-label="Chess board with piece positions">
-            {#each Array(8) as _, i}
-              <text x={-6} y={(7 - i) * SQ + SQ / 2 + 4}
-                text-anchor="middle" font-size="9" fill="#888" class="label">{i + 1}</text>
-            {/each}
-            {#each Array(8) as _, i}
-              <text x={i * SQ + SQ / 2} y={BD + 11}
-                text-anchor="middle" font-size="9" fill="#888" class="label">{String.fromCharCode(97 + i)}</text>
-            {/each}
-            {#each Array(8) as _, row}
-              {#each Array(8) as _, col}
-                <rect x={col * SQ} y={row * SQ}
-                  width={SQ} height={SQ} fill={(col + row) % 2 === 0 ? LT : DKC} />
-              {/each}
-            {/each}
-            {#each visible as p}
-              {@const fr = sqFR(p.square)}
-              <image href={SVGS[p.type]}
-                x={fr[0] * SQ + 2} y={(7 - fr[1]) * SQ + 2}
-                width={SQ - 4} height={SQ - 4} />
-            {/each}
-          </svg>
+          <div class="board">
+            <Board board={toBoard(visible)} readOnly label="Chess board with piece positions" />
+          </div>
 
           {#if latestMove}
             <div class="latest-move">
@@ -383,7 +346,7 @@
 
           {#if phase === 'guessing'}
             <div class="action-row">
-              <button class="action-btn" onclick={check}>Check</button>
+              <Button variant="primary" onclick={check}>Check</Button>
               {#if moves.length > 0}
                 <button class="give-up-btn" onclick={giveUp}>Give up</button>
               {/if}
@@ -393,10 +356,10 @@
           {#if phase === 'feedback'}
             <div class="feedback-area">
               <p class={wasRight ? 'fb-correct' : 'fb-wrong'}>
-                {wasRight ? 'Correct!' : 'Not quite \u2014 check the highlights'}
+                {wasRight ? '\u2713 Correct!' : '\u2717 Not quite \u2014 check the highlights'}
               </p>
               <div class="action-row">
-                <button class="action-btn" onclick={nextRound}>Next Move</button>
+                <Button variant="primary" onclick={nextRound}>Next Move</Button>
                 <button class="give-up-btn" onclick={giveUp}>Give up</button>
               </div>
             </div>
@@ -431,13 +394,13 @@
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: var(--size-large);
     font-weight: 700;
     margin: 0;
   }
 
   .description {
-    color: var(--text-muted);
+    color: var(--ink-muted);
     margin: 0;
   }
 
@@ -445,77 +408,45 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
   .peak-streak {
-    font-size: 1.5rem;
+    font-size: var(--size-large);
     font-weight: 700;
     margin: 0;
   }
 
   .best-text {
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin: 0;
-  }
-
-  .action-btn {
-    padding: 0.625rem 2rem;
-    background: #16a34a;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 700;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .action-btn:hover {
-    background: #15803d;
   }
 
   .give-up-btn {
     background: none;
     border: none;
-    font-size: 0.875rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     cursor: pointer;
     transition: color 0.15s;
   }
 
   .give-up-btn:hover {
-    color: var(--foreground);
+    color: var(--ink);
   }
 
-  /* Board SVG */
-  .board-svg {
+  .board {
     width: 100%;
-    max-width: 300px;
-  }
-
-  .board-lg {
-    max-width: 300px;
-  }
-
-  @media (min-width: 640px) {
-    .board-lg {
-      max-width: 480px;
-    }
+    max-width: 30rem;
   }
 
   .board-label {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
     margin-bottom: 0.25rem;
     text-align: center;
-  }
-
-  .label {
-    pointer-events: none;
-    user-select: none;
   }
 
   /* Play area */
@@ -529,16 +460,16 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
   }
 
   .streak-label {
-    color: var(--text-faint);
+    color: var(--ink-muted);
   }
 
   .streak-val {
     font-weight: 700;
-    color: var(--foreground);
+    color: var(--ink);
   }
 
   .play-layout {
@@ -575,24 +506,24 @@
     width: 100%;
     padding: 0.75rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
     text-align: center;
   }
 
   .latest-move-text {
-    font-family: monospace;
-    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--size-secondary);
   }
 
   @media (min-width: 640px) {
     .latest-move-text {
-      font-size: 1rem;
+      font-size: var(--size-body);
     }
   }
 
   .move-num {
-    color: var(--text-faint);
+    color: var(--ink-muted);
   }
 
   .move-bold {
@@ -619,14 +550,14 @@
   }
 
   .selector-prompt {
-    font-size: 0.875rem;
+    font-size: var(--size-secondary);
     font-weight: 500;
     margin: 0 0 0.75rem;
   }
 
   @media (min-width: 640px) {
     .selector-prompt {
-      font-size: 1rem;
+      font-size: var(--size-body);
     }
   }
 
@@ -669,8 +600,8 @@
   }
 
   .arrow-icon {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
   }
 
   .target-btns {
@@ -688,10 +619,10 @@
   .guard-btn {
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
-    font-size: 0.75rem;
+    font-size: var(--size-small);
     font-weight: 500;
-    border: 1px solid var(--card-border);
-    color: var(--text-muted);
+    border: 1px solid var(--line);
+    color: var(--ink-muted);
     background: transparent;
     cursor: pointer;
     transition: border-color 0.15s, background-color 0.15s;
@@ -700,42 +631,45 @@
   @media (min-width: 640px) {
     .guard-btn {
       padding: 0.375rem 0.75rem;
-      font-size: 0.875rem;
+      font-size: var(--size-secondary);
     }
   }
 
   .guard-btn:hover:not(:disabled) {
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: var(--ink-muted);
   }
 
+  /* Picked, before checking: the thing to look at. */
   .guard-btn.selected {
-    background: rgba(37, 99, 235, 0.3);
-    border-color: #3b82f6;
-    color: #93c5fd;
+    background: var(--highlight-tint);
+    border-color: var(--highlight);
+    color: var(--ink);
   }
 
+  /* After checking. A right pick, a wrong pick (struck through), and one
+     that should have been picked (dashed). */
   .guard-btn.correct {
-    background: rgba(22, 163, 74, 0.3);
-    border-color: #22c55e;
-    color: #86efac;
+    background: var(--correct-tint);
+    border-color: var(--correct);
+    color: var(--correct-text);
   }
 
   .guard-btn.wrong {
-    background: rgba(220, 38, 38, 0.3);
-    border-color: #ef4444;
-    color: #fca5a5;
+    background: var(--wrong-tint);
+    border-color: var(--wrong);
+    color: var(--wrong-text);
     text-decoration: line-through;
   }
 
   .guard-btn.missed {
-    background: rgba(245, 158, 11, 0.2);
-    border-color: #f59e0b;
-    color: #fdba74;
+    border-style: dashed;
+    border-color: var(--correct);
+    color: var(--correct-text);
   }
 
   .guard-btn.fb-default {
-    border-color: var(--card-border);
-    color: var(--text-faint);
+    border-color: var(--line);
+    color: var(--ink-muted);
     opacity: 0.4;
   }
 
@@ -759,13 +693,13 @@
   }
 
   .fb-correct {
-    color: #4ade80;
+    color: var(--correct-text);
     font-weight: 700;
     margin: 0;
   }
 
   .fb-wrong {
-    color: #f87171;
+    color: var(--wrong-text);
     font-weight: 700;
     margin: 0;
   }
@@ -775,14 +709,14 @@
     width: 100%;
     padding: 0.75rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    border: 1px solid var(--line);
+    background: var(--surface);
     text-align: left;
   }
 
   .move-history-label {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+    font-size: var(--size-small);
+    color: var(--ink-muted);
     margin: 0 0 0.375rem;
     font-weight: 500;
   }
@@ -795,7 +729,7 @@
   }
 
   .move-entry {
-    font-size: 0.875rem;
-    font-family: monospace;
+    font-size: var(--size-secondary);
+    font-variant-numeric: tabular-nums;
   }
 </style>

@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import Board from '$lib/components/board/Board.svelte';
+  import AnswerInput from './AnswerInput.svelte';
+  import RouteTrail from './RouteTrail.svelte';
   import { playSound } from '$lib/state/sound';
-
-  const LIGHT = '#d4c4a0';
-  const DARK = '#7a9e6e';
+  import { createBoardState, type SquareId } from '$lib/logic/types';
+  import { MARK, highlight } from '$lib/board-marks';
 
   function isValidSquare(sq: string): boolean {
     if (sq.length !== 2) return false;
@@ -141,39 +143,27 @@
     return 1;
   }
 
-  function sqXY(sq: string, S: number): [number, number] {
-    const f = sq.charCodeAt(0) - 97;
-    const r = parseInt(sq[1]) - 1;
-    return [f * S + S / 2, (7 - r) * S + S / 2];
-  }
-
   let puzzle = $state<Puzzle>(generatePuzzle());
   let route = $state<string[]>([]);
   let input = $state('');
   let error = $state<string | null>(null);
   let result = $state<'playing' | 'won'>('playing');
-  let inputEl = $state<HTMLInputElement | undefined>(undefined);
-  let newRouteEl = $state<HTMLButtonElement | undefined>(undefined);
+  let newRouteButton = $state<Button>();
 
   let currentSquare = $derived(route.length > 0 ? route[route.length - 1] : puzzle.start);
   let moveCount = $derived(route.length);
   let stars = $derived(getStars(moveCount, puzzle.optimal));
-  let obstacleArray = $derived([...puzzle.obstacles]);
+  let obstacles = $derived([...puzzle.obstacles].sort() as SquareId[]);
   let allStops = $derived([puzzle.start, ...route]);
+  /** Obstacles stand on the board as pawns, drawn as walls like the route puzzles'. */
+  let mazeBoard = $derived(createBoardState(obstacles.map((square) => ({ piece: 'P', color: 'w', square }))));
 
-  const RS = 36;
-  const RB = RS * 8;
-
+  // Once the maze is done, Enter starts the next one.
   $effect(() => {
-    if (result === 'playing') {
-      inputEl?.focus();
-    } else {
-      newRouteEl?.focus();
-    }
+    if (result === 'won') newRouteButton?.focus();
   });
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  function handleSubmit() {
     const sq = input.trim().toLowerCase();
     input = '';
 
@@ -222,104 +212,34 @@
 </script>
 
 <div class="trainer">
-  <div class="header">
-    <h2 class="title">Rook Maze</h2>
+  <header class="header">
+    <h2>Rook Maze</h2>
     <p class="instructions">
-      Navigate a rook from <span class="bold">{puzzle.start}</span> to
-      <span class="bold">{puzzle.target}</span> around the obstacles.
+      Navigate a rook from <strong>{puzzle.start}</strong> to <strong>{puzzle.target}</strong> around the obstacles.
     </p>
-    <p class="hint-text">
-      Obstacles: {obstacleArray.sort().join(', ')} &mdash; Shortest: {puzzle.optimal} moves
-    </p>
-  </div>
+    <p class="hint">Obstacles: {obstacles.join(', ')} &mdash; Shortest: {puzzle.optimal} moves</p>
+  </header>
 
-  <!-- Route display -->
-  <div class="route-box">
-    <span class="route-square">{puzzle.start}</span>
-    {#each route as sq}
-      <span class="route-step">
-        <span class="route-arrow">&rarr;</span>
-        <span class={['route-square', sq === puzzle.target && 'route-target']}>{sq}</span>
-      </span>
-    {/each}
-    {#if result === 'playing'}
-      <span class="route-arrow">&rarr; ?</span>
-    {/if}
-  </div>
+  <RouteTrail stops={allStops} target={puzzle.target} open={result === 'playing'} />
 
   {#if result === 'playing'}
-    <form onsubmit={handleSubmit} class="input-row">
-      <input
-        bind:this={inputEl}
-        type="text"
-        bind:value={input}
-        placeholder="Next square..."
-        maxlength={2}
-        class="square-input"
-        autocomplete="off"
-        autocapitalize="off"
-      />
-      <button type="submit" class="btn-go">Go</button>
-    </form>
-    {#if error}
-      <p class="error-msg">{error}</p>
-    {/if}
+    <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
   {:else}
-    <div class="result-panel">
+    <div class="result">
       <p class="result-title">Route complete!</p>
-      <p class="result-info">{moveCount} move{moveCount !== 1 ? 's' : ''} (optimal: {puzzle.optimal})</p>
-      <StarRating stars={stars} size="lg" />
-
-      <!-- Route board -->
-      <svg viewBox="-14 -2 {RB + 28} {RB + 16}" class="route-board">
-        {#each Array(8) as _, i}
-          <text x={-6} y={(7 - i) * RS + RS / 2 + 3}
-            text-anchor="middle" font-size="8" fill="#888">{i + 1}</text>
-        {/each}
-        {#each Array(8) as _, i}
-          <text x={i * RS + RS / 2} y={RB + 10}
-            text-anchor="middle" font-size="8" fill="#888">{String.fromCharCode(97 + i)}</text>
-        {/each}
-        {#each Array(8) as _, row}
-          {#each Array(8) as _, col}
-            {@const sq = String.fromCharCode(97 + col) + (8 - row)}
-            {@const isLight = (col + row) % 2 === 0}
-            {@const fill = sq === puzzle.start || sq === puzzle.target ? '#4ade80' : puzzle.obstacles.has(sq) ? '#f59e0b' : isLight ? LIGHT : DARK}
-            <rect x={col * RS} y={row * RS} width={RS} height={RS} {fill} />
-          {/each}
-        {/each}
-        <!-- Obstacle pawn icons -->
-        {#each obstacleArray as sq}
-          {@const xy = sqXY(sq, RS)}
-          <image href="/pieces/wP.svg"
-            x={xy[0] - RS * 0.35} y={xy[1] - RS * 0.35} width={RS * 0.7} height={RS * 0.7} />
-        {/each}
-        <!-- Route lines -->
-        {#each allStops.slice(1) as sq, i}
-          {@const from = sqXY(allStops[i], RS)}
-          {@const to = sqXY(sq, RS)}
-          <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]}
-            stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round" />
-        {/each}
-        <!-- Route dots -->
-        {#each allStops as sq, i}
-          {@const xy = sqXY(sq, RS)}
-          {@const isEnd = sq === puzzle.target}
-          <g>
-            <circle cx={xy[0]} cy={xy[1]} r={RS * 0.3}
-              fill={i === 0 || isEnd ? '#166534' : '#1e40af'}
-              stroke="white" stroke-width="1.5" />
-            <text x={xy[0]} y={xy[1] + 1} text-anchor="middle" dominant-baseline="central"
-              font-size="9" fill="white" font-weight="bold">
-              {i === 0 ? 'S' : i}
-            </text>
-          </g>
-        {/each}
-      </svg>
-
-      <button bind:this={newRouteEl} onclick={newPuzzle} class="btn-start">
-        New Maze
-      </button>
+      <p class="instructions">{moveCount} move{moveCount !== 1 ? 's' : ''} (optimal: {puzzle.optimal})</p>
+      <StarRating {stars} size="lg" />
+      <div class="route-board">
+        <Board
+          board={mazeBoard}
+          readOnly
+          {obstacles}
+          route={allStops as SquareId[]}
+          highlights={highlight([puzzle.start, puzzle.target], MARK.note, 'solid')}
+          label="Rook route on chess board"
+        />
+      </div>
+      <Button bind:this={newRouteButton} variant="primary" onclick={newPuzzle}>New Maze</Button>
     </div>
   {/if}
 </div>
@@ -338,141 +258,29 @@
     text-align: center;
   }
 
-  .title {
-    font-size: 1.25rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-  }
-
   .instructions {
-    color: var(--text-muted);
+    margin-top: 0.5rem;
+    color: var(--ink-muted);
   }
 
-  .bold {
-    font-weight: bold;
-  }
-
-  .hint-text {
-    font-size: 0.75rem;
-    color: var(--text-faint);
+  .hint {
     margin-top: 0.25rem;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
-  .route-box {
-    width: 100%;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--card-border);
-    background: var(--card);
-    min-height: 3rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .route-square {
-    font-family: monospace;
-    font-weight: bold;
-  }
-
-  .route-target {
-    color: #4ade80;
-  }
-
-  .route-step {
-    font-family: monospace;
-  }
-
-  .route-arrow {
-    color: var(--text-faint);
-    margin: 0 0.25rem;
-  }
-
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .square-input {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-    background: var(--card);
-    color: var(--foreground);
-    font-family: monospace;
-    font-size: 1.125rem;
-    text-align: center;
-  }
-
-  .square-input:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.4);
-  }
-
-  .btn-go {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 0.5rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-go:hover {
-    background: rgba(255, 248, 230, 0.25);
-  }
-
-  .error-msg {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .result-panel {
+  .result {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
+    animation: fade-in 0.3s ease;
   }
-
   .result-title {
     font-weight: bold;
-    font-size: 1.125rem;
   }
-
-  .result-info {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
   .route-board {
     width: 100%;
-    max-width: 280px;
-  }
-
-  @media (min-width: 640px) {
-    .route-board {
-      max-width: 360px;
-    }
-  }
-
-  .btn-start {
-    padding: 0.5rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    background: rgba(255, 248, 230, 0.15);
-    color: var(--foreground);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-start:hover {
-    background: rgba(255, 248, 230, 0.25);
+    max-width: 24rem;
   }
 </style>
