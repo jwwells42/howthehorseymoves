@@ -311,7 +311,7 @@
 
   .title {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .muted {
@@ -325,7 +325,7 @@
 
   .big-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .move-box {
@@ -352,7 +352,7 @@
   }
 
   .move-san {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .question-area {
@@ -364,7 +364,7 @@
   }
 
   .bold {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .piece-img {
@@ -376,7 +376,7 @@
 
   .feedback-text {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .correct-text {
@@ -389,7 +389,7 @@
 
   .mono-bold {
     font-variant-numeric: tabular-nums;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .moves-summary {
@@ -398,6 +398,6 @@
   }
 
   .moves-name {
-    font-weight: 500;
+    font-weight: var(--weight-medium);
   }
 </style>

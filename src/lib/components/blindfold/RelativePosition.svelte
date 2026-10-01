@@ -263,7 +263,7 @@
 
   .title {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .muted {
@@ -272,7 +272,7 @@
 
   .big-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .question-area {
@@ -287,12 +287,12 @@
   }
 
   .bold {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .question-main {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     transition: color 0.1s;
   }
 
@@ -345,7 +345,7 @@
   }
 
   .mistakes-title {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     font-size: var(--size-secondary);
     margin-bottom: 0.75rem;
   }
@@ -362,7 +362,7 @@
 
   .mono-bold {
     font-variant-numeric: tabular-nums;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .correct-label {

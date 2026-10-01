@@ -137,7 +137,7 @@
     align-items: center;
     justify-content: center;
     font-size: var(--size-small);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     border: 2px solid var(--line);
     background: var(--surface);
     color: var(--ink-muted);

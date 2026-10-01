@@ -31,7 +31,7 @@
   }
   .draw {
     font-size: 8rem;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     color: var(--highlight);
   }
 

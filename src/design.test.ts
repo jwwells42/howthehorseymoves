@@ -190,6 +190,12 @@ describe('components take their look from app.css', () => {
     expect(tooSmall).toEqual([]);
   });
 
+  it('no weight is written outside app.css', () => {
+    // How bold the site looks is --weight-strong. A number or `bold` written
+    // in a component would ignore it.
+    expect(offending(/font-weight:(?!\s*(?:var\(--weight-|inherit))/)).toEqual([]);
+  });
+
   it('no text is slanted', () => {
     expect(offending(/font-style:\s*(?:italic|oblique)/)).toEqual([]);
   });

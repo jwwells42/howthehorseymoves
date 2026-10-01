@@ -108,7 +108,7 @@
 
   .label {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     color: var(--breath-ink);
     letter-spacing: 0.02em;
   }

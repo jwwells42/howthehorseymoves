@@ -386,7 +386,7 @@
 
   .title {
     font-size: var(--size-large);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     margin: 0;
   }
 
@@ -440,7 +440,7 @@
   }
 
   .opponent-move-val {
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
   /* Move list */
@@ -478,7 +478,7 @@
 
   .checkmate-text {
     color: var(--correct-text);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     margin: 0;
   }
 
@@ -499,7 +499,7 @@
 
   .review-label {
     font-size: var(--size-secondary);
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     color: var(--ink-muted);
     margin: 0;
   }

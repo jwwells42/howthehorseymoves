@@ -446,7 +446,7 @@
 
   .move-active {
     background: var(--line);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
   .move-ellipsis {
@@ -472,5 +472,5 @@
     transition: background-color 0.15s;
   }
   .var-move-btn:hover { background: var(--surface-raised); color: inherit; }
-  .var-move-btn.move-active { background: var(--line); color: inherit; font-weight: 700; }
+  .var-move-btn.move-active { background: var(--line); color: inherit; font-weight: var(--weight-strong); }
 </style>

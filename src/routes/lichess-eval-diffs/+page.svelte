@@ -241,7 +241,7 @@
 
   h1 {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin-bottom: 0.25rem;
   }
   .subtitle {
@@ -274,7 +274,7 @@
   }
   .filter-group h3 {
     font-size: var(--size-small);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--ink-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -328,7 +328,7 @@
     text-align: left;
     padding: 0.5rem 0.625rem;
     border-bottom: 2px solid var(--line);
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     white-space: nowrap;
     color: var(--ink);
   }
@@ -364,7 +364,7 @@
   }
   .credits-section h2 {
     font-size: var(--size-body);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin-bottom: 0.5rem;
   }
   .prose {

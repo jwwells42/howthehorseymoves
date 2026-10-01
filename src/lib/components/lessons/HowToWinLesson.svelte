@@ -429,7 +429,7 @@
   /* A move that was not good enough. */
   .feedback {
     color: var(--wrong-text);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     animation: pulse 1s ease-in-out infinite;
   }
   @keyframes pulse {
@@ -445,7 +445,7 @@
   }
   .correct-label {
     color: var(--correct-text);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin: 0;
   }
 

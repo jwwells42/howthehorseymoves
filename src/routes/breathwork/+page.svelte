@@ -92,7 +92,7 @@
 
   h1 {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin-bottom: 1.5rem;
   }
 
@@ -123,7 +123,7 @@
     box-shadow: 0 0 0 1px var(--ink) inset;
   }
   .tab-title {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .tab-sub {
     font-size: var(--size-small);
@@ -142,7 +142,7 @@
   }
   .safety summary {
     cursor: pointer;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .safety ul {
     margin-top: 0.75rem;

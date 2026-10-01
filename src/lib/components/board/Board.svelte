@@ -501,7 +501,7 @@
   /* Each coordinate takes the colour of the squares it is not on. Its size
      is set in the markup, from the board's size on screen. */
   .coordinate {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .coordinate.on-light { fill: var(--board-dark); }
   .coordinate.on-dark { fill: var(--board-light); }
@@ -514,7 +514,7 @@
   }
   .reached {
     font-size: 56px;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     fill: var(--correct);
     stroke: var(--on-answer);
     stroke-width: 3;
@@ -542,7 +542,7 @@
   }
   .route-number {
     font-size: 36px;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     fill: var(--ink);
     text-anchor: middle;
     dominant-baseline: central;

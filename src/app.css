@@ -34,6 +34,13 @@
   --size-large: 1.375rem; /* card and trainer titles */
   --size-title: 2rem; /* one per page */
 
+  /* Type weights. Every bold thing in the app (titles, buttons, labels,
+     emphasis) uses --weight-strong, so how heavy the site looks is this one
+     line. The font is variable, so any number from 200 to 800 works. */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-strong: 700;
+
   /* The page. Greens are USWDS system tokens, named beside each. A USWDS grade
      runs from 0 (white) to 100 (black). Two grades 50 or more apart meet the
      WCAG AA contrast for text. */
@@ -138,6 +145,7 @@ body {
   color: var(--ink);
   font-family: var(--font);
   font-size: var(--size-body);
+  font-weight: var(--weight-regular);
   line-height: 1.4;
 }
 
@@ -169,13 +177,25 @@ h3 {
   font-size: var(--size-body);
 }
 
+/* The browser makes these bold on its own; this makes them follow
+   --weight-strong like everything else. */
+h1,
+h2,
+h3,
+h4,
+strong,
+b,
+th {
+  font-weight: var(--weight-strong);
+}
+
 /* Emphasis is bold, never slanted. Readers with dyslexia read italic text
    more slowly (Rello and Baeza-Yates, 2013), and the font has no italic of
    its own, so the browser would only fake one. */
 em,
 i {
   font-style: normal;
-  font-weight: bold;
+  font-weight: var(--weight-strong);
 }
 
 /* A clear ring for keyboard users, in the one colour that means "look here". */

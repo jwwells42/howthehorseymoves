@@ -411,7 +411,7 @@
 
   .title {
     font-size: var(--size-large);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     margin: 0 0 0.25rem;
   }
 
@@ -467,7 +467,7 @@
 
   .move-active {
     background: var(--line);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
   .resign-confirm {
@@ -487,7 +487,7 @@
     border: none;
     border-radius: 0.5rem;
     font-size: var(--size-large);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     cursor: pointer;
   }
 

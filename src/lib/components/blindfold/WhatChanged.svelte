@@ -338,7 +338,7 @@
 
   .big-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .board {
@@ -357,7 +357,7 @@
 
   .feedback {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .correct { color: var(--correct-text); }
   .wrong { color: var(--wrong-text); }

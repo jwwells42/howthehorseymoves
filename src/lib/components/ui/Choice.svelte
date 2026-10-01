@@ -49,7 +49,7 @@
     border: 1px solid var(--line);
     border-radius: 0.5rem;
     font-size: var(--size-secondary);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     color: var(--ink-muted);
     cursor: pointer;
     transition: color 0.15s, background 0.15s;

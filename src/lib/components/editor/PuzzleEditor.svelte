@@ -606,13 +606,13 @@ ${position.join(',\n')},
     font-size: var(--size-body);
     color: var(--wrong-text);
     line-height: 1;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .arrow-icon {
     font-size: var(--size-large);
     line-height: 1;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .clear {
@@ -756,7 +756,7 @@ ${position.join(',\n')},
   .error-text {
     color: var(--wrong-text);
     font-size: var(--size-secondary);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .output-section {

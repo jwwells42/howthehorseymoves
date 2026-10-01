@@ -390,7 +390,7 @@
   }
   .screen-text h2 {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin-bottom: 0.5rem;
   }
   .muted { color: var(--ink-muted); }
@@ -447,7 +447,7 @@
   }
   .stage-title {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   /* Board + Tray row */

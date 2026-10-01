@@ -395,7 +395,7 @@
 
   .title {
     font-size: var(--size-large);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     margin: 0;
   }
 
@@ -414,7 +414,7 @@
 
   .peak-streak {
     font-size: var(--size-large);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     margin: 0;
   }
 
@@ -468,7 +468,7 @@
   }
 
   .streak-val {
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--ink);
   }
 
@@ -527,7 +527,7 @@
   }
 
   .move-bold {
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
   /* Selector column */
@@ -551,7 +551,7 @@
 
   .selector-prompt {
     font-size: var(--size-secondary);
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     margin: 0 0 0.75rem;
   }
 
@@ -620,7 +620,7 @@
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-size: var(--size-small);
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     border: 1px solid var(--line);
     color: var(--ink-muted);
     background: transparent;
@@ -694,13 +694,13 @@
 
   .fb-correct {
     color: var(--correct-text);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     margin: 0;
   }
 
   .fb-wrong {
     color: var(--wrong-text);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     margin: 0;
   }
 
@@ -718,7 +718,7 @@
     font-size: var(--size-small);
     color: var(--ink-muted);
     margin: 0 0 0.375rem;
-    font-weight: 500;
+    font-weight: var(--weight-medium);
   }
 
   .move-list-wrap {

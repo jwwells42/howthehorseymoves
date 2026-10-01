@@ -60,7 +60,7 @@
   }
 
   .verdict {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin-right: 0.25em;
   }
   .verdict.right { color: var(--correct-text); }

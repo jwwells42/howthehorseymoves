@@ -125,6 +125,6 @@
   .error {
     color: var(--wrong-text);
     font-size: var(--size-secondary);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 </style>

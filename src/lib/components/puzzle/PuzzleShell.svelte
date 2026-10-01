@@ -179,7 +179,7 @@
 
 <style>
   .header { text-align: center; flex-shrink: 0; }
-  .title { font-size: var(--size-large); font-weight: bold; margin-bottom: 0.25rem; }
+  .title { font-size: var(--size-large); font-weight: var(--weight-strong); margin-bottom: 0.25rem; }
   .instruction { color: var(--ink-muted); }
   .move-counter { font-size: var(--size-secondary); color: var(--ink-muted); flex-shrink: 0; }
 
@@ -195,7 +195,7 @@
   .stalemate-retry {
     margin-left: 0.5rem;
     text-decoration: underline;
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     background: none;
     border: none;
     color: inherit;
@@ -232,7 +232,7 @@
   }
   .find-intro-text {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     max-width: 16rem;
   }
   .find-intro-hint {

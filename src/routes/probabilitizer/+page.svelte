@@ -604,7 +604,7 @@
   }
   h1 {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin-bottom: 0.5rem;
   }
   .tagline {
@@ -741,7 +741,7 @@
   }
   .card h2 {
     font-size: var(--size-body);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin-bottom: 0.6rem;
   }
   .totals p {
@@ -827,7 +827,7 @@
     background: var(--line);
   }
   .em-san {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     text-align: left;
   }
   .em-games {
@@ -886,6 +886,6 @@
   }
   .spinner {
     color: var(--ink-muted);
-    font-weight: normal;
+    font-weight: var(--weight-regular);
   }
 </style>

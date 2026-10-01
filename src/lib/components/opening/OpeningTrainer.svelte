@@ -761,7 +761,7 @@
 
   .header h2 {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin-bottom: 0.25rem;
   }
 
@@ -775,7 +775,7 @@
 
   .drill-opening-name {
     font-size: var(--size-secondary);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
   .back {
@@ -934,7 +934,7 @@
 
   .done-title {
     font-size: var(--size-body);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   /* === Status & comments === */
@@ -979,7 +979,7 @@
 
   .complete-text {
     color: var(--correct-text);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .muted {
@@ -1038,7 +1038,7 @@
 
   .move-btn.move-active {
     background: var(--line);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
 </style>

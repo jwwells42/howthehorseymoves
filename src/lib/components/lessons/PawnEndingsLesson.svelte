@@ -359,7 +359,7 @@
   }
 
   .header { text-align: center; flex-shrink: 0; }
-  .title { font-size: var(--size-large); font-weight: bold; margin-bottom: 0.25rem; }
+  .title { font-size: var(--size-large); font-weight: var(--weight-strong); margin-bottom: 0.25rem; }
   .instruction { color: var(--ink-muted); font-size: var(--size-secondary); max-width: 28rem; }
   .progress { color: var(--ink-muted); font-size: var(--size-small); margin-top: 0.25rem; }
 
@@ -384,7 +384,7 @@
   .side-label {
     font-size: var(--size-small);
     color: var(--ink-muted);
-    font-weight: 500;
+    font-weight: var(--weight-medium);
   }
 
   /* --- Layout: board + optional move list panel --- */
@@ -455,7 +455,7 @@
 
   /* Question area */
   .question { text-align: center; }
-  .question-text { font-weight: bold; margin-bottom: 0.75rem; }
+  .question-text { font-weight: var(--weight-strong); margin-bottom: 0.75rem; }
   .answer-buttons {
     display: flex;
     gap: 0.75rem;
@@ -473,7 +473,7 @@
     color: var(--ink);
     cursor: pointer;
     font-size: var(--size-secondary);
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     transition: border-color 0.15s, background 0.15s;
     min-width: 5rem;
   }
@@ -498,7 +498,7 @@
 
   .draw-icon {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     line-height: 2rem;
   }
 

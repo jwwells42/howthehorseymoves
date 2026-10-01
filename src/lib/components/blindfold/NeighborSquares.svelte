@@ -269,7 +269,7 @@
 
   .target {
     font-size: 3rem;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .entered {
@@ -284,7 +284,7 @@
     border-radius: 0.25rem;
     background: var(--correct-tint);
     color: var(--correct-text);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .answer-row {
@@ -296,7 +296,7 @@
 
   .final-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }

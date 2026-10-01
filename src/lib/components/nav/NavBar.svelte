@@ -93,7 +93,7 @@
     border-bottom: 1px solid var(--line);
   }
   .site-title {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     font-size: var(--size-secondary);
     white-space: nowrap;
     color: var(--ink);
@@ -131,7 +131,7 @@
   .nav-link.active {
     color: var(--ink);
     background: var(--surface-raised);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .mute-btn {
     margin-left: auto;

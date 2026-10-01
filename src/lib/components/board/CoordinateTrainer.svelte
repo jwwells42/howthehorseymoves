@@ -196,7 +196,7 @@
      readable on both light and dark squares. */
   .target-name {
     font-size: 160px;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     text-anchor: middle;
     dominant-baseline: central;
     fill: var(--ink);
@@ -249,7 +249,7 @@
 
   .final-score {
     font-size: 3rem;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .setup-link {

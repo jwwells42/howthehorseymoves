@@ -182,7 +182,7 @@
     animation: fade-in 0.3s ease;
   }
   .result-title {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .route-board {
     width: 100%;

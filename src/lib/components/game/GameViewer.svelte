@@ -848,7 +848,7 @@
 
   .test-title {
     font-size: var(--size-large);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     margin: 0 0 0.25rem;
   }
 
@@ -914,7 +914,7 @@
 
   .explore-label {
     font-size: var(--size-small);
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--highlight);
   }
 
@@ -964,7 +964,7 @@
   }
 
   .game-event {
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
   .game-year {
@@ -1019,7 +1019,7 @@
 
   .move-active {
     background: var(--line);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
   .move-on-path {
@@ -1034,7 +1034,7 @@
   .game-result {
     text-align: center;
     font-size: var(--size-secondary);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--ink-muted);
     margin-top: 0.5rem;
   }
@@ -1066,7 +1066,7 @@
   .var-move-btn.move-active {
     background: var(--line);
     color: inherit;
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 
   /* --- Explore variation inline --- */
@@ -1095,6 +1095,6 @@
 
   .explore-line-btn.move-active {
     background: var(--highlight-tint);
-    font-weight: 700;
+    font-weight: var(--weight-strong);
   }
 </style>

@@ -178,7 +178,7 @@
   .timer {
     margin-top: 0.5rem;
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     color: var(--ink-muted);
     font-variant-numeric: tabular-nums;
   }
@@ -205,7 +205,7 @@
     padding: 0 0.5rem;
     font-size: var(--size-secondary);
     color: var(--ink-muted);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .preset-row {
     display: flex;
@@ -236,7 +236,7 @@
     box-shadow: 0 0 0 1px var(--ink) inset;
   }
   .preset-label {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .preset-sub {
     font-size: var(--size-small);
@@ -268,7 +268,7 @@
   }
   .why summary {
     cursor: pointer;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     color: var(--ink-muted);
   }
   .why p {

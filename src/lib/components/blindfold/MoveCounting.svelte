@@ -293,13 +293,13 @@
   }
   .square {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     transition: color 0.1s;
   }
 
   .final-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }

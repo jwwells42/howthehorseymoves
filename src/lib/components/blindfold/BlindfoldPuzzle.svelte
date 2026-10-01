@@ -209,7 +209,7 @@
 
   .title {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .instructions {
@@ -219,7 +219,7 @@
 
   .final-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .board-container {
@@ -246,7 +246,7 @@
 
   .result-text {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .result-correct {

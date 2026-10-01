@@ -285,11 +285,11 @@
 
   .big-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .result-count {
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .board {

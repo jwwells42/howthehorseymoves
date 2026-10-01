@@ -336,7 +336,7 @@
   .feedback {
     color: var(--wrong-text);
     font-size: var(--size-secondary);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     margin: 0;
     flex-shrink: 0;
   }

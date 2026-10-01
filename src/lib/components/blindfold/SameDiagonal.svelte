@@ -259,7 +259,7 @@
 
   .target {
     font-size: 3rem;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     padding: 2rem 0;
     transition: color 0.1s;
   }
@@ -271,7 +271,7 @@
 
   .final-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }

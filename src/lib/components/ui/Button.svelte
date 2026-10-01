@@ -39,7 +39,7 @@
     border-radius: 0.5rem;
     border: 1px solid transparent;
     font-size: var(--size-secondary);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     cursor: pointer;
     transition: background 0.15s;
   }

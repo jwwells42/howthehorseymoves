@@ -87,7 +87,7 @@
   }
   .error {
     font-size: var(--size-secondary);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     color: var(--wrong-text);
   }
 </style>

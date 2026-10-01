@@ -198,7 +198,7 @@
   .timer {
     margin-top: 0.5rem;
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     color: var(--ink-muted);
     font-variant-numeric: tabular-nums;
   }
@@ -225,7 +225,7 @@
     padding: 0 0.5rem;
     font-size: var(--size-secondary);
     color: var(--ink-muted);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .science {
     width: 100%;
@@ -245,7 +245,7 @@
   }
   .science th {
     color: var(--ink-muted);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
   .science .cm {
     color: var(--ink-muted);
@@ -276,7 +276,7 @@
   }
   .why summary {
     cursor: pointer;
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     color: var(--ink-muted);
   }
   .why p {

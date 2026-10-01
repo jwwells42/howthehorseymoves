@@ -301,14 +301,14 @@
 
   .question {
     font-size: var(--size-large);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
     padding: 1rem 0;
     transition: color 0.1s;
   }
 
   .final-score {
     font-size: var(--size-title);
-    font-weight: bold;
+    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }
