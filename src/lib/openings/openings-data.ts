@@ -35,6 +35,7 @@ function studyRepertoire(id: string, title: string, color: PieceColor, studyPgn:
     defaultOrder: "breadth",
     description: `Chapters: ${chapters.map((ch) => ch.name).join(", ")}. ${describe(pgn)}`,
     pgn,
+    chapters,
   };
 }
 

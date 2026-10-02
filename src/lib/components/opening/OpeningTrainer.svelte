@@ -234,12 +234,63 @@
     deselectedLines = next;
   }
 
+  // Picks every line of a chapter, or clears them all if they were all picked
+  function toggleChapter(indices: number[]) {
+    const next = new Set(deselectedLines);
+    const allPicked = indices.every((i) => !next.has(i));
+    for (const i of indices) {
+      if (allPicked) next.add(i);
+      else next.delete(i);
+    }
+    deselectedLines = next;
+  }
+
   function selectAll() { deselectedLines = new Set(); }
   function selectNone() { deselectedLines = new Set(lines.map((_, i) => i)); }
 
-  // Each line is shown from where it leaves the line above it. Shown from the
-  // start, lines that share a long trunk all looked the same.
-  let linePreviews = $derived(lines.map((line, i) => formatLinePreview(line, i > 0 ? findBranchPoint(lines[i - 1], line) : 0)));
+  // The line picker's groups: a study's lines under its chapter names, in the
+  // study's order; any other opening's lines in one group with no name.
+  // (The drill keeps the tree's order, so the picker's order is only for picking.)
+  let lineGroups = $derived.by(() => {
+    const all = lines.map((_, i) => i);
+    const chapters = opening.chapters ?? [];
+    if (chapters.length === 0) return [{ name: '', indices: all }];
+    // Every line of the joined tree is a whole line of the chapter it came from
+    const chapterOf = new Map<string, number>();
+    chapters.forEach((ch, c) => {
+      for (const line of extractLines(parseOpeningPgn(ch.pgn))) {
+        const key = line.map((m) => m.san).join(' ');
+        if (!chapterOf.has(key)) chapterOf.set(key, c);
+      }
+    });
+    const groups = chapters.map((ch) => ({ name: ch.name, indices: [] as number[] }));
+    for (const i of all) groups[chapterOf.get(lines[i].map((m) => m.san).join(' ')) ?? 0].indices.push(i);
+    return groups.filter((g) => g.indices.length > 0);
+  });
+
+  // Each line is shown from where it leaves the line above it in the picker,
+  // and a chapter's first line from the start. Shown from the start, lines that
+  // share a long trunk all looked the same.
+  let linePreviews = $derived.by(() => {
+    const previews: string[] = [];
+    for (const { indices } of lineGroups) {
+      indices.forEach((li, k) => {
+        const from = k > 0 ? findBranchPoint(lines[indices[k - 1]], lines[li]) : 0;
+        previews[li] = formatLinePreview(lines[li], from);
+      });
+    }
+    return previews;
+  });
+
+  // "all 19", or the chapters picked when whole chapters are, else "4 of 19"
+  let linesSummary = $derived.by(() => {
+    if (activeLines.length === lines.length) return `all ${lines.length}`;
+    const count = `${activeLines.length} of ${lines.length}`;
+    const named = lineGroups.filter((g) => g.name);
+    const whole = named.filter((g) => g.indices.every((i) => !deselectedLines.has(i)));
+    const onlyWhole = named.every((g) => whole.includes(g) || g.indices.every((i) => deselectedLines.has(i)));
+    return whole.length > 0 && onlyWhole ? `${whole.map((g) => g.name).join(', ')} (${count})` : count;
+  });
 
   function formatLinePreview(line: OpeningLine, from: number): string {
     const start = Math.min(from, line.length - 1);
@@ -584,24 +635,38 @@
       <Choice label="How to learn" stacked options={ORDERS} bind:value={order} />
 
       <details class="lines">
-        <summary>
-          Lines: {activeLines.length === lines.length ? `all ${lines.length}` : `${activeLines.length} of ${lines.length}`}
-        </summary>
+        <summary>Lines: {linesSummary}</summary>
         <div class="setup-controls">
           <Button onclick={selectAll}>All</Button>
           <Button onclick={selectNone}>None</Button>
         </div>
         <div class="line-list">
-          {#each linePreviews as preview, i}
-            <label class="line-item">
-              <input
-                type="checkbox"
-                checked={!deselectedLines.has(i)}
-                onchange={() => toggleLine(i)}
-              />
-              <span class="line-num">{i + 1}.</span>
-              <span class="line-preview">{preview}</span>
-            </label>
+          {#each lineGroups as group}
+            {#if group.name}
+              {@const picked = group.indices.filter((i) => !deselectedLines.has(i)).length}
+              <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
+              <label class="chapter">
+                <input
+                  type="checkbox"
+                  checked={picked === group.indices.length}
+                  bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
+                  onchange={() => toggleChapter(group.indices)}
+                />
+                {group.name}
+                <span class="chapter-count">{group.indices.length} line{group.indices.length === 1 ? '' : 's'}</span>
+              </label>
+            {/if}
+            {#each group.indices as li, k (li)}
+              <label class="line-item">
+                <input
+                  type="checkbox"
+                  checked={!deselectedLines.has(li)}
+                  onchange={() => toggleLine(li)}
+                />
+                <span class="line-num">{k + 1}.</span>
+                <span class="line-preview">{linePreviews[li]}</span>
+              </label>
+            {/each}
           {/each}
         </div>
       </details>
@@ -898,6 +963,31 @@
     border: 1px solid var(--line);
     border-radius: 0.5rem;
     background: var(--surface);
+  }
+
+  /* Chapter heading: stays in view while its lines scroll under it */
+  .chapter {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--surface-raised);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--size-secondary);
+    font-weight: var(--weight-strong);
+    cursor: pointer;
+  }
+
+  .chapter input[type="checkbox"] {
+    margin: 0;
+  }
+
+  .chapter-count {
+    margin-left: auto;
+    font-size: var(--size-small);
+    font-weight: var(--weight-regular);
   }
 
   .line-item {
