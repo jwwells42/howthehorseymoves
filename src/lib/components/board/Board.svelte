@@ -376,8 +376,10 @@
     {/if}
   {/each}
 
-  <!-- Pieces -->
-  {#each [...board.pieces.entries()] as [sq, { piece, color }]}
+  <!-- Pieces. Keyed by square and piece so an image never changes which piece
+       it shows: swapping an image's picture can lag a few frames, which showed
+       the wrong piece mid-move (a capturing queen drawn as the bishop it took). -->
+  {#each [...board.pieces.entries()] as [sq, { piece, color }] (`${sq}${color}${piece}`)}
     {#if !(drag && sq === drag.from)}
       {@const [fx, fy] = sqToXY(sq)}
       {#if obstacles.includes(sq)}
