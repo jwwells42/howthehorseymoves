@@ -22,36 +22,25 @@ function describe(pgn: string): string {
 
 // === Repertoires from Lichess study exports ===
 // Each study is kept as-is in pgn/. To update one, re-export the study and
-// overwrite its file. Every chapter becomes a card (its id comes from the chapter
-// name, so renaming a chapter resets its progress), plus one card at
-// /openings/{id} with every chapter together, which opens 3 moves at a time.
-function studyOpenings(id: string, title: string, firstMove: string, color: PieceColor, studyPgn: string): Opening[] {
+// overwrite its file. A study is one card at /openings/{id} with every chapter
+// together, which opens 3 moves at a time; the chapter names go in its description.
+function studyRepertoire(id: string, title: string, color: PieceColor, studyPgn: string): Opening {
   const chapters = splitPgnChapters(studyPgn);
-  const wholePgn = chapters.map((ch) => ch.pgn).join("\n\n");
-  return [
-    {
-      id,
-      name: title,
-      color,
-      group: title,
-      defaultOrder: "breadth",
-      description: `The whole repertoire, every chapter together, learned 3 moves at a time. ${describe(wholePgn)}`,
-      pgn: wholePgn,
-    },
-    ...chapters.map((ch): Opening => ({
-      id: `${id}-${ch.name.toLowerCase().replace(/'/g, "").replace(/[^a-z0-9]+/g, "-")}`,
-      name: `${firstMove} — ${ch.name}`,
-      color,
-      group: title,
-      description: describe(ch.pgn),
-      pgn: ch.pgn,
-    })),
-  ];
+  const pgn = chapters.map((ch) => ch.pgn).join("\n\n");
+  return {
+    id,
+    name: title,
+    color,
+    group: "Full repertoires",
+    defaultOrder: "breadth",
+    description: `Chapters: ${chapters.map((ch) => ch.name).join(", ")}. ${describe(pgn)}`,
+    pgn,
+  };
 }
 
 export const OPENINGS: Opening[] = [
-  ...studyOpenings("e4", "1.e4 Mainline Starter", "1.e4", "w", e4StarterPgn),
-  ...studyOpenings("d4", "1.d4 Mainline Starter", "1.d4", "w", d4StarterPgn),
+  studyRepertoire("e4", "1.e4 Mainline Starter", "w", e4StarterPgn),
+  studyRepertoire("d4", "1.d4 Mainline Starter", "w", d4StarterPgn),
   // === White openings ===
   {
     id: "scholars-mate",
