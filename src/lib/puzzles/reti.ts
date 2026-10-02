@@ -15,9 +15,9 @@ export const retiPuzzles: TacticPuzzle[] = [
     id: "reti-01",
     title: "The Classic Réti",
     instruction: "White's king looks too far from both pawns. Find the draw!",
-    fen: "7K/8/8/k1P5/8/8/8/7p w - - 0 1",
-    pgn: "1. Kg7 h2 2. Kf6 Kb6 3. Ke7",
-    starThresholds: { three: 3, two: 4, one: 5 },
+    fen: "7K/8/k1P5/7p/8/8/8/8 w - - 0 1",
+    pgn: "1. Kg7 h4 2. Kf6 Kb6 3. Ke5 Kxc6 4. Kf4",
+    starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
     type: "puzzle",

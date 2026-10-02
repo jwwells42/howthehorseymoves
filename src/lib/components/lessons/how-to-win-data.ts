@@ -153,7 +153,7 @@ const CHECKMATE_STEPS: LessonStep[] = [
     slug: "queen-corner",
     title: "Deliver Checkmate!",
     instruction: "Put the queen where the king can't escape!",
-    fen: "7k/7p/5Q2/8/8/8/8/6K1 w - - 0 1",
+    fen: "7k/7p/7Q/8/8/8/8/6K1 w - - 0 1",
     type: "interactive",
     validation: "checkmate",
   },

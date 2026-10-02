@@ -315,20 +315,6 @@ export const queenKingMatePuzzles: (TacticPuzzle | ConversionPuzzle)[] = [
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
-    id: "checkmate-qk-02",
-    type: "puzzle",
-    title: "Queen & King Dance",
-    instruction: "Find the one square that delivers checkmate!",
-    fen: "7k/6pp/6K1/8/4Q3/8/8/8 w - - 0 1",
-    pgn: "1. Qe8#",
-    hints: [
-      "The black king is boxed in by its own pawns.",
-      "The white king covers f7 and g7.",
-      "Qe8 delivers check along the 8th rank — no escape!",
-    ],
-    starThresholds: { three: 1, two: 2, one: 3 },
-  },
-  {
     id: "checkmate-qk-03",
     type: "puzzle",
     title: "Stalemate Trap!",

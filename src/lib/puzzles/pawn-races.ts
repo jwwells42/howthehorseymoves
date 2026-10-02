@@ -28,13 +28,4 @@ export const pawnRacePuzzles: TacticPuzzle[] = [
     pgn: "1. e5 b5 2. e6 b4 3. e7 b3 4. e8=Q",
     starThresholds: { three: 4, two: 5, one: 6 },
   },
-  {
-    type: "puzzle",
-    id: "pawn-race-03",
-    title: "Pawn Race #3",
-    instruction: "Race to promote — but watch out for checks!",
-    fen: "8/8/1p6/8/6P1/2k5/8/6K1 w - - 0 1",
-    pgn: "1. g5 b4 2. g6 b3 3. g7 b2 4. g8=Q b1=Q 5. Qc8+",
-    starThresholds: { three: 5, two: 6, one: 7 },
-  },
 ];
