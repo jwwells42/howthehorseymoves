@@ -112,12 +112,6 @@
   /* The next stop to do, in the colour that means "look here". */
   .card.up-next {
     border-color: var(--highlight);
-    animation: up-next-glow 2s ease-in-out infinite;
-  }
-
-  @keyframes up-next-glow {
-    0%, 100% { box-shadow: 0 0 0 1px var(--highlight-tint); }
-    50% { box-shadow: 0 0 12px 3px var(--highlight-glow); }
   }
 
   /* A stop that records no progress, such as a lesson you read. */
@@ -181,12 +175,5 @@
     right: -0.625rem;
     width: 1.75rem;
     height: 1.75rem;
-    animation: bounce 1.5s ease-in-out infinite;
-    filter: drop-shadow(0 2px 4px var(--scrim));
-  }
-
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
   }
 </style>
