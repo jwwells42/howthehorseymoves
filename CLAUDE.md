@@ -14,10 +14,10 @@ It also hosts a couple of standalone tools that reuse the app's shell but sit of
 npm run dev          # Dev server at localhost:5173
 npm run build        # Production build
 npm run check        # TypeScript + Svelte diagnostics (svelte-kit sync + svelte-check)
-npm test             # Vitest: design-system rules (src/design.test.ts) + every puzzle loads (src/puzzles.test.ts)
+npm test             # Vitest: design-system rules (src/design.test.ts) + every puzzle loads (src/puzzles.test.ts) + levels fit (src/curriculum.test.ts)
 ```
 
-There are two test files. `src/design.test.ts` holds the design-system rules (see Design system below). `src/puzzles.test.ts` checks puzzle data can run: every tactic puzzle's moves (and string `demo`) go through `parsePuzzleMoves` without error, and every FEN with a side-to-move anywhere in `src/` (`.ts`, `.svelte`, `.pgn`) is a legal start — the side not to move isn't in check, and no pawn sits on rank 1 or 8. A puzzle whose moves can't be played never opens (typing its URL shows an error page; clicking it does nothing), so this is the guard. It does not check that a puzzle is good chess or that a mate is a mate.
+There are three test files. `src/curriculum.test.ts` checks every level fits in nine cards with its bot last, stop ids are unique, and every `puzzle-set` stop names a real set. `src/design.test.ts` holds the design-system rules (see Design system below). `src/puzzles.test.ts` checks puzzle data can run: every tactic puzzle's moves (and string `demo`) go through `parsePuzzleMoves` without error, and every FEN with a side-to-move anywhere in `src/` (`.ts`, `.svelte`, `.pgn`) is a legal start — the side not to move isn't in check, and no pawn sits on rank 1 or 8. A puzzle whose moves can't be played never opens (typing its URL shows an error page; clicking it does nothing), so this is the guard. It does not check that a puzzle is good chess or that a mate is a mate.
 
 ## Design system
 
@@ -92,7 +92,7 @@ Adding a colour = add a token to app.css (with its Radix scale and step in a com
 The puzzle-set `key` string is the join across all three. **Multi-level concepts** (e.g. Pins 1, Pins 2): use explicit named consts per level in the concept file (`pinsLevel1`, `pinsLevel2`), each wired to its own `puzzleSets` key + a `curriculum.ts` stop placed in the right chapter. New ids get a level segment (`pins-2-01`); existing ids stay. No `level` field / no registry bucketing — grouping stays declared, not computed. Add a level only when its content exists
 
 ### Curriculum (`src/lib/curriculum.ts`)
-- Defines `CURRICULUM: CurriculumChapter[]` — 8 levels with ~9 stops each, mapping the full learning path
+- Defines `CURRICULUM: CurriculumChapter[]` — 8 levels of at most 9 stops (8 + the bot), mapping the full learning path
 - Each `CurriculumStop` has `id`, `name`, `icon`, `href`, and `progress` source (puzzle-set, localStorage key, or none)
 - Helper functions: `getStopStars()`, `getAllStopStars()`, `getFirstIncompleteId()` for progress tracking
 - Used by landing page `CurriculumPath` component to render the winding trail UI
@@ -269,7 +269,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 ## Key Conventions
 
 - Many students using this app cannot read yet. All interactive elements (puzzles, lessons, trainers) should be figure-out-able from visual cues alone: arrows, colors, icons, and board state. Text instructions are helpful for those who can read but must not be the only signal. Use universal symbols (trophies, ✓/✗, blue for right and coral for wrong — never red/green, which many colour-blind students can't tell apart) over text labels. Colour is never the only signal: right/wrong always comes with a ✓ or ✗
-- Landing page shows a curriculum path: 8 levels with ~9-10 stops each, rendered as a winding trail. Knight marker sits on the first incomplete stop. "Continue" button links to it. Everything is unlocked (no gating). Nav bar hubs (Practice, Study, Vision, etc.) remain for direct access
+- Landing page shows a curriculum path: 8 levels, rendered as a grid three cards wide, so **a level holds at most 9 cards: 8 stops and then its bot** (`npm test` enforces it). When a level is over, push its last stop to the front of the next level so the journey order stays the same; only Level 8 has a spare place. Of the five blindfold mates, only Q vs K ("Blindfold Mate") is on the path; the rest are on `/vision`. Knight marker sits on the first incomplete stop. "Continue" button links to it. Everything is unlocked (no gating). Nav bar hubs (Practice, Study, Vision, etc.) remain for direct access
 - **Every level ends with its bot — the boss of that level.** The eight `play-*` stops are the closing stop of their chapter, and they report progress (`bot-beaten-{level}`), so the knight marker rests there until the student wins. Keep a new bot last in its chapter; a mid-chapter bot parks the marker before the level's content is done
 - Castling puzzles are merged into King, en passant puzzles are merged into Pawn (source files remain separate: `castling.ts`, `enpassant.ts` — combined in `index.ts` registry)
 - Play page accepts `?level=random` or `?level=basic` query param to skip the level selector
