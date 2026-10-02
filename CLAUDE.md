@@ -14,10 +14,10 @@ It also hosts a couple of standalone tools that reuse the app's shell but sit of
 npm run dev          # Dev server at localhost:5173
 npm run build        # Production build
 npm run check        # TypeScript + Svelte diagnostics (svelte-kit sync + svelte-check)
-npm test             # Vitest: the design-system rules in src/design.test.ts
+npm test             # Vitest: design-system rules (src/design.test.ts) + every puzzle loads (src/puzzles.test.ts)
 ```
 
-The only tests are the design-system rules (see Design system below). There are no tests of chess logic.
+There are two test files. `src/design.test.ts` holds the design-system rules (see Design system below). `src/puzzles.test.ts` checks puzzle data can run: every tactic puzzle's moves (and string `demo`) go through `parsePuzzleMoves` without error, and every FEN with a side-to-move anywhere in `src/` (`.ts`, `.svelte`, `.pgn`) is a legal start — the side not to move isn't in check, and no pawn sits on rank 1 or 8. A puzzle whose moves can't be played never opens (typing its URL shows an error page; clicking it does nothing), so this is the guard. It does not check that a puzzle is good chess or that a mate is a mate.
 
 ## Design system
 
@@ -289,7 +289,7 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 - After completing a task, always offer to commit and push so Vercel can deploy
 - Run `npm run build` before committing to catch errors early
 - Run `npm run check` to catch type errors and Svelte warnings that the build doesn't flag
-- Run `npm test` after any styling change — it checks the design-system rules
+- Run `npm test` after any styling change — it checks the design-system rules — and after any puzzle or position edit — it checks every puzzle loads and every FEN is a legal start
 - The user often makes hand-edits to puzzle files while Claude works — always `git diff --stat` before committing and include their changed files
 - When pushing fails due to remote changes, `git pull --rebase` then push again
 - Do NOT try to programmatically verify checkmate positions — push and let the user test in-browser

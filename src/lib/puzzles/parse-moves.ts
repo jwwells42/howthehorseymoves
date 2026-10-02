@@ -192,6 +192,9 @@ export function parsePuzzleMoves(pgn: string, fen: string): MoveTree {
       lastMoveState = { parentChildren: state.parentChildren, board: state.board, color: state.color };
 
       const resolved = parseSan(token.san, state.board, state.color);
+      if (!resolved.from) {
+        throw new Error(`"${token.san}" (${state.color === 'w' ? 'White' : 'Black'} to play) — no legal piece found`);
+      }
       const newBoard = applyMove(state.board, resolved.from, resolved.to, resolved.promotion);
 
       const node: MoveNode = {
