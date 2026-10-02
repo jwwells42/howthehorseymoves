@@ -101,10 +101,11 @@
   --star: #ffd60a; /* amber 10 */
   --star-edge: #5c4809; /* USWDS yellow-vivid-70 */
 
-  /* The board: Radix's light gold cream and the border green. The squares are
-     5:1 apart, so light and dark differ without colour. A lighter dark square
-     looks too like --wrong to protanopic eyes. */
-  --board-light: #e1dccf; /* gold 5 (light scale) */
+  /* The board: Radix's light orange cream and the border green. The squares are
+     6:1 apart, so light and dark differ without colour. A lighter dark square
+     looks too like --wrong to protanopic eyes. Gold 5 read as a cool grey; a
+     warmer cream than this one gets too like --wrong to deuteranopic eyes. */
+  --board-light: #ffefd6; /* orange 3 (light scale) */
   --board-dark: #496231; /* lime 7 */
   --board-move-dot: rgba(0, 0, 0, 0.2);
   --board-target: #c2850c; /* USWDS gold-vivid-40. A move onto a star */

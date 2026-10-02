@@ -40,7 +40,7 @@ Every colour, the typeface and the type sizes live in **`src/app.css`** as custo
 - Answers: `--correct`, `--correct-text`, `--correct-tint`, `--wrong`, `--wrong-text`, `--wrong-tint`, `--on-answer`. The `-text` versions are for words on `--page`/`--surface`. White on `--wrong` passes only for large/bold text
 - "Look here" (selected square, warning, next stop, focus ring): `--highlight`, `--highlight-glow`, `--highlight-tint`. A fourth mark colour: `--mark-other`
 - Stars: `--star`, `--star-edge`
-- Board: `--board-light`, `--board-dark` (Radix gold-5 cream and lime 7, 5:1 apart, so they differ without colour; a lighter dark square gets too close to `--wrong` for protanopia), `--board-move-dot`, `--board-target`
+- Board: `--board-light`, `--board-dark` (Radix orange-3 cream and lime 7, 6:1 apart, so they differ without colour; a lighter dark square gets too close to `--wrong` for protanopia. Gold 5 read as a cool grey; a warmer cream than orange 3, including the old `#efe2c0`, falls under ΔE 25 from `--wrong` for deuteranopia), `--board-move-dot`, `--board-target`
 - Plain-colour pieces / results bar: `--piece-white`, `--piece-black`, `--result-draw`
 - Route-puzzle walls: `--wall-brick`, `--wall-mortar`, `--wall-edge` (brown, so a wall isn't read as a `--wrong` square)
 - Breathwork orb: `--breath-rest`, `--breath-in`, `--breath-top`, `--breath-out`, `--breath-ink`
