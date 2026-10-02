@@ -352,20 +352,23 @@
       />
     </div>
 
-    <!-- Feedback message -->
-    {#if feedbackMessage}
-      <p class="feedback">✗ {feedbackMessage}</p>
-    {/if}
-
-    <!-- Controls -->
-    {#if step.type === 'demo'}
-      <Button variant="primary" size="large" onclick={goToNext}>Next</Button>
-    {:else if solved}
-      <div class="solved-controls">
-        <p class="correct-label">✓ Correct!</p>
+    <!-- Under the board. Always here at the same height, and only what's inside
+         comes and goes: the board gets the height that's left, so anything
+         appearing below it would shrink the board. -->
+    <div class="under-board">
+      <p class="status">
+        {#if solved}
+          <span class="correct-label">✓ Correct!</span>
+        {:else if feedbackMessage}
+          <span class="feedback">✗ {feedbackMessage}</span>
+        {:else}
+          &nbsp;
+        {/if}
+      </p>
+      <div class={['next', step.type !== 'demo' && !solved && 'waiting']}>
         <Button variant="primary" size="large" onclick={goToNext}>Next</Button>
       </div>
-    {/if}
+    </div>
   </div>
 {/if}
 
@@ -426,10 +429,26 @@
     }
   }
 
+  /* One row, so the room it keeps is just the button's height. */
+  .under-board {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+  .status {
+    margin: 0;
+    font-weight: var(--weight-strong);
+  }
+  /* Hidden but still taking its room, until there's a next step to go to. */
+  .waiting {
+    visibility: hidden;
+  }
+
   /* A move that was not good enough. */
   .feedback {
     color: var(--wrong-text);
-    font-weight: var(--weight-strong);
     animation: pulse 1s ease-in-out infinite;
   }
   @keyframes pulse {
@@ -437,16 +456,8 @@
     50% { opacity: 0.5; }
   }
 
-  .solved-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-  }
   .correct-label {
     color: var(--correct-text);
-    font-weight: var(--weight-strong);
-    margin: 0;
   }
 
   .done-center {
