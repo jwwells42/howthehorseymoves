@@ -753,6 +753,11 @@
     padding: 1rem;
     max-width: 42rem;
     margin: 0 auto;
+    /* The opening page is one screen high and doesn't scroll. The line list
+       shrinks to make room for the Start buttons; on a screen too short even
+       for that, the setup scrolls rather than cutting the buttons off. */
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .header {
@@ -799,6 +804,7 @@
     width: 100%;
     max-width: 32rem;
     max-height: 20rem;
+    min-height: 6rem;
     overflow-y: auto;
     border: 1px solid var(--line);
     border-radius: 0.5rem;
