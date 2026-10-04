@@ -59,7 +59,6 @@ function createRouteState(puzzle: RoutePuzzle) {
   let moveCount = $state(0);
   let reachedTargets = $state<SquareId[]>([]);
   let isComplete = $state(false);
-  let currentHintIndex = $state(-1);
   let wrongMoveSquare = $state<SquareId | null>(null);
 
   // Squares threatened by enemy (black) pieces — only when threats mode is on
@@ -172,14 +171,7 @@ function createRouteState(puzzle: RoutePuzzle) {
     moveCount = 0;
     reachedTargets = [];
     isComplete = false;
-    currentHintIndex = -1;
     wrongMoveSquare = null;
-  }
-
-  function showHint() {
-    if (puzzle.hints && currentHintIndex < puzzle.hints.length - 1) {
-      currentHintIndex = currentHintIndex + 1;
-    }
   }
 
   return {
@@ -193,7 +185,6 @@ function createRouteState(puzzle: RoutePuzzle) {
     get wrongMoveSquare() { return wrongMoveSquare; },
     get opponentSlide() { return null as SlideAnimation | null; },
     get stars() { return stars; },
-    get currentHintIndex() { return currentHintIndex; },
     get arrows() { return (puzzle.arrows ?? []) as Arrow[]; },
     get highlights() { return dangerHighlights; },
     get demoPhase() { return null as 'playing' | 'resetting' | null; },
@@ -203,7 +194,6 @@ function createRouteState(puzzle: RoutePuzzle) {
     handleDrop,
     completePromotion(_p: PieceKind) {},
     reset,
-    showHint,
   };
 }
 
@@ -226,7 +216,6 @@ function createTacticState(puzzle: TacticPuzzle) {
   let moveCount = $state(0);
   let isComplete = $state(false);
   let stalemateTrigger = $state(false);
-  let currentHintIndex = $state(-1);
   let wrongMoveSquare = $state<SquareId | null>(null);
   let opponentSlide = $state<SlideAnimation | null>(null);
   let waitingForAnimation = $state(false);
@@ -446,7 +435,6 @@ function createTacticState(puzzle: TacticPuzzle) {
     moveCount = 0;
     isComplete = false;
     stalemateTrigger = false;
-    currentHintIndex = -1;
     wrongMoveSquare = null;
     pendingPromotion = null;
     opponentSlide = null;
@@ -466,12 +454,6 @@ function createTacticState(puzzle: TacticPuzzle) {
     }
   }
 
-  function showHint() {
-    if (puzzle.hints && currentHintIndex < puzzle.hints.length - 1) {
-      currentHintIndex = currentHintIndex + 1;
-    }
-  }
-
   return {
     get board() { return board; },
     get selectedSquare() { return selectedSquare; },
@@ -483,7 +465,6 @@ function createTacticState(puzzle: TacticPuzzle) {
     get wrongMoveSquare() { return wrongMoveSquare; },
     get opponentSlide() { return opponentSlide; },
     get stars() { return stars; },
-    get currentHintIndex() { return currentHintIndex; },
     get arrows() { return currentArrows; },
     get highlights() { return currentHighlights; },
     get demoPhase() { return demoPhase; },
@@ -497,7 +478,6 @@ function createTacticState(puzzle: TacticPuzzle) {
     handleDrop,
     completePromotion,
     reset,
-    showHint,
   };
 }
 
@@ -515,7 +495,6 @@ function createConversionState(puzzle: ConversionPuzzle) {
   let moveCount = $state(0);
   let isComplete = $state(false);
   let stalemateTrigger = $state(false);
-  let currentHintIndex = $state(-1);
   let wrongMoveSquare = $state<SquareId | null>(null);
   let opponentSlide = $state<SlideAnimation | null>(null);
   let waitingForAnimation = $state(false);
@@ -718,17 +697,10 @@ function createConversionState(puzzle: ConversionPuzzle) {
     moveCount = 0;
     isComplete = false;
     stalemateTrigger = false;
-    currentHintIndex = -1;
     wrongMoveSquare = null;
     opponentSlide = null;
     waitingForAnimation = false;
     pendingPromotion = null;
-  }
-
-  function showHint() {
-    if (puzzle.hints && currentHintIndex < puzzle.hints.length - 1) {
-      currentHintIndex = currentHintIndex + 1;
-    }
   }
 
   return {
@@ -742,7 +714,6 @@ function createConversionState(puzzle: ConversionPuzzle) {
     get wrongMoveSquare() { return wrongMoveSquare; },
     get opponentSlide() { return opponentSlide; },
     get stars() { return stars; },
-    get currentHintIndex() { return currentHintIndex; },
     get arrows() { return [] as Arrow[]; },
     get highlights() { return [] as SquareHighlight[]; },
     get demoPhase() { return null as 'playing' | 'resetting' | null; },
@@ -756,7 +727,6 @@ function createConversionState(puzzle: ConversionPuzzle) {
     handleDrop,
     completePromotion,
     reset,
-    showHint,
   };
 }
 
@@ -785,7 +755,6 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
   let mistakes = $state(0);
   let isComplete = $state(false);
   let wrongMoveSquare = $state<SquareId | null>(null);
-  let currentHintIndex = $state(-1);
   let slideAnim = $state<SlideAnimation | null>(null);
   let demoRunning = $state(false);
 
@@ -861,17 +830,10 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     mistakes = 0;
     isComplete = false;
     wrongMoveSquare = null;
-    currentHintIndex = -1;
     slideAnim = null;
     demoRunning = false;
     if (mode === 'demo') {
       setTimeout(() => runDemo(), 400);
-    }
-  }
-
-  function showHint() {
-    if (puzzle.hints && currentHintIndex < puzzle.hints.length - 1) {
-      currentHintIndex = currentHintIndex + 1;
     }
   }
 
@@ -886,7 +848,6 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     get wrongMoveSquare() { return wrongMoveSquare; },
     get opponentSlide() { return slideAnim; },
     get stars() { return stars; },
-    get currentHintIndex() { return currentHintIndex; },
     get arrows() { return [] as Arrow[]; },
     get highlights() { return highlights; },
     get demoPhase() { return null as 'playing' | 'resetting' | null; },
@@ -900,7 +861,6 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     handleDrop(_from: SquareId, _to: SquareId) {},
     completePromotion(_p: PieceKind) {},
     reset,
-    showHint,
     runDemo,
   };
 }

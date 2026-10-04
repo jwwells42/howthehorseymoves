@@ -10,7 +10,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "a1" }],
     walls: [],
     stars: ["h8"],
-    hints: ["The bishop moves diagonally.", "Go from corner to corner!"],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -22,7 +21,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "h1" }],
     walls: [],
     stars: ["a8"],
-    hints: ["Bishops move diagonally in any direction."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -34,7 +32,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "d4" }],
     walls: [],
     stars: ["f6"],
-    hints: ["The bishop can move any number of squares diagonally."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -46,7 +43,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "c1" }],
     walls: [],
     stars: ["g5"],
-    hints: ["A bishop always stays on the same color squares.", "c1 is a dark square, and so is g5."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -58,7 +54,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "a1" }],
     walls: [],
     stars: ["a7"],
-    hints: ["The bishop can't move in straight lines.", "Move to an intermediate diagonal, then redirect."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -70,7 +65,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "a1" }],
     walls: ["d4"],
     stars: ["g7"],
-    hints: ["The pawn blocks the main diagonal.", "Try going to c3, then switch to a different diagonal."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -85,7 +79,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["f6"],
-    hints: ["The bishop captures by landing on the enemy's square."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -97,7 +90,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "a1" }],
     walls: ["d4", "g5"],
     stars: ["h8"],
-    hints: ["The main diagonal is blocked.", "Try stepping to b2, then a3, then use the a3-f8 diagonal."],
     starThresholds: { three: 5, two: 6, one: 7 },
   },
   {
@@ -109,7 +101,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "d4" }],
     walls: [],
     stars: ["a1", "h8"],
-    hints: ["Both stars are on the same diagonal!", "Visit one, then go to the other."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -121,7 +112,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "a1" }],
     walls: ["a4", "b4", "c4", "d4", "e4", "g4", "h4"],
     stars: ["f8"],
-    hints: ["Go to c3 first, avoiding the blocked diagonal.", "From d2, we can launch through the gap."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -136,7 +126,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["d4", "g1"],
-    hints: ["Capture the rook first.", "Then find a diagonal to the star."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -148,7 +137,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "a1" }],
     walls: ["c3", "e5"],
     stars: ["g7"],
-    hints: ["Both diagonals toward g7 are blocked.", "Zigzag around the pawns using short steps."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -164,7 +152,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["a7", "g7"],
-    hints: ["Capture one, then reposition to capture the other.", "The knight is on the same diagonal."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -176,7 +163,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "B", color: "w", square: "a1" }],
     walls: [],
     stars: ["d4", "g7", "c7"],
-    hints: ["d4 and g7 are on the same diagonal as a1.", "From g7, reposition to reach c7."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -192,7 +178,6 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["c3", "f6"],
-    hints: ["Both enemies are on the same long diagonal!", "Capture them in order."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   // --- Find All Moves ---

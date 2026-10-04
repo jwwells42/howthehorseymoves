@@ -10,7 +10,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "d4" }],
     walls: [],
     stars: ["f5"],
-    hints: ["The knight moves in an L-shape: 2 squares one way, then 1 square perpendicular.", "Try 2 right + 1 up."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -22,7 +21,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "d4" }],
     walls: [],
     stars: ["e6"],
-    hints: ["The L can go in any direction.", "Try 1 right + 2 up."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -34,7 +32,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "e5" }],
     walls: [],
     stars: ["c4"],
-    hints: ["The knight can also move in L-shapes going left and down."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -46,7 +43,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "d4" }],
     walls: ["d5", "e4", "e5", "d3", "c4"],
     stars: ["f5"],
-    hints: ["The knight is the only piece that can jump over others!", "The pawns don't block the knight."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -58,7 +54,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "b1" }],
     walls: [],
     stars: ["e4"],
-    hints: ["Plan two L-shaped jumps.", "Where can you land after one jump that reaches e4 next?"],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -73,7 +68,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["f5"],
-    hints: ["The knight captures by landing on the enemy's square."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -85,7 +79,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "a1" }],
     walls: [],
     stars: ["b3"],
-    hints: ["a1 is a dark square, b3 is a light square.", "The knight always lands on the opposite color!"],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -97,7 +90,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "a1" }],
     walls: [],
     stars: ["d4"],
-    hints: ["From the corner, the knight only has 2 possible moves.", "Jump to b3 or c2 first."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -109,7 +101,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "d4" }],
     walls: [],
     stars: ["f5", "g3"],
-    hints: ["Visit one star, then jump to the other.", "f5 to g3 is a valid L-shape!"],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -121,7 +112,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "d1" }],
     walls: ["a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3"],
     stars: ["e5"],
-    hints: ["The knight can jump over the entire wall!", "Move sideways first, then leap over."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -133,7 +123,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "a1" }],
     walls: [],
     stars: ["g7"],
-    hints: ["The knight zigzags across the board.", "Each jump covers ground diagonally."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -148,7 +137,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["c3", "e4"],
-    hints: ["Capture the rook first.", "Then one more jump to the star."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -160,7 +148,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "N", color: "w", square: "d4" }],
     walls: [],
     stars: ["f5", "e3", "c2"],
-    hints: ["Each star is one L-shaped jump from the previous!", "Chain your jumps together."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -177,7 +164,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["f5", "e3", "c2"],
-    hints: ["Capture them in the right order.", "Each hop should set up the next capture."],
     starThresholds: { three: 3, two: 4, one: 7 },
   },
   {
@@ -193,7 +179,6 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: ["b1", "a2"],
     stars: ["b3", "d4"],
-    hints: ["The friendly pawns don't block the knight's jumps.", "Capture b3 first, then jump to d4."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   // --- Find All Moves ---

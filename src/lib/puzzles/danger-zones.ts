@@ -15,10 +15,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["a8"],
-    hints: [
-      "The bishop attacks diagonally.",
-      "The a-file is safe — go straight up!",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   // --- Rook dodging a knight ---
@@ -35,10 +31,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["h1"],
-    hints: [
-      "The knight attacks in L-shapes.",
-      "Slide along rank 1 — which squares are safe?",
-    ],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   // --- Bishop dodging a rook ---
@@ -55,10 +47,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["h8"],
-    hints: [
-      "The rook controls rank 4 and the d-file.",
-      "You can slide through red squares — just don't stop on one.",
-    ],
     starThresholds: { three: 5, two: 6, one: 7 },
   },
   // --- Knight dodging a bishop ---
@@ -75,10 +63,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["g5"],
-    hints: [
-      "The bishop controls two diagonals from e4.",
-      "Plan your L-shaped jumps to land on safe squares.",
-    ],
     starThresholds: { three: 5, two: 6, one: 7 },
   },
   // --- Knight dodging a rook ---
@@ -95,10 +79,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["f5"],
-    hints: [
-      "The rook attacks all of rank 4 and all of the d-file.",
-      "Each knight jump changes color — plan two hops ahead.",
-    ],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   // --- Rook dodging a pawn ---
@@ -116,10 +96,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["h8"],
-    hints: [
-      "Each pawn attacks the two diagonal squares in front of it.",
-      "Find a file that avoids both pawns' diagonals.",
-    ],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   // --- Queen dodging a knight (queen is flexible, so it's about the one piece she can't predict) ---
@@ -136,10 +112,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["f7"],
-    hints: [
-      "The knight attacks 8 squares in L-shapes from d5.",
-      "The queen has many paths — find one that avoids the knight's reach.",
-    ],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   // --- Knight dodging two pawns ---
@@ -157,10 +129,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["h7"],
-    hints: [
-      "Each pawn threatens two diagonal squares.",
-      "The knight can jump past — just don't land on a red square.",
-    ],
     starThresholds: { three: 5, two: 6, one: 7 },
   },
   // --- Bishop dodging a knight + wall ---
@@ -177,10 +145,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: ["c3"],
     stars: ["h8"],
-    hints: [
-      "The wall blocks c3 and the knight threatens squares from e6.",
-      "Find a diagonal path that avoids both.",
-    ],
     starThresholds: { three: 5, two: 6, one: 7 },
   },
   // --- Rook dodging a queen ---
@@ -197,10 +161,6 @@ export const dangerZonePuzzles: RoutePuzzle[] = [
     ],
     walls: [],
     stars: ["h8"],
-    hints: [
-      "The queen attacks ranks, files, AND diagonals.",
-      "Find the squares she can't reach.",
-    ],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
 ];

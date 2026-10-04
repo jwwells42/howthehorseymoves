@@ -10,7 +10,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "e4" }],
     walls: [],
     stars: ["e5"],
-    hints: ["The king moves one square in any direction."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -22,7 +21,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "d4" }],
     walls: [],
     stars: ["e5"],
-    hints: ["The king can also move diagonally — but only one square!"],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -34,7 +32,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "d4" }],
     walls: [],
     stars: ["c3"],
-    hints: ["The king can move to any adjacent square — including backwards and sideways."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -46,7 +43,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "a1" }],
     walls: [],
     stars: ["a4"],
-    hints: ["The king can only move one square at a time.", "Be patient — walk straight up!"],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -58,7 +54,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "e1" }],
     walls: [],
     stars: ["h4"],
-    hints: ["Diagonal moves cover both horizontal and vertical distance.", "Each diagonal step gets you closer in both directions."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -73,7 +68,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["f5"],
-    hints: ["The king captures by moving to the enemy's square."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -85,7 +79,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "d1" }],
     walls: ["d2", "d3", "d4"],
     stars: ["d5"],
-    hints: ["The king can't jump over pieces.", "Go around the wall of pawns."],
     starThresholds: { three: 5, two: 6, one: 7 },
   },
   {
@@ -97,7 +90,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "a1" }],
     walls: [],
     stars: ["d4"],
-    hints: ["Use diagonal moves to cover ground fastest.", "Each diagonal step gains one rank AND one file."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -109,7 +101,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "a1" }],
     walls: ["b3", "a3"],
     stars: ["a5"],
-    hints: ["The direct path is blocked.", "Go diagonally around the pawns."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -121,7 +112,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "d4" }],
     walls: [],
     stars: ["e5", "c3"],
-    hints: ["The king can reach each star in one step.", "Visit one then walk back toward the other."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -136,7 +126,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["h4"],
-    hints: ["Capture the bishop — it's on your way!", "Then continue diagonally."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -148,7 +137,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "K", color: "w", square: "a1" }],
     walls: ["b1", "a2", "c2", "b3"],
     stars: ["c4"],
-    hints: ["Find the one open path through the pawns.", "b2 is open!"],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -165,7 +153,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["e5", "e4", "e3"],
-    hints: ["The king can capture one per move.", "Capture them top to bottom (or bottom to top)."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -181,7 +168,6 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["b2", "d4"],
-    hints: ["Capture the pawn first — it's right next to you.", "Then walk diagonally to the knight."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   // --- Find All Moves ---

@@ -5,7 +5,6 @@ interface PuzzleBase {
   id: string;
   title: string;
   instruction: string;
-  hints?: string[];
 }
 
 export interface RoutePuzzle extends PuzzleBase {

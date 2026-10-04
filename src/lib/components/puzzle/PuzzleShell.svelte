@@ -150,16 +150,7 @@
       </div>
     {/if}
 
-    {#if ps.currentHintIndex >= 0 && puzzle.hints?.[ps.currentHintIndex]}
-      <div class="hint-box">
-        <span aria-hidden="true">💡</span> Hint: {puzzle.hints[ps.currentHintIndex]}
-      </div>
-    {/if}
-
-    <PuzzleControls
-      onReset={ps.reset}
-      onHint={puzzle.hints?.length ? ps.showHint : undefined}
-    />
+    <PuzzleControls onReset={ps.reset} />
 
     {#if isFindMoves && findMovesMode === 'test' && thresholds}
       <div class="thresholds">
@@ -200,14 +191,6 @@
     border: none;
     color: inherit;
     cursor: pointer;
-  }
-  .hint-box {
-    background: var(--highlight-tint);
-    border: 1px solid var(--highlight);
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: var(--size-secondary);
-    flex-shrink: 0;
   }
   .thresholds {
     display: flex;

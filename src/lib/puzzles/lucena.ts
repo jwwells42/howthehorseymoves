@@ -27,11 +27,6 @@ export const lucenaPuzzles: ConversionPuzzle[] = [
     ],
     bot: "basic",
     goal: "promotion",
-    hints: [
-      "Move your rook to the 4th rank — it will act as a shield later.",
-      "Once the rook is on the 4th rank, bring your king out from behind the pawn.",
-      "When the enemy rook checks, hide behind your own rook on the 4th rank!",
-    ],
     starThresholds: { three: 10, two: 14, one: 20 },
   },
 ];

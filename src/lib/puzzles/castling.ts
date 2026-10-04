@@ -8,7 +8,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "Castle kingside! Move the king two squares toward the rook.",
     fen: "8/8/8/8/8/8/8/4K2R w K - 0 1",
     pgn: "1. O-O",
-    hints: ["The king moves two squares toward the rook to castle.", "Click the king, then click g1."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -18,7 +17,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "Castle queenside!",
     fen: "8/8/8/8/8/8/8/R3K3 w Q - 0 1",
     pgn: "1. O-O-O",
-    hints: ["Queenside castling moves the king to c1.", "The rook jumps over to d1."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -28,7 +26,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "You can castle either way — choose one!",
     fen: "8/8/8/8/8/8/8/R3K2R w KQ - 0 1",
     pgn: "1. O-O",
-    hints: ["Both sides are open for castling.", "Kingside is g1, queenside is c1."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -38,7 +35,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "Only one side is clear for castling. Find it!",
     fen: "8/8/8/8/8/8/8/RN2K2R w KQ - 0 1",
     pgn: "1. O-O",
-    hints: ["You can't castle if pieces are between the king and rook.", "The queenside is blocked by the pawn on b1."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -48,11 +44,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "One castling side passes through an attacked square. Castle safely!",
     fen: "5r2/8/8/8/8/8/8/R3K2R w KQ - 0 1",
     pgn: "1. O-O-O",
-    hints: [
-      "You can't castle through check — the king can't pass through an attacked square.",
-      "The black rook on f8 attacks f1, blocking kingside castling.",
-      "Castle queenside instead!",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -62,11 +53,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "You're in check! Can you castle?",
     fen: "4r3/8/8/8/8/8/8/4K2R w K - 0 1",
     pgn: "1. Kf1",
-    hints: [
-      "You can't castle while in check!",
-      "Move the king out of check first — or simply step aside.",
-      "Move the king to f1 to escape.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -76,10 +62,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "Castle to get your king to safety!",
     fen: "3q4/8/8/8/8/8/5PPP/4K2R w K - 0 1",
     pgn: "1. O-O",
-    hints: [
-      "Castling tucks the king behind pawns for safety.",
-      "The pawns on f2, g2, h2 will shield the king after castling.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -89,11 +71,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "Can you castle? If not, walk to safety!",
     fen: "8/8/b7/8/8/8/8/4K2R w K - 0 1",
     pgn: "1. Kd1",
-    hints: [
-      "The bishop on a6 attacks through to f1...",
-      "The king can't pass through f1 because it's attacked.",
-      "You can't castle! Step the king to safety instead.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -103,11 +80,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "Both rooks are ready, but only one side is safe. Choose wisely!",
     fen: "3r4/8/8/8/8/8/8/R3K2R w KQ - 0 1",
     pgn: "1. O-O",
-    hints: [
-      "The black rook on d8 attacks d1.",
-      "Queenside castling passes the king through d1 — that's attacked!",
-      "Castle kingside to g1.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -117,10 +89,6 @@ export const castlingPuzzles: TacticPuzzle[] = [
     instruction: "Castle queenside to hide behind your pawns!",
     fen: "8/8/8/8/8/8/PPP5/R3K2R w Q - 0 1",
     pgn: "1. O-O-O",
-    hints: [
-      "The enemy rook controls the h-file — kingside isn't available anyway.",
-      "Castle queenside to tuck behind your a, b, c pawns.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
 ];

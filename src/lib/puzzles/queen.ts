@@ -10,7 +10,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "d1" }],
     walls: [],
     stars: ["d8"],
-    hints: ["The queen can move like a rook — in straight lines!"],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -22,7 +21,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "a1" }],
     walls: [],
     stars: ["h8"],
-    hints: ["The queen can also move like a bishop — diagonally!"],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -34,7 +32,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "d4" }],
     walls: [],
     stars: ["h8"],
-    hints: ["The queen can move diagonally any number of squares.", "d4 to h8 is one diagonal move."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -46,7 +43,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "a1" }],
     walls: ["d4"],
     stars: ["g7"],
-    hints: ["The diagonal is blocked by the pawn.", "Try combining a straight move with a diagonal."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -61,7 +57,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["d7"],
-    hints: ["The queen captures by landing on the enemy's square."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -73,7 +68,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "a1" }],
     walls: ["b2", "a5"],
     stars: ["h8"],
-    hints: ["The diagonal and the a-file are both partially blocked.", "Go sideways first, then straight up!"],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -85,7 +79,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "d4" }],
     walls: [],
     stars: ["d8", "h4"],
-    hints: ["The queen can reach each star in one move.", "Visit one, then the other."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -97,7 +90,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "a1" }],
     walls: ["b2", "a3", "h1"],
     stars: ["h8"],
-    hints: ["The queen is almost boxed in.", "There's one square you can move to — find it, then think big."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -109,7 +101,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "a1" }],
     walls: ["d4", "a4"],
     stars: ["g7"],
-    hints: ["Go sideways first to a clear file.", "Then go straight up."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -126,7 +117,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["d7", "g7", "g4"],
-    hints: ["Plan a route that captures each one efficiently.", "The queen can switch between straight and diagonal."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -138,7 +128,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "a1" }],
     walls: ["c1", "a3", "c3"],
     stars: ["h8"],
-    hints: ["Find the one path out.", "a2 is reachable, then take a long diagonal."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -150,7 +139,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "d1" }],
     walls: [],
     stars: ["d8", "h4", "a4"],
-    hints: ["The queen can reach d8 in one move, then use its flexibility.", "Switch between straight and diagonal movement."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -168,7 +156,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["d7", "g4", "a4", "a1"],
-    hints: ["Each capture sets up the next.", "Try going up first, then sweep around."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -180,7 +167,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "Q", color: "w", square: "a1" }],
     walls: ["b2", "c1", "a3"],
     stars: ["h8"],
-    hints: ["The queen is almost boxed in.", "Find the one square you can move to, then think big."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -196,7 +182,6 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: ["d4"],
     stars: ["a8", "h1", "h8"],
-    hints: ["Capture the rook, then use the 8th rank.", "The queen's combined powers make this efficient."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   // --- Find All Moves ---

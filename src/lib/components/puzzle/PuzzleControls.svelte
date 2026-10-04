@@ -3,16 +3,12 @@
 
   interface Props {
     onReset: () => void;
-    onHint?: () => void;
   }
-  let { onReset, onHint }: Props = $props();
+  let { onReset }: Props = $props();
 </script>
 
 <div class="controls">
   <Button onclick={onReset}>Reset</Button>
-  {#if onHint}
-    <Button onclick={onHint}><span aria-hidden="true">💡</span> Hint</Button>
-  {/if}
 </div>
 
 <style>

@@ -10,7 +10,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "d1" }],
     walls: [],
     stars: ["d8"],
-    hints: ["The rook moves in straight lines.", "Move up the file to row 8."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -22,7 +21,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "a4" }],
     walls: [],
     stars: ["h4"],
-    hints: ["The rook can also move along ranks (sideways)."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -34,7 +32,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "a1" }],
     walls: [],
     stars: ["h8"],
-    hints: ["The rook can't move diagonally.", "Go up first, then across (or across then up)."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -46,7 +43,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "a1" }],
     walls: ["a4", "b1"],
     stars: ["a8"],
-    hints: ["The rook is blocked by pieces.", "Move up, then go around the pawn."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -61,7 +57,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["e7"],
-    hints: ["The rook captures by moving to a square with an enemy piece."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -73,7 +68,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "d4" }],
     walls: ["d6", "f4"],
     stars: ["h8"],
-    hints: ["You need to go around the obstacles.", "Try moving up first."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -85,7 +79,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "a1" }],
     walls: [],
     stars: ["a8", "h1"],
-    hints: ["Visit one star, then navigate to the other.", "Try the top one first."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -97,7 +90,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "a1" }],
     walls: ["c1", "a3", "c3", "e2"],
     stars: ["e4"],
-    hints: ["Find the gaps between the pawns.", "The b-file has a clear path upward."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -112,7 +104,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["h5", "a5"],
-    hints: ["Capture the bishop first — it's on your way!", "Then slide across the rank."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -124,10 +115,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "a1" }],
     walls: ["a5", "d1"],
     stars: ["a8"],
-    hints: [
-      "You can't go straight up — there's a pawn blocking a5.",
-      "Go right first, then up, then back over to the a-file."
-    ],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -139,7 +126,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "d1" }],
     walls: ["d5", "g1"],
     stars: ["g8"],
-    hints: ["Go up, then over, then up again.", "Stop before the pawn on d5."],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -151,7 +137,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "e4" }],
     walls: [],
     stars: ["a4", "e8", "h4"],
-    hints: ["Plan a route that visits all three efficiently.", "You can visit them in any order."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -167,7 +152,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["d5", "h5"],
-    hints: ["Capture them one at a time.", "The first one is directly above you."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -179,7 +163,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "R", color: "w", square: "a1" }],
     walls: ["b1", "a4", "c4", "b7"],
     stars: ["c8"],
-    hints: ["Move up, then right, then up, then right...", "Use the gaps in the pawn wall."],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -195,7 +178,6 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["a6", "f6"],
-    hints: ["Capture the knight first.", "Then slide over to capture the bishop on the star."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   // --- Find All Moves (3-step scaffolding: demo → guided → test) ---

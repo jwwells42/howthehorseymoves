@@ -10,7 +10,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "P", color: "w", square: "e2" }],
     walls: [],
     stars: ["e3"],
-    hints: ["Pawns move forward one square.", "White pawns move up the board."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -22,7 +21,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "P", color: "w", square: "e2" }],
     walls: [],
     stars: ["e4"],
-    hints: ["From its starting position, a pawn can move two squares forward!", "This only works on the pawn's first move."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -34,7 +32,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "P", color: "w", square: "d4" }],
     walls: [],
     stars: ["d6"],
-    hints: ["The pawn has already moved, so it can only go one square at a time.", "The double-step only works from the starting rank."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -49,7 +46,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["e5"],
-    hints: ["Pawns capture diagonally, not straight ahead!", "Move one square diagonally forward."],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -65,7 +61,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["e5"],
-    hints: ["Pawns can't move forward if a piece is in the way.", "But they CAN capture diagonally!"],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -80,7 +75,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["c5"],
-    hints: ["Pawns can capture diagonally to the left too!"],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -92,7 +86,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     position: [{ piece: "P", color: "w", square: "e2" }],
     walls: [],
     stars: ["e8"],
-    hints: ["Use the double-step on the first move!", "Then one square at a time to the top."],
     starThresholds: { three: 5, two: 6, one: 7 },
   },
   {
@@ -108,7 +101,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["e5", "d6"],
-    hints: ["Capture one diagonally, then capture the other.", "Zigzag through the enemies!"],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -125,7 +117,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["f6"],
-    hints: ["You can't go forward, but you can capture diagonally.", "Chain two diagonal captures together."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -141,7 +132,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["c5"],
-    hints: ["The pawn can capture left or right.", "Which capture lands on the star?"],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -159,7 +149,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["e5"],
-    hints: ["Capture diagonally each time.", "Left, right, left — zigzag up the board!"],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -176,7 +165,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["d7"],
-    hints: ["The forward path is blocked.", "Capture diagonally to get around, then capture again."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -191,7 +179,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["e5"],
-    hints: ["Start with a double-step to d4.", "Then capture diagonally to e5."],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   {
@@ -209,7 +196,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["f3", "e4", "f5", "e6"],
-    hints: ["Zigzag diagonally through all four.", "Right, left, right, left!"],
     starThresholds: { three: 4, two: 5, one: 6 },
   },
   {
@@ -229,7 +215,6 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     ],
     walls: [],
     stars: ["e3", "d4", "e5", "d6", "e7", "d8"],
-    hints: ["Zigzag all the way to the top!", "Capture every enemy on the way."],
     starThresholds: { three: 6, two: 7, one: 8 },
   },
   // --- Find All Moves ---

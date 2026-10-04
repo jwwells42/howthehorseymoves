@@ -208,7 +208,7 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 
 ### Lichess-Sourced Puzzles
 - Many practice puzzles were originally seeded from the Lichess puzzle database (CC0 public domain), then **hand-curated**. They live in the concept files alongside hand-authored puzzles (`pins.ts`, `forks.ts`, `skewers.ts`, `removing-defender.ts`, `discovered.ts`, `mate-in-1.ts`, `mate-in-2.ts`, `pawn-endings.ts`). Their ids keep the `lichess-*` prefix (those ids are localStorage progress keys — don't rename them)
-- Pins file order: hand-authored teaching pins first (with hints), then the curated lichess pins
+- Pins file order: hand-authored teaching pins first, then the curated lichess pins
 - Integrated into the standard puzzle system via `PuzzleShell` — no separate trainer component
 - **Finding more puzzles** (`scripts/filter-lichess.py`): generates puzzle *candidates* into a sandbox (`scripts/puzzle-candidates/`, gitignored) — it never writes to the live curated files. Filters by: rating < 1200 (1200-1800 for pawn endings), white-to-move only, low piece count, same piece type across all player moves (except `pawnEndgame` which allows mixed K+P; `pawns_only` flag restricts to king+pawn positions). Workflow: download `lichess_db_puzzle.csv.zst` from database.lichess.org, decompress to `data/lichess_db_puzzle.csv` (gitignored), run `python3 scripts/filter-lichess.py data/lichess_db_puzzle.csv` (python-chess in a venv), then copy the puzzles worth keeping into the matching concept file with a unique id
 

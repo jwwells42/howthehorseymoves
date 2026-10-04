@@ -8,10 +8,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     instruction: "The black pawn just moved two squares! Capture it en passant!",
     fen: "7k/3p4/8/4P3/8/8/8/K7 b - - 0 1",
     pgn: "1... d5 2. exd6",
-    hints: [
-      "When a pawn advances two squares and lands beside your pawn, you can capture it 'in passing'.",
-      "Your pawn moves diagonally to d6, capturing the black pawn on d5.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -21,10 +17,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     instruction: "The black pawn just advanced two squares past your pawn. Capture en passant!",
     fen: "7k/3p4/8/2P5/8/8/8/K7 b - - 0 1",
     pgn: "1... d5 2. cxd6",
-    hints: [
-      "En passant works from either side.",
-      "Capture diagonally to d6 — the black pawn on d5 is removed.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -34,10 +26,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     instruction: "Two black pawns are beside you, but only one just moved. Capture the right one!",
     fen: "7k/5p2/8/3pP3/8/8/8/K7 b - - 0 1",
     pgn: "1... f5 2. exf6",
-    hints: [
-      "En passant only works on the pawn that JUST moved two squares.",
-      "The en passant square is f6 — the pawn on f5 just arrived.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -47,10 +35,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     instruction: "Capture en passant — it's your only chance! (The option disappears next turn.)",
     fen: "7k/p7/8/1P6/8/8/8/1K6 b - - 0 1",
     pgn: "1... a5 2. bxa6",
-    hints: [
-      "En passant must be done immediately — you can't wait!",
-      "Capture on a6 now before the chance disappears.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -60,10 +44,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     instruction: "Capture en passant, then push your pawn to the star!",
     fen: "1k6/7p/8/6P1/8/8/8/K7 b - - 0 1",
     pgn: "1... h5 2. gxh6 Ka8 3. h7 Kb8 4. h8=Q",
-    hints: [
-      "First capture en passant on h6.",
-      "Then keep pushing the pawn forward to h8!",
-    ],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -73,10 +53,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     instruction: "Use en passant to remove the blocker, then advance to the star!",
     fen: "7k/2p5/8/3P4/2P5/8/8/K7 b - - 0 1",
     pgn: "1... c5 2. dxc6",
-    hints: [
-      "The black pawn on c5 is blocking your c4 pawn.",
-      "Use your d5 pawn to capture en passant on c6, clearing the way.",
-    ],
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -86,10 +62,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     instruction: "The black pawn moved two squares, but en passant isn't the best move. Advance forward instead!",
     fen: "7k/4p3/8/3P4/8/8/8/K7 b - - 0 1",
     pgn: "1... e5 2. d6 Kg8 3. d7 Kh8 4. d8=Q",
-    hints: [
-      "Just because you CAN capture en passant doesn't mean you should!",
-      "Push your pawn straight ahead to reach the promotion square d8.",
-    ],
     starThresholds: { three: 3, two: 4, one: 5 },
   },
   {
@@ -99,11 +71,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     instruction: "The black pawn just slid past yours! But en passant only works from the 5th rank — you're on the 6th. Push forward instead!",
     fen: "7k/3p4/4P3/8/8/8/8/K7 b - - 0 1",
     pgn: "1... d5 2. e7 Kg8 3. e8=Q",
-    hints: [
-      "It looks tempting, but your pawn is too far advanced for en passant.",
-      "En passant only works when your pawn is on the 5th rank (row 5 for white).",
-      "Just push forward to e7 and e8!",
-    ],
     starThresholds: { three: 2, two: 3, one: 4 },
   },
   // --- Find All Moves (with en passant) ---
