@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { getPuzzle, getPuzzlesForPiece, PIECES } from '$lib/puzzles';
+  import { getPuzzle, getPuzzlesForPiece } from '$lib/puzzles';
   import PuzzleShell from '$lib/components/puzzle/PuzzleShell.svelte';
   import HowToWinLesson from '$lib/components/lessons/HowToWinLesson.svelte';
   import PawnEndingsLesson from '$lib/components/lessons/PawnEndingsLesson.svelte';
@@ -24,33 +24,12 @@
   let currentIdx = $derived(puzzleSet?.puzzles.findIndex((p) => p.id === puzzleId) ?? -1);
   let nextPuzzle = $derived(puzzleSet?.puzzles[currentIdx + 1]);
 
-  let pieceIdx = $derived(PIECES.findIndex((p) => p.key === piece));
-  let isBasicsPiece = $derived(pieceIdx !== -1);
-  let isLastInSet = $derived(!nextPuzzle);
-  let nextBasicsPiece = $derived(isBasicsPiece && isLastInSet ? PIECES[pieceIdx + 1] : null);
-
-  let nextLabel = $derived.by(() => {
-    if (nextPuzzle) return undefined;
-    if (nextBasicsPiece) return `Continue to ${nextBasicsPiece.name}!`;
-    if (isBasicsPiece && isLastInSet) return 'Continue to The Board!';
-    return undefined;
-  });
+  // The last puzzle of a set goes to the set-complete card, which leads on to
+  // the next stop on the path.
+  let nextLabel = $derived(nextPuzzle ? undefined : 'Continue');
 
   function handleNext() {
-    if (nextPuzzle) {
-      goto(`/learn/${piece}/${nextPuzzle.id}`);
-    } else if (nextBasicsPiece) {
-      const nextSet = getPuzzlesForPiece(nextBasicsPiece.key);
-      const firstPuzzleId = nextSet?.puzzles[0]?.id;
-      goto(firstPuzzleId
-        ? `/learn/${nextBasicsPiece.key}/${firstPuzzleId}`
-        : `/learn/${nextBasicsPiece.key}`
-      );
-    } else if (isBasicsPiece && isLastInSet) {
-      goto('/board');
-    } else {
-      goto(`/learn/${piece}`);
-    }
+    goto(nextPuzzle ? `/learn/${piece}/${nextPuzzle.id}` : `/learn/${piece}/complete`);
   }
 </script>
 

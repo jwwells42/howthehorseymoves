@@ -173,21 +173,25 @@ export const CURRICULUM: CurriculumChapter[] = [
 // Progress helpers
 // ═══════════════════════════════════════════════
 
+/** A puzzle set's stars: the fewest stars on any of its puzzles, 0 until every one is done */
+export function getPuzzleSetStars(key: string): number {
+  const set = getPuzzlesForPiece(key);
+  if (!set) return 0;
+  let minStars = Infinity;
+  for (const p of set.puzzles) {
+    const prog = getPuzzleProgress(p.id);
+    if (!prog?.completed) return 0;
+    minStars = Math.min(minStars, prog.bestStars);
+  }
+  return minStars === Infinity ? 0 : minStars;
+}
+
 /** Get the star rating for a single stop (0 = incomplete, 1-3 = stars earned) */
 export function getStopStars(stop: CurriculumStop): number {
   const src = stop.progress;
   switch (src.type) {
-    case 'puzzle-set': {
-      const set = getPuzzlesForPiece(src.key);
-      if (!set) return 0;
-      let minStars = Infinity;
-      for (const p of set.puzzles) {
-        const prog = getPuzzleProgress(p.id);
-        if (!prog?.completed) return 0;
-        minStars = Math.min(minStars, prog.bestStars);
-      }
-      return minStars === Infinity ? 0 : minStars;
-    }
+    case 'puzzle-set':
+      return getPuzzleSetStars(src.key);
     case 'localStorage': {
       return parseInt(localStorage.getItem(src.key) ?? '0', 10);
     }
@@ -244,21 +248,27 @@ export function getFirstIncompleteStop(stopStars: Record<string, number>): { id:
   for (const chapter of CURRICULUM) {
     for (const stop of chapter.stops) {
       if (stop.id !== id) continue;
-      let href = stop.href;
-      // For puzzle-set stops, find the first incomplete puzzle and link directly to it
-      if (stop.progress.type === 'puzzle-set') {
-        const set = getPuzzlesForPiece(stop.progress.key);
-        if (set) {
-          const firstIncomplete = set.puzzles.find(p => {
-            const prog = getPuzzleProgress(p.id);
-            return !prog || !prog.completed;
-          });
-          if (firstIncomplete) {
-            href = `/learn/${stop.progress.key}/${firstIncomplete.id}`;
-          }
-        }
-      }
-      return { id: stop.id, name: stop.name, href };
+      return { id: stop.id, name: stop.name, href: getStopStartHref(stop) };
+    }
+  }
+  return null;
+}
+
+/** Where a stop starts. For a puzzle set that's its first unfinished puzzle,
+ *  so a student lands on a board rather than a list. */
+export function getStopStartHref(stop: CurriculumStop): string {
+  if (stop.progress.type !== 'puzzle-set') return stop.href;
+  const key = stop.progress.key;
+  const firstIncomplete = getPuzzlesForPiece(key)?.puzzles.find(p => !getPuzzleProgress(p.id)?.completed);
+  return firstIncomplete ? `/learn/${key}/${firstIncomplete.id}` : stop.href;
+}
+
+/** The stop that teaches a puzzle set, with its chapter. Null if the set is
+ *  only on the hub pages, not the path. */
+export function findPuzzleSetStop(key: string): { chapter: CurriculumChapter; stop: CurriculumStop } | null {
+  for (const chapter of CURRICULUM) {
+    for (const stop of chapter.stops) {
+      if (stop.progress.type === 'puzzle-set' && stop.progress.key === key) return { chapter, stop };
     }
   }
   return null;

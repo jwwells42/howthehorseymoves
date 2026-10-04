@@ -94,7 +94,7 @@ The puzzle-set `key` string is the join across all three. **Multi-level concepts
 ### Curriculum (`src/lib/curriculum.ts`)
 - Defines `CURRICULUM: CurriculumChapter[]` — 8 levels of at most 9 stops (8 + the bot), mapping the full learning path
 - Each `CurriculumStop` has `id`, `name`, `icon`, `href`, and `progress` source (puzzle-set, localStorage key, or none)
-- Helper functions: `getStopStars()`, `getAllStopStars()`, `getFirstIncompleteId()` for progress tracking
+- Helper functions: `getStopStars()`, `getAllStopStars()`, `getFirstIncompleteId()` for progress tracking; `getPuzzleSetStars()` (a set's stars = fewest on any puzzle, 0 until all done), `getStopStartHref()` (a puzzle-set stop starts at its first unfinished puzzle), `findPuzzleSetStop()` (set key → its stop + chapter, null for hub-only sets), `getNextStopAfter()`
 - Used by landing page `CurriculumPath` component to render the winding trail UI
 
 ### Model Games (`src/lib/games/`)
@@ -142,6 +142,8 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 - `board/CoordinateTrainer.svelte` — Timed 30s square-naming mini-game. Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`). Standalone from puzzle progress system
 - `board/SetupTrainer.svelte` — 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup. Each stage individually addressable via `/setup/[stage]`. Exports `SETUP_STAGES` via `<script module>`. Supports click-click and drag-from-tray. Stars based on mistakes: 0=3, 1-2=2, 3+=1. Per-stage localStorage: `setup-{slug}-best-stars`
 - `puzzle/PuzzleShell.svelte` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
+- `puzzle/SuccessOverlay.svelte` — the solved card: 🎉, stars, then Next on top (primary, large, full width, → arrow, focused so Enter works) and Retry below it (secondary, normal size, ↺). Next is the main action; Retry is how a student goes back for three stars, so it's on every card — the card looks the same however the puzzle went. Same-sized buttons side by side (Retry first) had students replaying puzzles they'd just solved
+- `puzzle/SetComplete.svelte` — the between-card after a set's last puzzle: 🏆, the set's stars, and the level's stops in a row with the knight stepping from this stop to the next (once, no loop; no motion under `prefers-reduced-motion`). One button, to the next stop
 - `puzzle/PuzzleSetCard.svelte` — a LinkCard for one puzzle set (`set: SubcategoryInfo`): solved/total, plus stars once every puzzle is solved. Used by the hub pages and `/learn/[piece]`
 - `game/GameViewer.svelte` — PGN game viewer with path-based navigation (`currentPath: GameNode[]`), auto-play, keyboard nav (`<svelte:window>`), comments, arrows. Variations display inline in the move grid. "Pause at variations" toggle stops auto-play at branch points. Test mode uses `extractMainLine()` for flat main-line-only memorization
 - `game/PgnExplorer.svelte` — Lightweight PGN explorer for embedding annotated move trees. Takes `pgn` + optional `fen` props, renders board + clickable move grid with variations, comments, and keyboard nav. Used by PawnEndingsLesson to show post-quiz analysis. Reuses `parseGamePgn()` tree + same move-grid visual pattern as GameViewer but without test/autoplay/explore modes
@@ -167,7 +169,8 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 - `/endings` — Endings hub (basic + advanced endings, pawn endings lesson, KPK defend)
 - `/vision` — Vision hub (25 blindfold/visualization trainers, including coordinate trainer)
 - `/learn/[piece]` — Puzzle list, category hub, endgame trainers, blindfold trainers, How to Win hub/sections
-- `/learn/[piece]/[puzzleId]` — Individual puzzle or How to Win lesson step
+- `/learn/[piece]/[puzzleId]` — Individual puzzle or How to Win lesson step. Next on a set's last puzzle (labelled Continue) goes to `/learn/[piece]/complete`
+- `/learn/[piece]/complete` — the set-complete card. Next goes to the following curriculum stop (`getStopStartHref`), or back to `/learn/[piece]` for sets that aren't on the path (`endings-reti`, `endings-pawn-races`)
 - `/board` — Board hub; `/board/coordinates` — Coordinate trainer
 - `/setup` — Place the Pieces stage list; `/setup/[stage]` — individual stage
 - `/games`, `/games/[gameId]` — Model game viewer
