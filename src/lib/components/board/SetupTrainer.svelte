@@ -255,6 +255,12 @@
   }
 
   let doneStars = $derived(mistakesToStars(mistakes));
+
+  // Going on is the main button, as on a solved puzzle; Enter goes there.
+  let nextButton = $state<Button>();
+  $effect(() => {
+    nextButton?.focus();
+  });
 </script>
 
 {#if phase === 'done'}
@@ -269,9 +275,13 @@
       </p>
     </div>
     <StarRating stars={doneStars} size="lg" />
-    <div class="btn-row">
-      <Button onclick={restart}>Play Again</Button>
-      <Button variant="primary" href="/play?level=random">Play a Game!</Button>
+    <div class="buttons">
+      <Button bind:this={nextButton} variant="primary" size="large" href="/play?level=random">
+        Play a Game! <span aria-hidden="true">&rarr;</span>
+      </Button>
+      <div class="again">
+        <Button onclick={restart}><span aria-hidden="true">&#8634;</span> Play Again</Button>
+      </div>
     </div>
   </div>
 {:else}
@@ -398,9 +408,16 @@
   .small { font-size: var(--size-secondary); }
   .tada { font-size: 3rem; margin-bottom: 0.75rem; }
 
-  .btn-row {
-    display: flex;
+  /* A grid stretches the main button across; Play Again keeps its own size
+     underneath, so it reads as the lesser choice. */
+  .buttons {
+    display: grid;
     gap: 0.75rem;
+    width: min(20rem, 100%);
+  }
+  .again {
+    display: flex;
+    justify-content: center;
   }
 
   /* ── Layout (matches GameViewer / OpeningTrainer) ─── */
