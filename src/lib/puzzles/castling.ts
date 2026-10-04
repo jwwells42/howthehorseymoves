@@ -7,7 +7,7 @@ export const castlingPuzzles: TacticPuzzle[] = [
     title: "Kingside Castle",
     instruction: "Castle kingside! Move the king two squares toward the rook.",
     fen: "8/8/8/8/8/8/8/4K2R w K - 0 1",
-    pgn: "1. O-O",
+    pgn: "{[%cal Ge1g1]} 1. O-O",
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -16,7 +16,7 @@ export const castlingPuzzles: TacticPuzzle[] = [
     title: "Queenside Castle",
     instruction: "Castle queenside!",
     fen: "8/8/8/8/8/8/8/R3K3 w Q - 0 1",
-    pgn: "1. O-O-O",
+    pgn: "{[%cal Ge1c1]} 1. O-O-O",
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {
@@ -51,7 +51,7 @@ export const castlingPuzzles: TacticPuzzle[] = [
     id: "castling-06",
     title: "Under Fire",
     instruction: "You're in check! Can you castle?",
-    fen: "4r3/8/8/8/8/8/8/4K2R w K - 0 1",
+    fen: "4r3/8/8/8/8/8/3P1P2/3RK2R w K - 0 1",
     pgn: "1. Kf1",
     starThresholds: { three: 1, two: 2, one: 3 },
   },
@@ -69,8 +69,8 @@ export const castlingPuzzles: TacticPuzzle[] = [
     id: "castling-08",
     title: "No Castling Allowed",
     instruction: "Can you castle? If not, walk to safety!",
-    fen: "8/8/b7/8/8/8/8/4K2R w K - 0 1",
-    pgn: "1. Kd1",
+    fen: "8/8/b7/8/8/8/3P3P/3RK2R w K - 0 1",
+    pgn: "1. Kf2",
     starThresholds: { three: 1, two: 2, one: 3 },
   },
   {

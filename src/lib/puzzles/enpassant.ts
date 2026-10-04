@@ -51,7 +51,7 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     id: "enpassant-06",
     title: "Clear the Path",
     instruction: "Use en passant to remove the blocker, then advance to the star!",
-    fen: "7k/2p5/8/3P4/2P5/8/8/K7 b - - 0 1",
+    fen: "8/2p3k1/8/3P4/2P5/8/8/K7 b - - 0 1",
     pgn: "1... c5 2. dxc6",
     starThresholds: { three: 1, two: 2, one: 3 },
   },
