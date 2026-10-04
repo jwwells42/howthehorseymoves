@@ -77,10 +77,11 @@ Adding a colour = add a token to app.css (with its Radix scale and step in a com
 - `endgame.ts` — Mate conversion logic for KQK, KRRK, KRK, KBBK, KBNK endgames
 
 ### Puzzle System (`src/lib/puzzles/`)
-- `types.ts` — Discriminated union `Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle`:
+- `types.ts` — Discriminated union `Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle | FindMovesPuzzle`:
   - `RoutePuzzle` (`type: "route"`) — navigate a piece to target stars, avoid walls. Has `playerPiece`, `position`, `walls`, `stars`, `starThresholds`, optional `arrows`/`threats`
   - `TacticPuzzle` (`type: "puzzle"`) — Lichess-style FEN+PGN tactic. Has `fen`, `pgn`, optional `demo`/`starThresholds`
   - `ConversionPuzzle` (`type: "conversion"`) — play against a bot to checkmate or promote. Has `position`, `bot`, `goal`, `starThresholds`
+  - `FindMovesPuzzle` (`type: "find-moves"`) — tap every square a piece can move to. Last in each piece's set. `mode` `'guided'` shows the squares, `'test'` (default) doesn't. `showHow: true` (on the first one per piece) has a hand tap two squares first, then the ticks clear and it's the student's turn; a tap on the board stops it. `opponentMove` (`{ from, to }`) plays a black move as the puzzle opens, and again on Retry, e.g. the pawn jump before en passant; `position` is the board before it
 - One file per **concept**, each exporting a puzzle array: per-piece (`rook.ts`, `bishop.ts`, …) + `castling.ts`, `enpassant.ts`, `checkmate.ts`, the tactic concepts (`pins.ts`, `forks.ts`, `skewers.ts`, `removing-defender.ts`, `discovered.ts`), `mate-in-1.ts`, `mate-in-2.ts`, `pawn-endings.ts`, `lucena.ts`, `reti.ts`, `pawn-races.ts`. Order puzzles easy→hard within each file
 - `index.ts` — Registry: `puzzleSets` (key → `PuzzleSet`), `getPuzzlesForPiece()`, `PIECES`, `CATEGORIES` (with `comingSoon` support for subcategories)
 
@@ -142,6 +143,7 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 - `board/CoordinateTrainer.svelte` — Timed 30s square-naming mini-game. Stars: 3 for 10+, 2 for 5+, 1 for 3+. Best score/stars persisted to localStorage (`coord-best`, `coord-best-stars`). Standalone from puzzle progress system
 - `board/SetupTrainer.svelte` — 7 stages: place rooks, knights, bishops, king, queen, pawns, then full setup. Each stage individually addressable via `/setup/[stage]`. Exports `SETUP_STAGES` via `<script module>`. Supports click-click and drag-from-tray. Stars based on mistakes: 0=3, 1-2=2, 3+=1. Per-stage localStorage: `setup-{slug}-best-stars`
 - `puzzle/PuzzleShell.svelte` — Main puzzle container. Hides target stars when `puzzle.arrows` is set
+- `puzzle/TapHand.svelte` — a 👆 that glides to a square and taps it (ring + press), drawn inside a Board. Used by `showHow` find-moves puzzles
 - `puzzle/SuccessOverlay.svelte` — the solved card: 🎉, stars, then Next on top (primary, large, full width, → arrow, focused so Enter works) and Retry below it (secondary, normal size, ↺). Next is the main action; Retry is how a student goes back for three stars, so it's on every card — the card looks the same however the puzzle went. Same-sized buttons side by side (Retry first) had students replaying puzzles they'd just solved
 - `puzzle/SetComplete.svelte` — the between-card after a set's last puzzle: 🏆, the set's stars, and the level's stops in a row with the knight stepping from this stop to the next (once, no loop; no motion under `prefers-reduced-motion`). One button, to the next stop
 - `puzzle/PuzzleSetCard.svelte` — a LinkCard for one puzzle set (`set: SubcategoryInfo`): solved/total, plus stars once every puzzle is solved. Used by the hub pages and `/learn/[piece]`

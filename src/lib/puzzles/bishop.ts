@@ -187,6 +187,7 @@ export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     playerPiece: "B",
     title: "Find All Moves",
     instruction: "Click every square the bishop can move to!",
+    showHow: true,
     position: [{ piece: "B", color: "w", square: "e4" }],
     walls: ["c2", "g6"],
     starThresholds: { three: 0, two: 2, one: 4 },

@@ -177,6 +177,7 @@ export const kingPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     playerPiece: "K",
     title: "Find All Moves",
     instruction: "Click every square the king can move to!",
+    showHow: true,
     position: [{ piece: "K", color: "w", square: "e4" }],
     walls: ["f5"],
     starThresholds: { three: 0, two: 2, one: 4 },

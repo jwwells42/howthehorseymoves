@@ -191,6 +191,7 @@ export const queenPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     playerPiece: "Q",
     title: "Find All Moves",
     instruction: "Click every square the queen can move to!",
+    showHow: true,
     position: [{ piece: "Q", color: "w", square: "d5" }],
     walls: ["b5", "d2", "f7"],
     starThresholds: { three: 0, two: 2, one: 4 },

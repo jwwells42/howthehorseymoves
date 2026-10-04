@@ -83,10 +83,10 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     position: [
       { piece: "P", color: "w", square: "e5" },
       { piece: "P", color: "b", square: "d6" },
-      { piece: "P", color: "b", square: "f5" },
+      { piece: "P", color: "b", square: "f7" },
     ],
     walls: [],
-    enPassantSquare: "f6",
+    opponentMove: { from: "f7", to: "f5" },
     starThresholds: { three: 0, two: 2, one: 4 },
   },
 ];

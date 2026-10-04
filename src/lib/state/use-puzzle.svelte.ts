@@ -742,7 +742,12 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
   for (const w of puzzle.walls) {
     placements.push({ piece: 'P' as PieceKind, color: 'w' as PieceColor, square: w });
   }
-  const board = createBoardState(placements, puzzle.enPassantSquare ? { enPassantSquare: puzzle.enPassantSquare } : undefined);
+  const startBoard = createBoardState(placements, puzzle.enPassantSquare ? { enPassantSquare: puzzle.enPassantSquare } : undefined);
+
+  // Black's move, if there is one, plays as the puzzle opens. The moves to
+  // find are the ones after it.
+  const opponentMove = puzzle.opponentMove;
+  const board = opponentMove ? applyMove(startBoard, opponentMove.from, opponentMove.to) : startBoard;
 
   // Find the player piece square
   const pieceSquare = puzzle.position.find(p => p.piece === puzzle.playerPiece && p.color === 'w')!.square;
@@ -757,6 +762,16 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
   let wrongMoveSquare = $state<SquareId | null>(null);
   let slideAnim = $state<SlideAnimation | null>(null);
   let demoRunning = $state(false);
+  let shownBoard = $state(startBoard);
+  let moved = $state(!opponentMove);
+  let moveRun = 0;
+
+  // Before the student starts, a hand taps two of the squares and they tick,
+  // so a student who can't read sees what to do. The ticks go when the hand
+  // does. A tap on the board ends it at once.
+  let hand = $state<{ square: SquareId; pressing: boolean } | null>(null);
+  let shownSquares = $state<SquareId[]>([]);
+  let showRun = 0;
 
   const stars = $derived.by(() => {
     if (!isComplete) return 0;
@@ -799,9 +814,66 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     demoRunning = false;
   }
 
+  function playOpponentMove() {
+    if (!opponentMove) return;
+    const run = ++moveRun;
+    shownBoard = startBoard;
+    moved = false;
+    setTimeout(() => {
+      if (run !== moveRun) return;
+      const { piece, color } = startBoard.pieces.get(opponentMove.from)!;
+      slideAnim = { piece, color, from: opponentMove.from, to: opponentMove.to };
+      shownBoard = board;
+      playSound('move');
+      setTimeout(() => {
+        if (run !== moveRun) return;
+        slideAnim = null;
+        moved = true;
+      }, 500);
+    }, 300);
+  }
+  playOpponentMove();
+
+  async function showHow() {
+    const run = ++showRun;
+    const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    // The farthest square the piece reaches, then the farthest in another
+    // direction, so the hand doesn't cover the piece or tap only next door
+    const [px, py] = squareToCoords(pieceSquare);
+    const away = (sq: SquareId) => squareToCoords(sq).map((n, i) => n - (i === 0 ? px : py));
+    const reach = (sq: SquareId) => Math.max(...away(sq).map(Math.abs));
+    const heading = (sq: SquareId) => away(sq).map(Math.sign).join();
+    const far = [...correctSquaresArr].sort((a, b) => reach(b) - reach(a));
+    const squares = far.length > 1 ? [far[0], far.find((sq) => heading(sq) !== heading(far[0])) ?? far[1]] : far;
+
+    await pause(opponentMove ? 1200 : 400);
+    for (const sq of squares) {
+      if (run !== showRun) return;
+      hand = { square: sq, pressing: false };
+      await pause(700);
+      if (run !== showRun) return;
+      hand = { square: sq, pressing: true };
+      shownSquares = [...shownSquares, sq];
+      playSound('correct');
+      await pause(250);
+      if (run !== showRun) return;
+      hand = { square: sq, pressing: false };
+    }
+    await pause(900);
+    if (run === showRun) stopShowing();
+  }
+
+  function stopShowing() {
+    showRun++;
+    hand = null;
+    shownSquares = [];
+  }
+
   function handleSquareClick(sq: SquareId) {
     if (isComplete) return;
     if (mode === 'demo') return; // demo is non-interactive
+    if (!moved) return; // Black's move is still playing
+    stopShowing();
     if (sq === pieceSquare) return;
     if (foundSquares.has(sq)) return;
 
@@ -832,16 +904,18 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     wrongMoveSquare = null;
     slideAnim = null;
     demoRunning = false;
+    stopShowing();
+    playOpponentMove();
     if (mode === 'demo') {
       setTimeout(() => runDemo(), 400);
     }
   }
 
   return {
-    get board() { return board; },
+    get board() { return shownBoard; },
     get selectedSquare() { return null; },
     get validMoves() { return [] as SquareId[]; },
-    get reachedTargets() { return [...foundSquares] as SquareId[]; },
+    get reachedTargets() { return [...foundSquares, ...shownSquares] as SquareId[]; },
     get moveCount() { return 0; },
     get isComplete() { return isComplete; },
     get stalemateTrigger() { return false; },
@@ -856,11 +930,14 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     get foundCount() { return foundSquares.size; },
     get mistakes() { return mistakes; },
     get findMovesMode() { return mode; },
+    get hand() { return hand; },
     getMovesFrom() { return [] as SquareId[]; },
     handleSquareClick,
     handleDrop(_from: SquareId, _to: SquareId) {},
     completePromotion(_p: PieceKind) {},
     reset,
     runDemo,
+    showHow,
+    stopShowing,
   };
 }

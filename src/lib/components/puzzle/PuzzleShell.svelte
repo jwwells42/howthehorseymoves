@@ -1,11 +1,11 @@
 <script lang="ts">
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
-  import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
   import PromotionPicker from '$lib/components/board/PromotionPicker.svelte';
   import PuzzleControls from './PuzzleControls.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import SuccessOverlay from './SuccessOverlay.svelte';
+  import TapHand from './TapHand.svelte';
   import { createPuzzleState } from '$lib/state/use-puzzle.svelte';
   import type { Puzzle } from '$lib/puzzles/types';
   import type { PieceKind, SquareId } from '$lib/logic/types';
@@ -25,22 +25,26 @@
   let isConversion = $derived(puzzle.type === 'conversion');
   let isFindMoves = $derived(puzzle.type === 'find-moves');
   let findMovesMode = $derived(puzzle.type === 'find-moves' ? (puzzle.mode ?? 'test') : 'test');
-  let showFindMovesIntro = $state(false);
 
   $effect(() => {
     if (puzzle.type === 'find-moves') {
-      if (findMovesMode === 'test') {
-        showFindMovesIntro = true;
-      } else {
-        showFindMovesIntro = false;
-      }
       // Auto-start demo mode
       if (findMovesMode === 'demo') {
         const s = ps as unknown as { runDemo: () => void };
         setTimeout(() => s.runDemo(), 400);
       }
+      // A hand shows what to do, then it's the student's turn
+      if (puzzle.showHow) {
+        const s = ps as unknown as { showHow: () => void; stopShowing: () => void };
+        s.showHow();
+        return () => s.stopShowing();
+      }
     }
   });
+
+  let hand = $derived(
+    puzzle.type === 'find-moves' ? (ps as unknown as { hand: { square: SquareId; pressing: boolean } | null }).hand : null
+  );
 
   // Find-moves specific derived values (safe to access only when isFindMoves is true)
   let findMovesInfo = $derived.by(() => {
@@ -116,14 +120,11 @@
       arrows={ps.arrows}
       highlights={ps.highlights}
       {obstacles}
-    />
-    {#if showFindMovesIntro}
-      <BoardOverlay onclick={() => (showFindMovesIntro = false)}>
-        <div class="find-intro-icon" aria-hidden="true">&#10003;</div>
-        <p class="find-intro-text">Tap every square this piece can move to!</p>
-        <span class="find-intro-hint">Tap to start</span>
-      </BoardOverlay>
-    {/if}
+    >
+      {#if hand}
+        <TapHand square={hand.square} pressing={hand.pressing} />
+      {/if}
+    </Board>
     {#if ps.pendingPromotion}
       <PromotionPicker onpick={ps.completePromotion} />
     {/if}
@@ -206,24 +207,5 @@
     align-items: center;
     gap: 0.25rem;
     white-space: nowrap;
-  }
-
-  /* Find-moves intro, over the board */
-  .find-intro-icon {
-    font-size: 4rem;
-    color: var(--correct-text);
-  }
-  .find-intro-text {
-    font-size: var(--size-large);
-    font-weight: var(--weight-strong);
-    max-width: 16rem;
-  }
-  .find-intro-hint {
-    color: var(--ink-muted);
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
   }
 </style>

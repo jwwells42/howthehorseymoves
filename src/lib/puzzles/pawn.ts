@@ -224,6 +224,7 @@ export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     playerPiece: "P",
     title: "Find All Moves",
     instruction: "Click every square the pawn can move to!",
+    showHow: true,
     position: [{ piece: "P", color: "w", square: "e2" }],
     walls: [],
     starThresholds: { three: 0, two: 2, one: 4 },

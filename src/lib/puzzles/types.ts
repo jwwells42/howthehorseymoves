@@ -40,9 +40,14 @@ export interface FindMovesPuzzle extends PuzzleBase {
   position: PiecePlacement[];
   walls: SquareId[];
   enPassantSquare?: SquareId;
+  /** Black's move, played on the board as the puzzle opens, e.g. the pawn
+      jump that makes en passant possible. `position` is before it */
+  opponentMove?: { from: SquareId; to: SquareId };
   starThresholds: { three: number; two: number; one: number };
   /** 'demo' = animate moves, 'guided' = glow targets, 'test' = no hints (default) */
   mode?: 'demo' | 'guided' | 'test';
+  /** A hand taps two of the squares first, to show what to do */
+  showHow?: true;
 }
 
 export type Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle | FindMovesPuzzle;

@@ -188,6 +188,7 @@ export const knightPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     playerPiece: "N",
     title: "Find All Moves",
     instruction: "Click every square the knight can jump to!",
+    showHow: true,
     position: [{ piece: "N", color: "w", square: "d5" }],
     walls: ["c3", "f4"],
     starThresholds: { three: 0, two: 2, one: 4 },

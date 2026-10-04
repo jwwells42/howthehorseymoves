@@ -188,6 +188,7 @@ export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
     title: "Find the Moves",
     instruction: "Tap every square the rook can move to!",
     mode: "test",
+    showHow: true,
     position: [{ piece: "R", color: "w", square: "e4" }],
     walls: [],
     starThresholds: { three: 0, two: 2, one: 4 },
