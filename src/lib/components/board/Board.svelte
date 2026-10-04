@@ -528,7 +528,8 @@
     stroke: var(--board-move-dot);
     stroke-width: 4;
   }
-  .move-dot.onto-target { fill: var(--board-target); }
+  /* See-through, like the other move dots, so the star underneath shows */
+  .move-dot.onto-target { fill: var(--board-target); fill-opacity: 0.45; }
   .move-ring.onto-target { stroke: var(--board-target); }
 
   .route-leg {
