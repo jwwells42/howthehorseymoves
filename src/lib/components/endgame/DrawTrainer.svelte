@@ -549,10 +549,14 @@
           <p class="best-text">Best: {bestStars} stars</p>
         {/if}
         <div class="result-buttons">
-          <Button onclick={reset}>Try Again</Button>
           {#if onNext}
-            <Button variant="primary" onclick={onNext}>Continue</Button>
+            <Button variant="primary" size="large" onclick={onNext}>
+              Continue <span aria-hidden="true">&rarr;</span>
+            </Button>
           {/if}
+          <div class="lesser">
+            <Button onclick={reset}>Try Again</Button>
+          </div>
         </div>
       </div>
     {/if}
@@ -561,9 +565,11 @@
       <div class="result">
         <p class="result-text">✗ The opponent broke through.</p>
         <div class="result-buttons">
-          <Button variant="primary" onclick={reset}>Try Again</Button>
+          <Button variant="primary" size="large" onclick={reset}>Try Again</Button>
           {#if onNext}
-            <Button onclick={onNext}>Continue</Button>
+            <div class="lesser">
+              <Button onclick={onNext}>Continue</Button>
+            </div>
           {/if}
         </div>
       </div>
@@ -612,8 +618,14 @@
     margin: 0;
   }
 
+  /* The main button stretches across; the other keeps its size underneath */
   .result-buttons {
-    display: flex;
+    display: grid;
     gap: 0.75rem;
+    width: min(20rem, 100%);
+  }
+  .lesser {
+    display: flex;
+    justify-content: center;
   }
 </style>

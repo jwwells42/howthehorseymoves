@@ -11,7 +11,9 @@
   import { createGameState } from '$lib/state/use-game.svelte';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
-  import { getNextStopAfter } from '$lib/curriculum';
+  import { page } from '$app/state';
+  import { stopFromUrl } from '$lib/curriculum';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import type { BotLevel } from '$lib/logic/bot';
   import type { SquareId } from '$lib/logic/types';
 
@@ -19,10 +21,9 @@
 
   let character = $derived(getCharacter(botLevel));
 
-  // Every bot is the boss of a curriculum level, so beating one should offer the
-  // way onward like any other stop. The stop ids are `play-{level}` throughout;
-  // the last bot in the curriculum has no next stop, and the button hides.
-  let nextStop = $derived(getNextStopAfter(`play-${botLevel}`));
+  // Every bot is the boss of a curriculum level. Opened from the path, beating
+  // it offers Continue, on to the next level (FinishActions does that).
+  let onPath = $derived(stopFromUrl(page.url) !== null);
 
   let game = $derived(createGameState(botLevel));
 
@@ -316,12 +317,7 @@
     {#if game.result === 'checkmate-white' && reviewIndex === null}
       <BoardOverlay>
         <ResultSymbol result="win" />
-        <div class="win-buttons">
-          <Button onclick={startNewGame}>Play Again</Button>
-          {#if nextStop}
-            <Button variant="primary" href={nextStop.href}>{nextStop.name} &rarr;</Button>
-          {/if}
-        </div>
+        <FinishActions label="Play Again" onclick={startNewGame} size="normal" />
       </BoardOverlay>
     {/if}
     {#if isDraw && reviewIndex === null && showDrawOverlay}
@@ -387,7 +383,8 @@
     />
 
     {#if game.result !== 'playing'}
-      <Button variant="primary" onclick={startNewGame}>New Game</Button>
+      <!-- On the path a win's Continue is the main button, so this steps back -->
+      <Button variant={onPath && game.result === 'checkmate-white' ? 'secondary' : 'primary'} onclick={startNewGame}>New Game</Button>
     {:else if confirmingResign}
       <div class="resign-confirm">
         <span class="resign-flag" aria-hidden="true">&#127987;&#65039;</span>
@@ -507,11 +504,5 @@
     background: var(--line);
   }
 
-  .win-buttons {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 22rem;
-  }
+
 </style>

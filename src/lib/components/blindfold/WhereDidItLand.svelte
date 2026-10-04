@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import AnswerInput from './AnswerInput.svelte';
   import { playSound } from '$lib/state/sound';
 
@@ -237,7 +238,7 @@
       {#if stars > 0}
         <StarRating {stars} size="lg" />
       {/if}
-      <Button variant="primary" size="large" onclick={goIdle}>Play Again</Button>
+      <FinishActions label="Play Again" onclick={goIdle} />
     </div>
   {:else if phase === 'feedback' && question}
     {@const colorName = question.askColor === 'w' ? 'white' : 'black'}

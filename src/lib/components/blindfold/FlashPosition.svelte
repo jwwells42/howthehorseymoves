@@ -3,6 +3,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Choice from '$lib/components/ui/Choice.svelte';
   import { playSound } from '$lib/state/sound';
   import { createBoardState, type PieceColor, type PieceKind, type PiecePlacement, type SquareId } from '$lib/logic/types';
@@ -191,7 +192,7 @@
       {#if overallStars > 0}
         <StarRating stars={overallStars} size="lg" />
       {/if}
-      <Button variant="primary" size="large" onclick={goIdle}>Play Again</Button>
+      <FinishActions label="Play Again" onclick={goIdle} />
     </div>
   {:else if phase === 'showing'}
     <div class="center-col">

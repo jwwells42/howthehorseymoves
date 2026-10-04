@@ -5,6 +5,7 @@
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import BestScore from '$lib/components/ui/BestScore.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Countdown from '$lib/components/ui/Countdown.svelte';
   import { playSound } from '$lib/state/sound';
   import { MARK, highlight } from '$lib/board-marks';
@@ -143,8 +144,7 @@
         <span class={['threshold', score >= 10 && 'achieved']}><StarRating stars={3} size="sm" /> 10</span>
       </div>
       <BestScore score={bestScore} stars={bestStars} />
-      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
-      <a href="/setup" class="setup-link">Place the Pieces! &rarr;</a>
+      <FinishActions label="Play Again" onclick={startGame} />
     </div>
   {/if}
 
@@ -250,15 +250,5 @@
   .final-score {
     font-size: 3rem;
     font-weight: var(--weight-strong);
-  }
-
-  .setup-link {
-    font-size: var(--size-secondary);
-    color: var(--ink-muted);
-    margin-top: 0.25rem;
-  }
-
-  .setup-link:hover {
-    color: var(--ink);
   }
 </style>

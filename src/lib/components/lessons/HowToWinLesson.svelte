@@ -1,5 +1,8 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { page } from '$app/state';
+  import { stopFromUrl, withStop } from '$lib/curriculum';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
   import ResultSymbol from '$lib/components/board/ResultSymbol.svelte';
@@ -137,7 +140,7 @@
       done = true;
       playSound('stars');
     } else {
-      goto(`/learn/how-to-win-${section}/${steps[stepIndex + 1].slug}`);
+      goto(withStop(`/learn/how-to-win-${section}/${steps[stepIndex + 1].slug}`, pathStop));
     }
   }
 
@@ -271,17 +274,18 @@
   let sectionIdx = $derived(SECTIONS.findIndex((s) => s.key === section));
   let nextSection = $derived(SECTIONS[sectionIdx + 1] ?? null);
 
+  // Opened from the path: step links pass the stop along, and the last
+  // section ends with Continue
+  let pathStop = $derived(stopFromUrl(page.url));
+
   function playAgain() {
-    goto(`/learn/how-to-win-${section}/${steps[0].slug}`);
+    goto(withStop(`/learn/how-to-win-${section}/${steps[0].slug}`, pathStop));
   }
 
   function goToNextSection() {
-    if (nextSection) {
-      const nextSteps = getStepsForSection(nextSection.key);
-      goto(`/learn/how-to-win-${nextSection.key}/${nextSteps[0].slug}`);
-    } else {
-      goto('/play?level=random');
-    }
+    if (!nextSection) return;
+    const nextSteps = getStepsForSection(nextSection.key);
+    goto(withStop(`/learn/how-to-win-${nextSection.key}/${nextSteps[0].slug}`, pathStop));
   }
 
   /* ── Victory overlay check ─────────────────────────────── */
@@ -307,12 +311,18 @@
       </p>
     </div>
     <StarRating stars={doneStars} size="lg" />
-    <div class="done-buttons">
-      <Button onclick={playAgain}>Play Again</Button>
-      <Button variant="primary" onclick={goToNextSection}>
-        {nextSection ? `Continue to ${nextSection.title}!` : 'Play vs Computer!'}
-      </Button>
-    </div>
+    {#if nextSection}
+      <div class="done-buttons">
+        <Button variant="primary" size="large" onclick={goToNextSection}>
+          Continue to {nextSection.title}! <span aria-hidden="true">&rarr;</span>
+        </Button>
+        <div class="lesser">
+          <Button onclick={playAgain}>Play Again</Button>
+        </div>
+      </div>
+    {:else}
+      <FinishActions label="Play Again" onclick={playAgain} />
+    {/if}
   </div>
 {:else if step}
   <div class="container">
@@ -475,8 +485,14 @@
     color: var(--ink-muted);
     margin: 0;
   }
+  /* The main button stretches across; Play Again keeps its size underneath */
   .done-buttons {
-    display: flex;
+    display: grid;
     gap: 0.75rem;
+    width: min(20rem, 100%);
+  }
+  .lesser {
+    display: flex;
+    justify-content: center;
   }
 </style>

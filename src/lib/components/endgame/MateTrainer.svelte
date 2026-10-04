@@ -2,7 +2,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import { playSound } from '$lib/state/sound';
   import { type BoardState, type SquareId, createBoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
@@ -229,7 +229,7 @@
         {#if bestStars > 0 && bestStars > stars}
           <p class="best-text">Best: {bestStars} stars</p>
         {/if}
-        <Button variant="primary" onclick={reset}>New Position</Button>
+        <FinishActions label="New Position" onclick={reset} size="normal" />
       </div>
     {/if}
   {/snippet}

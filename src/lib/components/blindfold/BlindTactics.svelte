@@ -3,6 +3,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Choice from '$lib/components/ui/Choice.svelte';
   import { parseFen, createBoardState } from '$lib/logic/types';
   import { isCheckmate, getLegalMoves } from '$lib/logic/attacks';
@@ -40,6 +41,8 @@
   type Phase = 'idle' | 'sighted' | 'blind' | 'solved' | 'wrong';
 
   let phase = $state<Phase>('idle');
+  /** A run has been played to the end, so the start screen ends it */
+  let finished = $state(false);
   let puzzleIdx = $state(0);
   let delayMoves = $state(0);
   let originalBoard = $state<BoardState | null>(null);
@@ -165,6 +168,7 @@
         bestStars = stars;
       }
       if (stars >= 1) playSound('stars');
+      finished = true;
       phase = 'idle';
       return;
     }
@@ -189,7 +193,11 @@
       {#if bestStars > 0}
         <StarRating stars={bestStars} size="sm" />
       {/if}
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+      {#if finished}
+        <FinishActions label="Play Again" onclick={startGame} />
+      {:else}
+        <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+      {/if}
     </div>
 
   {:else if phase === 'sighted' && originalBoard}

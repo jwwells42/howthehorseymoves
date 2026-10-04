@@ -306,10 +306,14 @@
       <div class="result">
         <StarRating {stars} size="lg" />
         <div class="result-buttons">
-          <Button onclick={reset}>Play Again</Button>
           {#if onNext}
-            <Button variant="primary" onclick={onNext}>Continue</Button>
+            <Button variant="primary" size="large" onclick={onNext}>
+              Continue <span aria-hidden="true">&rarr;</span>
+            </Button>
           {/if}
+          <div class="lesser">
+            <Button onclick={reset}>Play Again</Button>
+          </div>
         </div>
       </div>
     {/if}
@@ -350,8 +354,14 @@
     flex-shrink: 0;
   }
 
+  /* The main button stretches across; the other keeps its size underneath */
   .result-buttons {
-    display: flex;
+    display: grid;
     gap: 0.75rem;
+    width: min(20rem, 100%);
+  }
+  .lesser {
+    display: flex;
+    justify-content: center;
   }
 </style>

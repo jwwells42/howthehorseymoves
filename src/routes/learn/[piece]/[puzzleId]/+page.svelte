@@ -6,6 +6,7 @@
   import HowToWinLesson from '$lib/components/lessons/HowToWinLesson.svelte';
   import PawnEndingsLesson from '$lib/components/lessons/PawnEndingsLesson.svelte';
   import { getStepById } from '$lib/components/lessons/pawn-endings-data';
+  import { doneHref, stopFromUrl, withStop } from '$lib/curriculum';
   import type { HowToWinSection } from '$lib/components/lessons/how-to-win-data';
 
   let piece = $derived(page.params.piece ?? '');
@@ -24,18 +25,20 @@
   let currentIdx = $derived(puzzleSet?.puzzles.findIndex((p) => p.id === puzzleId) ?? -1);
   let nextPuzzle = $derived(puzzleSet?.puzzles[currentIdx + 1]);
 
-  // The last puzzle of a set goes to the set-complete card, which leads on to
-  // the next stop on the path.
+  // Opened from the path, the last puzzle of a set goes to the screen between
+  // stops. Opened from a hub, it goes back to the set's list.
+  let pathStop = $derived(stopFromUrl(page.url));
   let nextLabel = $derived(nextPuzzle ? undefined : 'Continue');
 
   function handleNext() {
-    goto(nextPuzzle ? `/learn/${piece}/${nextPuzzle.id}` : `/learn/${piece}/complete`);
+    if (nextPuzzle) goto(withStop(`/learn/${piece}/${nextPuzzle.id}`, pathStop));
+    else goto(pathStop ? doneHref(pathStop) : `/learn/${piece}`);
   }
 </script>
 
 {#if isPawnEndings && pawnStep}
   <main class="page lesson-page">
-    <a href="/learn/pawn-endings-lesson" class="back-link">
+    <a href={withStop('/learn/pawn-endings-lesson', pathStop)} class="back-link">
       &larr; Back to Pawn Endings
     </a>
     {#key puzzleId}
@@ -45,7 +48,7 @@
 {:else if howToWinMatch}
   {@const section = howToWinMatch[1] as HowToWinSection}
   <main class="page lesson-page">
-    <a href="/learn/{piece}" class="back-link">
+    <a href={withStop(`/learn/${piece}`, pathStop)} class="back-link">
       &larr; Back to {section === 'check' ? 'Check' : section === 'checkmate' ? 'Checkmate' : 'Stalemate'}
     </a>
     {#key puzzleId}
@@ -54,7 +57,7 @@
   </main>
 {:else if puzzle}
   <main class="page">
-    <a href="/learn/{piece}" class="back-link">
+    <a href={withStop(`/learn/${piece}`, pathStop)} class="back-link">
       &larr; Back to {piece} puzzles
     </a>
     {#key puzzle.id}

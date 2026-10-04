@@ -1,6 +1,6 @@
 <script lang="ts">
   import StarRating from '$lib/components/ui/StarRating.svelte';
-  import type { CurriculumChapter } from '$lib/curriculum';
+  import { type CurriculumChapter, withStop } from '$lib/curriculum';
 
   interface Props {
     chapters: CurriculumChapter[];
@@ -24,7 +24,7 @@
           {@const isNext = stop.id === firstIncompleteId}
           {@const isNone = stop.progress.type === 'none'}
           <a
-            href={stop.href}
+            href={withStop(stop.href, stop)}
             id={stop.id}
             class={['card', isNext && 'up-next', isNone && 'no-track']}
           >

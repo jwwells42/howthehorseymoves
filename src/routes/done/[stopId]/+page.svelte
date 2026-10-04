@@ -1,0 +1,80 @@
+<script lang="ts">
+  import { page } from '$app/state';
+  import { progressState } from '$lib/state/progress-store';
+  import {
+    CURRICULUM,
+    type CurriculumChapter,
+    findStop,
+    getNextStopAfter,
+    getStopStars,
+    getStopStartHref,
+    withStop,
+  } from '$lib/curriculum';
+  import StopComplete from '$lib/components/curriculum/StopComplete.svelte';
+  import LevelComplete from '$lib/components/curriculum/LevelComplete.svelte';
+
+  // A stop on the path was just finished. If the next stop is in the same
+  // level, the knight steps on to it; if it's in the next level (the stop was
+  // the level's bot), it's the level-up screen.
+
+  let found = $derived(findStop(page.params.stopId ?? ''));
+  let nextStop = $derived(found ? getNextStopAfter(found.stop.id) : null);
+  let nextChapter = $derived(nextStop ? findStop(nextStop.id)?.chapter : undefined);
+
+  // Stars are read from saved progress, which loads in the browser after the
+  // first render, so everything waits for `loaded`.
+  function levelStops(chapter: CurriculumChapter) {
+    void $progressState;
+    return chapter.stops.map((s) => ({ id: s.id, name: s.name, icon: s.icon, done: getStopStars(s) > 0 }));
+  }
+
+  let next = $derived.by(() => {
+    void $progressState;
+    return nextStop
+      ? { href: withStop(getStopStartHref(nextStop), nextStop), label: `Next: ${nextStop.name}` }
+      : { href: '/', label: 'Home' };
+  });
+</script>
+
+<main class="page">
+  {#if !found}
+    <h1>Not found</h1>
+    <a href="/" class="muted-link">Back to home</a>
+  {:else if $progressState.loaded}
+    {@const { chapter, stop } = found}
+    {#if nextChapter === chapter}
+      <StopComplete
+        name={stop.name}
+        icon={stop.icon}
+        stars={stop.progress.type === 'none' ? undefined : getStopStars(stop)}
+        level={{
+          title: chapter.title,
+          stops: levelStops(chapter),
+          from: chapter.stops.indexOf(stop),
+          to: chapter.stops.findIndex((s) => s.id === nextStop?.id),
+        }}
+        {next}
+      />
+    {:else}
+      <LevelComplete
+        level={{ title: chapter.title, stops: levelStops(chapter) }}
+        nextLevel={nextChapter ? { title: nextChapter.title, stops: levelStops(nextChapter) } : undefined}
+        {next}
+      />
+    {/if}
+  {/if}
+</main>
+
+<style>
+  .page {
+    min-height: calc(100dvh - 3rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .muted-link { color: var(--ink-muted); }
+  .muted-link:hover { text-decoration: underline; }
+</style>

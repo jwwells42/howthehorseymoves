@@ -4,6 +4,7 @@
   import MoveNav from '$lib/components/board/MoveNav.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import AnswerInput from './AnswerInput.svelte';
   import { type BoardState, type SquareId, type PieceKind, createBoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
@@ -360,7 +361,7 @@
           </div>
         {/if}
 
-        <Button variant="primary" onclick={startGame}>New Position</Button>
+        <FinishActions label="New Position" onclick={startGame} size="normal" />
       </div>
     {/if}
   {/if}

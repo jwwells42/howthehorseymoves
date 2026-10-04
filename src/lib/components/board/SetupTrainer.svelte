@@ -45,10 +45,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { page } from '$app/state';
+  import { stopFromUrl, withStop } from '$lib/curriculum';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import { type BoardState, type PieceColor, RANKS } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
   import BackLink from '$lib/components/ui/BackLink.svelte';
   import { playSound } from '$lib/state/sound';
 
@@ -214,7 +216,7 @@
 
         // Advance to next stage or show done
         if (stageIndex < SETUP_STAGES.length - 1) {
-          goto(`/setup/${SETUP_STAGES[stageIndex + 1].slug}`);
+          goto(withStop(`/setup/${SETUP_STAGES[stageIndex + 1].slug}`, pathStop));
         } else {
           phase = 'done';
         }
@@ -250,17 +252,14 @@
     trayDrag = null;
   }
 
+  // Opened from the path: stage links pass the stop along
+  let pathStop = $derived(stopFromUrl(page.url));
+
   function restart() {
-    goto(`/setup/rooks`);
+    goto(withStop('/setup/rooks', pathStop));
   }
 
   let doneStars = $derived(mistakesToStars(mistakes));
-
-  // Going on is the main button, as on a solved puzzle; Enter goes there.
-  let nextButton = $state<Button>();
-  $effect(() => {
-    nextButton?.focus();
-  });
 </script>
 
 {#if phase === 'done'}
@@ -275,14 +274,7 @@
       </p>
     </div>
     <StarRating stars={doneStars} size="lg" />
-    <div class="buttons">
-      <Button bind:this={nextButton} variant="primary" size="large" href="/play?level=random">
-        Play a Game! <span aria-hidden="true">&rarr;</span>
-      </Button>
-      <div class="again">
-        <Button onclick={restart}><span aria-hidden="true">&#8634;</span> Play Again</Button>
-      </div>
-    </div>
+    <FinishActions label="Play Again" onclick={restart} />
   </div>
 {:else}
   <div
@@ -355,7 +347,7 @@
           {@const stars = allStageStars[s.slug] ?? 0}
           {@const isCurrent = s.slug === stageSlug}
           <a
-            href="/setup/{s.slug}"
+            href={withStop(`/setup/${s.slug}`, pathStop)}
             class={['stage-item', isCurrent && 'active']}
           >
             <span class="stage-num">{idx + 1}.</span>
@@ -408,17 +400,7 @@
   .small { font-size: var(--size-secondary); }
   .tada { font-size: 3rem; margin-bottom: 0.75rem; }
 
-  /* A grid stretches the main button across; Play Again keeps its own size
-     underneath, so it reads as the lesser choice. */
-  .buttons {
-    display: grid;
-    gap: 0.75rem;
-    width: min(20rem, 100%);
-  }
-  .again {
-    display: flex;
-    justify-content: center;
-  }
+
 
   /* ── Layout (matches GameViewer / OpeningTrainer) ─── */
   .setup-layout {

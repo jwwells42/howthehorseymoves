@@ -2,6 +2,11 @@
   import { page } from '$app/state';
   import { getGame } from '$lib/games';
   import GameViewer from '$lib/components/game/GameViewer.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import { doneHref, stopFromUrl } from '$lib/curriculum';
+
+  // Opened from the path: there's no finish here, so Continue is always on offer
+  let pathStop = $derived(stopFromUrl(page.url));
 
   let gameId = $derived(page.params.gameId ?? '');
   let game = $derived(getGame(gameId));
@@ -9,7 +14,12 @@
 
 {#if game}
   <main class="page">
-    <a href="/games" class="back-link">&larr; Back to games</a>
+    <div class="top-row">
+      <a href="/games" class="back-link">&larr; Back to games</a>
+      {#if pathStop}
+        <Button variant="primary" href={doneHref(pathStop)}>Continue <span aria-hidden="true">&rarr;</span></Button>
+      {/if}
+    </div>
     <GameViewer {game} />
   </main>
 {:else}
@@ -40,6 +50,17 @@
     max-width: 56rem;
     margin: 0 auto;
   }
+
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+  }
+  /* The row keeps the back link's spacing below it */
+  .top-row .back-link { margin-bottom: 0; }
 
   .back-link {
     font-size: var(--size-secondary);

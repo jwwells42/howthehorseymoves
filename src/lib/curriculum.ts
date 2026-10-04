@@ -248,7 +248,7 @@ export function getFirstIncompleteStop(stopStars: Record<string, number>): { id:
   for (const chapter of CURRICULUM) {
     for (const stop of chapter.stops) {
       if (stop.id !== id) continue;
-      return { id: stop.id, name: stop.name, href: getStopStartHref(stop) };
+      return { id: stop.id, name: stop.name, href: withStop(getStopStartHref(stop), stop) };
     }
   }
   return null;
@@ -263,13 +263,42 @@ export function getStopStartHref(stop: CurriculumStop): string {
   return firstIncomplete ? `/learn/${key}/${firstIncomplete.id}` : stop.href;
 }
 
-/** The stop that teaches a puzzle set, with its chapter. Null if the set is
- *  only on the hub pages, not the path. */
-export function findPuzzleSetStop(key: string): { chapter: CurriculumChapter; stop: CurriculumStop } | null {
+/** A stop by its id, with its chapter. */
+export function findStop(id: string): { chapter: CurriculumChapter; stop: CurriculumStop } | null {
   for (const chapter of CURRICULUM) {
-    for (const stop of chapter.stops) {
-      if (stop.progress.type === 'puzzle-set' && stop.progress.key === key) return { chapter, stop };
-    }
+    const stop = chapter.stops.find(s => s.id === id);
+    if (stop) return { chapter, stop };
   }
   return null;
+}
+
+// ═══════════════════════════════════════════════
+// Progression mode
+// ═══════════════════════════════════════════════
+//
+// A student who opens a stop from the path (the landing page, or the screen
+// between stops) carries ?stop=<stop id> in the URL, and the activity passes
+// it along as it moves from page to page. When it's there, finishing the
+// activity offers Continue, which leads to /done/<stop id>: the screen that
+// moves the knight on to the next stop, or up to the next level. The same
+// activity opened from a hub or the nav bar has no ?stop and ends as it
+// always has.
+
+const STOP_PARAM = 'stop';
+
+/** The stop this page was opened from, if it was opened from the path. */
+export function stopFromUrl(url: URL): CurriculumStop | null {
+  const id = url.searchParams.get(STOP_PARAM);
+  return id ? (findStop(id)?.stop ?? null) : null;
+}
+
+/** A link that stays in progression mode: adds ?stop= when there's a stop. */
+export function withStop(href: string, stop: CurriculumStop | null | undefined): string {
+  if (!stop) return href;
+  return `${href}${href.includes('?') ? '&' : '?'}${STOP_PARAM}=${stop.id}`;
+}
+
+/** The screen after finishing a stop on the path. */
+export function doneHref(stop: CurriculumStop): string {
+  return `/done/${stop.id}`;
 }

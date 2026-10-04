@@ -3,6 +3,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import { parseFen, createBoardState } from '$lib/logic/types';
   import { isCheckmate, getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
@@ -148,7 +149,7 @@
       {#if doneStars >= 1}
         <StarRating stars={doneStars} size="lg" />
       {/if}
-      <Button variant="primary" size="large" onclick={() => { phase = 'idle'; }}>Play Again</Button>
+      <FinishActions label="Play Again" onclick={() => { phase = 'idle'; }} />
     </div>
 
   {:else if (phase === 'solved' || phase === 'wrong') && board}

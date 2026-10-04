@@ -18,7 +18,14 @@
   import type { PiecePlacement } from '$lib/logic/types';
   import { SECTIONS as HOW_TO_WIN_SECTIONS, getSectionSteps } from '$lib/components/lessons/how-to-win-data';
   import type { HowToWinSection } from '$lib/components/lessons/how-to-win-data';
+  import { doneHref, stopFromUrl, withStop } from '$lib/curriculum';
+  import { goto } from '$app/navigation';
   let piece = $derived(page.params.piece ?? '');
+  // Opened from the path: links pass the stop along (see progression mode in curriculum.ts)
+  let pathStop = $derived(stopFromUrl(page.url));
+  function goDone() {
+    if (pathStop) goto(doneHref(pathStop));
+  }
 
   // Endgame positions
   const ENDGAME_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[] }> = {
@@ -160,6 +167,7 @@
       placements={drawEndgame.placements}
       storageKey={drawEndgame.storageKey}
       botStrategy={drawEndgame.botStrategy}
+      onNext={pathStop ? goDone : undefined}
     />
   </main>
 {:else if piece === 'pawn-endings-lesson'}
@@ -170,12 +178,12 @@
     width="narrow"
   >
     <div class="start">
-      <Button variant="primary" size="large" href="/learn/pawn-endings-lesson/{pawnEndingSteps[0].id}">Start</Button>
+      <Button variant="primary" size="large" href={withStop(`/learn/pawn-endings-lesson/${pawnEndingSteps[0].id}`, pathStop)}>Start</Button>
     </div>
     <CardList>
       {#each pawnEndingSteps as step, idx}
         <LinkCard
-          href="/learn/pawn-endings-lesson/{step.id}"
+          href={withStop(`/learn/pawn-endings-lesson/${step.id}`, pathStop)}
           title="{idx + 1}. {step.title}"
           description={step.type === 'diagram' ? 'Diagram' : 'Quiz'}
         >
@@ -193,7 +201,7 @@
   >
     <CardList>
       {#each HOW_TO_WIN_SECTIONS as sec}
-        <LinkCard href="/learn/how-to-win-{sec.key}" icon={sec.icon} title={sec.title} description={sec.description}>
+        <LinkCard href={withStop(`/learn/how-to-win-${sec.key}`, pathStop)} icon={sec.icon} title={sec.title} description={sec.description}>
           {#snippet aside()}{@render stars(sectionStars[sec.key] ?? 0)}{/snippet}
         </LinkCard>
       {/each}
@@ -208,18 +216,18 @@
     <Page
       title={sectionInfo.title}
       subtitle={sectionInfo.description}
-      back={{ href: '/learn/how-to-win', label: 'Back to How to Win' }}
+      back={{ href: withStop('/learn/how-to-win', pathStop), label: 'Back to How to Win' }}
       width="narrow"
     >
       <div class="start">
-        <Button variant="primary" size="large" href="/learn/{piece}/{steps[0].slug}">
+        <Button variant="primary" size="large" href={withStop(`/learn/${piece}/${steps[0].slug}`, pathStop)}>
           {hwStepStars > 0 ? 'Play Again' : 'Start'}
         </Button>
         {@render stars(hwStepStars)}
       </div>
       <CardList>
         {#each steps as step, idx}
-          <LinkCard href="/learn/{piece}/{step.slug}" title="{idx + 1}. {step.title}" description={step.instruction} />
+          <LinkCard href={withStop(`/learn/${piece}/${step.slug}`, pathStop)} title="{idx + 1}. {step.title}" description={step.instruction} />
         {/each}
       </CardList>
     </Page>
@@ -249,7 +257,7 @@
         {@const unlocked = $progressState.loaded && isPuzzleUnlocked(puzz.id, puzzleIds)}
         {@const progress = getPuzzleProgress(puzz.id)}
         <LinkCard
-          href={unlocked ? `/learn/${piece}/${puzz.id}` : undefined}
+          href={unlocked ? withStop(`/learn/${piece}/${puzz.id}`, pathStop) : undefined}
           reason="🔒 Locked"
           title="{idx + 1}. {puzz.title}"
           description={unlocked ? puzz.instruction : undefined}

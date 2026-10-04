@@ -1,6 +1,7 @@
 <script lang="ts">
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Board from '$lib/components/board/Board.svelte';
   import AnswerInput from './AnswerInput.svelte';
   import RouteTrail from './RouteTrail.svelte';
@@ -63,7 +64,7 @@
   let input = $state('');
   let error = $state<string | null>(null);
   let result = $state<'playing' | 'won' | 'correct-impossible'>('playing');
-  let newRouteButton = $state<Button>();
+  let newRouteButton = $state<FinishActions>();
 
   let currentSquare = $derived(route.length > 0 ? route[route.length - 1] : puzzle.start);
   let moveCount = $derived(route.length);
@@ -169,7 +170,7 @@
           />
         </div>
       {/if}
-      <Button bind:this={newRouteButton} variant="primary" onclick={newPuzzle}>New Route</Button>
+      <FinishActions bind:this={newRouteButton} label="New Route" onclick={newPuzzle} size="normal" />
     </div>
   {/if}
 </div>

@@ -3,6 +3,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import { playSound } from '$lib/state/sound';
   import { createBoardState, type BoardState, type SquareId } from '$lib/logic/types';
 
@@ -281,7 +282,7 @@
         </div>
       {/if}
 
-      <Button variant="primary" size="large" onclick={startGame}>New Game</Button>
+      <FinishActions label="New Game" onclick={startGame} />
     </div>
 
   {:else}

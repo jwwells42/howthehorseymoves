@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { page } from '$app/state';
+  import { doneHref, stopFromUrl, withStop } from '$lib/curriculum';
   import Board from '$lib/components/board/Board.svelte';
   import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
   import ResultSymbol from '$lib/components/board/ResultSymbol.svelte';
@@ -203,11 +205,15 @@
     }
   }
 
+  // Opened from the path: steps pass the stop along, and the last one leads
+  // to the screen between stops
+  let pathStop = $derived(stopFromUrl(page.url));
+
   function nextStep() {
     if (stepIndex < totalSteps - 1) {
-      goto(`/learn/pawn-endings-lesson/${pawnEndingSteps[stepIndex + 1].id}`);
+      goto(withStop(`/learn/pawn-endings-lesson/${pawnEndingSteps[stepIndex + 1].id}`, pathStop));
     } else {
-      goto('/');
+      goto(pathStop ? doneHref(pathStop) : '/');
     }
   }
 

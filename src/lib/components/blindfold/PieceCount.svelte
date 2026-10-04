@@ -4,6 +4,7 @@
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import BestScore from '$lib/components/ui/BestScore.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Countdown from '$lib/components/ui/Countdown.svelte';
   import AnswerInput from './AnswerInput.svelte';
   import ReviewCard from './ReviewCard.svelte';
@@ -231,7 +232,7 @@
         <StarRating stars={getStars(score)} size="lg" />
       {/if}
       <BestScore score={bestScore} />
-      <Button variant="primary" size="large" onclick={startGame}>Play Again</Button>
+      <FinishActions label="Play Again" onclick={startGame} />
 
       {#if wrongOnes.length > 0}
         <ReviewGrid title="Mistakes ({wrongOnes.length})">

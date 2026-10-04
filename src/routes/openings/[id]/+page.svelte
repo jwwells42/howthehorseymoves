@@ -2,6 +2,11 @@
   import { page } from '$app/state';
   import { getOpening } from '$lib/openings';
   import OpeningTrainer from '$lib/components/opening/OpeningTrainer.svelte';
+  import Button from '$lib/components/ui/Button.svelte';
+  import { doneHref, stopFromUrl } from '$lib/curriculum';
+
+  // Opened from the path: there's no finish here, so Continue is always on offer
+  let pathStop = $derived(stopFromUrl(page.url));
 
   let id = $derived(page.params.id ?? '');
   let opening = $derived(getOpening(id));
@@ -9,7 +14,12 @@
 
 {#if opening}
   <main class="page">
-    <a href="/openings" class="back-link">&larr; Back to openings</a>
+    <div class="top-row">
+      <a href="/openings" class="back-link">&larr; Back to openings</a>
+      {#if pathStop}
+        <Button variant="primary" href={doneHref(pathStop)}>Continue <span aria-hidden="true">&rarr;</span></Button>
+      {/if}
+    </div>
     {#key opening.id}
       <OpeningTrainer {opening} />
     {/key}
@@ -39,6 +49,17 @@
   .center {
     text-align: center;
   }
+
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+  }
+  /* The row keeps the back link's spacing below it */
+  .top-row .back-link { margin-bottom: 0; }
 
   .back-link {
     font-size: var(--size-secondary);
