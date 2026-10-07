@@ -2,25 +2,24 @@
   import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
-  import LevelStrip, { type LevelStop } from './LevelStrip.svelte';
+  import JourneyBoard from './JourneyBoard.svelte';
   import { playSound } from '$lib/state/sound';
 
   /**
    * Shown between one stop on the path and the next: a trophy, the stop's
-   * stars, and the level's stops with the knight stepping on to the next one.
+   * stars, and the journey board with the knight stepping on to the next stop.
    * One button.
    */
 
   interface Props {
     name: string;
-    icon: string;
     /** Left out for a stop that doesn't keep stars. */
     stars?: number;
-    /** The level; `from` is this stop, `to` the next one. */
-    level: { title: string; stops: LevelStop[]; from: number; to: number };
+    /** The level, and the ids of this stop (`from`) and the next one (`to`). */
+    level: { title: string; from: string; to: string };
     next: { href: string; label: string };
   }
-  let { name, icon, stars, level, next }: Props = $props();
+  let { name, stars, level, next }: Props = $props();
 
   let nextButton = $state<Button>();
   let walked = $state(false);
@@ -36,15 +35,13 @@
 
 <div class="stop-complete">
   <div class="trophy" aria-hidden="true">&#127942;</div>
-  <div class="title-row">
-    <img src={icon} alt="" class="stop-icon" />
-    <h1>{name} Complete!</h1>
-  </div>
+  <h1>{name} Complete!</h1>
   {#if stars !== undefined}
     <StarRating {stars} size="lg" />
   {/if}
 
-  <LevelStrip title={level.title} stops={level.stops} knightAt={walked ? level.to : level.from} next={level.to} />
+  <p class="level-title">{level.title}</p>
+  <JourneyBoard knightAt={walked ? level.to : level.from} />
 
   <div class="next-button">
     <Button bind:this={nextButton} variant="primary" size="large" href={next.href}>
@@ -60,22 +57,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    padding: 2rem 1rem;
+    gap: 0.75rem;
+    padding: 1.25rem 1rem;
     border: 1px solid var(--line);
     border-radius: 0.75rem;
     background: var(--surface);
     text-align: center;
   }
-  .trophy { font-size: 4rem; line-height: 1; }
-  .title-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .stop-icon { width: 3rem; height: 3rem; }
+  .trophy { font-size: 3rem; line-height: 1; }
+  .level-title { color: var(--ink-muted); }
   h1 { font-size: var(--size-title); }
 
   /* A grid stretches the button to the card's width: a big target */

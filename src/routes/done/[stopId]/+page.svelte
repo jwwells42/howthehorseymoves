@@ -2,8 +2,6 @@
   import { page } from '$app/state';
   import { progressState } from '$lib/state/progress-store';
   import {
-    CURRICULUM,
-    type CurriculumChapter,
     findStop,
     getNextStopAfter,
     getStopStars,
@@ -23,10 +21,6 @@
 
   // Stars are read from saved progress, which loads in the browser after the
   // first render, so everything waits for `loaded`.
-  function levelStops(chapter: CurriculumChapter) {
-    void $progressState;
-    return chapter.stops.map((s) => ({ id: s.id, name: s.name, icon: s.icon, done: getStopStars(s) > 0 }));
-  }
 
   let next = $derived.by(() => {
     void $progressState;
@@ -45,20 +39,14 @@
     {#if nextChapter === chapter}
       <StopComplete
         name={stop.name}
-        icon={stop.icon}
         stars={stop.progress.type === 'none' ? undefined : getStopStars(stop)}
-        level={{
-          title: chapter.title,
-          stops: levelStops(chapter),
-          from: chapter.stops.indexOf(stop),
-          to: chapter.stops.findIndex((s) => s.id === nextStop?.id),
-        }}
+        level={{ title: chapter.title, from: stop.id, to: nextStop?.id ?? stop.id }}
         {next}
       />
     {:else}
       <LevelComplete
-        level={{ title: chapter.title, stops: levelStops(chapter) }}
-        nextLevel={nextChapter ? { title: nextChapter.title, stops: levelStops(nextChapter) } : undefined}
+        level={{ title: chapter.title, bot: stop.id }}
+        nextLevel={nextChapter && nextStop ? { title: nextChapter.title, first: nextStop.id } : undefined}
         {next}
       />
     {/if}
