@@ -177,7 +177,7 @@ Folders group components by feature (`board/`, `puzzle/`, `endgame/`, `blindfold
 - `/learn/match-moves` — Match the Moves (a static route, so it wins over `/learn/[piece]`)
 - `/learn/[piece]` — Puzzle list, category hub, endgame trainers, blindfold trainers, How to Win hub/sections
 - `/learn/[piece]/[puzzleId]` — Individual puzzle or How to Win lesson step. Next on a set's last puzzle (labelled Continue) goes to `/done/<stop>` on the path, or back to `/learn/[piece]` from a hub
-- `/done/[stopId]` — after finishing a stop on the path: StopComplete, or LevelComplete when the next stop is in the next level. Its button goes to the next stop's start (`getStopStartHref`), still on the path
+- `/done/[stopId]` — after finishing a stop on the path: StopComplete, or LevelComplete when the next stop is in the next level, with "← Back to home" (`BackLink`) above the card. Its button goes to the next stop's start (`getStopStartHref`), still on the path
 - `/board` — Board hub; `/board/coordinates` — Coordinate trainer
 - `/setup` — Place the Pieces stage list; `/setup/[stage]` — individual stage
 - `/games`, `/games/[gameId]` — Model game viewer

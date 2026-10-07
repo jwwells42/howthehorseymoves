@@ -57,14 +57,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1.25rem 1rem;
+    gap: 0.625rem;
+    padding: 1rem;
     border: 1px solid var(--line);
     border-radius: 0.75rem;
     background: var(--surface);
     text-align: center;
   }
-  .trophy { font-size: 3rem; line-height: 1; }
+  .trophy { font-size: 2.5rem; line-height: 1; }
   .level-title { color: var(--ink-muted); }
   h1 { font-size: var(--size-title); }
 

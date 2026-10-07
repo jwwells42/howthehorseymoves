@@ -129,7 +129,7 @@
   .journey {
     /* The number of ranks; the markup sets it from the curriculum */
     --levels: 8;
-    width: min(100%, 26rem, calc(38dvh * 9 / var(--levels) + 1.75rem));
+    width: min(100%, 26rem, calc(34dvh * 9 / var(--levels) + 1.75rem));
     display: grid;
     grid-template-columns: 1.25rem 1fr;
     gap: 0.25rem;
