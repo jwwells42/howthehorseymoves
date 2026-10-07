@@ -110,14 +110,13 @@
           onclick={() => choose(choice)}
         >
           <MovesBoard piece={choice} origin={question.origin} />
-          <!-- Once picked, the board says whose moves they were. The row is
-               always there, so nothing moves when it fills. -->
-          <span class="caption">
-            {#if right || wrong}
+          <!-- Once picked, the board says whose moves they were. -->
+          {#if right || wrong}
+            <span class="badge">
               <span class="verdict" aria-hidden="true">{right ? '✓' : '✗'}</span>
-              <img class="caption-piece" src="/pieces/w{choice}.svg" alt="the {PIECE_NAMES[choice]}" />
-            {/if}
-          </span>
+              <img class="badge-piece" src="/pieces/w{choice}.svg" alt="the {PIECE_NAMES[choice]}" />
+            </span>
+          {/if}
         </button>
       {/each}
     </div>
@@ -157,8 +156,8 @@
   }
 
   .choice {
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    display: block;
     padding: 0;
     border: 4px solid var(--line);
     border-radius: 6px;
@@ -176,21 +175,26 @@
   .choice.right { border-color: var(--correct); }
   .choice.wrong { border-color: var(--wrong); }
 
-  .caption {
-    height: 3rem;
+  /* Over the board's top-right corner, so the board keeps its size. */
+  .badge {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+    gap: 0.125rem;
+    padding: 0.125rem 0.25rem 0.125rem 0.125rem;
+    border-radius: 9999px;
+    background: var(--surface);
   }
-  .caption-piece {
-    width: 2.5rem;
-    height: 2.5rem;
+  .badge-piece {
+    width: 2rem;
+    height: 2rem;
   }
 
   .verdict {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
     display: grid;
     place-items: center;
     border-radius: 9999px;
