@@ -239,8 +239,16 @@
   function getArrowPath(arrow: Arrow) {
     const [x1, y1] = centre(arrow.from);
     const [x2, y2] = centre(arrow.to);
-    const dx = x2 - x1;
-    const dy = y2 - y1;
+    // A knight's jump bends into an L, long leg first, the way Lichess draws it.
+    const legs = [Math.abs(x2 - x1), Math.abs(y2 - y1)].sort((a, b) => a - b);
+    const isKnightJump = legs[0] === SQUARE_SIZE && legs[1] === 2 * SQUARE_SIZE;
+    const corner = isKnightJump
+      ? Math.abs(y2 - y1) > Math.abs(x2 - x1) ? [x1, y2] : [x2, y1]
+      : null;
+    // The head points along the last leg.
+    const [lx, ly] = corner ?? [x1, y1];
+    const dx = x2 - lx;
+    const dy = y2 - ly;
     const len = Math.sqrt(dx * dx + dy * dy);
     const headLen = 40;
     const headW = 55;
@@ -252,7 +260,8 @@
     const px = -uy;
     const py = ux;
     const hw = headW / 2;
-    return { x1, y1, sx, sy, x2, y2, px, py, hw, shaftW, color: arrow.color };
+    const shaft = [[x1, y1], ...(corner ? [corner] : []), [sx, sy]].map(([x, y]) => `${x},${y}`).join(' ');
+    return { shaft, sx, sy, x2, y2, px, py, hw, shaftW, color: arrow.color };
   }
 </script>
 
@@ -426,11 +435,13 @@
   {#each arrows as arrow}
     {@const a = getArrowPath(arrow)}
     <g class="no-pointer arrow">
-      <line
-        x1={a.x1} y1={a.y1} x2={a.sx} y2={a.sy}
+      <polyline
+        points={a.shaft}
+        fill="none"
         style:stroke={a.color}
         stroke-width={a.shaftW}
         stroke-linecap="round"
+        stroke-linejoin="round"
       />
       <polygon
         points="{a.x2},{a.y2} {a.sx + a.px * a.hw},{a.sy + a.py * a.hw} {a.sx - a.px * a.hw},{a.sy - a.py * a.hw}"
