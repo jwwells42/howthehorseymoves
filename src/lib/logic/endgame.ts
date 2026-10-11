@@ -236,7 +236,7 @@ export function validateEndgameMove(
 
   // Stalemate? Bad.
   if (isStalemate("b", newBoard)) {
-    return { valid: false, reason: "That's stalemate!" };
+    return { valid: false, reason: "Stalemate" };
   }
 
   // Any white piece hanging? (black can capture it legally)
@@ -246,7 +246,7 @@ export function validateEndgameMove(
     if (target && target.color === "w" && target.piece !== "K") {
       return {
         valid: false,
-        reason: `Your ${PIECE_NAMES[target.piece]} is hanging!`,
+        reason: "Hanging",
       };
     }
   }

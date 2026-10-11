@@ -17,12 +17,11 @@
 
   interface Props {
     title: string;
-    instruction: string;
     placements: PiecePlacement[];
     onNext?: () => void;
   }
 
-  let { title, instruction, placements, onNext }: Props = $props();
+  let { title, placements, onNext }: Props = $props();
 
   /* ── KPK helpers ──────────────────────────────── */
 
@@ -80,9 +79,9 @@
   let stars = $derived(mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
 
   let statusText = $derived.by(() => {
-    if (result === 'won') return 'Pawn promoted \u2014 you win!';
-    if (waitingForBot) return 'Opponent is thinking...';
-    return instruction;
+    if (result === 'won') return '✓';
+    if (waitingForBot) return '…';
+    return '';
   });
 
   /* ── Bot move ─────────────────────────────────── */
@@ -196,7 +195,7 @@
     const isWin = probeBoard(newBoard, KPK_BLACK);
     if (isWin === false) {
       mistakes += 1;
-      feedback = 'That lets black draw \u2014 try again!';
+      feedback = 'Draw';
       selectedSquare = null;
       playSound('wrong');
       return;

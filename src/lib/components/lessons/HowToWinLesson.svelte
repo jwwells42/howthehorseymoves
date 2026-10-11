@@ -191,7 +191,7 @@
       if (isStalemate('b', newBoard)) {
         addMistake();
         wrongMoveSquare = to;
-        feedbackMessage = "That's stalemate \u2014 a draw!";
+        feedbackMessage = "Stalemate";
         selectedSquare = null;
         playSound('wrong');
         setTimeout(() => {
@@ -301,20 +301,15 @@
   <div class="container">
     <div class="done-center">
       <div class="celebration">&#127881;</div>
-      <h2 class="done-title">Lesson Complete!</h2>
-      <p class="done-subtitle">
-        {#if doneMistakes === 0}
-          Perfect — no mistakes!
-        {:else}
-          {doneMistakes} mistake{doneMistakes === 1 ? '' : 's'}
-        {/if}
-      </p>
+      {#if doneMistakes > 0}
+        <p class="done-subtitle">{doneMistakes} mistake{doneMistakes === 1 ? '' : 's'}</p>
+      {/if}
     </div>
     <StarRating stars={doneStars} size="lg" />
     {#if nextSection}
       <div class="done-buttons">
         <Button variant="primary" size="large" onclick={goToNextSection}>
-          Continue to {nextSection.title}! <span aria-hidden="true">&rarr;</span>
+          {nextSection.title} <span aria-hidden="true">&rarr;</span>
         </Button>
         <div class="lesser">
           <Button onclick={playAgain}>Play Again</Button>
@@ -332,11 +327,7 @@
       <p class="progress-label">{stepIndex + 1} / {steps.length}</p>
     </div>
 
-    <!-- Step info -->
-    <div class="step-info">
-      <h2 class="step-title">{step.title}</h2>
-      <p class="step-instruction">{step.instruction}</p>
-    </div>
+    <h2 class="step-title">{sectionInfo.title}</h2>
 
     <!-- Board -->
     <div class="board-wrapper">
@@ -412,16 +403,9 @@
     text-align: center;
   }
 
-  .step-info {
-    text-align: center;
-  }
   .step-title {
     font-size: var(--size-large);
     margin: 0;
-  }
-  .step-instruction {
-    color: var(--ink-muted);
-    margin-top: 0.25rem;
   }
 
   .board-wrapper {
@@ -476,10 +460,6 @@
   .celebration {
     font-size: 3rem;
     margin-bottom: 0.75rem;
-  }
-  .done-title {
-    font-size: var(--size-large);
-    margin: 0 0 0.5rem;
   }
   .done-subtitle {
     color: var(--ink-muted);

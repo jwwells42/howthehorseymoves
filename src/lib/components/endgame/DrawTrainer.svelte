@@ -12,14 +12,13 @@
 
   interface Props {
     title: string;
-    instruction: string;
     placements: PiecePlacement[];
     storageKey: string;
     botStrategy?: 'heuristic' | 'bitbase-kpk';
     onNext?: () => void;
   }
 
-  let { title, instruction, placements, storageKey, botStrategy = 'heuristic', onNext }: Props = $props();
+  let { title, placements, storageKey, botStrategy = 'heuristic', onNext }: Props = $props();
 
   const MAX_MOVES = 100; // half-moves before auto-draw
 
@@ -73,10 +72,10 @@
   let stars = $derived(mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
 
   let statusText = $derived.by(() => {
-    if (result === 'draw') return `Draw — ${drawReason}`;
-    if (result === 'lost') return 'You lost!';
-    if (waitingForBot) return 'Opponent is thinking...';
-    return instruction;
+    if (result === 'draw') return `½ ${drawReason}`;
+    if (result === 'lost') return '✗';
+    if (waitingForBot) return '…';
+    return '';
   });
 
   /* ── Position tracking ─────────────────────────── */
@@ -253,7 +252,7 @@
         // White has no moves — stalemate on White = draw for student
         waitingForBot = false;
         result = 'draw';
-        drawReason = 'Stalemate!';
+        drawReason = 'Stalemate';
         playSound('stars');
         saveBestStars();
         return;
@@ -315,7 +314,7 @@
         // Check threefold after bot's move
         if (recordPosition(newBoard, 'b')) {
           result = 'draw';
-          drawReason = 'Threefold repetition!';
+          drawReason = 'Threefold repetition';
           playSound('stars');
           saveBestStars();
           return;
@@ -324,7 +323,7 @@
         // Check stalemate on student
         if (isStalemate('b', newBoard)) {
           result = 'draw';
-          drawReason = 'Stalemate!';
+          drawReason = 'Stalemate';
           playSound('stars');
           saveBestStars();
           return;
@@ -333,7 +332,7 @@
         // Move cap
         if (halfMoves >= MAX_MOVES) {
           result = 'draw';
-          drawReason = 'Position held for 50 moves!';
+          drawReason = '50-move rule';
           playSound('stars');
           saveBestStars();
           return;
@@ -363,7 +362,7 @@
       const isWin = probeBoard(newBoard, KPK_WHITE);
       if (isWin === true) {
         mistakes += 1;
-        feedback = 'That lets White win \u2014 try again!';
+        feedback = '';
         selectedSquare = null;
         playSound('wrong');
         return;
@@ -376,7 +375,7 @@
       const afterWhite = applyEndgameMove(newBoard, wm.from, wm.to);
       if (isCheckmate('b', afterWhite)) {
         mistakes += 1;
-        feedback = 'That allows checkmate!';
+        feedback = 'Checkmate';
         selectedSquare = null;
         playSound('wrong');
         return;
@@ -393,7 +392,7 @@
         const afterPromoBoard: BoardState = { pieces: promoPieces };
         if (hasCleanPromotion(afterPromoBoard, 'w')) {
           mistakes += 1;
-          feedback = 'That allows promotion!';
+          feedback = 'Promotion';
           selectedSquare = null;
           playSound('wrong');
           return;
@@ -410,7 +409,7 @@
     // Check threefold after student's move
     if (recordPosition(newBoard, 'w')) {
       result = 'draw';
-      drawReason = 'Threefold repetition!';
+      drawReason = 'Threefold repetition';
       playSound('stars');
       saveBestStars();
       return;
@@ -419,7 +418,7 @@
     // Check stalemate on White (draw for student)
     if (isStalemate('w', newBoard)) {
       result = 'draw';
-      drawReason = 'Stalemate!';
+      drawReason = 'Stalemate';
       playSound('stars');
       saveBestStars();
       return;
@@ -428,7 +427,7 @@
     // Move cap
     if (halfMoves >= MAX_MOVES) {
       result = 'draw';
-      drawReason = 'Position held for 50 moves!';
+      drawReason = '50-move rule';
       playSound('stars');
       saveBestStars();
       return;
@@ -531,7 +530,7 @@
       <p class="status">{statusText}</p>
     </div>
 
-    {#if feedback && result === 'playing'}
+    {#if feedback !== null && result === 'playing'}
       <p class="feedback">✗ {feedback}</p>
     {/if}
 
@@ -539,9 +538,7 @@
       <div class="result">
         <StarRating {stars} size="lg" />
         <p class="result-text">
-          {#if mistakes === 0}
-            Perfect — no mistakes!
-          {:else}
+          {#if mistakes > 0}
             {mistakes} mistake{mistakes > 1 ? 's' : ''}
           {/if}
         </p>
@@ -563,7 +560,6 @@
 
     {#if result === 'lost'}
       <div class="result">
-        <p class="result-text">✗ The opponent broke through.</p>
         <div class="result-buttons">
           <Button variant="primary" size="large" onclick={reset}>Try Again</Button>
           {#if onNext}

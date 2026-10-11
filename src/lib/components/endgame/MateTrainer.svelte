@@ -58,8 +58,8 @@
   let stars = $derived(mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
 
   let statusText = $derived.by(() => {
-    if (result === 'won') return 'Checkmate \u2014 you win!';
-    if (waitingForBot) return 'Opponent is thinking...';
+    if (result === 'won') return '✓ Checkmate';
+    if (waitingForBot) return '…';
     return '';
   });
 
@@ -220,9 +220,7 @@
       <div class="result">
         <StarRating {stars} size="lg" />
         <p class="result-text">
-          {#if mistakes === 0}
-            Perfect — no mistakes!
-          {:else}
+          {#if mistakes > 0}
             {mistakes} mistake{mistakes > 1 ? 's' : ''}
           {/if}
         </p>

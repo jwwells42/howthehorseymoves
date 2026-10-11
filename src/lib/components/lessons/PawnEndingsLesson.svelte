@@ -235,15 +235,13 @@
     <p class="progress">{stepIndex + 1} / {totalSteps}</p>
     {#if trainerStep.trainerType === 'endgame'}
       <EndgameShell
-        title={trainerStep.title}
-        instruction={trainerStep.instruction}
+        title="Pawn Endings"
         placements={trainerStep.placements}
         onNext={nextStep}
       />
     {:else}
       <DrawTrainer
-        title={trainerStep.title}
-        instruction={trainerStep.instruction}
+        title="Pawn Endings"
         placements={trainerStep.placements}
         storageKey={trainerStep.storageKey ?? `pawn-endings-${trainerStep.id}-best-stars`}
         botStrategy={trainerStep.botStrategy}
@@ -254,8 +252,7 @@
 {:else}
   <div class="lesson">
     <div class="header">
-      <h2 class="title">{step.title}</h2>
-      <p class="instruction">{step.instruction}</p>
+      <h2 class="title">Pawn Endings</h2>
       <p class="progress">{stepIndex + 1} / {totalSteps}</p>
     </div>
 
@@ -296,7 +293,6 @@
         <!-- Quiz: answer buttons -->
         {#if phase === 'asking' || phase === 'wrong'}
           <div class="question">
-            <p class="question-text">What will be the result?</p>
             <div class="answer-buttons">
               <button
                 class={['answer-btn', wrongAnswer === 'white' && 'wrong-flash']}
@@ -324,7 +320,6 @@
         {/if}
 
         {#if phase === 'animating'}
-          <p class="animating-text">Watch the continuation...</p>
           <Button onclick={skipToResult}>Skip</Button>
         {/if}
 
@@ -366,7 +361,6 @@
 
   .header { text-align: center; flex-shrink: 0; }
   .title { font-size: var(--size-large); font-weight: var(--weight-strong); margin-bottom: 0.25rem; }
-  .instruction { color: var(--ink-muted); font-size: var(--size-secondary); max-width: 28rem; }
   .progress { color: var(--ink-muted); font-size: var(--size-small); margin-top: 0.25rem; }
 
   /* Side to move */
@@ -461,7 +455,6 @@
 
   /* Question area */
   .question { text-align: center; }
-  .question-text { font-weight: var(--weight-strong); margin-bottom: 0.75rem; }
   .answer-buttons {
     display: flex;
     gap: 0.75rem;
@@ -514,10 +507,6 @@
     75% { transform: translateX(4px); }
   }
 
-  .animating-text {
-    color: var(--ink-muted);
-    margin-bottom: 0;
-  }
 
   /* Result area */
   .result-area {

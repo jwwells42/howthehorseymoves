@@ -28,10 +28,9 @@
   }
 
   // Endgame positions
-  const ENDGAME_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[] }> = {
+  const ENDGAME_POSITIONS: Record<string, { title: string; placements: PiecePlacement[] }> = {
     'endings-kpk': {
       title: 'King + Pawn vs King',
-      instruction: 'Promote the pawn! Every wrong move is a draw.',
       placements: [
         { piece: 'K', color: 'w', square: 'd6' },
         { piece: 'P', color: 'w', square: 'd4' },
@@ -41,10 +40,9 @@
   };
 
   // "Hold the draw" endgame positions (student plays Black, bot plays White)
-  const DRAW_POSITIONS: Record<string, { title: string; instruction: string; placements: PiecePlacement[]; storageKey: string; botStrategy?: 'heuristic' | 'bitbase-kpk' }> = {
+  const DRAW_POSITIONS: Record<string, { title: string; placements: PiecePlacement[]; storageKey: string; botStrategy?: 'heuristic' | 'bitbase-kpk' }> = {
     'endings-philidor': {
       title: 'Philidor Position',
-      instruction: 'Hold the draw! Keep your rook active.',
       placements: [
         { piece: 'K', color: 'w', square: 'e6' },
         { piece: 'P', color: 'w', square: 'e5' },
@@ -56,7 +54,6 @@
     },
     'endings-kpk-draw': {
       title: 'Hold the Draw: K+P vs K',
-      instruction: 'Keep opposition! Block the key squares and force stalemate.',
       placements: [
         { piece: 'K', color: 'w', square: 'd5' },
         { piece: 'P', color: 'w', square: 'd4' },
@@ -67,7 +64,6 @@
     },
     'endings-wrong-bishop': {
       title: 'Wrong Bishop',
-      instruction: 'The bishop can\'t control the promotion square! Stay in the corner to draw.',
       placements: [
         { piece: 'K', color: 'w', square: 'f6' },
         { piece: 'B', color: 'w', square: 'e4' },
@@ -144,7 +140,7 @@
   <!-- Endgame trainer (e.g. KPK) -->
   <main class="board-page">
     <BackLink href="/">Back to home</BackLink>
-    <EndgameShell title={endgame.title} instruction={endgame.instruction} placements={endgame.placements} onNext={() => window.location.href = '/'} />
+    <EndgameShell title={endgame.title} placements={endgame.placements} onNext={() => window.location.href = '/'} />
   </main>
 {:else if mateEndgameMatch}
   <!-- Mate conversion trainer (KQK, KRRK, etc.) -->
@@ -162,7 +158,6 @@
     <BackLink href="/learn/advanced-endings">Back to advanced endings</BackLink>
     <DrawTrainer
       title={drawEndgame.title}
-      instruction={drawEndgame.instruction}
       placements={drawEndgame.placements}
       storageKey={drawEndgame.storageKey}
       botStrategy={drawEndgame.botStrategy}
@@ -182,7 +177,7 @@
       {#each pawnEndingSteps as step, idx}
         <LinkCard
           href={withStop(`/learn/pawn-endings-lesson/${step.id}`, pathStop)}
-          title="{idx + 1}. {step.title}"
+          title="Pawn Endings {idx + 1}"
           description={step.type === 'diagram' ? 'Diagram' : 'Quiz'}
         >
           {#snippet aside()}{@render stars(pawnStepStars[step.id] ?? 0)}{/snippet}
@@ -223,7 +218,7 @@
       </div>
       <CardList>
         {#each steps as step, idx}
-          <LinkCard href={withStop(`/learn/${piece}/${step.slug}`, pathStop)} title="{idx + 1}. {step.title}" />
+          <LinkCard href={withStop(`/learn/${piece}/${step.slug}`, pathStop)} title="{sectionInfo.title} {idx + 1}" />
         {/each}
       </CardList>
     </Page>
