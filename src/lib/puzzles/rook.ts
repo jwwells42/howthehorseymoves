@@ -1,6 +1,13 @@
-import type { RoutePuzzle, FindMovesPuzzle } from "./types";
+import type { RoutePuzzle, FindMovesPuzzle, TourPuzzle } from "./types";
 
-export const rookPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
+export const rookPuzzles: (TourPuzzle | RoutePuzzle | FindMovesPuzzle)[] = [
+  {
+    type: "tour",
+    id: "rook-tour",
+    playerPiece: "R",
+    square: "d4",
+    route: ["d8", "d1", "d4", "a4", "h4", "d4"],
+  },
   {
     type: "route",
     id: "rook-01",

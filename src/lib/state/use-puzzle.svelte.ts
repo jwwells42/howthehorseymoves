@@ -3,7 +3,7 @@ import { getValidMoves } from '$lib/logic/moves';
 import { isCheckmate, isStalemate, getLegalMoves, isSquareAttacked } from '$lib/logic/attacks';
 import { applyMove } from '$lib/logic/pgn';
 import type { Arrow } from '$lib/logic/pgn';
-import type { Puzzle, RoutePuzzle, TacticPuzzle, ConversionPuzzle, FindMovesPuzzle } from '$lib/puzzles/types';
+import type { Puzzle, RoutePuzzle, TacticPuzzle, ConversionPuzzle, FindMovesPuzzle, TourPuzzle } from '$lib/puzzles/types';
 import { parsePuzzleMoves, type MoveNode } from '$lib/puzzles/parse-moves';
 import { pickBotMove } from '$lib/logic/bot';
 import { completePuzzle as saveComplete } from '$lib/state/progress-store';
@@ -21,6 +21,7 @@ export function createPuzzleState(puzzle: Puzzle) {
   if (puzzle.type === 'route') return createRouteState(puzzle);
   if (puzzle.type === 'puzzle') return createTacticState(puzzle);
   if (puzzle.type === 'find-moves') return createFindMovesState(puzzle);
+  if (puzzle.type === 'tour') return createTourState(puzzle);
   return createConversionState(puzzle);
 }
 
@@ -939,5 +940,80 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
     runDemo,
     showHow,
     stopShowing,
+  };
+}
+
+// ═══════════════════════════════════════════════
+// Tour state
+// ═══════════════════════════════════════════════
+
+/** How long the piece stands still with its arrows before it sets off, and
+    how long each step takes (0.4 s of it is the slide). */
+const TOUR_LOOK_MS = 1500;
+const TOUR_STEP_MS = 900;
+
+function createTourState(puzzle: TourPuzzle) {
+  const piece = { piece: puzzle.playerPiece, color: 'w' as PieceColor };
+  const boardAt = (square: SquareId) => createBoardState([{ ...piece, square }]);
+
+  let board = $state(boardAt(puzzle.square));
+  let slideAnim = $state<SlideAnimation | null>(null);
+  let isComplete = $state(false);
+  let run = 0;
+
+  /** Walks the route once, then counts as solved. */
+  async function play() {
+    const thisRun = ++run;
+    const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    let at = puzzle.square;
+    board = boardAt(at);
+    slideAnim = null;
+    isComplete = false;
+
+    await pause(TOUR_LOOK_MS);
+    for (const to of puzzle.route) {
+      if (thisRun !== run) return;
+      // It slides along one of its moves; anything else, like a pawn going
+      // back to the start, is a jump
+      const slides = getValidMoves(puzzle.playerPiece, at, boardAt(at), 'w').includes(to);
+      slideAnim = slides ? { ...piece, from: at, to } : null;
+      board = boardAt(to);
+      at = to;
+      if (slides) playSound('move');
+      await pause(TOUR_STEP_MS);
+    }
+    if (thisRun !== run) return;
+    isComplete = true;
+    saveComplete(puzzle.id, 3, 0);
+    playSound('stars');
+  }
+
+  /** Stops a tour part-way, e.g. when the student leaves the page. */
+  function stop() {
+    run++;
+  }
+
+  return {
+    get board() { return board; },
+    get selectedSquare() { return null; },
+    get validMoves() { return [] as SquareId[]; },
+    get reachedTargets() { return [] as SquareId[]; },
+    get moveCount() { return 0; },
+    get isComplete() { return isComplete; },
+    get stalemateTrigger() { return false; },
+    get wrongMoveSquare() { return null; },
+    get opponentSlide() { return slideAnim; },
+    get stars() { return isComplete ? 3 : 0; },
+    get arrows() { return [] as Arrow[]; },
+    get highlights() { return [] as SquareHighlight[]; },
+    get demoPhase() { return null as 'playing' | 'resetting' | null; },
+    get pendingPromotion() { return null as { from: SquareId; to: SquareId } | null; },
+    getMovesFrom() { return [] as SquareId[]; },
+    handleSquareClick(_sq: SquareId) {},
+    handleDrop(_from: SquareId, _to: SquareId) {},
+    completePromotion(_p: PieceKind) {},
+    reset: play,
+    play,
+    stop,
   };
 }

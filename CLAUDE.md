@@ -87,10 +87,11 @@ Adding a colour = add a token to app.css (with its Radix scale and step in a com
 - `endgame.ts` — Mate conversion logic for KQK, KRRK, KRK, KBBK, KBNK endgames
 
 ### Puzzle System (`src/lib/puzzles/`)
-- `types.ts` — Discriminated union `Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle | FindMovesPuzzle`:
+- `types.ts` — Discriminated union `Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle | FindMovesPuzzle | TourPuzzle`:
   - `RoutePuzzle` (`type: "route"`) — navigate a piece to target stars, avoid walls. Has `playerPiece`, `position`, `walls`, `stars`, `starThresholds`, optional `arrows`/`threats`
   - `TacticPuzzle` (`type: "puzzle"`) — Lichess-style FEN+PGN tactic. Has `fen`, `pgn`, optional `demo`/`starThresholds`
   - `ConversionPuzzle` (`type: "conversion"`) — play against a bot to checkmate or promote. Has `position`, `bot`, `goal`, `starThresholds`
+  - `TourPuzzle` (`type: "tour"`) — first in each piece's set (`rook-tour`, …). The piece stands on `square` with its moves drawn as arrows (`moveArrows`, the same picture as Match the Moves), then walks `route` one square at a time; a step that isn't one of its moves (a pawn going back) jumps instead of sliding. Non-interactive; watching it to the end saves it as solved with 3 stars, then the usual solved card. Pace: `TOUR_LOOK_MS` / `TOUR_STEP_MS` in `use-puzzle.svelte.ts`
   - `FindMovesPuzzle` (`type: "find-moves"`) — tap every square a piece can move to. Last in each piece's set. `mode` `'guided'` shows the squares, `'test'` (default) doesn't. `showHow: true` (on the first one per piece) has a hand tap two squares first, then the ticks clear and it's the student's turn; a tap on the board stops it. `opponentMove` (`{ from, to }`) plays a black move as the puzzle opens, and again on Retry, e.g. the pawn jump before en passant; `position` is the board before it
 - One file per **concept**, each exporting a puzzle array: per-piece (`rook.ts`, `bishop.ts`, …) + `castling.ts`, `enpassant.ts`, `checkmate.ts`, the tactic concepts (`pins.ts`, `forks.ts`, `skewers.ts`, `removing-defender.ts`, `discovered.ts`), `mate-in-1.ts`, `mate-in-2.ts`, `pawn-endings.ts`, `lucena.ts`, `reti.ts`, `pawn-races.ts`. Order puzzles easy→hard within each file
 - `index.ts` — Registry: `puzzleSets` (key → `PuzzleSet`), `getPuzzlesForPiece()`, `PIECES`, `CATEGORIES` (with `comingSoon` support for subcategories)

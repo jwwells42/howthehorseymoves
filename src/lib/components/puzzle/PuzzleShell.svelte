@@ -6,6 +6,7 @@
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import SuccessOverlay from './SuccessOverlay.svelte';
   import TapHand from './TapHand.svelte';
+  import { moveArrows } from '$lib/components/pieces/match-moves';
   import { createPuzzleState } from '$lib/state/use-puzzle.svelte';
   import type { Puzzle } from '$lib/puzzles/types';
   import type { PieceKind, SquareId } from '$lib/logic/types';
@@ -27,6 +28,15 @@
   let isConversion = $derived(puzzle.type === 'conversion');
   let isFindMoves = $derived(puzzle.type === 'find-moves');
   let findMovesMode = $derived(puzzle.type === 'find-moves' ? (puzzle.mode ?? 'test') : 'test');
+
+  // A tour walks the piece around as soon as it opens
+  $effect(() => {
+    if (puzzle.type === 'tour') {
+      const s = ps as unknown as { play: () => void; stop: () => void };
+      s.play();
+      return () => s.stop();
+    }
+  });
 
   $effect(() => {
     if (puzzle.type === 'find-moves') {
@@ -77,9 +87,9 @@
   // Targets (stars) only for route puzzles (not find-moves)
   let targets = $derived(puzzle.type === 'route' ? puzzle.stars : [] as SquareId[]);
 
-  // Draggable piece restriction — route: only playerPiece; find-moves: none (no dragging); others: any white piece
+  // Draggable piece restriction — route: only playerPiece; find-moves and tour: none (no dragging); others: any white piece
   let draggablePiece = $derived(
-    puzzle.type === 'find-moves' ? ('_' as PieceKind) :
+    puzzle.type === 'find-moves' || puzzle.type === 'tour' ? ('_' as PieceKind) :
     puzzle.type === 'route' ? puzzle.playerPiece : undefined
   );
 
@@ -89,7 +99,7 @@
   // Star thresholds — always available
   let thresholds = $derived.by(() => {
     if (puzzle.type === 'route' || puzzle.type === 'conversion' || puzzle.type === 'find-moves') return puzzle.starThresholds;
-    return puzzle.starThresholds ?? null;
+    return puzzle.type === 'puzzle' ? (puzzle.starThresholds ?? null) : null;
   });
 
   function onDragStart(sq: SquareId) { dragFrom = sq; }
@@ -118,7 +128,7 @@
       {onDragEnd}
       wrongMoveSquare={ps.wrongMoveSquare}
       opponentSlide={ps.opponentSlide}
-      arrows={ps.arrows}
+      arrows={puzzle.type === 'tour' ? moveArrows(puzzle.playerPiece, puzzle.square) : ps.arrows}
       highlights={ps.highlights}
       {obstacles}
     >

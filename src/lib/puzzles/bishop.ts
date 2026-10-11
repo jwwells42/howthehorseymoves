@@ -1,6 +1,13 @@
-import type { RoutePuzzle, FindMovesPuzzle } from "./types";
+import type { RoutePuzzle, FindMovesPuzzle, TourPuzzle } from "./types";
 
-export const bishopPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
+export const bishopPuzzles: (TourPuzzle | RoutePuzzle | FindMovesPuzzle)[] = [
+  {
+    type: "tour",
+    id: "bishop-tour",
+    playerPiece: "B",
+    square: "d4",
+    route: ["h8", "a1", "d4", "a7", "g1", "d4"],
+  },
   {
     type: "route",
     id: "bishop-01",

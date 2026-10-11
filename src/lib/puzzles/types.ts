@@ -48,7 +48,18 @@ export interface FindMovesPuzzle extends PuzzleBase {
   showHow?: true;
 }
 
-export type Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle | FindMovesPuzzle;
+/** First in each piece's set: the piece stands on `square` with its moves
+    drawn as arrows, then walks `route`, one square after another. A step that
+    isn't one of its moves (a pawn going back) jumps instead of sliding.
+    Watching it to the end counts as solved. */
+export interface TourPuzzle extends PuzzleBase {
+  type: "tour";
+  playerPiece: PieceKind;
+  square: SquareId;
+  route: SquareId[];
+}
+
+export type Puzzle = RoutePuzzle | TacticPuzzle | ConversionPuzzle | FindMovesPuzzle | TourPuzzle;
 
 export interface PuzzleSet {
   piece: PieceKind;

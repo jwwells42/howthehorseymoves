@@ -1,6 +1,13 @@
-import type { RoutePuzzle, FindMovesPuzzle } from "./types";
+import type { RoutePuzzle, FindMovesPuzzle, TourPuzzle } from "./types";
 
-export const pawnPuzzles: (RoutePuzzle | FindMovesPuzzle)[] = [
+export const pawnPuzzles: (TourPuzzle | RoutePuzzle | FindMovesPuzzle)[] = [
+  {
+    type: "tour",
+    id: "pawn-tour",
+    playerPiece: "P",
+    square: "d2",
+    route: ["d4", "d5", "d6", "d7"],
+  },
   {
     type: "route",
     id: "pawn-01",
