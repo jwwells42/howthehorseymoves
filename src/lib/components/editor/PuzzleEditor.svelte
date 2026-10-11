@@ -53,7 +53,6 @@
   /* ── Shared state ───────────────────────────────── */
 
   let puzzleId = $state('');
-  let title = $state('');
   let copied = $state(false);
 
   /* ── BFS solver (route mode) ────────────────────── */
@@ -172,7 +171,6 @@
 
   let outputCode = $derived.by(() => {
     const id = puzzleId || (mode === 'route' ? `${studentPiece.toLowerCase()}-XX` : 'puzzle-XX');
-    const t = title || '';
 
     if (mode === 'route') {
       const position: string[] = [];
@@ -183,9 +181,6 @@
       const moves = routeResult?.moves ?? 0;
       const wallStr = obstacles.map(s => `"${s}"`).join(', ');
       const starStr = targets.map(s => `"${s}"`).join(', ');
-      const instruction = targets.length === 1
-        ? `Reach the star${moves > 0 ? ` in ${moves} move${moves !== 1 ? 's' : ''}` : ''}!`
-        : `Collect all the stars!`;
 
       const arrowsLine = arrows.length > 0
         ? `\n  arrows: [${arrows.map(a => `{ from: "${a.from}", to: "${a.to}", color: "${a.color}" }`).join(', ')}],`
@@ -195,8 +190,6 @@
   type: "route",
   id: "${id}",
   playerPiece: "${studentPiece}",
-  title: "${t}",
-  instruction: "${instruction}",
   position: [
 ${position.join(',\n')},
   ],
@@ -211,8 +204,6 @@ ${position.join(',\n')},
         `{`,
         `  type: "puzzle",`,
         `  id: "${id}",`,
-        `  title: "${t}",`,
-        `  instruction: "",`,
         `  fen: "${fen}",`,
         `  pgn: "",`,
       ];
@@ -457,10 +448,6 @@ ${position.join(',\n')},
     <label class="meta-label">
       ID
       <input type="text" bind:value={puzzleId} placeholder={mode === 'route' ? 'rook-XX' : 'checkmate-XX'} class="meta-input" />
-    </label>
-    <label class="meta-label">
-      Title
-      <input type="text" bind:value={title} placeholder="Puzzle Title" class="meta-input" />
     </label>
   </div>
 

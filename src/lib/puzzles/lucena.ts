@@ -16,8 +16,6 @@ export const lucenaPuzzles: ConversionPuzzle[] = [
   {
     id: "lucena-01",
     type: "conversion",
-    title: "Build the Bridge",
-    instruction: "Your pawn is on the 7th rank. Build a bridge with your rook to promote!",
     position: [
       { piece: "K", color: "w", square: "b8" },
       { piece: "R", color: "w", square: "c1" },

@@ -4,8 +4,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-01",
-    title: "Mate in 2 #1",
-    instruction: "Find the two-move checkmate!",
     fen: "r1b2r1k/pp1n2pB/1q5p/3p2b1/8/1NP2R1P/P1Q3PB/5R1K w - - 3 26",
     pgn: "1. Rxf8+ Nxf8 2. Rxf8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -13,8 +11,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-02",
-    title: "Mate in 2 #2",
-    instruction: "Find the two-move checkmate!",
     fen: "1n4k1/p5p1/7p/5nN1/2r5/8/P4PPP/1R4K1 w - - 0 29",
     pgn: "1. Rxb8+ Rc8 2. Rxc8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -22,8 +18,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-03",
-    title: "Mate in 2 #3",
-    instruction: "Find the two-move checkmate!",
     fen: "6k1/p3rppp/6r1/3p2q1/Pp2n3/4P1PP/5P2/2R1QRK1 w - - 0 27",
     pgn: "1. Rc8+ Re8 2. Rxe8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -31,8 +25,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-04",
-    title: "Mate in 2 #4",
-    instruction: "Find the two-move checkmate!",
     fen: "r2q1rk1/p4p2/2p1pbp1/2pp4/8/1P1PP3/PBPKNP1R/7R w - - 0 18",
     pgn: "1. Rh8+ Bxh8 2. Rxh8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -40,8 +32,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-05",
-    title: "Mate in 2 #5",
-    instruction: "Find the two-move checkmate!",
     fen: "2r4k/6pp/Q2q4/2p1p2P/2nn1pN1/6P1/P4P2/3R2K1 w - - 0 35",
     pgn: "1. Qxc8+ Qd8 2. Qxd8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -49,8 +39,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-06",
-    title: "Mate in 2 #6",
-    instruction: "Find the two-move checkmate!",
     fen: "r3r3/pbp2p1k/1pnq1Bp1/4p3/3P1R2/2PB4/PP4PP/R5K1 w - - 0 19",
     pgn: "1. Rh4+ Kg8 2. Rh8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -58,8 +46,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-07",
-    title: "Mate in 2 #7",
-    instruction: "Find the two-move checkmate!",
     fen: "r5kn/1p2qpp1/p7/2p3P1/P2p1PP1/3Q4/1PP1r3/2K4R w - - 0 29",
     pgn: "1. Qh7+ Kf8 2. Qxh8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -67,8 +53,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-08",
-    title: "Mate in 2 #8",
-    instruction: "Find the two-move checkmate!",
     fen: "4r2k/pp3Qbp/3N2p1/8/6n1/PP4Pq/5P2/5RK1 w - - 0 28",
     pgn: "1. Qxe8+ Bf8 2. Qxf8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -76,8 +60,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-09",
-    title: "Mate in 2 #9",
-    instruction: "Find the two-move checkmate!",
     fen: "3r2k1/ppqr1pp1/7p/2P1R1P1/3p1Pn1/3Q4/P5BP/4R1K1 w - - 1 32",
     pgn: "1. Re8+ Rxe8 2. Rxe8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -85,8 +67,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-10",
-    title: "Mate in 2 #10",
-    instruction: "Find the two-move checkmate!",
     fen: "6k1/pp3p1p/b3p3/6pN/P5P1/1P2R2P/3r3r/2R1K3 w - - 1 33",
     pgn: "1. Rc8+ Rd8 2. Rxd8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -94,8 +74,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-11",
-    title: "Mate in 2 #11",
-    instruction: "Find the two-move checkmate!",
     fen: "6k1/ppR4p/6p1/4rp2/4p3/2P3K1/1q4PP/3R4 w - - 0 34",
     pgn: "1. Rd8+ Re8 2. Rxe8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -103,8 +81,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-12",
-    title: "Mate in 2 #12",
-    instruction: "Find the two-move checkmate!",
     fen: "7k/7p/1p2p3/p5R1/8/1P6/Pr3rPP/2R3K1 w - - 0 27",
     pgn: "1. Rc8+ Rf8 2. Rxf8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -112,8 +88,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-13",
-    title: "Mate in 2 #13",
-    instruction: "Find the two-move checkmate!",
     fen: "3r2k1/2R2pp1/1q1Bp2p/1B2P3/P2b2PP/1P3Q2/7K/4q3 w - - 0 29",
     pgn: "1. Qxf7+ Kh8 2. Qxg7#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -121,8 +95,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-14",
-    title: "Mate in 2 #14",
-    instruction: "Find the two-move checkmate!",
     fen: "2r5/pb3p1k/1p6/3p1q2/3P3b/2N2P2/PP6/2K3RR w - - 0 25",
     pgn: "1. Rxh4+ Qh5 2. Rxh5#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -130,8 +102,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-15",
-    title: "Mate in 2 #15",
-    instruction: "Find the two-move checkmate!",
     fen: "r1r3k1/p2R1pp1/1p2p2p/8/8/4q3/P1P3PP/3R1Q1K w - - 0 27",
     pgn: "1. Qxf7+ Kh8 2. Qxg7#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -139,8 +109,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-16",
-    title: "Mate in 2 #16",
-    instruction: "Find the two-move checkmate!",
     fen: "r3kr2/5p2/b3pQ1p/p2pP1p1/8/PBP5/2P3qP/2KR4 w q - 2 28",
     pgn: "1. Ba4+ Bb5 2. Bxb5#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -148,8 +116,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-17",
-    title: "Mate in 2 #17",
-    instruction: "Find the two-move checkmate!",
     fen: "r1b1r1k1/ppp2p2/2n3p1/6N1/4P2Q/2p1bP2/1P1N2P1/qBKR4 w - - 2 25",
     pgn: "1. Qh7+ Kf8 2. Qxf7#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -157,8 +123,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-18",
-    title: "Mate in 2 #18",
-    instruction: "Find the two-move checkmate!",
     fen: "r1b4k/p4rpp/2p5/8/3Q4/2B3P1/PP1K3P/q7 w - - 4 23",
     pgn: "1. Qd8+ Rf8 2. Qxf8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -166,8 +130,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-19",
-    title: "Mate in 2 #19",
-    instruction: "Find the two-move checkmate!",
     fen: "r1b2r1k/pp2q1p1/4p2p/7n/3P4/3BBR2/PP4PP/5R1K w - - 0 25",
     pgn: "1. Rxf8+ Qxf8 2. Rxf8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -175,8 +137,6 @@ export const mateIn2Puzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-m2-20",
-    title: "Mate in 2 #20",
-    instruction: "Find the two-move checkmate!",
     fen: "6k1/R7/6K1/2r3pp/P7/1n4p1/7P/8 w - - 0 53",
     pgn: "1. Ra8+ Rc8 2. Rxc8#",
     starThresholds: { three: 2, two: 3, one: 4 },

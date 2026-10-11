@@ -8,8 +8,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     id: "tactics-pin-01",
     type: "puzzle",
-    title: "Pin the Knight",
-    instruction: "A pin traps a piece on a line — it can't move without exposing the king. Pin the knight, then capture it!",
     fen: "8/7k/8/8/8/3n4/6PP/3B2K1 w - - 0 1",
     pgn: "1. Bc2 {[%cal Gc2h7]} Kh6 2. Bxd3",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -17,8 +15,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     id: "tactics-pin-02",
     type: "puzzle",
-    title: "Pin the Bishop",
-    instruction: "The rook can pin along files and ranks. Pin the bishop, then take it!",
     fen: "4k3/8/7n/8/4b3/8/6PP/R5K1 w - - 0 1",
     pgn: "1. Re1 {[%cal Ge1e8]} Kd7 2. Rxe4",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -26,8 +22,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     id: "tactics-pin-03",
     type: "puzzle",
-    title: "Exploit the Pin #1",
-    instruction: "The knight is pinned and can't recapture. Take what it was guarding!",
     fen: "4k3/p4p2/2np4/1B2r2Q/8/8/6PP/6K1 w - - 0 1",
     pgn: "{[%cal Gb5e8]} 1. Qxe5",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -35,8 +29,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     id: "tactics-pin-04",
     type: "puzzle",
-    title: "Exploit the Pin #2",
-    instruction: "The pinned knight can't defend its neighbor. Win the free piece!",
     fen: "4k3/p4p2/2n5/1B6/3b4/8/6PP/3R2K1 w - - 0 1",
     pgn: "{[%cal Gb5e8]} 1. Rxd4",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -45,8 +37,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-01",
-    title: "Pin #1",
-    instruction: "Pin a piece so it can't move!",
     fen: "2b3k1/p1P3P1/8/6r1/3K4/8/1R6/8 w - - 3 48",
     pgn: "1. Rb8 Kh7 2. Rxc8",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -54,8 +44,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-02",
-    title: "Pin #2",
-    instruction: "Pin a piece so it can't move!",
     fen: "7k/1p4rp/6n1/1r6/p6P/P7/5PP1/B2R2K1 w - - 0 30",
     pgn: "1. Rd8+ Nf8 2. Rxf8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -63,8 +51,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-03",
-    title: "Pin #3",
-    instruction: "Pin a piece so it can't move!",
     fen: "2b3k1/2b2rpp/2p5/ppN5/3P3q/1BP4P/PP3PP1/4R1K1 w - - 0 24",
     pgn: "1. Re8#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -72,8 +58,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-04",
-    title: "Pin #4",
-    instruction: "Pin a piece so it can't move!",
     fen: "7k/pp1rRprp/8/1b1pB3/q2P4/1N6/2P3PP/1R4K1 w - - 0 24",
     pgn: "1. Re8#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -81,8 +65,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-05",
-    title: "Pin #5",
-    instruction: "Pin a piece so it can't move!",
     fen: "8/5kp1/4pp1p/1Pn5/2N5/p2rP3/6PP/5RK1 w - - 2 37",
     pgn: "1. Ne5+ Ke7 2. Nxd3",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -90,8 +72,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-06",
-    title: "Pin #6",
-    instruction: "Pin a piece so it can't move!",
     fen: "3r1rk1/1p3pbp/p3p3/3q4/4N1Q1/7P/5PP1/R4RK1 w - - 2 25",
     pgn: "1. Nf6+ Kh8 2. Nxd5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -99,8 +79,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-07",
-    title: "Pin #7",
-    instruction: "Pin a piece so it can't move!",
     fen: "2r2rk1/bp3pp1/4p2p/1p1q1n2/P3NPQ1/2Pp1R2/6PP/2BR3K w - - 2 27",
     pgn: "1. Nf6+ Kh8 2. Nxd5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -108,8 +86,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-08",
-    title: "Pin #8",
-    instruction: "Pin a piece so it can't move!",
     fen: "rn2r1k1/ppp1bpp1/7B/3p4/3P1n2/2PB1q2/PPQ2PRP/RN5K w - - 2 16",
     pgn: "1. Bh7+ Kh8 2. Bxg7#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -117,8 +93,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-09",
-    title: "Pin #9",
-    instruction: "Pin a piece so it can't move!",
     fen: "r2qkb1r/pp1bpppp/2n2n2/2p5/2N2B2/2PB4/PP2QPPP/3RK1NR w Kkq - 9 10",
     pgn: "1. Nd6#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -126,8 +100,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-10",
-    title: "Pin #10",
-    instruction: "Pin a piece so it can't move!",
     fen: "5bk1/p4r2/1pr3pQ/3BBp1p/3p4/1Pq5/P4PPP/5RK1 w - - 4 26",
     pgn: "1. Qh8#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -135,8 +107,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-11",
-    title: "Pin #11",
-    instruction: "Pin a piece so it can't move!",
     fen: "2r5/5pkp/pp1q2p1/4p3/3b3P/P3N1Q1/b4PP1/3R2K1 w - - 0 28",
     pgn: "1. Nf5+ Kf8 2. Nxd6",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -144,8 +114,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-12",
-    title: "Pin #12",
-    instruction: "Pin a piece so it can't move!",
     fen: "r5k1/7p/2p3pP/2Pp1rQ1/3PpR2/pp2q3/1B3R1K/8 w - - 0 33",
     pgn: "1. Rxf5 Qxg5 2. Rxg5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -153,8 +121,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-13",
-    title: "Pin #13",
-    instruction: "Pin a piece so it can't move!",
     fen: "8/pp6/6qk/2P3p1/1P1R4/P7/6P1/6K1 w - - 1 39",
     pgn: "1. Rd6 Kg7 2. Rxg6+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -162,8 +128,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-14",
-    title: "Pin #14",
-    instruction: "Pin a piece so it can't move!",
     fen: "8/7k/6p1/p7/1bK5/5PP1/7n/1R6 w - - 0 46",
     pgn: "1. Rh1 Kg7 2. Rxh2",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -171,8 +135,6 @@ export const pinPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pin-15",
-    title: "Pin #15",
-    instruction: "Pin a piece so it can't move!",
     fen: "2q5/R3b1kp/2p5/2Pp4/3PpQ2/R7/1r3p1P/4K3 w - - 0 34",
     pgn: "1. Kf1 Rb1+ 2. Kxf2",
     starThresholds: { three: 2, two: 3, one: 4 },

@@ -36,8 +36,6 @@ CATEGORIES = {
         "id_prefix": "lichess-m1",
         "piece": "Q",
         "mode": "checkmate",
-        "title_prefix": "Mate in 1",
-        "instruction": "Find the checkmate!",
         "max_puzzles": 20,
         "max_rating": 1000,
     },
@@ -47,8 +45,6 @@ CATEGORIES = {
         "id_prefix": "lichess-m2",
         "piece": "Q",
         "mode": "checkmate",
-        "title_prefix": "Mate in 2",
-        "instruction": "Find the two-move checkmate!",
         "max_puzzles": 20,
         "max_rating": 1200,
     },
@@ -58,8 +54,6 @@ CATEGORIES = {
         "id_prefix": "lichess-fork",
         "piece": "N",
         "mode": None,
-        "title_prefix": "Fork",
-        "instruction": "Attack two pieces at once!",
         "max_puzzles": 20,
         "max_rating": 1200,
     },
@@ -69,8 +63,6 @@ CATEGORIES = {
         "id_prefix": "lichess-skewer",
         "piece": "R",
         "mode": None,
-        "title_prefix": "Skewer",
-        "instruction": "Attack through one piece to win another!",
         "max_puzzles": 20,
         "max_rating": 1200,
     },
@@ -80,8 +72,6 @@ CATEGORIES = {
         "id_prefix": "lichess-rtd",
         "piece": "R",
         "mode": None,
-        "title_prefix": "Remove the Defender",
-        "instruction": "Capture the piece that guards the target!",
         "max_puzzles": 20,
         "max_rating": 1200,
     },
@@ -91,8 +81,6 @@ CATEGORIES = {
         "id_prefix": "lichess-disc",
         "piece": "N",
         "mode": None,
-        "title_prefix": "Discovered Attack",
-        "instruction": "Move one piece to unleash another!",
         "max_puzzles": 20,
         "max_rating": 1200,
     },
@@ -102,8 +90,6 @@ CATEGORIES = {
         "id_prefix": "lichess-pin",
         "piece": "B",
         "mode": None,
-        "title_prefix": "Pin",
-        "instruction": "Pin a piece so it can't move!",
         "max_puzzles": 15,
         "max_rating": 1200,
     },
@@ -113,8 +99,6 @@ CATEGORIES = {
         "id_prefix": "lichess-pe",
         "piece": None,  # allow mixed K+P moves
         "mode": None,
-        "title_prefix": "Pawn Ending",
-        "instruction": "Find the winning plan!",
         "max_puzzles": 20,
         "min_rating": 1200,
         "max_rating": 1800,
@@ -259,12 +243,9 @@ def process_puzzle(row: dict, config: dict, idx: int) -> dict | None:
 
     # Build the puzzle object
     puzzle_id = f'{config["id_prefix"]}-{idx + 1:02d}'
-    title = f'{config["title_prefix"]} #{idx + 1}'
 
     puzzle = {
         "id": puzzle_id,
-        "title": title,
-        "instruction": config["instruction"],
         "fen": puzzle_fen,
         "pgn": pgn,
         "starThresholds": {
@@ -291,8 +272,6 @@ def generate_typescript(puzzles: list[dict], config: dict) -> str:
         lines.append("  {")
         lines.append(f'    type: "puzzle",')
         lines.append(f'    id: "{p["id"]}",')
-        lines.append(f'    title: "{p["title"]}",')
-        lines.append(f'    instruction: "{p["instruction"]}",')
         lines.append(f'    fen: "{p["fen"]}",')
         lines.append(f'    pgn: "{p["pgn"]}",')
 
@@ -391,7 +370,6 @@ def main():
         # Re-number IDs after sorting
         for i, p in enumerate(puzzles):
             p["id"] = f'{config["id_prefix"]}-{i + 1:02d}'
-            p["title"] = f'{config["title_prefix"]} #{i + 1}'
             p.pop("_rating", None)
 
         print(f"  Generated {len(puzzles)} puzzles")

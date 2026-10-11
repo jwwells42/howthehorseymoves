@@ -4,8 +4,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-01",
-    title: "The Phantom Capture",
-    instruction: "The black pawn just moved two squares! Capture it en passant!",
     fen: "7k/3p4/8/4P3/8/8/8/K7 b - - 0 1",
     pgn: "1... d5 2. exd6",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -13,8 +11,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-02",
-    title: "Other Side",
-    instruction: "The black pawn just advanced two squares past your pawn. Capture en passant!",
     fen: "7k/3p4/8/2P5/8/8/8/K7 b - - 0 1",
     pgn: "1... d5 2. cxd6",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -22,8 +18,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-03",
-    title: "Left or Right?",
-    instruction: "Two black pawns are beside you, but only one just moved. Capture the right one!",
     fen: "7k/5p2/8/3pP3/8/8/8/K7 b - - 0 1",
     pgn: "1... f5 2. exf6",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -31,8 +25,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-04",
-    title: "Now or Never",
-    instruction: "Capture en passant — it's your only chance! (The option disappears next turn.)",
     fen: "7k/p7/8/1P6/8/8/8/1K6 b - - 0 1",
     pgn: "1... a5 2. bxa6",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -40,8 +32,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-05",
-    title: "En Passant & Advance",
-    instruction: "Capture en passant, then push your pawn to the star!",
     fen: "1k6/7p/8/6P1/8/8/8/K7 b - - 0 1",
     pgn: "1... h5 2. gxh6 Ka8 3. h7 Kb8 4. h8=Q",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -49,8 +39,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-06",
-    title: "Clear the Path",
-    instruction: "Use en passant to remove the blocker, then advance to the star!",
     fen: "8/2p3k1/8/3P4/2P5/8/8/K7 b - - 0 1",
     pgn: "1... c5 2. dxc6",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -58,8 +46,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-07",
-    title: "Don't Fall for It",
-    instruction: "The black pawn moved two squares, but en passant isn't the best move. Advance forward instead!",
     fen: "7k/4p3/8/3P4/8/8/8/K7 b - - 0 1",
     pgn: "1... e5 2. d6 Kg8 3. d7 Kh8 4. d8=Q",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -67,8 +53,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
   {
     type: "puzzle",
     id: "enpassant-11",
-    title: "Not From Here!",
-    instruction: "The black pawn just slid past yours! But en passant only works from the 5th rank — you're on the 6th. Push forward instead!",
     fen: "7k/3p4/4P3/8/8/8/8/K7 b - - 0 1",
     pgn: "1... d5 2. e7 Kg8 3. e8=Q",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -78,8 +62,6 @@ export const enPassantPuzzles: (TacticPuzzle | FindMovesPuzzle)[] = [
     type: "find-moves",
     id: "enpassant-find",
     playerPiece: "P",
-    title: "Find All Moves",
-    instruction: "The black pawn just moved! Click every square the pawn can move to!",
     position: [
       { piece: "P", color: "w", square: "e5" },
       { piece: "P", color: "b", square: "d6" },

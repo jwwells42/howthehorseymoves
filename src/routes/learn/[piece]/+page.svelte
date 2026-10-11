@@ -259,8 +259,7 @@
         <LinkCard
           href={unlocked ? withStop(`/learn/${piece}/${puzz.id}`, pathStop) : undefined}
           reason="🔒 Locked"
-          title="{idx + 1}. {puzz.title}"
-          description={unlocked ? puzz.instruction : undefined}
+          title="{displayName} {idx + 1}"
         >
           {#snippet aside()}{@render stars(progress?.completed ? progress.bestStars : 0)}{/snippet}
         </LinkCard>

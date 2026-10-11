@@ -61,7 +61,7 @@
       &larr; Back to {piece} puzzles
     </a>
     {#key puzzle.id}
-      <PuzzleShell {puzzle} onNext={handleNext} {nextLabel} />
+      <PuzzleShell {puzzle} title="{puzzleSet?.name} {currentIdx + 1}" onNext={handleNext} {nextLabel} />
     {/key}
   </main>
 {:else}

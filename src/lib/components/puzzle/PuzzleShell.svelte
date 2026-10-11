@@ -12,10 +12,12 @@
 
   interface Props {
     puzzle: Puzzle;
+    /** The set's name and the puzzle's number in it, e.g. "Rook 3" */
+    title: string;
     onNext?: () => void;
     nextLabel?: string;
   }
-  let { puzzle, onNext, nextLabel }: Props = $props();
+  let { puzzle, title, onNext, nextLabel }: Props = $props();
 
   let ps = $derived(createPuzzleState(puzzle));
 
@@ -97,8 +99,7 @@
 <BoardLayout>
   {#snippet headerArea()}
     <div class="header">
-      <h2 class="title">{puzzle.title}</h2>
-      <p class="instruction">{puzzle.instruction}</p>
+      <h2 class="title">{title}</h2>
     </div>
   {/snippet}
 
@@ -146,7 +147,7 @@
 
     {#if ps.stalemateTrigger}
       <div class="stalemate-warning">
-        <strong>✗ Stalemate!</strong> The opponent has no legal moves but isn't in check. That's a draw, not a win.
+        <strong>✗ Stalemate!</strong>
         <button class="stalemate-retry" onclick={ps.reset}>Try again</button>
       </div>
     {/if}
@@ -171,8 +172,7 @@
 
 <style>
   .header { text-align: center; flex-shrink: 0; }
-  .title { font-size: var(--size-large); font-weight: var(--weight-strong); margin-bottom: 0.25rem; }
-  .instruction { color: var(--ink-muted); }
+  .title { font-size: var(--size-large); font-weight: var(--weight-strong); }
   .move-counter { font-size: var(--size-secondary); color: var(--ink-muted); flex-shrink: 0; }
 
   .stalemate-warning {

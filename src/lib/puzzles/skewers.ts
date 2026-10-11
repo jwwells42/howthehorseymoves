@@ -4,8 +4,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-01",
-    title: "Skewer #1",
-    instruction: "Attack through one piece to win another!",
     fen: "2k2r2/8/Rp1p4/6Np/2KP1n1P/P5r1/1PP5/8 w - - 0 31",
     pgn: "1. Ra8+ Kd7 2. Rxf8",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -13,8 +11,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-02",
-    title: "Skewer #2",
-    instruction: "Attack through one piece to win another!",
     fen: "8/3R4/p2Pk1p1/8/P1p1rp2/2K5/8/8 w - - 1 52",
     pgn: "1. Re7+ Kf6 2. Rxe4",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -22,8 +18,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-03",
-    title: "Skewer #3",
-    instruction: "Attack through one piece to win another!",
     fen: "8/2k1rpp1/1RP4p/8/3Kp1P1/7P/5P2/8 w - - 7 41",
     pgn: "1. Rb7+ Kxc6 2. Rxe7",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -31,8 +25,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-04",
-    title: "Skewer #4",
-    instruction: "Attack through one piece to win another!",
     fen: "8/8/p1r2k2/5p2/3P1p2/2P4R/P5K1/8 w - - 2 59",
     pgn: "1. Rh6+ Ke7 2. Rxc6",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -40,8 +32,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-05",
-    title: "Skewer #5",
-    instruction: "Attack through one piece to win another!",
     fen: "2k3r1/1br1b3/4p3/R1p5/1pP4p/4B2P/R1P2KP1/5B2 w - - 6 35",
     pgn: "1. Ra8+ Bxa8 2. Rxa8+ Kd7 3. Rxg8",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -49,8 +39,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-06",
-    title: "Skewer #6",
-    instruction: "Attack through one piece to win another!",
     fen: "8/8/1R6/8/1pk3PK/8/8/2r5 w - - 3 56",
     pgn: "1. Rc6+ Kb3 2. Rxc1",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -58,8 +46,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-07",
-    title: "Skewer #7",
-    instruction: "Attack through one piece to win another!",
     fen: "5r2/6p1/8/2k5/3bB1P1/3P3P/2K5/2B5 w - - 1 42",
     pgn: "1. Ba3+ Kb6 2. Bxf8",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -67,8 +53,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-08",
-    title: "Skewer #8",
-    instruction: "Attack through one piece to win another!",
     fen: "8/8/1R6/3Bk1p1/2K4p/6bP/4r1P1/8 w - - 6 60",
     pgn: "1. Re6+ Kf4 2. Rxe2",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -76,8 +60,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-09",
-    title: "Skewer #9",
-    instruction: "Attack through one piece to win another!",
     fen: "1q4k1/5pp1/p4b2/6N1/P3Q2K/5P1P/8/8 w - - 7 37",
     pgn: "1. Qh7+ Kf8 2. Qh8+ Ke7 3. Qxb8",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -85,8 +67,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-10",
-    title: "Skewer #10",
-    instruction: "Attack through one piece to win another!",
     fen: "R7/8/4kpp1/8/7p/4r2P/6PK/8 w - - 0 64",
     pgn: "1. Re8+ Kd7 2. Rxe3",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -94,8 +74,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-11",
-    title: "Skewer #11",
-    instruction: "Attack through one piece to win another!",
     fen: "8/8/8/p5R1/r3k3/2P3K1/8/8 w - - 0 42",
     pgn: "1. Rg4+ Kd3 2. Rxa4",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -103,8 +81,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-12",
-    title: "Skewer #12",
-    instruction: "Attack through one piece to win another!",
     fen: "R7/8/8/4K1k1/8/8/8/7r w - - 6 53",
     pgn: "1. Rg8+ Kh4 2. Rh8+ Kg3 3. Rxh1",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -112,8 +88,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-13",
-    title: "Skewer #13",
-    instruction: "Attack through one piece to win another!",
     fen: "6R1/4p3/3p1p1k/2pP4/1pKbPP1r/1B6/P7/8 w - - 2 52",
     pgn: "1. Rh8+ Kg7 2. Rxh4",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -121,8 +95,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-14",
-    title: "Skewer #14",
-    instruction: "Attack through one piece to win another!",
     fen: "8/8/3p2p1/pr2k1b1/1p6/6R1/5PP1/6K1 w - - 2 45",
     pgn: "1. Rxg5+ Kd4 2. Rxb5 Kc4 3. Rxa5",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -130,8 +102,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-15",
-    title: "Skewer #15",
-    instruction: "Attack through one piece to win another!",
     fen: "1R1b4/5p2/1p1r2k1/1p4P1/1Ppn1P2/7R/8/1K6 w - - 1 38",
     pgn: "1. Rh6+ Kg7 2. Rxd6",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -139,8 +109,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-16",
-    title: "Skewer #16",
-    instruction: "Attack through one piece to win another!",
     fen: "4R3/p6p/1p3kp1/8/P1P3Pb/1P3b2/8/1K6 w - - 0 32",
     pgn: "1. Rf8+ Kg5 2. Rxf3",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -148,8 +116,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-17",
-    title: "Skewer #17",
-    instruction: "Attack through one piece to win another!",
     fen: "8/5Q2/4p1p1/4k3/8/6q1/8/2K5 w - - 5 55",
     pgn: "1. Qc7+ Kd4 2. Qxg3",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -157,8 +123,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-18",
-    title: "Skewer #18",
-    instruction: "Attack through one piece to win another!",
     fen: "8/5R2/1r1k2p1/5p2/2K5/1n6/PP3P2/8 w - - 0 46",
     pgn: "1. Rf6+ Ke5 2. Rxb6",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -166,8 +130,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-19",
-    title: "Skewer #19",
-    instruction: "Attack through one piece to win another!",
     fen: "7R/8/2k1p3/1p1bPp2/1P3P2/2b5/8/3K4 w - - 19 86",
     pgn: "1. Rc8+ Kd7 2. Rxc3",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -175,8 +137,6 @@ export const skewerPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-skewer-20",
-    title: "Skewer #20",
-    instruction: "Attack through one piece to win another!",
     fen: "r5k1/5p1p/p2bp1p1/1pp2q2/P6Q/1B3P2/KPP2P2/7R w - - 0 29",
     pgn: "1. Qxh7+ Kf8 2. Qh8+ Ke7 3. Qxa8",
     starThresholds: { three: 3, two: 4, one: 5 },

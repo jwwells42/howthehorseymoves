@@ -4,8 +4,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-01",
-    title: "Fork #1",
-    instruction: "Attack two pieces at once!",
     fen: "8/n4k2/6pp/4Kp2/2b5/p5P1/3R3P/8 w - - 2 49",
     pgn: "1. Rd7+ Ke8 2. Rxa7",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -13,8 +11,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-02",
-    title: "Fork #2",
-    instruction: "Attack two pieces at once!",
     fen: "8/2p4R/8/p2qB1p1/2N3kp/1P6/2P4K/8 w - - 7 41",
     pgn: "1. Ne3+ Kf3 2. Nxd5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -22,8 +18,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-03",
-    title: "Fork #3",
-    instruction: "Attack two pieces at once!",
     fen: "r2q3k/pp4bp/6p1/3p1bN1/5Q2/3pP1P1/P5P1/5RK1 w - - 2 23",
     pgn: "1. Nf7+ Kg8 2. Nxd8",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -31,8 +25,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-04",
-    title: "Fork #4",
-    instruction: "Attack two pieces at once!",
     fen: "r3kb1r/ppp2p2/2n3pp/3qp3/4N1P1/3P3P/PPP2P2/R1BQK2R w KQkq - 0 16",
     pgn: "1. Nf6+ Kd8 2. Nxd5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -40,8 +32,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-05",
-    title: "Fork #5",
-    instruction: "Attack two pieces at once!",
     fen: "r1q2rk1/pp3pbp/3pbnp1/2pNp3/2PnP3/P1NP2PP/1P3PBK/R1BQ1R2 w - - 7 14",
     pgn: "1. Ne7+ Kh8 2. Nxc8",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -49,8 +39,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-06",
-    title: "Fork #6",
-    instruction: "Attack two pieces at once!",
     fen: "8/p2b4/2p2k2/2b5/4pPp1/1PN5/P1P3P1/2K5 w - - 0 31",
     pgn: "1. Nxe4+ Ke7 2. Nxc5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -58,8 +46,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-07",
-    title: "Fork #7",
-    instruction: "Attack two pieces at once!",
     fen: "8/5p2/4p2R/3pk1r1/8/2P1KP2/8/8 w - - 7 50",
     pgn: "1. f4+ Kf5 2. fxg5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -67,8 +53,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-08",
-    title: "Fork #8",
-    instruction: "Attack two pieces at once!",
     fen: "r1b1k2r/ppp2ppp/8/3p1q2/1b2n3/1P1QB3/P1PNPPPP/R3KB1R w KQkq - 2 11",
     pgn: "1. Qb5+ Bd7 2. Qxb4",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -76,8 +60,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-09",
-    title: "Fork #9",
-    instruction: "Attack two pieces at once!",
     fen: "2R5/3N2pk/p3r2p/8/2p5/7P/2r2PP1/6K1 w - - 4 38",
     pgn: "1. Nf8+ Kg8 2. Nxe6+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -85,8 +67,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-10",
-    title: "Fork #10",
-    instruction: "Attack two pieces at once!",
     fen: "2k4r/1p1q1p1r/p1nb1n2/4pP2/1PNpB1p1/P2P4/5PP1/R1BQRK2 w - - 0 22",
     pgn: "1. Nb6+ Kc7 2. Nxd7",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -94,8 +74,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-11",
-    title: "Fork #11",
-    instruction: "Attack two pieces at once!",
     fen: "8/1pr2pkp/p2Np1p1/2P5/1n1r4/5P1P/6P1/2R2RK1 w - - 3 32",
     pgn: "1. Ne8+ Kf8 2. Nxc7",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -103,8 +81,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-12",
-    title: "Fork #12",
-    instruction: "Attack two pieces at once!",
     fen: "8/R7/pqpkpp2/7p/8/8/3NK3/8 w - - 2 42",
     pgn: "1. Nc4+ Kd5 2. Nxb6+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -112,8 +88,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-13",
-    title: "Fork #13",
-    instruction: "Attack two pieces at once!",
     fen: "8/pp6/2p3Q1/3p4/2k3KP/P1P3b1/8/1N3q2 w - - 0 46",
     pgn: "1. Nd2+ Kxc3 2. Nxf1",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -121,8 +95,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-14",
-    title: "Fork #14",
-    instruction: "Attack two pieces at once!",
     fen: "8/8/3k4/4r3/5Kp1/4N1P1/5P2/8 w - - 3 56",
     pgn: "1. Nc4+ Kd5 2. Nxe5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -130,8 +102,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-15",
-    title: "Fork #15",
-    instruction: "Attack two pieces at once!",
     fen: "6k1/p6p/5ppP/2Qqp3/6N1/6P1/P4PK1/3r4 w - - 3 39",
     pgn: "1. Qxd5+ Rxd5 2. Nxf6+ Kf7 3. Nxd5",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -139,8 +109,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-16",
-    title: "Fork #16",
-    instruction: "Attack two pieces at once!",
     fen: "2r1r1k1/pp3p1p/5bp1/q1n5/2Q5/1B2P3/PPP2PPP/2KR3R w - - 0 18",
     pgn: "1. Qxf7+ Kh8 2. Qxf6#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -148,8 +116,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-17",
-    title: "Fork #17",
-    instruction: "Attack two pieces at once!",
     fen: "1r2r1k1/pR3ppp/8/3B4/n2p2b1/3P2P1/3KP2P/6NR w - - 3 21",
     pgn: "1. Bxf7+ Kf8 2. Bxe8",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -157,8 +123,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-18",
-    title: "Fork #18",
-    instruction: "Attack two pieces at once!",
     fen: "r3k2r/2qnbpp1/pp1p3p/3bp3/1PP1n2N/4P1B1/P2QBPPP/3R1RK1 w kq - 0 18",
     pgn: "1. Qxd5 Nc3 2. Qxa8+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -166,8 +130,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-19",
-    title: "Fork #19",
-    instruction: "Attack two pieces at once!",
     fen: "6k1/3r1pbp/5qp1/1p6/1Bn4P/P4P2/1PP3P1/1K2Q2R w - - 0 27",
     pgn: "1. Qe8+ Bf8 2. Qxf8#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -175,8 +137,6 @@ export const forkPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-fork-20",
-    title: "Fork #20",
-    instruction: "Attack two pieces at once!",
     fen: "r4k2/1pb3pp/2p3b1/6N1/2B3P1/5P2/n6P/4RK2 w - - 1 30",
     pgn: "1. Ne6+ Ke7 2. Nxc7+ Kd6 3. Nxa8",
     starThresholds: { three: 3, two: 4, one: 5 },

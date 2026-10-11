@@ -3,8 +3,6 @@ import type { Arrow } from "../logic/pgn";
 
 interface PuzzleBase {
   id: string;
-  title: string;
-  instruction: string;
 }
 
 export interface RoutePuzzle extends PuzzleBase {

@@ -5,8 +5,6 @@ export const backRankMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-br-01",
     type: "puzzle",
-    title: "Classic Back Rank",
-    instruction: "The king is trapped behind its own pawns. Deliver checkmate!",
     fen: "7k/5ppp/8/8/8/8/R7/6K1 w - - 0 1",
     pgn: "1. Ra8#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -14,8 +12,6 @@ export const backRankMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-br-02",
     type: "puzzle",
-    title: "Queen on the Back Rank",
-    instruction: "Deliver checkmate with the queen on the back rank!",
     fen: "7k/6pp/8/8/8/8/8/3Q1K2 w - - 0 1",
     pgn: "1. Qd8#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -23,8 +19,6 @@ export const backRankMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-br-03",
     type: "puzzle",
-    title: "Back Rank with Support",
-    instruction: "Deliver checkmate! Your king supports the rook.",
     fen: "k7/2K5/8/8/8/8/8/7R w - - 0 1",
     pgn: "1. Ra1#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -32,8 +26,6 @@ export const backRankMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-br-04",
     type: "puzzle",
-    title: "Back Rank from Below",
-    instruction: "Deliver checkmate with the rook!",
     fen: "1k6/rpp5/8/8/8/8/8/3R2K1 w - - 0 1",
     pgn: "1. Rd8#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -41,8 +33,6 @@ export const backRankMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-br-05",
     type: "puzzle",
-    title: "Don't Stalemate!",
-    instruction: "Checkmate in one — but be careful not to stalemate!",
     fen: "7k/5K2/8/8/8/6Q1/8/8 w - - 0 1",
     pgn: "1. Qg7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -54,8 +44,6 @@ export const rookLadderPuzzles: ConversionPuzzle[] = [
   {
     id: "checkmate-rl-01",
     type: "conversion",
-    title: "Two-Rook Ladder",
-    instruction: "Use your two rooks to push the king to the edge and deliver checkmate!",
     position: [
       { piece: "K", color: "w", square: "a1" },
       { piece: "R", color: "w", square: "a4" },
@@ -69,8 +57,6 @@ export const rookLadderPuzzles: ConversionPuzzle[] = [
   {
     id: "checkmate-rl-02",
     type: "conversion",
-    title: "Ladder from the Side",
-    instruction: "Push the king to the edge with alternating rook checks!",
     position: [
       { piece: "K", color: "w", square: "a1" },
       { piece: "R", color: "w", square: "c1" },
@@ -84,8 +70,6 @@ export const rookLadderPuzzles: ConversionPuzzle[] = [
   {
     id: "checkmate-rl-03",
     type: "conversion",
-    title: "Almost There",
-    instruction: "The king is near the edge — finish the ladder!",
     position: [
       { piece: "K", color: "w", square: "a1" },
       { piece: "R", color: "w", square: "a6" },
@@ -103,8 +87,6 @@ export const queenF7Puzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qf-01",
     type: "puzzle",
-    title: "The Scholar's Mate",
-    instruction: "It's the most famous beginner checkmate. Find Qxf7#!",
     fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K2R w KQkq - 4 4",
     pgn: "1. Qxf7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -112,8 +94,6 @@ export const queenF7Puzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qf-02",
     type: "puzzle",
-    title: "Battery on f7",
-    instruction: "The same pattern as Scholar's Mate — queen takes f7 with bishop support!",
     fen: "3qk3/3p1p2/2n2n2/4p2Q/2B5/8/8/4K3 w - - 0 1",
     pgn: "1. Qxf7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -121,8 +101,6 @@ export const queenF7Puzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qf-03",
     type: "puzzle",
-    title: "Knight Guards the Exit",
-    instruction: "The knight covers the escape. Find the queen checkmate on f7!",
     fen: "2brk3/5p2/3p4/4N2Q/8/8/6PP/6K1 w - - 0 1",
     pgn: "1. Qxf7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -134,8 +112,6 @@ export const qbBatteryPuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qb-01",
     type: "puzzle",
-    title: "Battery on g7",
-    instruction: "The queen and bishop share the same diagonal. Deliver checkmate!",
     fen: "5rk1/5ppp/5Q2/8/8/2B5/6PP/6K1 w - - 0 1",
     pgn: "1. Qxg7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -143,8 +119,6 @@ export const qbBatteryPuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qb-02",
     type: "puzzle",
-    title: "Queen-Bishop Diagonal",
-    instruction: "The queen and bishop line up on a deadly diagonal. Deliver checkmate!",
     fen: "5rk1/5ppp/8/8/8/3Q4/8/1B4K1 w - - 0 1",
     pgn: "1. Qxh7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -152,8 +126,6 @@ export const qbBatteryPuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qb-03",
     type: "puzzle",
-    title: "Battery Strike",
-    instruction: "Find the queen move that delivers checkmate with bishop support!",
     fen: "5rk1/5ppp/8/8/4Q3/8/2B5/6K1 w - - 0 1",
     pgn: "1. Qxh7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -161,8 +133,6 @@ export const qbBatteryPuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qb-04",
     type: "puzzle",
-    title: "Long Diagonal Mate",
-    instruction: "The bishop controls the long diagonal. Find the queen checkmate!",
     fen: "6k1/5ppp/8/8/8/1B6/6PP/Q5K1 w - - 0 1",
     pgn: "1. Qa8#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -170,8 +140,6 @@ export const qbBatteryPuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-qb-05",
     type: "puzzle",
-    title: "Dark Diagonal Battery",
-    instruction: "The bishop lurks on the long diagonal. Where does the queen strike?",
     fen: "5rk1/5ppp/8/8/3Q4/8/1B4PP/6K1 w - - 0 1",
     pgn: "1. Qxg7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -183,8 +151,6 @@ export const lollisMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-lm-01",
     type: "puzzle",
-    title: "Lolli's Mate",
-    instruction: "Deliver the classic Lolli's Mate!",
     fen: "6k1/5p1p/5PpQ/8/8/8/8/6K1 w - - 0 1",
     pgn: "1. Qg7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -192,8 +158,6 @@ export const lollisMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-lm-02",
     type: "puzzle",
-    title: "Lolli's in a Real Game",
-    instruction: "Find the checkmate — the classic pattern is hiding in this position!",
     fen: "r5k1/3p1p1p/2n2PpQ/8/8/8/8/R5K1 w - - 0 1",
     pgn: "1. Qg7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -201,8 +165,6 @@ export const lollisMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-lm-03",
     type: "puzzle",
-    title: "Don't Be Tempted!",
-    instruction: "There's only one move that's checkmate — don't fall for the traps!",
     fen: "6k1/5p1p/5PpQ/8/2B5/8/8/6K1 w - - 0 1",
     pgn: "1. Qg7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -214,8 +176,6 @@ export const queenKingMatePuzzles: (TacticPuzzle | ConversionPuzzle)[] = [
   {
     id: "checkmate-qk-01",
     type: "puzzle",
-    title: "Cornered King",
-    instruction: "Deliver checkmate with the queen — your king helps!",
     fen: "k7/p7/1K6/8/Q7/8/8/1R6 w - - 0 1",
     pgn: "1. Qxa7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -223,8 +183,6 @@ export const queenKingMatePuzzles: (TacticPuzzle | ConversionPuzzle)[] = [
   {
     id: "checkmate-qk-03",
     type: "puzzle",
-    title: "Stalemate Trap!",
-    instruction: "Checkmate in one — don't stalemate!",
     fen: "k7/8/K7/8/1Q6/8/8/8 w - - 0 1",
     pgn: "1. Qb7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -232,8 +190,6 @@ export const queenKingMatePuzzles: (TacticPuzzle | ConversionPuzzle)[] = [
   {
     id: "checkmate-qk-04",
     type: "conversion",
-    title: "Queen vs Lone King",
-    instruction: "Use your queen and king together to force checkmate!",
     position: [
       { piece: "K", color: "w", square: "d4" },
       { piece: "Q", color: "w", square: "a1" },
@@ -246,8 +202,6 @@ export const queenKingMatePuzzles: (TacticPuzzle | ConversionPuzzle)[] = [
   {
     id: "checkmate-qk-05",
     type: "conversion",
-    title: "Corner the King",
-    instruction: "Drive the lone king to the corner and deliver checkmate!",
     position: [
       { piece: "K", color: "w", square: "c3" },
       { piece: "Q", color: "w", square: "d1" },
@@ -264,8 +218,6 @@ export const smotheredMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-sm-01",
     type: "puzzle",
-    title: "Knight Strikes f7",
-    instruction: "The f7 pawn is weak! Capture it with the knight for checkmate!",
     fen: "6rk/5p1p/7K/4N3/8/8/8/8 w - - 0 1",
     pgn: "1. Nxf7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -273,8 +225,6 @@ export const smotheredMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-sm-02",
     type: "puzzle",
-    title: "Central Knight Delivers",
-    instruction: "Use the centralized knight to deliver checkmate!",
     fen: "6rk/6pp/3N4/8/8/6K1/8/8 w - - 0 1",
     pgn: "1. Nf7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -282,8 +232,6 @@ export const smotheredMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-sm-03",
     type: "puzzle",
-    title: "Knight from the Flank",
-    instruction: "The knight is on the edge — but it can still deliver checkmate!",
     fen: "6rk/5p1p/7K/6N1/8/8/8/8 w - - 0 1",
     pgn: "1. Nxf7#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -291,8 +239,6 @@ export const smotheredMatePuzzles: TacticPuzzle[] = [
   {
     id: "checkmate-sm-04",
     type: "puzzle",
-    title: "Knight Finds the Spot",
-    instruction: "Only one knight move gives checkmate. Find it!",
     fen: "5rkr/5ppp/8/3N4/8/8/8/6K1 w - - 0 1",
     pgn: "1. Ne7#",
     starThresholds: { three: 1, two: 2, one: 3 },

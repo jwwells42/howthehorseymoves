@@ -4,8 +4,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-01",
-    title: "Pawn Ending #1",
-    instruction: "Find the winning plan!",
     fen: "8/p5p1/1p2k1p1/8/P1K1P1P1/6P1/8/8 w - - 0 34",
     pgn: "1. Kb5 Ke5 2. Ka6",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -13,8 +11,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-02",
-    title: "Pawn Ending #2",
-    instruction: "Find the winning plan!",
     fen: "8/p7/1p6/7p/PP1k3P/6K1/8/8 w - - 0 49",
     pgn: "1. Kf4 a6 2. Kg5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -22,8 +18,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-03",
-    title: "Pawn Ending #3",
-    instruction: "Find the winning plan!",
     fen: "8/8/2P1k3/6Kp/5p1P/8/8/8 w - - 0 57",
     pgn: "1. Kxf4 Kd6 2. Kg5 Kxc6 3. Kxh5",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -31,8 +25,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-04",
-    title: "Pawn Ending #4",
-    instruction: "Find the winning plan!",
     fen: "8/1p2k3/p7/P7/1P1KP1p1/8/8/8 w - - 0 50",
     pgn: "1. Ke3 Kf6 2. Kf4 Ke6 3. Kxg4",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -40,8 +32,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-05",
-    title: "Pawn Ending #5",
-    instruction: "Find the winning plan!",
     fen: "8/6p1/5p1p/k3pP2/4P1PP/2K5/8/8 w - - 2 45",
     pgn: "1. Kc4 Kb6 2. Kd5 Kc7 3. Ke6",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -49,8 +39,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-06",
-    title: "Pawn Ending #6",
-    instruction: "Find the winning plan!",
     fen: "8/8/1p4p1/1P3p1p/2K2P1P/4k1P1/8/8 w - - 1 44",
     pgn: "1. Kd5 Kf3 2. Kc6 Kxg3 3. Kxb6",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -58,8 +46,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-07",
-    title: "Pawn Ending #7",
-    instruction: "Find the winning plan!",
     fen: "8/8/p4p2/1p6/1P5k/P3K3/8/8 w - - 0 57",
     pgn: "1. Kf4 Kh3 2. Kf5 Kg3 3. Kxf6",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -67,8 +53,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-08",
-    title: "Pawn Ending #8",
-    instruction: "Find the winning plan!",
     fen: "8/1k3p2/6pp/8/4K1P1/7P/8/8 w - - 2 42",
     pgn: "1. Ke5 f5 2. gxf5 gxf5 3. Kxf5 h5 4. Kg5",
     starThresholds: { three: 4, two: 5, one: 6 },
@@ -76,8 +60,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-09",
-    title: "Pawn Ending #9",
-    instruction: "Find the winning plan!",
     fen: "8/8/2k5/p1p5/P7/1PK5/8/8 w - - 8 54",
     pgn: "1. Kc4 Kd6 2. Kb5 Kd5 3. Kxa5 c4 4. bxc4+ Kxc4 5. Kb6",
     starThresholds: { three: 5, two: 6, one: 7 },
@@ -85,8 +67,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-10",
-    title: "Pawn Ending #10",
-    instruction: "Find the winning plan!",
     fen: "8/8/2P2k2/1p1K4/8/p7/8/8 w - - 0 52",
     pgn: "1. c7 a2 2. c8=Q a1=Q 3. Qh8+ Kf5 4. Qxa1",
     starThresholds: { three: 4, two: 5, one: 6 },
@@ -94,8 +74,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-11",
-    title: "Pawn Ending #11",
-    instruction: "Find the winning plan!",
     fen: "8/5p2/2k1pP2/p1P1P1p1/1p4P1/1P1K4/8/8 w - - 1 45",
     pgn: "1. Kc4 Kb7 2. Kb5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -103,8 +81,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-12",
-    title: "Pawn Ending #12",
-    instruction: "Find the winning plan!",
     fen: "8/8/1P1k4/7p/3K4/4p2P/8/8 w - - 0 49",
     pgn: "1. Kxe3 Kc6 2. Kf4 Kxb6 3. Kg5 h4 4. Kxh4",
     starThresholds: { three: 4, two: 5, one: 6 },
@@ -112,8 +88,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-13",
-    title: "Pawn Ending #13",
-    instruction: "Find the winning plan!",
     fen: "8/5pp1/p6p/1p3P2/4P3/4K1P1/Pk3P2/8 w - - 1 43",
     pgn: "1. e5 b4 2. e6 fxe6 3. fxe6",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -121,8 +95,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-14",
-    title: "Pawn Ending #14",
-    instruction: "Find the winning plan!",
     fen: "8/8/5k2/5ppp/5P2/6KP/6P1/8 w - - 0 46",
     pgn: "1. fxg5+ Kxg5 2. h4+ Kf6 3. Kf4 Ke6 4. Kg5",
     starThresholds: { three: 4, two: 5, one: 6 },
@@ -130,8 +102,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-15",
-    title: "Pawn Ending #15",
-    instruction: "Find the winning plan!",
     fen: "8/8/8/8/1p2K3/5P2/5k2/8 w - - 0 63",
     pgn: "1. f4 b3 2. Kd3 b2 3. Kc2 b1=Q+ 4. Kxb1",
     starThresholds: { three: 4, two: 5, one: 6 },
@@ -139,8 +109,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-16",
-    title: "Pawn Ending #16",
-    instruction: "Find the winning plan!",
     fen: "5k2/5p2/6p1/4KPPp/8/6P1/8/8 w - - 1 41",
     pgn: "1. fxg6 h4 2. gxh4",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -148,8 +116,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-17",
-    title: "Pawn Ending #17",
-    instruction: "Find the winning plan!",
     fen: "8/8/4p1p1/1p1p1kP1/p1pP1P2/P1P3K1/1P6/8 w - - 1 40",
     pgn: "1. Kf3 e5 2. dxe5 d4 3. cxd4",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -157,8 +123,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-18",
-    title: "Pawn Ending #18",
-    instruction: "Find the winning plan!",
     fen: "8/8/2k3p1/2P5/4Kp2/7P/8/8 w - - 2 43",
     pgn: "1. Kxf4 Kxc5 2. Kg5 Kd6 3. Kxg6 Ke6 4. h4 Ke7 5. Kg7",
     starThresholds: { three: 5, two: 6, one: 7 },
@@ -166,8 +130,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-19",
-    title: "Pawn Ending #19",
-    instruction: "Find the winning plan!",
     fen: "5k2/8/8/1pp1KP1p/8/P7/1P6/8 w - - 0 42",
     pgn: "1. Kf4 Kf7 2. Kg5 c4 3. Kxh5 Kf6 4. Kg4 b4 5. axb4",
     starThresholds: { three: 5, two: 6, one: 7 },
@@ -175,8 +137,6 @@ export const pawnEndingPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-pe-20",
-    title: "Pawn Ending #20",
-    instruction: "Find the winning plan!",
     fen: "8/8/8/5k2/6p1/3K2Pp/7P/8 w - - 4 49",
     pgn: "1. Kd4 Ke6 2. Ke4",
     starThresholds: { three: 2, two: 3, one: 4 },

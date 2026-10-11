@@ -4,8 +4,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-01",
-    title: "Discovered Attack #1",
-    instruction: "Move one piece to unleash another!",
     fen: "5k2/1pp4p/8/p1q5/5N1P/2P1R1P1/5P1K/8 w - - 0 39",
     pgn: "1. Ne6+ Ke7 2. Nxc5+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -13,8 +11,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-02",
-    title: "Discovered Attack #2",
-    instruction: "Move one piece to unleash another!",
     fen: "8/7p/6p1/n3k1P1/8/1pK1P3/1B5P/8 w - - 0 41",
     pgn: "1. Kb4+ Kf5 2. Kxa5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -22,8 +18,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-03",
-    title: "Discovered Attack #3",
-    instruction: "Move one piece to unleash another!",
     fen: "r2q3k/pbp3p1/1p1pB3/6r1/2nP3P/P1P5/2Q2PP1/R3K2R w KQ - 0 19",
     pgn: "1. hxg5#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -31,8 +25,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-04",
-    title: "Discovered Attack #4",
-    instruction: "Move one piece to unleash another!",
     fen: "r6k/3R1r1p/6pq/p5N1/3P4/4PKP1/1P3P2/8 w - - 0 39",
     pgn: "1. Nxf7+ Kg7 2. Nxh6+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -40,8 +32,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-05",
-    title: "Discovered Attack #5",
-    instruction: "Move one piece to unleash another!",
     fen: "8/2n5/2P5/pB1k2pp/P2p4/1r4PP/5K2/2R5 w - - 0 45",
     pgn: "1. Bc4+ Kxc6 2. Bxb3+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -49,8 +39,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-06",
-    title: "Discovered Attack #6",
-    instruction: "Move one piece to unleash another!",
     fen: "r1b2r1k/pp4p1/1q3bp1/n4pPP/2QPp3/P1P5/2B2P2/R1B1K2R w KQ - 0 20",
     pgn: "1. hxg6#",
     starThresholds: { three: 1, two: 2, one: 3 },
@@ -58,8 +46,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-07",
-    title: "Discovered Attack #7",
-    instruction: "Move one piece to unleash another!",
     fen: "5rk1/pp5p/4PppQ/2p1qn2/2Br4/8/P1PN1PPP/5RK1 w - - 4 19",
     pgn: "1. e7+ Rxc4 2. exf8=Q#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -67,8 +53,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-08",
-    title: "Discovered Attack #8",
-    instruction: "Move one piece to unleash another!",
     fen: "4r3/ppb2p1k/2bR3p/2p3p1/4N3/2B2P1P/PP4PK/8 w - - 10 27",
     pgn: "1. Nf6+ Kg6 2. Nxe8+ Bxd6+ 3. Nxd6",
     starThresholds: { three: 3, two: 4, one: 5 },
@@ -76,8 +60,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-09",
-    title: "Discovered Attack #9",
-    instruction: "Move one piece to unleash another!",
     fen: "8/8/1pr3p1/2b2k1p/5P1P/p4K2/6P1/B3R3 w - - 0 47",
     pgn: "1. Re5+ Kf6 2. Rxc5+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -85,8 +67,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-10",
-    title: "Discovered Attack #10",
-    instruction: "Move one piece to unleash another!",
     fen: "8/6pk/p2bqp1p/1p6/4P3/PP5P/2B2QP1/7K w - - 2 38",
     pgn: "1. e5+ g6 2. exd6",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -94,8 +74,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-11",
-    title: "Discovered Attack #11",
-    instruction: "Move one piece to unleash another!",
     fen: "2r5/3bk3/1p1p4/p2p1pq1/P2P1pp1/2PBP1Pr/1P3K1P/R3RN2 w - - 0 32",
     pgn: "1. exf4+ Kf7 2. fxg5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -103,8 +81,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-12",
-    title: "Discovered Attack #12",
-    instruction: "Move one piece to unleash another!",
     fen: "r7/ppN3pp/5k2/2P5/P1B5/2r3B1/6PP/6K1 w - - 5 29",
     pgn: "1. Nd5+ Ke6 2. Nxc3+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -112,8 +88,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-13",
-    title: "Discovered Attack #13",
-    instruction: "Move one piece to unleash another!",
     fen: "R7/3r2pk/1Bn1N2p/1p6/1n3P2/7P/p5PK/8 w - - 0 40",
     pgn: "1. Nf8+ Kg8 2. Nxd7+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -121,8 +95,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-14",
-    title: "Discovered Attack #14",
-    instruction: "Move one piece to unleash another!",
     fen: "8/8/8/5r1p/2P5/1k2K2R/8/8 w - - 0 67",
     pgn: "1. Ke4+ Kb4 2. Kxf5",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -130,8 +102,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-15",
-    title: "Discovered Attack #15",
-    instruction: "Move one piece to unleash another!",
     fen: "r6r/pppb2b1/3q2k1/6p1/2nBPpnp/2PB4/PPQ1N1PP/R4RK1 w - - 0 21",
     pgn: "1. e5+ Kh6 2. exd6",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -139,8 +109,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-16",
-    title: "Discovered Attack #16",
-    instruction: "Move one piece to unleash another!",
     fen: "2r4k/pb3q1B/1p2p3/3p3R/3b4/2P4P/PPQ3PK/8 w - - 2 28",
     pgn: "1. Bg6+ Kg8 2. Bxf7+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -148,8 +116,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-17",
-    title: "Discovered Attack #17",
-    instruction: "Move one piece to unleash another!",
     fen: "r4rk1/ppp3pp/1bnq1p2/1B2p3/2P5/1QP2N2/PP3PPP/R4nK1 w - - 0 15",
     pgn: "1. c5+ Kh8 2. cxd6",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -157,8 +123,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-18",
-    title: "Discovered Attack #18",
-    instruction: "Move one piece to unleash another!",
     fen: "r2qr3/ppp2kbp/2n1b1p1/3P4/2Q2p2/B1P2P2/P1P3PP/R3R1K1 w - - 0 18",
     pgn: "1. dxe6+ Kg8 2. e7+",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -166,8 +130,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-19",
-    title: "Discovered Attack #19",
-    instruction: "Move one piece to unleash another!",
     fen: "2b1kbnr/4pppp/2P5/1B6/8/4P3/1P3PPP/r1BK2NR w k - 1 13",
     pgn: "1. c7+ Bd7 2. c8=Q#",
     starThresholds: { three: 2, two: 3, one: 4 },
@@ -175,8 +137,6 @@ export const discoveredPuzzles: TacticPuzzle[] = [
   {
     type: "puzzle",
     id: "lichess-disc-20",
-    title: "Discovered Attack #20",
-    instruction: "Move one piece to unleash another!",
     fen: "r4k2/1pb3pp/2p3b1/6N1/2B3P1/5P2/n6P/4RK2 w - - 1 30",
     pgn: "1. Ne6+ Ke7 2. Nxc7+ Kd6 3. Nxa8",
     starThresholds: { three: 3, two: 4, one: 5 },
