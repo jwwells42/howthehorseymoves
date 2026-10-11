@@ -36,7 +36,6 @@
 
 <Page
   title="Opening Repertoire"
-  subtitle="Learn opening lines move by move."
   back={{ href: '/study', label: 'Back to study' }}
   width="narrow"
 >
@@ -64,7 +63,6 @@
     <LinkCard
       href="/openings/custom"
       title="Paste your own PGN"
-      description="Drill any opening — paste PGN from your coach or from Lichess."
     />
   </CardList>
 </Page>

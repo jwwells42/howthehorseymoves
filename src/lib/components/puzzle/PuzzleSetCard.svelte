@@ -20,7 +20,6 @@
   href={set.comingSoon ? undefined : `/learn/${set.key}`}
   icon={set.icon}
   title={set.name}
-  description={set.description}
 >
   {#snippet aside()}
     <span>{solved.length}/{puzzles.length}</span>

@@ -9,7 +9,6 @@
 
 <Page
   title="Checkmate Patterns"
-  subtitle="Learn classic mating patterns!"
   back={{ href: '/', label: 'Back to home' }}
 >
   <CardList>

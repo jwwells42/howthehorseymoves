@@ -75,7 +75,6 @@ export const PIECE_ORDER = ["rook", "bishop", "queen", "king", "knight", "pawn",
 export interface PieceInfo {
   key: string;
   name: string;
-  description: string;
   icon: string;
   pieceKind: PieceKind;
   available: boolean;
@@ -84,7 +83,6 @@ export interface PieceInfo {
 export interface SubcategoryInfo {
   key: string;
   name: string;
-  description: string;
   icon: string;
   comingSoon?: boolean;
 }
@@ -92,107 +90,101 @@ export interface SubcategoryInfo {
 export interface CategoryInfo {
   key: string;
   name: string;
-  description: string;
   icon: string;
   subcategories: SubcategoryInfo[];
 }
 
 export const PIECES: PieceInfo[] = [
-  { key: "rook", name: "Rook", description: "Moves in straight lines: up, down, left, right.", icon: "/pieces/wR.svg", pieceKind: "R", available: true },
-  { key: "bishop", name: "Bishop", description: "Moves diagonally across the board.", icon: "/pieces/wB.svg", pieceKind: "B", available: true },
-  { key: "queen", name: "Queen", description: "Moves like a rook and bishop combined.", icon: "/pieces/wQ.svg", pieceKind: "Q", available: true },
-  { key: "king", name: "King", description: "Moves one square in any direction.", icon: "/pieces/wK.svg", pieceKind: "K", available: true },
-  { key: "knight", name: "Knight", description: "Moves in an L-shape and can jump over pieces.", icon: "/pieces/wN.svg", pieceKind: "N", available: true },
-  { key: "pawn", name: "Pawn", description: "Moves forward, captures diagonally.", icon: "/pieces/wP.svg", pieceKind: "P", available: true },
+  { key: "rook", name: "Rook", icon: "/pieces/wR.svg", pieceKind: "R", available: true },
+  { key: "bishop", name: "Bishop", icon: "/pieces/wB.svg", pieceKind: "B", available: true },
+  { key: "queen", name: "Queen", icon: "/pieces/wQ.svg", pieceKind: "Q", available: true },
+  { key: "king", name: "King", icon: "/pieces/wK.svg", pieceKind: "K", available: true },
+  { key: "knight", name: "Knight", icon: "/pieces/wN.svg", pieceKind: "N", available: true },
+  { key: "pawn", name: "Pawn", icon: "/pieces/wP.svg", pieceKind: "P", available: true },
 ];
 
 export const CATEGORIES: CategoryInfo[] = [
   {
     key: "checkmate",
     name: "Checkmate Patterns",
-    description: "Learn classic mating patterns!",
     icon: "/pieces/wQ.svg",
     subcategories: [
-      { key: "checkmate-back-rank", name: "Back Rank Mate", description: "Trap the king behind its own pawns.", icon: "/pieces/wR.svg" },
-      { key: "checkmate-rook-ladder", name: "Rook Ladder", description: "Two rooks push the king to the edge, then deliver mate.", icon: "/pieces/wR.svg" },
-      { key: "checkmate-queen-f7", name: "Queen Takes f7", description: "The queen strikes the weak f7 square.", icon: "/pieces/wQ.svg" },
-      { key: "checkmate-qb-battery", name: "Queen-Bishop Battery", description: "Queen and bishop team up on a diagonal.", icon: "/pieces/wQ.svg" },
-      { key: "checkmate-lollis", name: "Lolli's Mate", description: "Queen slips in behind the pawns for mate.", icon: "/pieces/wQ.svg" },
-      { key: "checkmate-queen-king", name: "Queen & King", description: "Use the queen with king support.", icon: "/pieces/wQ.svg" },
-      { key: "checkmate-smothered", name: "Smothered Mate", description: "The knight strikes when the king can't move.", icon: "/pieces/wN.svg" },
-      { key: "checkmate-mate-in-1", name: "Mate in 1", description: "Find the single move that delivers checkmate.", icon: "/pieces/wQ.svg" },
-      { key: "checkmate-mate-in-2", name: "Mate in 2", description: "Set up the checkmate in two precise moves.", icon: "/pieces/wQ.svg" },
+      { key: "checkmate-back-rank", name: "Back Rank Mate", icon: "/pieces/wR.svg" },
+      { key: "checkmate-rook-ladder", name: "Rook Ladder", icon: "/pieces/wR.svg" },
+      { key: "checkmate-queen-f7", name: "Queen Takes f7", icon: "/pieces/wQ.svg" },
+      { key: "checkmate-qb-battery", name: "Queen-Bishop Battery", icon: "/pieces/wQ.svg" },
+      { key: "checkmate-lollis", name: "Lolli's Mate", icon: "/pieces/wQ.svg" },
+      { key: "checkmate-queen-king", name: "Queen & King", icon: "/pieces/wQ.svg" },
+      { key: "checkmate-smothered", name: "Smothered Mate", icon: "/pieces/wN.svg" },
+      { key: "checkmate-mate-in-1", name: "Mate in 1", icon: "/pieces/wQ.svg" },
+      { key: "checkmate-mate-in-2", name: "Mate in 2", icon: "/pieces/wQ.svg" },
     ],
   },
   {
     key: "tactics",
     name: "Tactics",
-    description: "Spot winning moves and combinations!",
     icon: "/pieces/wN.svg",
     subcategories: [
-      { key: "tactics-pins", name: "Pins", description: "Trap a piece on a line — it can't move!", icon: "/pieces/wB.svg" },
-      { key: "tactics-skewers", name: "Skewers", description: "Attack through one piece to grab another.", icon: "/pieces/wR.svg" },
-      { key: "tactics-forks", name: "Forks", description: "Attack two pieces at once with the knight.", icon: "/pieces/wN.svg" },
-      { key: "tactics-removing-defender", name: "Removing the Defender", description: "Capture the piece that guards a target.", icon: "/pieces/wR.svg" },
-      { key: "tactics-discovered", name: "Discovered Attacks", description: "Move one piece to unleash another.", icon: "/pieces/wN.svg" },
+      { key: "tactics-pins", name: "Pins", icon: "/pieces/wB.svg" },
+      { key: "tactics-skewers", name: "Skewers", icon: "/pieces/wR.svg" },
+      { key: "tactics-forks", name: "Forks", icon: "/pieces/wN.svg" },
+      { key: "tactics-removing-defender", name: "Removing the Defender", icon: "/pieces/wR.svg" },
+      { key: "tactics-discovered", name: "Discovered Attacks", icon: "/pieces/wN.svg" },
     ],
   },
   {
     key: "endings",
     name: "Endings",
-    description: "Master essential endgame techniques!",
     icon: "/pieces/wK.svg",
     subcategories: [
-      { key: "endings-kpk", name: "King + Pawn vs King", description: "Promote the pawn against perfect defense.", icon: "/pieces/wP.svg" },
-      { key: "endings-kqk", name: "Queen vs King", description: "Deliver checkmate with King + Queen.", icon: "/pieces/wQ.svg" },
-      { key: "endings-krrk", name: "Rook Ladder", description: "Deliver checkmate with King + 2 Rooks.", icon: "/pieces/wR.svg" },
-      { key: "endings-krk", name: "Rook vs King", description: "Deliver checkmate with King + Rook.", icon: "/pieces/wR.svg" },
+      { key: "endings-kpk", name: "King + Pawn vs King", icon: "/pieces/wP.svg" },
+      { key: "endings-kqk", name: "Queen vs King", icon: "/pieces/wQ.svg" },
+      { key: "endings-krrk", name: "Rook Ladder", icon: "/pieces/wR.svg" },
+      { key: "endings-krk", name: "Rook vs King", icon: "/pieces/wR.svg" },
     ],
   },
   {
     key: "advanced-endings",
     name: "Advanced Endings",
-    description: "Harder endgame techniques and concepts.",
     icon: "/pieces/wK.svg",
     subcategories: [
-      { key: "endings-kbbk", name: "2 Bishops vs King", description: "Deliver checkmate with King + 2 Bishops.", icon: "/pieces/wB.svg" },
-      { key: "endings-kbnk", name: "Bishop + Knight vs King", description: "Deliver checkmate with King + Bishop + Knight.", icon: "/pieces/wN.svg" },
-      { key: "endings-lucena", name: "Lucena Position", description: "Build a bridge to promote your rook pawn.", icon: "/pieces/wR.svg" },
-      { key: "endings-philidor", name: "Philidor Position", description: "Hold the draw with your rook.", icon: "/pieces/wR.svg" },
-      { key: "endings-reti", name: "Réti Study", description: "The king chases two pawns at once.", icon: "/pieces/wK.svg" },
-      { key: "endings-wrong-bishop", name: "Wrong Bishop", description: "Why a rook pawn + wrong-color bishop is a draw.", icon: "/pieces/wB.svg" },
-      { key: "endings-pawn-races", name: "Pawn Races", description: "Count tempi — who promotes first?", icon: "/pieces/wP.svg" },
+      { key: "endings-kbbk", name: "2 Bishops vs King", icon: "/pieces/wB.svg" },
+      { key: "endings-kbnk", name: "Bishop + Knight vs King", icon: "/pieces/wN.svg" },
+      { key: "endings-lucena", name: "Lucena Position", icon: "/pieces/wR.svg" },
+      { key: "endings-philidor", name: "Philidor Position", icon: "/pieces/wR.svg" },
+      { key: "endings-reti", name: "Réti Study", icon: "/pieces/wK.svg" },
+      { key: "endings-wrong-bishop", name: "Wrong Bishop", icon: "/pieces/wB.svg" },
+      { key: "endings-pawn-races", name: "Pawn Races", icon: "/pieces/wP.svg" },
     ],
   },
   {
     key: "blindfold",
     name: "Blindfold",
-    description: "Train your mental board vision!",
     icon: "/pieces/wN.svg",
     subcategories: [
-      { key: "blindfold-color", name: "Color of Square", description: "Dark or light? Identify the color from the name.", icon: "/pieces/wP.svg" },
-      { key: "blindfold-diagonals", name: "Same Diagonal?", description: "Are these two squares on the same diagonal?", icon: "/pieces/wB.svg" },
-      { key: "blindfold-rankfile", name: "Same Rank or File?", description: "Do these two squares share a rank or file?", icon: "/pieces/wR.svg" },
-      { key: "blindfold-counting", name: "Move Counting", description: "How many squares does this piece control?", icon: "/pieces/wQ.svg" },
-      { key: "blindfold-knight-routes", name: "Knight Routes", description: "Find a knight path between two squares — no board!", icon: "/pieces/wN.svg" },
-      { key: "blindfold-bishop-routes", name: "Bishop Routes", description: "Find a bishop path — or spot when it's impossible!", icon: "/pieces/wB.svg" },
-      { key: "blindfold-reachability", name: "Piece Reachability", description: "Can this piece reach that square? Yes or no!", icon: "/pieces/wN.svg" },
-      { key: "blindfold-neighbors", name: "Neighbor Squares", description: "Name all squares adjacent to a given square.", icon: "/pieces/wK.svg" },
-      { key: "blindfold-knightsquares", name: "Knight Squares", description: "Name every square a knight can reach from a given square.", icon: "/pieces/wN.svg" },
-      { key: "blindfold-changed", name: "What Changed?", description: "Memorize a position, then spot what moved.", icon: "/pieces/wR.svg" },
-      { key: "blindfold-landed", name: "Where Did It Land?", description: "Follow opening moves mentally, then find a piece.", icon: "/pieces/wN.svg" },
-      { key: "blindfold-flash", name: "Flash Position", description: "Memorize a position, then place the pieces from memory.", icon: "/pieces/wK.svg" },
-      { key: "blindfold-piececount", name: "Piece Count", description: "Flash a position — how many pieces of each type?", icon: "/pieces/wP.svg" },
-      { key: "blindfold-rookmaze", name: "Rook Maze", description: "Navigate a rook around obstacles — no board!", icon: "/pieces/wR.svg" },
-      { key: "blindfold-gauntlet", name: "Knight Gauntlet", description: "Navigate the knight without stepping on queen-attacked squares!", icon: "/pieces/wN.svg" },
-      { key: "blindfold-guarding", name: "Who's Guarding Whom?", description: "Track piece interactions as they move — blindfolded!", icon: "/pieces/wQ.svg" },
-      { key: "blindfold-blindtactics", name: "Blind Tactics", description: "See a position, then find checkmate blindfolded!", icon: "/pieces/wQ.svg" },
-      { key: "blindfold-puzzle", name: "Blindfold Puzzles", description: "Pieces are invisible — solve from a text description!", icon: "/pieces/wK.svg" },
-      { key: "blindfold-mate-kqk", name: "Mate: Q vs K", description: "Deliver checkmate blindfolded with King + Queen.", icon: "/pieces/wQ.svg" },
-      { key: "blindfold-mate-krrk", name: "Mate: RR vs K", description: "Deliver checkmate blindfolded with King + 2 Rooks.", icon: "/pieces/wR.svg" },
-      { key: "blindfold-mate-krk", name: "Mate: R vs K", description: "Deliver checkmate blindfolded with King + Rook.", icon: "/pieces/wR.svg" },
-      { key: "blindfold-mate-kbbk", name: "Mate: BB vs K", description: "Deliver checkmate blindfolded with King + 2 Bishops.", icon: "/pieces/wB.svg" },
-      { key: "blindfold-mate-kbnk", name: "Mate: BN vs K", description: "Deliver checkmate blindfolded with King + Bishop + Knight.", icon: "/pieces/wN.svg" },
+      { key: "blindfold-color", name: "Color of Square", icon: "/pieces/wP.svg" },
+      { key: "blindfold-diagonals", name: "Same Diagonal?", icon: "/pieces/wB.svg" },
+      { key: "blindfold-rankfile", name: "Same Rank or File?", icon: "/pieces/wR.svg" },
+      { key: "blindfold-counting", name: "Move Counting", icon: "/pieces/wQ.svg" },
+      { key: "blindfold-knight-routes", name: "Knight Routes", icon: "/pieces/wN.svg" },
+      { key: "blindfold-bishop-routes", name: "Bishop Routes", icon: "/pieces/wB.svg" },
+      { key: "blindfold-reachability", name: "Piece Reachability", icon: "/pieces/wN.svg" },
+      { key: "blindfold-neighbors", name: "Neighbor Squares", icon: "/pieces/wK.svg" },
+      { key: "blindfold-knightsquares", name: "Knight Squares", icon: "/pieces/wN.svg" },
+      { key: "blindfold-changed", name: "What Changed?", icon: "/pieces/wR.svg" },
+      { key: "blindfold-landed", name: "Where Did It Land?", icon: "/pieces/wN.svg" },
+      { key: "blindfold-flash", name: "Flash Position", icon: "/pieces/wK.svg" },
+      { key: "blindfold-piececount", name: "Piece Count", icon: "/pieces/wP.svg" },
+      { key: "blindfold-rookmaze", name: "Rook Maze", icon: "/pieces/wR.svg" },
+      { key: "blindfold-gauntlet", name: "Knight Gauntlet", icon: "/pieces/wN.svg" },
+      { key: "blindfold-guarding", name: "Who's Guarding Whom?", icon: "/pieces/wQ.svg" },
+      { key: "blindfold-blindtactics", name: "Blind Tactics", icon: "/pieces/wQ.svg" },
+      { key: "blindfold-puzzle", name: "Blindfold Puzzles", icon: "/pieces/wK.svg" },
+      { key: "blindfold-mate-kqk", name: "Mate: Q vs K", icon: "/pieces/wQ.svg" },
+      { key: "blindfold-mate-krrk", name: "Mate: RR vs K", icon: "/pieces/wR.svg" },
+      { key: "blindfold-mate-krk", name: "Mate: R vs K", icon: "/pieces/wR.svg" },
+      { key: "blindfold-mate-kbbk", name: "Mate: BB vs K", icon: "/pieces/wB.svg" },
+      { key: "blindfold-mate-kbnk", name: "Mate: BN vs K", icon: "/pieces/wN.svg" },
     ],
   },
 ];

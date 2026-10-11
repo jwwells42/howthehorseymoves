@@ -11,8 +11,8 @@
 
   // Endings trainers that are not puzzle sets, so are not in CATEGORIES.
   const PAWN_ENDINGS = [
-    { name: 'Pawn Endings', desc: 'Key squares, opposition, and essential pawn patterns.', icon: '/pieces/wK.svg', href: '/learn/pawn-endings-lesson', storageKey: 'pawn-endings-lesson-best-stars' },
-    { name: 'KPK: Defend', desc: 'Hold the draw with opposition against perfect play.', icon: '/pieces/bK.svg', href: '/learn/endings-kpk-draw', storageKey: 'draw-kpk-best-stars' },
+    { name: 'Pawn Endings', icon: '/pieces/wK.svg', href: '/learn/pawn-endings-lesson', storageKey: 'pawn-endings-lesson-best-stars' },
+    { name: 'KPK: Defend', icon: '/pieces/bK.svg', href: '/learn/endings-kpk-draw', storageKey: 'draw-kpk-best-stars' },
   ];
 
   let pawnEndingStars = $state<Record<string, number>>({});
@@ -26,7 +26,6 @@
 
 <Page
   title="Endings"
-  subtitle="Master essential endgame techniques!"
   back={{ href: '/', label: 'Back to home' }}
 >
   {#each categories as category}
@@ -40,7 +39,7 @@
   <CardList title="Pawn Endings">
     {#each PAWN_ENDINGS as ending}
       {@const stars = pawnEndingStars[ending.storageKey] ?? 0}
-      <LinkCard href={ending.href} icon={ending.icon} title={ending.name} description={ending.desc}>
+      <LinkCard href={ending.href} icon={ending.icon} title={ending.name}>
         {#snippet aside()}
           {#if stars > 0}
             <StarRating {stars} size="sm" />

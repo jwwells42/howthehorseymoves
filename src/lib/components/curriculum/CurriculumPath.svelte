@@ -42,7 +42,6 @@
               <img src={stop.icon} alt="" class="card-icon" />
               <h3>{stop.name}</h3>
             </div>
-            <p class="card-desc">{stop.desc}</p>
             <div class="card-footer">
               {#if stars > 0}
                 <StarRating {stars} size="sm" />
@@ -105,9 +104,6 @@
   .card:hover {
     background: var(--surface-raised);
   }
-  .card:hover .card-desc {
-    color: var(--ink);
-  }
 
   /* The next stop to do, in the colour that means "look here". */
   .card.up-next {
@@ -154,16 +150,9 @@
     height: 3rem;
   }
 
-  /* Card description */
-  .card-desc {
-    font-size: var(--size-secondary);
-    color: var(--ink-muted);
-    margin-bottom: 0.75rem;
-    flex: 1;
-  }
-
   /* Card footer — stars */
   .card-footer {
+    margin-top: auto;
     font-size: var(--size-small);
     color: var(--ink-muted);
   }

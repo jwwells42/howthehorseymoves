@@ -25,20 +25,19 @@
   export interface SetupStage {
     slug: string;
     label: string;
-    description: string;
     instruction: string;
     icon: string;
     piecesToPlace: { piece: PieceKind; square: SquareId }[];
   }
 
   export const SETUP_STAGES: SetupStage[] = [
-    { slug: 'rooks', label: 'Rooks', description: 'Place the two rooks on their starting squares.', instruction: 'Place the white rooks!', icon: '/pieces/wR.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'R') },
-    { slug: 'knights', label: 'Knights', description: 'Place the two knights on their starting squares.', instruction: 'Place the white knights!', icon: '/pieces/wN.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'N') },
-    { slug: 'bishops', label: 'Bishops', description: 'Place the two bishops on their starting squares.', instruction: 'Place the white bishops!', icon: '/pieces/wB.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'B') },
-    { slug: 'king', label: 'King', description: 'Place the king on its starting square.', instruction: 'Place the white king!', icon: '/pieces/wK.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'K') },
-    { slug: 'queen', label: 'Queen', description: 'Place the queen on its starting square.', instruction: 'Place the white queen!', icon: '/pieces/wQ.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'Q') },
-    { slug: 'pawns', label: 'Pawns', description: 'Place all eight pawns on the second rank.', instruction: 'Place the white pawns!', icon: '/pieces/wP.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'P') },
-    { slug: 'full', label: 'Full Setup', description: 'Set up all 16 white pieces from scratch.', instruction: 'Set up all the white pieces!', icon: '/pieces/wK.svg', piecesToPlace: [...WHITE_PIECES] },
+    { slug: 'rooks', label: 'Rooks', instruction: 'Place the white rooks!', icon: '/pieces/wR.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'R') },
+    { slug: 'knights', label: 'Knights', instruction: 'Place the white knights!', icon: '/pieces/wN.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'N') },
+    { slug: 'bishops', label: 'Bishops', instruction: 'Place the white bishops!', icon: '/pieces/wB.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'B') },
+    { slug: 'king', label: 'King', instruction: 'Place the white king!', icon: '/pieces/wK.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'K') },
+    { slug: 'queen', label: 'Queen', instruction: 'Place the white queen!', icon: '/pieces/wQ.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'Q') },
+    { slug: 'pawns', label: 'Pawns', instruction: 'Place the white pawns!', icon: '/pieces/wP.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'P') },
+    { slug: 'full', label: 'Full Setup', instruction: 'Set up all the white pieces!', icon: '/pieces/wK.svg', piecesToPlace: [...WHITE_PIECES] },
   ];
 </script>
 

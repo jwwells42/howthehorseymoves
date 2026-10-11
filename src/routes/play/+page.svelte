@@ -67,7 +67,6 @@
                   <span class={['pip', pip <= spec.rung && 'filled']} style:background={pip <= spec.rung ? char?.color : undefined}></span>
                 {/each}
               </div>
-              <p class="level-desc">{char?.description ?? ''}</p>
             </div>
           </div>
         </button>
@@ -118,8 +117,6 @@
     transition: background 0.15s;
   }
   .level-card:hover { background: var(--surface-raised); }
-  .level-card:hover .level-desc { color: var(--ink); }
-  .level-desc { font-size: var(--size-small); color: var(--ink-muted); line-height: 1.35; }
   .char-card { display: flex; align-items: center; gap: 0.75rem; }
   .char-text { min-width: 0; }
   .char-avatar { object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }

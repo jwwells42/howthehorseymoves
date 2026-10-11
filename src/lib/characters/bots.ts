@@ -6,7 +6,6 @@ export interface BotCharacter {
   avatar: string;
   /** Its colour, a --bot-* custom property from app.css. Apply with style:. */
   color: string;
-  description: string;
   reactions: {
     greeting: string[];
     thinking: string[];
@@ -36,7 +35,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
     name: 'The Sloth',
     avatar: '/characters/sloth.png',
     color: 'var(--bot-sloth)',
-    description: 'Plays completely random legal moves. Great for beginners.',
     reactions: {
       greeting: ['Hi!', "Let's play!", 'Ready!'],
       thinking: ['Hmm...', 'Eeny meeny...', 'This one!', 'La la la...'],
@@ -57,7 +55,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
     name: 'The Chick',
     avatar: '/characters/chick.png',
     color: 'var(--bot-chick)',
-    description: 'Grabs every piece it can reach — and never checks if it is safe.',
     reactions: {
       greeting: ['Peep peep!', 'Is it snack time?', 'Hungry!'],
       thinking: ['Snack?', 'Sniff sniff...', 'Yummy?', 'Where is food...'],
@@ -78,7 +75,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
     name: 'The Frog',
     avatar: '/characters/frog.png',
     color: 'var(--bot-frog)',
-    description: 'Hops around. Sees some good moves, but not the best one.',
     reactions: {
       greeting: ['Ribbit!', 'Hop hop!', 'Hello!'],
       thinking: ['Ribbit...', 'Hmm, hop where?', 'Let me see...', 'Maybe...'],
@@ -99,7 +95,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
     name: 'The Rabbit',
     avatar: '/characters/rabbit.png',
     color: 'var(--bot-rabbit)',
-    description: 'Quick and careful. Rarely leaves a piece where you can take it.',
     reactions: {
       greeting: ['Hop to it!', 'Hi there!', 'Ready when you are!'],
       thinking: ['Twitch twitch...', 'Thinking fast...', 'Which way?', 'Hmm.'],
@@ -120,7 +115,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
     name: 'The Panda',
     avatar: '/characters/panda.png',
     color: 'var(--bot-panda)',
-    description: 'Calm and steady. Takes what you leave and spots mate in one.',
     reactions: {
       greeting: ['Hello, friend.', 'Shall we begin?', 'A good day for chess.'],
       thinking: ['Let me think...', 'Patience...', 'One moment...', 'Considering...'],
@@ -141,7 +135,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
     name: 'The Monkey',
     avatar: '/characters/monkey.png',
     color: 'var(--bot-monkey)',
-    description: 'Cheeky and clever. Looks two moves ahead — but likes to show off.',
     reactions: {
       greeting: ['Ooh ooh!', 'Think you can win?', 'This will be fun!'],
       thinking: ['Ooh, tricky...', 'Two moves ahead...', 'Scheming...', 'Aha?'],
@@ -162,7 +155,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
     name: 'The Bear',
     avatar: '/characters/bear.png',
     color: 'var(--bot-bear)',
-    description: 'Strong and patient. Looks two moves ahead and never misses a gift.',
     reactions: {
       greeting: ['Let us play.', 'I am ready.', 'Show me what you know.'],
       thinking: ['Hmmm...', 'Calculating...', 'I see it...', 'Deep in thought.'],
@@ -183,7 +175,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
     name: 'The Owl',
     avatar: '/characters/owl.png',
     color: 'var(--bot-owl)',
-    description: 'Knows the openings by heart and plans two moves ahead. The toughest.',
     reactions: {
       greeting: ['I have been expecting you.', 'Let us see.', 'Begin.'],
       thinking: ['I know this position...', 'Calculating...', 'Interesting...', 'Hoo.'],

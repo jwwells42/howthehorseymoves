@@ -131,7 +131,6 @@
   );
 
   let displayName = $derived(pieceInfo?.name ?? puzzleSet?.name ?? 'Puzzles');
-  let displayDescription = $derived(pieceInfo?.description ?? '');
   let puzzleIds = $derived(puzzleSet?.puzzles.map((p) => p.id) ?? []);
 </script>
 
@@ -173,7 +172,6 @@
 {:else if piece === 'pawn-endings-lesson'}
   <Page
     title="Pawn Endings"
-    subtitle="Key squares, opposition, and essential pawn ending patterns."
     back={{ href: '/', label: 'Back to home' }}
     width="narrow"
   >
@@ -195,13 +193,12 @@
 {:else if piece === 'how-to-win'}
   <Page
     title="How to Win"
-    subtitle="Learn check, checkmate, and stalemate."
     back={{ href: '/', label: 'Back to home' }}
     width="narrow"
   >
     <CardList>
       {#each HOW_TO_WIN_SECTIONS as sec}
-        <LinkCard href={withStop(`/learn/how-to-win-${sec.key}`, pathStop)} icon={sec.icon} title={sec.title} description={sec.description}>
+        <LinkCard href={withStop(`/learn/how-to-win-${sec.key}`, pathStop)} icon={sec.icon} title={sec.title}>
           {#snippet aside()}{@render stars(sectionStars[sec.key] ?? 0)}{/snippet}
         </LinkCard>
       {/each}
@@ -215,7 +212,6 @@
   {#if sectionInfo && steps}
     <Page
       title={sectionInfo.title}
-      subtitle={sectionInfo.description}
       back={{ href: withStop('/learn/how-to-win', pathStop), label: 'Back to How to Win' }}
       width="narrow"
     >
@@ -227,7 +223,7 @@
       </div>
       <CardList>
         {#each steps as step, idx}
-          <LinkCard href={withStop(`/learn/${piece}/${step.slug}`, pathStop)} title="{idx + 1}. {step.title}" description={step.instruction} />
+          <LinkCard href={withStop(`/learn/${piece}/${step.slug}`, pathStop)} title="{idx + 1}. {step.title}" />
         {/each}
       </CardList>
     </Page>
@@ -235,7 +231,6 @@
 {:else if category}
   <Page
     title={category.name}
-    subtitle={category.description}
     back={{ href: '/practice', label: 'Back to practice' }}
     width="narrow"
   >
@@ -248,7 +243,6 @@
 {:else if puzzleSet}
   <Page
     title="{displayName} Puzzles"
-    subtitle={displayDescription || undefined}
     back={{ href: backHref, label: backLabel }}
     width="narrow"
   >
@@ -272,7 +266,6 @@
           href="/learn/endings-krrk"
           icon="/pieces/wR.svg"
           title="Rook Ladder Trainer"
-          description="Practice with random positions — deliver checkmate!"
         >
           {#snippet aside()}{@render stars(krrkTrainerStars)}{/snippet}
         </LinkCard>

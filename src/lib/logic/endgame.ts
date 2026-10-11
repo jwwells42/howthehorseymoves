@@ -25,31 +25,26 @@ export type MateEndgameType = "kqk" | "krrk" | "krk" | "kbbk" | "kbnk";
 
 export const ENDGAME_INFO: Record<
   MateEndgameType,
-  { name: string; description: string; icon: string }
+  { name: string; icon: string }
 > = {
   kqk: {
     name: "Queen vs King",
-    description: "Deliver checkmate with King + Queen.",
     icon: "/pieces/wQ.svg",
   },
   krrk: {
     name: "Rook Ladder",
-    description: "Deliver checkmate with King + 2 Rooks.",
     icon: "/pieces/wR.svg",
   },
   krk: {
     name: "Rook vs King",
-    description: "Deliver checkmate with King + Rook.",
     icon: "/pieces/wR.svg",
   },
   kbbk: {
     name: "2 Bishops vs King",
-    description: "Deliver checkmate with King + 2 Bishops.",
     icon: "/pieces/wB.svg",
   },
   kbnk: {
     name: "Bishop + Knight vs King",
-    description: "Deliver checkmate with King + Bishop + Knight.",
     icon: "/pieces/wN.svg",
   },
 };

@@ -7,7 +7,6 @@
 
 <Page
   title="Model Games"
-  subtitle="Study famous games move by move."
   back={{ href: '/study', label: 'Back to study' }}
   width="narrow"
 >

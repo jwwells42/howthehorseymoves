@@ -60,7 +60,7 @@
   let statusText = $derived.by(() => {
     if (result === 'won') return 'Checkmate \u2014 you win!';
     if (waitingForBot) return 'Opponent is thinking...';
-    return info.description;
+    return '';
   });
 
   /* ── Bot move ─────────────────────────────────── */

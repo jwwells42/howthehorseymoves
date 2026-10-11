@@ -57,7 +57,6 @@
 {:else}
   <Page
     title="Paste your own PGN"
-    subtitle="Paste opening moves from your coach, a book, or Lichess."
     back={{ href: '/openings', label: 'Back to openings' }}
     width="narrow"
   >

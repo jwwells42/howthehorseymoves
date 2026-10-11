@@ -14,7 +14,6 @@
 
 <Page
   title="The Board"
-  subtitle="Learn the board and set up the pieces."
   back={{ href: '/', label: 'Back to home' }}
   width="narrow"
 >
@@ -23,7 +22,6 @@
       href="/board/coordinates"
       icon="/pieces/wK.svg"
       title="Name the Square"
-      description="Click the right square before time runs out!"
     >
       {#snippet aside()}
         {#if coordStars > 0}<StarRating stars={coordStars} size="sm" />{/if}
@@ -34,7 +32,6 @@
       href="/setup"
       icon="/pieces/wQ.svg"
       title="Place the Pieces"
-      description="Put each piece on its starting square."
     >
       {#snippet aside()}7 stages{/snippet}
     </LinkCard>

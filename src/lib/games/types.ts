@@ -6,5 +6,4 @@ export interface ModelGame {
   year: number;
   result: string;
   pgn: string;
-  description: string;
 }

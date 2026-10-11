@@ -719,7 +719,6 @@
         <span class="game-event">{game.event}</span>
         <span class="game-year">{game.year}</span>
       </div>
-      <p class="game-desc">{game.description}</p>
 
       <div class="move-list" bind:this={moveListEl}>
         <div class="move-grid">
@@ -970,12 +969,6 @@
   .game-year {
     color: var(--ink-muted);
     margin-left: 0.5rem;
-  }
-
-  .game-desc {
-    font-size: var(--size-small);
-    color: var(--ink-muted);
-    margin: 0 0 0.75rem;
   }
 
   .move-list {

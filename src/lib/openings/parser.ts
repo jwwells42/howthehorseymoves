@@ -30,7 +30,7 @@ export type OpeningLine = OpeningMove[];
 export interface Opening {
   id: string;
   name: string;
-  description: string;
+  description?: string; // a study's chapters and line count, built from its PGN
   color: PieceColor;
   pgn: string;
   group?: string; // openings sharing a group get their own section on /openings

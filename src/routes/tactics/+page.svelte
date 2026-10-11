@@ -10,7 +10,6 @@
 
 <Page
   title="Tactics"
-  subtitle="Spot winning moves and combinations!"
   back={{ href: '/', label: 'Back to home' }}
 >
   <CardList title="Checkmate Patterns">

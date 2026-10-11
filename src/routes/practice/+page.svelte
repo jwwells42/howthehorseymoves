@@ -17,17 +17,13 @@
 
 <Page
   title="Practice"
-  subtitle="Checkmate patterns, tactics, and endings."
   back={{ href: '/', label: 'Back to home' }}
 >
   {#each categories as category}
     <section class="category">
       <header class="category-header">
         <img src={category.icon} alt="" class="category-icon" />
-        <div>
-          <h2>{category.name}</h2>
-          <p class="description">{category.description}</p>
-        </div>
+        <h2>{category.name}</h2>
         <span class="count">{countSolved(category)}</span>
       </header>
 
@@ -53,10 +49,6 @@
   .category-icon {
     width: 3rem;
     height: 3rem;
-  }
-  .description {
-    font-size: var(--size-secondary);
-    color: var(--ink-muted);
   }
   .count {
     margin-left: auto;

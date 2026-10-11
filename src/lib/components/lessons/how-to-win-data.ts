@@ -25,7 +25,6 @@ export type HowToWinSection = "check" | "checkmate" | "stalemate";
 export interface SectionInfo {
   key: HowToWinSection;
   title: string;
-  description: string;
   icon: string;
   storageKey: string;
 }
@@ -34,21 +33,18 @@ export const SECTIONS: SectionInfo[] = [
   {
     key: "check",
     title: "Check",
-    description: "Learn what check is and three ways to escape it.",
     icon: "/pieces/wR.svg",
     storageKey: "how-to-win-check-stars",
   },
   {
     key: "checkmate",
     title: "Checkmate",
-    description: "Trap the king with nowhere to go. That's how you win!",
     icon: "/pieces/wQ.svg",
     storageKey: "how-to-win-checkmate-stars",
   },
   {
     key: "stalemate",
     title: "Stalemate",
-    description: "Don't let the game end in a draw when you're winning!",
     icon: "/pieces/bK.svg",
     storageKey: "how-to-win-stalemate-stars",
   },

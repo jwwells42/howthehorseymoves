@@ -51,9 +51,9 @@
   const STEP = 3;
   // The ways to learn, as shown on the setup screen. A new way = a row here,
   // plus its rules in startDrilling, drillLines and isNew.
-  const ORDERS: { value: 'depth' | 'breadth'; label: string; description: string }[] = [
-    { value: 'breadth', label: `${STEP} moves at a time`, description: 'Every line, a few moves deeper each round' },
-    { value: 'depth', label: 'One line at a time', description: 'Each line from start to finish' },
+  const ORDERS: { value: 'depth' | 'breadth'; label: string }[] = [
+    { value: 'breadth', label: `${STEP} moves at a time` },
+    { value: 'depth', label: 'One line at a time' },
   ];
   function initialOrder() { return opening.defaultOrder ?? 'depth'; }
   let order = $state<'depth' | 'breadth'>(initialOrder());
