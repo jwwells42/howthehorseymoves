@@ -118,13 +118,13 @@
 
   let resultMessage = $derived.by(() => {
     switch (game.result) {
-      case 'checkmate-white': return 'Checkmate \u2014 you win!';
-      case 'checkmate-black': return 'Checkmate \u2014 you lose!';
-      case 'resigned': return 'You resigned.';
-      case 'stalemate': return 'Stalemate \u2014 it\u2019s a draw!';
-      case 'threefold': return 'Threefold repetition \u2014 it\u2019s a draw!';
-      case 'fifty-move': return '50-move rule \u2014 it\u2019s a draw!';
-      case 'insufficient-material': return 'Insufficient material \u2014 it\u2019s a draw!';
+      case 'checkmate-white': return '✓ Checkmate';
+      case 'checkmate-black': return '✗ Checkmate';
+      case 'resigned': return 'Resigned';
+      case 'stalemate': return '½ Stalemate';
+      case 'threefold': return '½ Threefold repetition';
+      case 'fifty-move': return '½ 50-move rule';
+      case 'insufficient-material': return '½ Insufficient material';
       default: return null;
     }
   });
@@ -132,9 +132,9 @@
   let statusText = $derived.by(() => {
     if (isReviewing) return 'Reviewing';
     if (resultMessage) return resultMessage;
-    if (game.inCheck) return "You're in check!";
-    if (game.waitingForBot) return 'Opponent is thinking...';
-    return 'You play white. Make a move!';
+    if (game.inCheck) return 'Check';
+    if (game.waitingForBot) return '…';
+    return '';
   });
 
   // Build move pairs for display
@@ -204,8 +204,9 @@
   let botAnimation = $state<AnimationType>('idle');
   let animTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // An empty pool shows no speech bubble
   function pickReaction(pool: string[]): string {
-    return pool[Math.floor(Math.random() * pool.length)];
+    return pool[Math.floor(Math.random() * pool.length)] ?? '';
   }
 
   function triggerAnimation(anim: AnimationType, duration: number) {
