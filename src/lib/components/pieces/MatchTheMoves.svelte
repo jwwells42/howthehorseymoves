@@ -142,6 +142,7 @@
     width: 7rem;
     height: 7rem;
   }
+  .prompt p { text-transform: capitalize; }
 
   .choices {
     display: grid;
