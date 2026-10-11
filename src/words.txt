@@ -1,0 +1,50 @@
+# Every sentence on the site, word for word. src/words.test.ts fails when the
+# site shows a sentence that is not listed here, so nothing new gets written
+# onto the site without you seeing it first.
+#
+# A "sentence" is four or more words, or two or more ending in . ! or ?
+# Shorter names and labels ("Rook", "Back to home") are not checked.
+# … stands for something the code fills in: a number, a square, a name.
+#
+# To get rid of something on the site, delete its line here: the test then
+# names the file it is in. Lines starting with # are notes.
+
+# Your comments in the opening PGNs (openings-data.ts)
+King might be safe in the center or 0-0-0
+ONLY on e3!!
+Stops our g5 idea but we can still get that structure
+Violently getting the bishop out
+We still have Qa5+ so we don't need to give them a tempo
+
+# Names and labels (headings, back links, screen-reader labels)
+Back to advanced endings
+Back to How to Win
+Back to Rook Ladder
+Bishop + Knight vs King
+Bishop route on chess board
+Can't reach!
+Chess board with piece positions
+Chess position after the move
+Chess position showing the move
+Chess position to memorize
+Duke Karl / Count Isouard
+Game of the Century
+Hold the Draw: K+P vs K
+How The Horsey Moves
+King + Pawn vs King
+Knight route on chess board
+Next square...
+One line at a time
+Paste your own PGN
+Rook route on chess board
+Same Diagonal?
+Same Rank or File?
+Two Bishops vs King
+What Changed?
+Where Did It Land?
+Who's Guarding Whom?
+Who's Guarding?
+
+# Error messages, shown only when puzzle data is broken
+"…" (… to play) — no legal piece found
+Failed to generate … position

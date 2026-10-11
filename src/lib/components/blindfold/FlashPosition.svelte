@@ -228,7 +228,7 @@
           coordinates={false}
           playableColors={[]}
           onSquareClick={placePiece}
-          label="Chess board: tap a square to place the chosen piece"
+          label="Chess board"
         />
       </div>
 
