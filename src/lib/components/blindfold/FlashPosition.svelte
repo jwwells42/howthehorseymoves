@@ -172,9 +172,6 @@
   {#if phase === 'idle'}
     <div class="center-col">
       <h2>Flash Position</h2>
-      <p class="muted">
-        A position flashes briefly. Then place the pieces from memory! {ROUNDS} rounds.
-      </p>
       <Choice
         label="Difficulty"
         options={LEVELS.map((l, i) => ({ value: i, label: l.label }))}
@@ -223,7 +220,7 @@
   {:else}
     <!-- placing phase -->
     <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS} &mdash; Place from memory!</div>
+      <div class="muted">Round {round}/{ROUNDS}</div>
 
       <div class="board">
         <Board

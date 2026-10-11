@@ -21,7 +21,8 @@
     from: string;
     to: string;
     reachable: boolean;
-    reason: string;
+    /** A knight question's move limit */
+    moves?: number;
   }
 
   interface Attempt extends Question {
@@ -79,7 +80,6 @@
           piece: 'B',
           from, to,
           reachable: same,
-          reason: same ? 'Same color squares' : 'Different color squares',
         };
       } else {
         const moves = Math.floor(Math.random() * 3) + 2; // 2-4 moves
@@ -90,7 +90,7 @@
           piece: 'N',
           from, to,
           reachable: canReach,
-          reason: canReach ? `Reachable in \u2264${moves} moves` : `Not reachable in ${moves} moves`,
+          moves,
         };
       }
     }
@@ -118,8 +118,6 @@
   let stars = $derived(getStars(score));
   let mistakes = $derived(history.filter((a) => !a.correct));
 
-  // Extract move count from question.reason for display
-  let questionMoveCount = $derived(question.reason.match(/\d+/)?.[0] ?? '?');
 
   onMount(() => {
     bestScore = parseInt(localStorage.getItem('blindfold-reachability-best') ?? '0', 10);
@@ -209,16 +207,13 @@
   {#if gameState === 'idle'}
     <div class="screen">
       <h2>Piece Reachability</h2>
-      <p class="instructions">
-        Can the piece reach the target square? Bishops need same-color squares. Knights need the right number of moves. You have 30 seconds!
-      </p>
       <BestScore score={bestScore} stars={bestStars} />
       <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if gameState === 'done'}
     <div class="screen">
-      <h2>Time's up!</h2>
+      <h2>⏱</h2>
       <p class="final-score">{score}/{history.length} correct</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />
@@ -240,13 +235,9 @@
     <div class="question">
       <img src="/pieces/w{question.piece}.svg" alt={PIECE_NAMES[question.piece]} class="piece" />
       <div class={['squares', flash]}>{question.from} &rarr; {question.to}</div>
-      <p class="instructions">
-        {#if question.piece === 'B'}
-          Can a bishop reach it?
-        {:else}
-          Can a knight reach it in &le;{questionMoveCount} moves?
-        {/if}
-      </p>
+      {#if question.moves}
+        <p class="instructions">&le;{question.moves} moves?</p>
+      {/if}
     </div>
 
     <div class="answers">

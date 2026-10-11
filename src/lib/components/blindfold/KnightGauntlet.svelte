@@ -150,19 +150,19 @@
     input = '';
 
     if (!isValidSquare(sq)) {
-      error = 'Not a valid square.';
+      error = '✗';
       playSound('wrong');
       return;
     }
 
     if (!isKnightMove(currentSquare, sq)) {
-      error = `A knight can\u2019t reach ${sq} from ${currentSquare}.`;
+      error = `✗ ${sq}`;
       playSound('wrong');
       return;
     }
 
     if (puzzle.danger.has(sq)) {
-      error = `${sq} is attacked by the queen! \u2620`;
+      error = `✗ ${sq} \u2620`;
       playSound('wrong');
       return;
     }
@@ -192,10 +192,10 @@
   <header class="header">
     <h2>Knight Gauntlet</h2>
     <p class="instructions">
-      Move the knight from <strong>{puzzle.start}</strong> to <strong>{puzzle.target}</strong>
-      without landing on any square the queen on <strong>{puzzle.queenSq}</strong> attacks.
+      <strong>{puzzle.start}</strong> &rarr; <strong>{puzzle.target}</strong>
+      <img src="/pieces/bQ.svg" alt="Queen" class="inline-piece" /><strong>{puzzle.queenSq}</strong>
     </p>
-    <p class="optimal">Shortest safe path: {puzzle.optimal} moves</p>
+    <p class="optimal">Shortest: {puzzle.optimal} moves</p>
   </header>
 
   <RouteTrail stops={allStops} target={puzzle.target} open={result === 'playing'} />
@@ -204,7 +204,7 @@
     <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
   {:else}
     <div class="result">
-      <p class="result-title">Safe passage!</p>
+      <p class="result-title">✓</p>
       <p class="instructions">{moveCount} moves (optimal: {puzzle.optimal})</p>
       <StarRating {stars} size="lg" />
       <div class="route-board">
@@ -243,6 +243,12 @@
     color: var(--ink-muted);
   }
 
+  .inline-piece {
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    margin-left: 1rem;
+  }
   .optimal {
     margin-top: 0.25rem;
     font-size: var(--size-secondary);

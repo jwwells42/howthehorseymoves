@@ -150,19 +150,19 @@
     input = '';
 
     if (!isValidSquare(sq)) {
-      error = 'Not a valid square.';
+      error = '✗';
       playSound('wrong');
       return;
     }
 
     if (entered.includes(sq)) {
-      error = 'Already entered.';
+      error = `${sq} ✓`;
       playSound('wrong');
       return;
     }
 
     if (!reachable.includes(sq)) {
-      error = `${sq} is not a knight move from ${target}.`;
+      error = `✗ ${sq}`;
       playSound('wrong');
       return;
     }
@@ -201,14 +201,13 @@
   {#if gameState === 'idle'}
     <div class="screen">
       <h2>Knight Squares</h2>
-      <p class="instructions">A square appears. Type every square a knight could jump to from there. Find them all, then the next square appears. You have 30 seconds!</p>
       <BestScore score={bestScore} stars={bestStars} />
       <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if gameState === 'done'}
     <div class="screen">
-      <h2>Time's up!</h2>
+      <h2>⏱</h2>
       <p class="final-score">{score} completed</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />
@@ -263,7 +262,6 @@
     text-align: center;
   }
 
-  .instructions,
   .progress {
     color: var(--ink-muted);
   }

@@ -94,13 +94,13 @@
     input = '';
 
     if (!isValidSquare(sq)) {
-      error = 'Not a valid square.';
+      error = '✗';
       playSound('wrong');
       return;
     }
 
     if (!isKnightMove(currentSquare, sq)) {
-      error = `A knight can\u2019t reach ${sq} from ${currentSquare}.`;
+      error = `✗ ${sq}`;
       playSound('wrong');
       return;
     }
@@ -128,7 +128,7 @@
   <header class="header">
     <h2>Knight Routes</h2>
     <p class="instructions">
-      Find a knight route from <strong>{puzzle.start}</strong> to <strong>{puzzle.target}</strong>.
+      <strong>{puzzle.start}</strong> &rarr; <strong>{puzzle.target}</strong>
     </p>
   </header>
 
@@ -138,7 +138,7 @@
     <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
   {:else}
     <div class="result">
-      <p class="result-title">Route complete!</p>
+      <p class="result-title">✓</p>
       <p class="instructions">{moveCount} moves (optimal: {puzzle.optimal})</p>
       <StarRating {stars} size="lg" />
       <div class="route-board">

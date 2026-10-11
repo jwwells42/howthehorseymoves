@@ -90,13 +90,13 @@
     input = '';
 
     if (!isValidSquare(sq)) {
-      error = 'Not a valid square.';
+      error = '✗';
       playSound('wrong');
       return;
     }
 
     if (!isBishopMove(currentSquare, sq)) {
-      error = `A bishop can\u2019t reach ${sq} from ${currentSquare}.`;
+      error = `✗ ${sq}`;
       playSound('wrong');
       return;
     }
@@ -117,7 +117,7 @@
       result = 'correct-impossible';
       playSound('stars');
     } else {
-      error = "It IS possible! They\u2019re on the same color squares.";
+      error = '✗';
       playSound('wrong');
     }
   }
@@ -137,8 +137,7 @@
   <header class="header">
     <h2>Bishop Routes</h2>
     <p class="instructions">
-      Find a bishop path from <strong>{puzzle.start}</strong> to <strong>{puzzle.target}</strong>
-      — or spot when it's impossible!
+      <strong>{puzzle.start}</strong> &rarr; <strong>{puzzle.target}</strong>
     </p>
   </header>
 
@@ -150,12 +149,9 @@
   {:else}
     <div class="result">
       {#if result === 'correct-impossible'}
-        <p class="result-title">Correct! Impossible!</p>
-        <p class="instructions">
-          {puzzle.start} and {puzzle.target} are on different color squares — a bishop can never reach it.
-        </p>
+        <p class="result-title">✓</p>
       {:else}
-        <p class="result-title">Route complete!</p>
+        <p class="result-title">✓</p>
         <p class="instructions">{moveCount} move{moveCount !== 1 ? 's' : ''} (optimal: {puzzle.optimal})</p>
       {/if}
       <StarRating {stars} size="lg" />

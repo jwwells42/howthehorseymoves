@@ -202,7 +202,6 @@
   {#if gameState === 'idle'}
     <div class="screen">
       <h2>Same Rank or File?</h2>
-      <p class="instructions">Two squares will appear. Do they share a rank or file? You have 30 seconds!</p>
       <BestScore score={bestScore} stars={bestStars} />
       <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
@@ -219,7 +218,7 @@
 
   {:else}
     <div class="screen">
-      <h2>Time's up!</h2>
+      <h2>⏱</h2>
       <p class="final-score">{score}/{history.length} correct</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />

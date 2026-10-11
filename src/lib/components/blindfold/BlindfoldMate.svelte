@@ -12,7 +12,6 @@
   import type { MateEndgameType } from '$lib/logic/endgame';
   import {
     ENDGAME_INFO,
-    PIECE_NAMES,
     generatePosition,
     validateEndgameMove,
     applyEndgameMove,
@@ -52,23 +51,23 @@
     board: BoardState,
   ): { from: SquareId; to: SquareId } | { error: string } {
     const s = raw.trim().replace(/[+#]/g, '');
-    if (s.length === 0) return { error: 'Enter a move like Qd2 or Kc3' };
+    if (s.length === 0) return { error: '\u2717' };
 
     const pieceChar = s[0].toUpperCase();
     if (!'KQRBN'.includes(pieceChar)) {
-      return { error: 'Start with a piece letter (K, Q, R, B)' };
+      return { error: '\u2717' };
     }
 
     const rest = s.slice(1).toLowerCase().replace(/x/g, '');
     if (rest.length < 2 || rest.length > 3) {
-      return { error: 'Enter a move like Qd2 or Kc3' };
+      return { error: '\u2717' };
     }
 
     const dest = rest.slice(-2);
     const disambig = rest.slice(0, -2);
 
     if (!isValidSquare(dest)) {
-      return { error: `${dest} is not a valid square` };
+      return { error: `\u2717 ${dest}` };
     }
 
     const to = dest as SquareId;
@@ -85,7 +84,7 @@
     }
 
     if (candidates.length === 0) {
-      return { error: `No ${PIECE_NAMES[piece]} can reach ${dest}` };
+      return { error: `\u2717 ${pieceChar}${dest}` };
     }
 
     if (candidates.length === 1) {
@@ -93,7 +92,7 @@
     }
 
     if (!disambig) {
-      return { error: `Which one? Try ${pieceChar}${candidates[0][0]}${dest}` };
+      return { error: `${pieceChar}${candidates[0][0]}${dest}?` };
     }
     const filtered = candidates.filter((sq) => {
       if (disambig >= 'a' && disambig <= 'h') return sq[0] === disambig;
@@ -101,7 +100,7 @@
       return false;
     });
     if (filtered.length !== 1) {
-      return { error: `No ${PIECE_NAMES[piece]} on ${disambig} can reach ${dest}` };
+      return { error: `\u2717 ${pieceChar}${disambig}${dest}` };
     }
     return { from: filtered[0], to };
   }
@@ -183,7 +182,7 @@
     const validation = validateEndgameMove(board, from, to);
     if (!validation.valid) {
       mistakes += 1;
-      error = validation.reason ?? 'Invalid move';
+      error = validation.reason ? `\u2717 ${validation.reason}` : '\u2717';
       playSound('wrong');
       return;
     }
@@ -238,17 +237,13 @@
   {#if phase === 'idle'}
     <div class="idle-screen">
       <h2 class="title">{info.name}</h2>
-      <p class="description">
-        Deliver checkmate without seeing the board. Enter moves in
-        standard notation (e.g., Qd2, Kc3, Rad1).
-      </p>
       {#if bestStars > 0}
         <StarRating stars={bestStars} size="sm" />
       {/if}
 
       <label class="toggle-label">
         <input type="checkbox" bind:checked={hideHistory} />
-        Hide move list (harder)
+        Hide move list
       </label>
 
       <Button variant="primary" size="large" onclick={startGame}>Start</Button>
@@ -315,9 +310,7 @@
         <p class="checkmate-text">✓ Checkmate!</p>
         <StarRating {stars} size="lg" />
         <p class="won-detail">
-          {#if mistakes === 0}
-            Perfect — no mistakes!
-          {:else}
+          {#if mistakes > 0}
             {mistakes} mistake{mistakes > 1 ? 's' : ''}
           {/if}
         </p>
@@ -325,7 +318,7 @@
         <!-- Analysis board -->
         {#if boardHistory.length > 1}
           <div class="review-area">
-            <p class="review-label">Review your game</p>
+            <p class="review-label">Review</p>
             <div class="review-board">
               <Board
                 board={boardHistory[reviewStep]}
@@ -391,12 +384,6 @@
     margin: 0;
   }
 
-  .description {
-    color: var(--ink-muted);
-    text-align: center;
-    font-size: var(--size-secondary);
-    margin: 0;
-  }
 
   .toggle-label {
     display: flex;

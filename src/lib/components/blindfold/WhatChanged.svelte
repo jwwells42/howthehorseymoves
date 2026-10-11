@@ -255,9 +255,6 @@
   {#if phase === 'idle'}
     <div class="center-col">
       <h2>What Changed?</h2>
-      <p class="muted">
-        Memorize a position, then identify what moved. {ROUNDS} rounds &mdash; type the square something moved to (or from).
-      </p>
       <Choice label="Pieces" options={[4, 6, 8].map((n) => ({ value: n, label: String(n) }))} bind:value={level} />
       {#if bestStars > 0}
         <StarRating stars={bestStars} size="sm" />
@@ -275,7 +272,7 @@
     </div>
   {:else if phase === 'showing' && challenge}
     <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS} &mdash; Memorize this position!</div>
+      <div class="muted">Round {round}/{ROUNDS} &mdash; Memorize!</div>
       <div class="board">
         <Board board={createBoardState(challenge.before)} readOnly coordinates={false} label="Chess position to memorize" />
       </div>
@@ -283,11 +280,10 @@
     </div>
   {:else if phase === 'guessing' && challenge}
     <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS} &mdash; What moved?</div>
+      <div class="muted">Round {round}/{ROUNDS}</div>
       <div class="board">
         <Board board={createBoardState(challenge.after)} readOnly coordinates={false} label="Chess position after the move" />
       </div>
-      <p class="muted">One piece moved. Type the square it moved <strong>to</strong> or <strong>from</strong>.</p>
       <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Square" placeholder="Square..." />
     </div>
   {:else if phase === 'feedback' && challenge}

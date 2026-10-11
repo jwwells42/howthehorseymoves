@@ -145,9 +145,6 @@
   {#if gameState === 'idle'}
     <div class="screen">
       <h2>Color of Square</h2>
-      <p class="instructions">
-        A square will appear. Click the correct color — dark or light. You have 30 seconds!
-      </p>
       <div class="swatches">
         <div class="swatch dark"></div>
         <div class="swatch light"></div>
@@ -168,7 +165,7 @@
 
   {:else}
     <div class="screen">
-      <h2>Time's up!</h2>
+      <h2>⏱</h2>
       <p class="final-score">{score}/{history.length} correct</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />

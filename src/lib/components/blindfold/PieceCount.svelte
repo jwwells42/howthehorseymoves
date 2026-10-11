@@ -17,13 +17,13 @@
   type QuestionType = 'white' | 'black' | 'total' | 'pawns' | 'knights' | 'bishops' | 'rooks';
 
   const QUESTION_LABELS: Record<QuestionType, string> = {
-    white: 'White pieces?',
-    black: 'Black pieces?',
-    total: 'Total pieces?',
-    pawns: 'How many pawns?',
-    knights: 'How many knights?',
-    bishops: 'How many bishops?',
-    rooks: 'How many rooks?',
+    white: 'White?',
+    black: 'Black?',
+    total: 'Total?',
+    pawns: 'Pawns?',
+    knights: 'Knights?',
+    bishops: 'Bishops?',
+    rooks: 'Rooks?',
   };
 
   const PIECE_POOL: { piece: PieceKind; color: PieceColor }[] = [
@@ -217,16 +217,13 @@
   {#if phase === 'idle'}
     <div class="screen">
       <h2>Piece Count</h2>
-      <p class="muted">
-        A position flashes for 3 seconds, then a question appears. Count the pieces! You have 30 seconds total.
-      </p>
       <BestScore score={bestScore} stars={bestStars} />
       <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if phase === 'done'}
     <div class="screen">
-      <h2>Time&apos;s up!</h2>
+      <h2>⏱</h2>
       <p class="final-score">{score}/{history.length} correct</p>
       {#if getStars(score) > 0}
         <StarRating stars={getStars(score)} size="lg" />

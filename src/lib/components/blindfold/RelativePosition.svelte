@@ -175,15 +175,12 @@
   {#if gameState === 'idle'}
     <div class="center-col">
       <h2 class="title">Relative Position</h2>
-      <p class="muted">
-        Where is the second square relative to the first? Click the direction arrow. You have 30 seconds!
-      </p>
       <BestScore score={bestScore} stars={bestStars} />
       <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
   {:else if gameState === 'done'}
     <div class="center-col">
-      <h2 class="title">Time's up!</h2>
+      <h2 class="title">⏱</h2>
       <p class="big-score">{score}/{history.length} correct</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />
@@ -265,10 +262,6 @@
   .title {
     font-size: var(--size-large);
     font-weight: var(--weight-strong);
-  }
-
-  .muted {
-    color: var(--ink-muted);
   }
 
   .big-score {

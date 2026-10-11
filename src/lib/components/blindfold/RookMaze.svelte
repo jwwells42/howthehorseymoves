@@ -168,25 +168,25 @@
     input = '';
 
     if (!isValidSquare(sq)) {
-      error = 'Not a valid square.';
+      error = '✗';
       playSound('wrong');
       return;
     }
 
     if (!isRookMove(currentSquare, sq)) {
-      error = `A rook can\u2019t reach ${sq} from ${currentSquare} \u2014 must share a rank or file.`;
+      error = `✗ ${sq}`;
       playSound('wrong');
       return;
     }
 
     if (puzzle.obstacles.has(sq)) {
-      error = `${sq} is blocked by an obstacle!`;
+      error = `✗ ${sq}`;
       playSound('wrong');
       return;
     }
 
     if (isBlocked(currentSquare, sq, puzzle.obstacles)) {
-      error = `An obstacle is in the way between ${currentSquare} and ${sq}.`;
+      error = `✗ ${sq}`;
       playSound('wrong');
       return;
     }
@@ -215,7 +215,7 @@
   <header class="header">
     <h2>Rook Maze</h2>
     <p class="instructions">
-      Navigate a rook from <strong>{puzzle.start}</strong> to <strong>{puzzle.target}</strong> around the obstacles.
+      <strong>{puzzle.start}</strong> &rarr; <strong>{puzzle.target}</strong>
     </p>
     <p class="hint">Obstacles: {obstacles.join(', ')} &mdash; Shortest: {puzzle.optimal} moves</p>
   </header>
@@ -226,7 +226,7 @@
     <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
   {:else}
     <div class="result">
-      <p class="result-title">Route complete!</p>
+      <p class="result-title">✓</p>
       <p class="instructions">{moveCount} move{moveCount !== 1 ? 's' : ''} (optimal: {puzzle.optimal})</p>
       <StarRating {stars} size="lg" />
       <div class="route-board">

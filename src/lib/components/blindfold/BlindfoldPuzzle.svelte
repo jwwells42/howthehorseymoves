@@ -133,9 +133,6 @@
   {#if phase === 'idle'}
     <div class="center-panel">
       <h2 class="title">Blindfold Puzzle Solving</h2>
-      <p class="instructions">
-        Pieces are invisible! Read the position description, then find checkmate by clicking squares. {PUZZLES.length} puzzles.
-      </p>
       {#if bestStars > 0}
         <StarRating stars={bestStars} size="sm" />
       {/if}
@@ -155,7 +152,7 @@
   {:else if (phase === 'solved' || phase === 'wrong') && board}
     <div class="center-panel">
       <p class={['result-text', phase === 'solved' ? 'result-correct' : 'result-wrong']}>
-        {phase === 'solved' ? '✓ Checkmate!' : '✗ Not checkmate!'}
+        {phase === 'solved' ? '✓ Checkmate!' : '✗'}
       </p>
       <div class="info-text">{correct}/{total} correct</div>
       <div class="board-container">
@@ -175,8 +172,6 @@
       <div class="desc-box">
         {puzzle.desc}
       </div>
-
-      <p class="instructions">Find the checkmate! Click squares to move.</p>
 
       <div class="board-container">
         <Board
@@ -211,11 +206,6 @@
   .title {
     font-size: var(--size-large);
     font-weight: var(--weight-strong);
-  }
-
-  .instructions {
-    color: var(--ink-muted);
-    font-size: var(--size-secondary);
   }
 
   .final-score {

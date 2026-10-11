@@ -222,16 +222,13 @@
   {#if gameState === 'idle'}
     <div class="screen">
       <h2>Move Counting</h2>
-      <p class="instructions">
-        A piece appears on a square. How many squares does it control on an empty board? You have 30 seconds!
-      </p>
       <BestScore score={bestScore} stars={bestStars} />
       <Button variant="primary" size="large" onclick={startGame}>Start</Button>
     </div>
 
   {:else if gameState === 'done'}
     <div class="screen">
-      <h2>Time's up!</h2>
+      <h2>⏱</h2>
       <p class="final-score">{score}/{history.length} correct</p>
       {#if stars > 0}
         <StarRating {stars} size="lg" />
@@ -253,7 +250,6 @@
     <div class="question">
       <img src={PIECE_ICONS[question.piece]} alt={PIECE_NAMES[question.piece]} class="piece" />
       <div class={['square', flash]}>{question.square}</div>
-      <p class="instructions">How many squares?</p>
     </div>
 
     <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Number of squares" placeholder="#" numeric />

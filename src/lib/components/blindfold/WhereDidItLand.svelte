@@ -223,9 +223,6 @@
   {#if phase === 'idle'}
     <div class="center-col">
       <h2 class="title">Where Did It Land?</h2>
-      <p class="muted">
-        Follow a sequence of opening moves mentally. Then answer: where is a specific piece? {ROUNDS} rounds.
-      </p>
       {#if bestStars > 0}
         <StarRating stars={bestStars} size="sm" />
       {/if}
@@ -241,15 +238,12 @@
       <FinishActions label="Play Again" onclick={goIdle} />
     </div>
   {:else if phase === 'feedback' && question}
-    {@const colorName = question.askColor === 'w' ? 'white' : 'black'}
     <div class="center-col">
       <div class="round-label">Round {round}/{ROUNDS}</div>
       <p class={['feedback-text', isCorrect ? 'correct-text' : 'wrong-text']}>
         {isCorrect ? '✓ Correct!' : '✗ Wrong!'}
       </p>
-      <p class="muted">
-        The {colorName} {PIECE_NAMES[question.askPiece]} is on <span class="mono-bold">{question.correctSquare}</span>
-      </p>
+      <p class="muted"><span class="mono-bold">{question.correctSquare}</span></p>
       <div class="moves-summary">
         <span class="moves-name">{question.opening}:</span>
         {' '}
@@ -276,15 +270,12 @@
       </div>
 
       <div class="question-area">
-        <div class="question-text">
-          Where is the
-          <span class="bold">{colorName} {PIECE_NAMES[question.askPiece]}</span>?
-        </div>
         <img
           src="/pieces/{question.askColor}{question.askPiece}.svg"
           alt="{colorName} {PIECE_NAMES[question.askPiece]}"
           class="piece-img"
         />
+        <div class="question-text">?</div>
       </div>
 
       <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Square" placeholder="Square..." />
@@ -362,10 +353,6 @@
 
   .question-text {
     font-size: var(--size-body);
-  }
-
-  .bold {
-    font-weight: var(--weight-strong);
   }
 
   .piece-img {

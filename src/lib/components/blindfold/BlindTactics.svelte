@@ -181,10 +181,6 @@
   {#if phase === 'idle'}
     <div class="center-panel">
       <h2 class="title">Blind Tactics</h2>
-      <p class="instructions">
-        See a position, then it disappears. Find the checkmate blindfolded!
-        With delay moves, extra moves play before the board hides.
-      </p>
       <Choice
         label="Delay moves"
         options={[0, 1, 2].map((n) => ({ value: n, label: String(n) }))}
@@ -217,7 +213,7 @@
   {:else if (phase === 'solved' || phase === 'wrong') && currentBoard}
     <div class="center-panel">
       <p class={['result-text', phase === 'solved' ? 'result-correct' : 'result-wrong']}>
-        {phase === 'solved' ? '\u2713 Checkmate!' : '\u2717 Not checkmate \u2014 try to remember the position!'}
+        {phase === 'solved' ? '\u2713 Checkmate!' : '\u2717'}
       </p>
       <div class="info-text">{correct}/{total} correct</div>
       <div class="board-container">
@@ -231,8 +227,7 @@
   {:else}
     <!-- blind phase -->
     <div class="center-panel">
-      <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length} &mdash; Find the mate!</div>
-      <p class="instructions">The board is hidden. Click squares to make your move.</p>
+      <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length}</div>
       <div class="board-container">
         <Board
           board={emptyBoard}
@@ -267,11 +262,6 @@
   .title {
     font-size: var(--size-large);
     font-weight: var(--weight-strong);
-  }
-
-  .instructions {
-    color: var(--ink-muted);
-    font-size: var(--size-secondary);
   }
 
   .board-container {

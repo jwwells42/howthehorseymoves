@@ -236,10 +236,6 @@
   {#if phase === 'idle'}
     <div class="idle-screen">
       <h2 class="title">Who's Guarding Whom?</h2>
-      <p class="description">
-        Four pieces are placed on the board. Identify which pieces guard which.
-        Then pieces start moving — but the board stays frozen. Track positions in your head!
-      </p>
       {#if best > 0}
         <div class="best-line">
           Best streak: {best}
@@ -318,9 +314,6 @@
         <!-- Right: guarding selector + buttons -->
         <div class="selector-col">
           <div class="selector-area">
-            <p class="selector-prompt">
-              {moves.length === 0 ? 'Which pieces guard which?' : 'Now who guards whom?'}
-            </p>
             <div class="selector-rows">
               {#each PIECE_TYPES as from}
                 <div class="selector-row">
@@ -357,7 +350,7 @@
           {#if phase === 'feedback'}
             <div class="feedback-area">
               <p class={wasRight ? 'fb-correct' : 'fb-wrong'}>
-                {wasRight ? '\u2713 Correct!' : '\u2717 Not quite \u2014 check the highlights'}
+                {wasRight ? '\u2713 Correct!' : '\u2717'}
               </p>
               <div class="action-row">
                 <Button variant="primary" onclick={nextRound}>Next Move</Button>
@@ -397,11 +390,6 @@
   .title {
     font-size: var(--size-large);
     font-weight: var(--weight-strong);
-    margin: 0;
-  }
-
-  .description {
-    color: var(--ink-muted);
     margin: 0;
   }
 
@@ -548,18 +536,6 @@
 
   .selector-area {
     width: 100%;
-  }
-
-  .selector-prompt {
-    font-size: var(--size-secondary);
-    font-weight: var(--weight-medium);
-    margin: 0 0 0.75rem;
-  }
-
-  @media (min-width: 640px) {
-    .selector-prompt {
-      font-size: var(--size-body);
-    }
   }
 
   .selector-rows {
