@@ -674,10 +674,10 @@ ${position.join(',\n')},
     color: var(--wrong-text);
   }
 
+  /* The same size as every other board; the editor's page scrolls */
   .board {
-    width: 100%;
-    max-width: 32.5rem;
-    margin: 0 auto;
+    width: var(--board-size);
+    max-width: 100%;
   }
 
   .meta-row {

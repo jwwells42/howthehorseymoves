@@ -17,11 +17,13 @@
 
   interface Props {
     title: string;
+    /** Where this is in a lesson, e.g. "7 / 24", under the title. */
+    progress?: string;
     placements: PiecePlacement[];
     onNext?: () => void;
   }
 
-  let { title, placements, onNext }: Props = $props();
+  let { title, progress, placements, onNext }: Props = $props();
 
   /* ── KPK helpers ──────────────────────────────── */
 
@@ -294,6 +296,9 @@
   {#snippet sidebarArea()}
     <div class="header">
       <h2 class="title">{title}</h2>
+      {#if progress}
+        <p class="progress">{progress}</p>
+      {/if}
       <p class="status">{statusText}</p>
     </div>
 
@@ -330,6 +335,10 @@
     margin: 0 0 0.25rem;
   }
 
+  .progress {
+    font-size: var(--size-small);
+    color: var(--ink-muted);
+  }
   .status {
     color: var(--ink-muted);
     margin: 0;

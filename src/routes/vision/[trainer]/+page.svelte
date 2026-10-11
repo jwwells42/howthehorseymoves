@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import type { MateEndgameType } from '$lib/logic/endgame';
+  import BoardPage from '$lib/components/board/BoardPage.svelte';
   import ColorOfSquare from '$lib/components/blindfold/ColorOfSquare.svelte';
   import SameDiagonal from '$lib/components/blindfold/SameDiagonal.svelte';
   import SameRankFile from '$lib/components/blindfold/SameRankFile.svelte';
@@ -52,42 +53,35 @@
 </script>
 
 {#if TrainerComponent}
-  <main class={['page', 'board-page', trainer !== 'guarding' && 'blindfold-page', trainer === 'guarding' && 'blindfold-wide']}>
-    <a href="/vision" class="back-link">&larr; Back to vision</a>
-    <TrainerComponent />
-  </main>
+  <BoardPage back={{ href: '/vision', label: 'Back to vision' }}>
+    <div class="trainer">
+      <TrainerComponent />
+    </div>
+  </BoardPage>
 {:else if mateMatch}
-  <main class="page board-page blindfold-page">
-    <a href="/vision" class="back-link">&larr; Back to vision</a>
-    <BlindfoldMate type={mateMatch[1] as MateEndgameType} />
-  </main>
+  <BoardPage back={{ href: '/vision', label: 'Back to vision' }}>
+    <div class="trainer">
+      <BlindfoldMate type={mateMatch[1] as MateEndgameType} />
+    </div>
+  </BoardPage>
 {:else}
-  <main class="page center">
+  <main class="center">
     <h1>Not found</h1>
     <a href="/vision" class="muted-link">Back to vision</a>
   </main>
 {/if}
 
 <style>
-  .page { min-height: 100vh; padding: 1.5rem; max-width: 42rem; margin: 0 auto; }
-  .board-page {
-    min-height: calc(100dvh - 3rem);
+  /* The page's column: a screen without a board is centred in it, and a
+     board starts at its left edge (BoardLayout) */
+  .trainer {
+    width: min(var(--column), 100%);
     display: flex;
     flex-direction: column;
-    max-width: none;
+    flex: 1;
+    min-height: 0;
   }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-page {
-      height: calc(100dvh - 3rem);
-      overflow: hidden;
-    }
-  }
-  .center { text-align: center; }
-  .back-link { font-size: var(--size-secondary); color: var(--ink-muted); display: inline-block; margin-bottom: 1rem; flex-shrink: 0; }
-  .back-link:hover { color: var(--ink); }
+  .center { text-align: center; padding: 1.5rem; }
   .muted-link { color: var(--ink-muted); }
   .muted-link:hover { text-decoration: underline; }
-  .blindfold-page { max-width: 42rem; margin: 0 auto; }
-  .blindfold-wide { max-width: 64rem; margin: 0 auto; }
 </style>

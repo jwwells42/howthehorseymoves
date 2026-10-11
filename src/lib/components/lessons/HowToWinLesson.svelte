@@ -4,6 +4,7 @@
   import { stopFromUrl, withStop } from '$lib/curriculum';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
   import ResultSymbol from '$lib/components/board/ResultSymbol.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
@@ -320,17 +321,15 @@
     {/if}
   </div>
 {:else if step}
-  <div class="container">
-    <!-- Progress bar -->
-    <div class="progress-wrapper">
-      <ProgressBar value={stepIndex + 1} max={steps.length} label="Lesson progress" />
-      <p class="progress-label">{stepIndex + 1} / {steps.length}</p>
-    </div>
-
-    <h2 class="step-title">{sectionInfo.title}</h2>
-
-    <!-- Board -->
-    <div class="board-wrapper">
+  <BoardLayout>
+    {#snippet headerArea()}
+      <h2 class="step-title">{sectionInfo.title}</h2>
+      <div class="progress-wrapper">
+        <ProgressBar value={stepIndex + 1} max={steps.length} label="Lesson progress" />
+        <p class="progress-label">{stepIndex + 1} / {steps.length}</p>
+      </div>
+    {/snippet}
+    {#snippet boardArea()}
       {#if showTrophy}
         <BoardOverlay dim={false}>
           <ResultSymbol result="win" />
@@ -351,12 +350,8 @@
         readOnly={step.type === 'demo'}
         playableColors={['w']}
       />
-    </div>
-
-    <!-- Under the board. Always here at the same height, and only what's inside
-         comes and goes: the board gets the height that's left, so anything
-         appearing below it would shrink the board. -->
-    <div class="under-board">
+    {/snippet}
+    {#snippet sidebarArea()}
       <p class="status">
         {#if solved}
           <span class="correct-label">✓ Correct!</span>
@@ -366,35 +361,31 @@
           &nbsp;
         {/if}
       </p>
+      <!-- Hidden but keeping its room until there's a next step, so nothing
+           moves when it appears -->
       <div class={['next', step.type !== 'demo' && !solved && 'waiting']}>
         <Button variant="primary" size="large" onclick={goToNext}>Next</Button>
       </div>
-    </div>
-  </div>
+    {/snippet}
+  </BoardLayout>
 {/if}
 
 <style>
+  /* The done screen, where the board was */
   .container {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    max-width: 42rem;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .container {
-      flex: 1;
-      min-height: 0;
-    }
+    width: var(--board-size);
+    max-width: 100%;
   }
 
   .progress-wrapper {
     width: 100%;
     max-width: 28rem;
+    margin: 0.5rem auto 0;
   }
   .progress-label {
     font-size: var(--size-small);
@@ -406,31 +397,9 @@
   .step-title {
     font-size: var(--size-large);
     margin: 0;
+    text-align: center;
   }
 
-  .board-wrapper {
-    width: 100%;
-    position: relative;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-wrapper {
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
-  }
-
-  /* One row, so the room it keeps is just the button's height. */
-  .under-board {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    flex-shrink: 0;
-  }
   .status {
     margin: 0;
     font-weight: var(--weight-strong);

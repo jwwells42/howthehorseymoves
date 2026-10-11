@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import BestScore from '$lib/components/ui/BestScore.svelte';
   import Button from '$lib/components/ui/Button.svelte';
@@ -213,53 +214,59 @@
   let wrongOnes = $derived(history.filter((a) => !a.correct));
 </script>
 
-<div class="trainer">
-  {#if phase === 'idle'}
-    <div class="screen">
-      <h2>Piece Count</h2>
-      <BestScore score={bestScore} stars={bestStars} />
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-
-  {:else if phase === 'done'}
-    <div class="screen">
-      <h2>⏱</h2>
-      <p class="final-score">{score}/{history.length} correct</p>
-      {#if getStars(score) > 0}
-        <StarRating stars={getStars(score)} size="lg" />
-      {/if}
-      <BestScore score={bestScore} />
-      <FinishActions label="Play Again" onclick={startGame} />
-
-      {#if wrongOnes.length > 0}
-        <ReviewGrid title="Mistakes ({wrongOnes.length})">
-          {#each wrongOnes as attempt}
-            <ReviewCard correct={false} board={createBoardState(attempt.position)}>
-              <span class="muted">{QUESTION_LABELS[attempt.questionType]}</span><br />
-              <span class="correct">{attempt.answer}</span>
-              <span class="muted">(you: {attempt.playerAnswer})</span>
-            </ReviewCard>
-          {/each}
-        </ReviewGrid>
-      {/if}
-    </div>
-
-  {:else if phase === 'flash'}
-    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
-    <div class="muted studying">Memorize...</div>
-    <div class="board">
+<!-- The position to remember is a full-size board -->
+{#if phase === 'flash'}
+  <BoardLayout>
+    {#snippet boardArea()}
       <Board board={createBoardState(challenge.position)} readOnly coordinates={false} label="Chess position to memorize" />
-    </div>
+    {/snippet}
+    {#snippet sidebarArea()}
+      <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
+      <div class="muted studying">Memorize...</div>
+    {/snippet}
+  </BoardLayout>
+{:else}
+  <div class="trainer">
+    {#if phase === 'idle'}
+      <div class="screen">
+        <h2>Piece Count</h2>
+        <BestScore score={bestScore} stars={bestStars} />
+        <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+      </div>
 
-  {:else}
-    <!-- answer phase -->
-    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
-    <div class={['question', flash]}>
-      {QUESTION_LABELS[challenge.questionType]}
-    </div>
-    <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Number of pieces" placeholder="#" numeric />
-  {/if}
-</div>
+    {:else if phase === 'done'}
+      <div class="screen">
+        <h2>⏱</h2>
+        <p class="final-score">{score}/{history.length} correct</p>
+        {#if getStars(score) > 0}
+          <StarRating stars={getStars(score)} size="lg" />
+        {/if}
+        <BestScore score={bestScore} />
+        <FinishActions label="Play Again" onclick={startGame} />
+
+        {#if wrongOnes.length > 0}
+          <ReviewGrid title="Mistakes ({wrongOnes.length})">
+            {#each wrongOnes as attempt}
+              <ReviewCard correct={false} board={createBoardState(attempt.position)}>
+                <span class="muted">{QUESTION_LABELS[attempt.questionType]}</span><br />
+                <span class="correct">{attempt.answer}</span>
+                <span class="muted">(you: {attempt.playerAnswer})</span>
+              </ReviewCard>
+            {/each}
+          </ReviewGrid>
+        {/if}
+      </div>
+
+    {:else}
+      <!-- answer phase -->
+      <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
+      <div class={['question', flash]}>
+        {QUESTION_LABELS[challenge.questionType]}
+      </div>
+      <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Number of pieces" placeholder="#" numeric />
+    {/if}
+  </div>
+{/if}
 
 <style>
   .trainer {
@@ -290,11 +297,6 @@
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
-  }
-
-  .board {
-    width: 100%;
-    max-width: 24rem;
   }
 
   .question {

@@ -28,25 +28,17 @@
             id={stop.id}
             class={['card', isNext && 'up-next', isNone && 'no-track']}
           >
-            <div class={['step-badge', stars > 0 && 'complete']}>
-              {#if stars > 0}
-                &#10003;
-              {:else}
-                &middot;
-              {/if}
-            </div>
+            {#if stars > 0}
+              <div class="done-badge">&#10003;</div>
+            {/if}
             {#if isNext}
               <img src="/pieces/wN.svg" alt="You are here" class="knight-marker" />
             {/if}
-            <div class="card-header">
-              <img src={stop.icon} alt="" class="card-icon" />
+            <img src={stop.icon} alt="" class="card-icon" />
+            <div class="card-text">
               <h3>{stop.name}</h3>
-            </div>
-            <div class="card-footer">
               {#if stars > 0}
                 <StarRating {stars} size="sm" />
-              {:else}
-                &nbsp;
               {/if}
             </div>
           </a>
@@ -57,11 +49,6 @@
 </div>
 
 <style>
-  .path {
-    max-width: 56rem;
-    margin: 0 auto;
-  }
-
   .chapter {
     margin-bottom: 2.5rem;
   }
@@ -82,24 +69,36 @@
     border-top: 1px solid var(--line);
   }
 
+  /* Small cards, just the icon and the name: two across on a phone, three
+     where there's room */
   .grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
-  @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 640px) { .grid { grid-template-columns: repeat(3, 1fr); } }
 
+  /* On a phone the icon sits above the name */
   .card {
     border-radius: 0.75rem;
     border: 1px solid var(--line);
     background: var(--surface);
-    padding: 1.5rem;
+    padding: 0.75rem 0.5rem;
     transition: background 0.15s;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.375rem;
     position: relative;
-    height: 100%;
+  }
+  @media (min-width: 640px) {
+    .card {
+      flex-direction: row;
+      text-align: left;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+    }
   }
   .card:hover {
     background: var(--surface-raised);
@@ -115,8 +114,20 @@
     border-style: dashed;
   }
 
-  /* Step badge — top-left corner */
-  .step-badge {
+  .card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+  }
+  .card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  /* A finished stop: a tick in the top-left corner */
+  .done-badge {
     position: absolute;
     top: -0.625rem;
     left: -0.625rem;
@@ -128,33 +139,9 @@
     justify-content: center;
     font-size: var(--size-small);
     font-weight: var(--weight-strong);
-    border: 2px solid var(--line);
-    background: var(--surface);
-    color: var(--ink-muted);
-  }
-  .step-badge.complete {
     background: var(--correct);
-    border-color: var(--correct);
+    border: 2px solid var(--correct);
     color: var(--on-answer);
-  }
-
-  /* Card header — icon + title */
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-  }
-  .card-icon {
-    width: 3rem;
-    height: 3rem;
-  }
-
-  /* Card footer — stars */
-  .card-footer {
-    margin-top: auto;
-    font-size: var(--size-small);
-    color: var(--ink-muted);
   }
 
   /* Knight marker on up-next card */

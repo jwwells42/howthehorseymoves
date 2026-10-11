@@ -57,10 +57,11 @@
 </main>
 
 <style>
+  /* The same column as every other page */
   .page {
-    padding: 1.5rem;
-    max-width: 56rem;
+    max-width: calc(var(--column) + 2 * var(--gutter));
     margin: 0 auto;
+    padding: 1.5rem var(--gutter);
   }
   .hero {
     text-align: center;

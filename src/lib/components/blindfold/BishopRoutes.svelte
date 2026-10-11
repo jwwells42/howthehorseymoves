@@ -3,6 +3,7 @@
   import Button from '$lib/components/ui/Button.svelte';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import AnswerInput from './AnswerInput.svelte';
   import RouteTrail from './RouteTrail.svelte';
   import { playSound } from '$lib/state/sound';
@@ -133,43 +134,58 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="trainer">
+{#snippet header()}
   <header class="header">
     <h2>Bishop Routes</h2>
     <p class="instructions">
       <strong>{puzzle.start}</strong> &rarr; <strong>{puzzle.target}</strong>
     </p>
   </header>
+{/snippet}
 
+{#snippet trail()}
   <RouteTrail stops={allStops} target={puzzle.target} open={result === 'playing'} />
+{/snippet}
 
-  {#if result === 'playing'}
-    <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
-    <Button onclick={handleImpossible}>Can't reach! <span class="shortcut">(Esc)</span></Button>
-  {:else}
-    <div class="result">
-      {#if result === 'correct-impossible'}
+<!-- A board only for a route that was walked; otherwise no board -->
+{#if result !== 'won'}
+  <div class="trainer">
+    {@render header()}
+    {@render trail()}
+
+    {#if result === 'playing'}
+      <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
+      <Button onclick={handleImpossible}>Can't reach! <span class="shortcut">(Esc)</span></Button>
+    {:else}
+      <div class="result">
         <p class="result-title">✓</p>
-      {:else}
+        <StarRating {stars} size="lg" />
+        <FinishActions bind:this={newRouteButton} label="New Route" onclick={newPuzzle} size="normal" />
+      </div>
+    {/if}
+  </div>
+{:else}
+  <BoardLayout headerArea={header}>
+    {#snippet boardArea()}
+      <Board
+        board={EMPTY_BOARD}
+        readOnly
+        route={allStops as SquareId[]}
+        highlights={highlight([puzzle.start, puzzle.target], MARK.note, 'solid')}
+        label="Bishop route on chess board"
+      />
+    {/snippet}
+    {#snippet sidebarArea()}
+      {@render trail()}
+      <div class="result">
         <p class="result-title">✓</p>
         <p class="instructions">{moveCount} move{moveCount !== 1 ? 's' : ''} (optimal: {puzzle.optimal})</p>
-      {/if}
-      <StarRating {stars} size="lg" />
-      {#if result === 'won'}
-        <div class="route-board">
-          <Board
-            board={EMPTY_BOARD}
-            readOnly
-            route={allStops as SquareId[]}
-            highlights={highlight([puzzle.start, puzzle.target], MARK.note, 'solid')}
-            label="Bishop route on chess board"
-          />
-        </div>
-      {/if}
-      <FinishActions bind:this={newRouteButton} label="New Route" onclick={newPuzzle} size="normal" />
-    </div>
-  {/if}
-</div>
+        <StarRating {stars} size="lg" />
+        <FinishActions bind:this={newRouteButton} label="New Route" onclick={newPuzzle} size="normal" />
+      </div>
+    {/snippet}
+  </BoardLayout>
+{/if}
 
 <style>
   .trainer {
@@ -204,9 +220,5 @@
   }
   .result-title {
     font-weight: var(--weight-strong);
-  }
-  .route-board {
-    width: 100%;
-    max-width: 24rem;
   }
 </style>

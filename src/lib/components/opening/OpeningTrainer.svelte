@@ -845,8 +845,8 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    max-width: 42rem;
-    margin: 0 auto;
+    /* The page's column (see BoardPage), so it's centred on the page */
+    width: min(var(--column), 100%);
     /* The opening page is one screen high and doesn't scroll, so on a screen
        too short for the setup, the setup scrolls rather than being cut off. */
     min-height: 0;

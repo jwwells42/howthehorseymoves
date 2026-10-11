@@ -22,7 +22,10 @@
   title={set.name}
 >
   {#snippet aside()}
-    <span>{solved.length}/{puzzles.length}</span>
+    <!-- A trainer listed with the puzzle sets has no puzzles to count -->
+    {#if puzzles.length > 0}
+      <span>{solved.length}/{puzzles.length}</span>
+    {/if}
     <!-- Stars only once every puzzle in the set is solved. -->
     {#if mastered}
       <StarRating stars={bestStars} size="sm" />

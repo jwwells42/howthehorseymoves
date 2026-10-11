@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
@@ -177,8 +178,8 @@
   }
 </script>
 
-<div class="trainer">
-  {#if phase === 'idle'}
+{#if phase === 'idle'}
+  <div class="trainer">
     <div class="center-panel">
       <h2 class="title">Blind Tactics</h2>
       <Choice
@@ -195,51 +196,52 @@
         <Button variant="primary" size="large" onclick={startGame}>Start</Button>
       {/if}
     </div>
-
-  {:else if phase === 'sighted' && originalBoard}
-    <div class="center-panel">
-      <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length} &mdash; Memorize!</div>
-      <div class="board-container">
+  </div>
+{:else}
+  <!-- One board for the whole puzzle: the position to remember, then the
+       empty board to play on, then the answer -->
+  <BoardLayout>
+    {#snippet boardArea()}
+      {#if phase === 'sighted' && originalBoard}
         <Board board={originalBoard} readOnly />
-      </div>
-      {#if delayedMoves.length > 0}
-        <div class="info-text">
-          Then: {delayedMoves.map((m) => `${m.piece}${m.to}`).join(', ')}
-        </div>
-      {/if}
-      <div class="pulse-text">Studying...</div>
-    </div>
-
-  {:else if (phase === 'solved' || phase === 'wrong') && currentBoard}
-    <div class="center-panel">
-      <p class={['result-text', phase === 'solved' ? 'result-correct' : 'result-wrong']}>
-        {phase === 'solved' ? '\u2713 Checkmate!' : '\u2717'}
-      </p>
-      <div class="info-text">{correct}/{total} correct</div>
-      <div class="board-container">
+      {:else if (phase === 'solved' || phase === 'wrong') && currentBoard}
         <Board board={currentBoard} readOnly />
-      </div>
-      <Button variant="primary" onclick={nextPuzzle}>
-        {puzzleIdx + 1 >= PUZZLES.length ? 'See Results' : 'Next'}
-      </Button>
-    </div>
-
-  {:else}
-    <!-- blind phase -->
-    <div class="center-panel">
-      <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length}</div>
-      <div class="board-container">
+      {:else}
         <Board
           board={emptyBoard}
           selectedSquare={selectedSquare}
           validMoves={validMoves}
           onSquareClick={handleSquareClick}
         />
+      {/if}
+    {/snippet}
+
+    {#snippet sidebarArea()}
+      <div class="center-panel">
+        {#if phase === 'sighted' && originalBoard}
+          <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length} &mdash; Memorize!</div>
+          {#if delayedMoves.length > 0}
+            <div class="info-text">
+              Then: {delayedMoves.map((m) => `${m.piece}${m.to}`).join(', ')}
+            </div>
+          {/if}
+          <div class="pulse-text">Studying...</div>
+        {:else if (phase === 'solved' || phase === 'wrong') && currentBoard}
+          <p class={['result-text', phase === 'solved' ? 'result-correct' : 'result-wrong']}>
+            {phase === 'solved' ? '\u2713 Checkmate!' : '\u2717'}
+          </p>
+          <div class="info-text">{correct}/{total} correct</div>
+          <Button variant="primary" onclick={nextPuzzle}>
+            {puzzleIdx + 1 >= PUZZLES.length ? 'See Results' : 'Next'}
+          </Button>
+        {:else}
+          <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length}</div>
+          <div class="info-small">{correct}/{total} correct so far</div>
+        {/if}
       </div>
-      <div class="info-small">{correct}/{total} correct so far</div>
-    </div>
-  {/if}
-</div>
+    {/snippet}
+  </BoardLayout>
+{/if}
 
 <style>
   .trainer {
@@ -262,11 +264,6 @@
   .title {
     font-size: var(--size-large);
     font-weight: var(--weight-strong);
-  }
-
-  .board-container {
-    width: 100%;
-    max-width: 24rem;
   }
 
   .info-text {

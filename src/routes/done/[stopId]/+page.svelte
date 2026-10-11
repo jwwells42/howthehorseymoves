@@ -32,9 +32,8 @@
 </script>
 
 <main class="page">
-  <!-- The card's width, so the back link sits at the card's left edge -->
+  <BackLink href="/">Back to home</BackLink>
   <div class="column">
-    <BackLink href="/">Back to home</BackLink>
     {#if !found}
       <h1>Not found</h1>
     {:else if $progressState.loaded}
@@ -58,18 +57,16 @@
 </main>
 
 <style>
+  /* The same column as every other page, so the back link stays put; the
+     card sits in the middle of it */
   .page {
-    min-height: calc(100dvh - 3rem);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    padding: 1rem;
+    max-width: calc(var(--column) + 2 * var(--gutter));
+    margin: 0 auto;
+    padding: 1.5rem var(--gutter);
   }
   .column {
-    width: 100%;
     max-width: 30rem;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;

@@ -145,6 +145,25 @@
   --bot-monkey: #ffa057; /* orange 11 */
   --bot-bear: #ff977d; /* tomato 11 */
   --bot-owl: #75c7f0; /* sky 11 */
+
+  /* Layout. Every page's content sits on one centred column, so the back
+     link, and the left edge of what's under it, stay in the same place from
+     page to page. Every board is the same size: on a wide screen it sits at
+     the column's left edge with the rest of the screen in a sidebar on its
+     right (BoardPage + BoardLayout), on a narrow one it is the screen's
+     width. Only pictures of boards (Match the Moves, review thumbnails, the
+     journey board) are drawn smaller. */
+  --gutter: 1rem;
+  --column: 42rem;
+  --sidebar: 18rem;
+  --board-size: min(calc(100vw - 2 * var(--gutter)), calc(100dvh - 7.75rem));
+}
+
+@media (min-width: 900px) {
+  :root {
+    /* Fits under the nav and the back link, beside the sidebar */
+    --board-size: min(var(--column), calc(100dvh - 7.75rem), calc(100vw - var(--sidebar) - 2 * var(--gutter) - 1.5rem));
+  }
 }
 
 *,

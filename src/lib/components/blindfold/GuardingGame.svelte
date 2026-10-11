@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
@@ -232,159 +233,154 @@
   }
 </script>
 
-<div class="guarding-game">
-  {#if phase === 'idle'}
-    <div class="idle-screen">
-      <h2 class="title">Who's Guarding Whom?</h2>
-      {#if best > 0}
-        <div class="best-line">
-          Best streak: {best}
-          {#if bestStars > 0}
-            <StarRating stars={bestStars} size="sm" />
-          {/if}
-        </div>
-      {/if}
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-
-  {:else if phase === 'done'}
-    <div class="done-screen">
-      <h2 class="title">Game Over</h2>
-      <p class="peak-streak">Best streak: {peakStreak}</p>
-      {#if doneStars > 0}
-        <StarRating stars={doneStars} size="lg" />
-      {/if}
-      {#if best > 0}
-        <p class="best-text">All-time best: {best}</p>
-      {/if}
-
-      <!-- Actual positions board -->
-      <div class="board-label">Actual positions</div>
-      <div class="board">
-        <Board board={toBoard(secret)} readOnly label="Actual piece positions" />
+{#if phase === 'idle'}
+  <div class="idle-screen">
+    <h2 class="title">Who's Guarding Whom?</h2>
+    {#if best > 0}
+      <div class="best-line">
+        Best streak: {best}
+        {#if bestStars > 0}
+          <StarRating stars={bestStars} size="sm" />
+        {/if}
       </div>
+    {/if}
+    <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+  </div>
 
-      {#if moves.length > 0}
-        <div class="move-history">
-          <p class="move-history-label">All moves:</p>
-          <div class="move-list-wrap">
-            {#each moves as m, i}
-              <span class="move-entry">
-                <span class="move-num">{i + 1}.</span>
-                {NAMES[m.piece]} {m.from} &rarr; {m.to}
-              </span>
-            {/each}
+{:else if phase === 'done'}
+  <BoardLayout>
+    {#snippet headerArea()}
+      <h2 class="title">Game Over</h2>
+    {/snippet}
+
+    {#snippet boardArea()}
+      <Board board={toBoard(secret)} readOnly label="Actual piece positions" />
+    {/snippet}
+
+    {#snippet sidebarArea()}
+      <div class="done-screen">
+        <p class="peak-streak">Best streak: {peakStreak}</p>
+        {#if doneStars > 0}
+          <StarRating stars={doneStars} size="lg" />
+        {/if}
+        {#if best > 0}
+          <p class="best-text">All-time best: {best}</p>
+        {/if}
+
+        <div class="board-label">Actual positions</div>
+
+        {#if moves.length > 0}
+          <div class="move-history">
+            <p class="move-history-label">All moves:</p>
+            <div class="move-list-wrap">
+              {#each moves as m, i}
+                <span class="move-entry">
+                  <span class="move-num">{i + 1}.</span>
+                  {NAMES[m.piece]} {m.from} &rarr; {m.to}
+                </span>
+              {/each}
+            </div>
           </div>
-        </div>
-      {/if}
+        {/if}
 
-      <FinishActions label="New Game" onclick={startGame} />
-    </div>
+        <FinishActions label="New Game" onclick={startGame} />
+      </div>
+    {/snippet}
+  </BoardLayout>
 
-  {:else}
-    <!-- guessing / feedback phases -->
-    <div class="play-area">
+{:else}
+  <!-- guessing / feedback phases -->
+  <BoardLayout>
+    {#snippet headerArea()}
       <div class="streak-bar">
         <span class="streak-label">Streak: <span class="streak-val">{streak}</span></span>
         {#if best > 0}
           <span class="streak-label">Best: {best}</span>
         {/if}
       </div>
+    {/snippet}
 
-      <div class="play-layout">
-        <!-- Left: board + latest move -->
-        <div class="board-col">
-          {#if moves.length > 0}
-            <div class="board-label">Board (original positions)</div>
-          {/if}
-          <div class="board">
-            <Board board={toBoard(visible)} readOnly label="Chess board with piece positions" />
+    {#snippet boardArea()}
+      <Board board={toBoard(visible)} readOnly label="Chess board with piece positions" />
+    {/snippet}
+
+    {#snippet sidebarArea()}
+      <div class="selector-col">
+        {#if moves.length > 0}
+          <div class="board-label">Board (original positions)</div>
+        {/if}
+        {#if latestMove}
+          <div class="latest-move">
+            <span class="latest-move-text">
+              <span class="move-num">Move {moves.length}:</span>
+              <span class="move-bold">{NAMES[latestMove.piece]} {latestMove.from} &rarr; {latestMove.to}</span>
+            </span>
           </div>
+        {/if}
 
-          {#if latestMove}
-            <div class="latest-move">
-              <span class="latest-move-text">
-                <span class="move-num">Move {moves.length}:</span>
-                <span class="move-bold">{NAMES[latestMove.piece]} {latestMove.from} &rarr; {latestMove.to}</span>
-              </span>
-            </div>
-          {/if}
-        </div>
-
-        <!-- Right: guarding selector + buttons -->
-        <div class="selector-col">
-          <div class="selector-area">
-            <div class="selector-rows">
-              {#each PIECE_TYPES as from}
-                <div class="selector-row">
-                  <div class="piece-label">
-                    <img src={SVGS[from]} alt={NAMES[from]} class="piece-icon" />
-                    <span class="arrow-icon">&rarr;</span>
-                  </div>
-                  <div class="target-btns">
-                    {#each PIECE_TYPES.filter(to => to !== from) as to}
-                      {@const key = `${from}-${to}` as GKey}
-                      <button
-                        class={btnClass(key)}
-                        onclick={() => phase === 'guessing' && toggle(key)}
-                        disabled={phase === 'feedback'}
-                      >
-                        {NAMES[to]}
-                      </button>
-                    {/each}
-                  </div>
+        <div class="selector-area">
+          <div class="selector-rows">
+            {#each PIECE_TYPES as from}
+              <div class="selector-row">
+                <div class="piece-label">
+                  <img src={SVGS[from]} alt={NAMES[from]} class="piece-icon" />
+                  <span class="arrow-icon">&rarr;</span>
                 </div>
-              {/each}
+                <div class="target-btns">
+                  {#each PIECE_TYPES.filter(to => to !== from) as to}
+                    {@const key = `${from}-${to}` as GKey}
+                    <button
+                      class={btnClass(key)}
+                      onclick={() => phase === 'guessing' && toggle(key)}
+                      disabled={phase === 'feedback'}
+                    >
+                      {NAMES[to]}
+                    </button>
+                  {/each}
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+
+        {#if phase === 'guessing'}
+          <div class="action-row">
+            <Button variant="primary" onclick={check}>Check</Button>
+            {#if moves.length > 0}
+              <button class="give-up-btn" onclick={giveUp}>Give up</button>
+            {/if}
+          </div>
+        {/if}
+
+        {#if phase === 'feedback'}
+          <div class="feedback-area">
+            <p class={wasRight ? 'fb-correct' : 'fb-wrong'}>
+              {wasRight ? '\u2713 Correct!' : '\u2717'}
+            </p>
+            <div class="action-row">
+              <Button variant="primary" onclick={nextRound}>Next Move</Button>
+              <button class="give-up-btn" onclick={giveUp}>Give up</button>
             </div>
           </div>
-
-          {#if phase === 'guessing'}
-            <div class="action-row">
-              <Button variant="primary" onclick={check}>Check</Button>
-              {#if moves.length > 0}
-                <button class="give-up-btn" onclick={giveUp}>Give up</button>
-              {/if}
-            </div>
-          {/if}
-
-          {#if phase === 'feedback'}
-            <div class="feedback-area">
-              <p class={wasRight ? 'fb-correct' : 'fb-wrong'}>
-                {wasRight ? '\u2713 Correct!' : '\u2717'}
-              </p>
-              <div class="action-row">
-                <Button variant="primary" onclick={nextRound}>Next Move</Button>
-                <button class="give-up-btn" onclick={giveUp}>Give up</button>
-              </div>
-            </div>
-          {/if}
-        </div>
+        {/if}
       </div>
-    </div>
-  {/if}
-</div>
+    {/snippet}
+  </BoardLayout>
+{/if}
 
 <style>
-  .guarding-game {
-    max-width: 28rem;
-    margin: 0 auto;
-  }
-
-  @media (min-width: 640px) {
-    .guarding-game {
-      max-width: 64rem;
-    }
-  }
-
   .idle-screen,
   .done-screen {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    max-width: 28rem;
-    margin: 0 auto;
     text-align: center;
+  }
+  .idle-screen {
+    max-width: 28rem;
+    width: 100%;
+    margin: 0 auto;
   }
 
   .title {
@@ -426,11 +422,6 @@
     color: var(--ink);
   }
 
-  .board {
-    width: 100%;
-    max-width: 30rem;
-  }
-
   .board-label {
     font-size: var(--size-secondary);
     color: var(--ink-muted);
@@ -439,12 +430,6 @@
   }
 
   /* Play area */
-  .play-area {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
   .streak-bar {
     display: flex;
     justify-content: space-between;
@@ -459,36 +444,6 @@
   .streak-val {
     font-weight: var(--weight-strong);
     color: var(--ink);
-  }
-
-  .play-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: center;
-  }
-
-  @media (min-width: 640px) {
-    .play-layout {
-      flex-direction: row;
-      gap: 2rem;
-      align-items: flex-start;
-    }
-  }
-
-  .board-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    flex-shrink: 0;
-    width: 100%;
-  }
-
-  @media (min-width: 640px) {
-    .board-col {
-      width: 480px;
-    }
   }
 
   .latest-move {
@@ -523,15 +478,9 @@
   .selector-col {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 1rem;
     width: 100%;
-  }
-
-  @media (min-width: 640px) {
-    .selector-col {
-      align-items: flex-start;
-    }
   }
 
   .selector-area {
@@ -560,7 +509,7 @@
 
   @media (min-width: 640px) {
     .piece-label {
-      width: 60px;
+      width: 56px;
     }
   }
 
@@ -605,9 +554,10 @@
     transition: border-color 0.15s, background-color 0.15s;
   }
 
+  /* Narrow enough for three in a row in the sidebar */
   @media (min-width: 640px) {
     .guard-btn {
-      padding: 0.375rem 0.75rem;
+      padding: 0.375rem 0.5rem;
       font-size: var(--size-secondary);
     }
   }

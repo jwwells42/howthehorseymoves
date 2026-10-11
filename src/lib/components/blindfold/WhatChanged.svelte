@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
@@ -251,64 +252,72 @@
   let stars = $derived(getStars(correct, total));
 </script>
 
-<div class="container">
-  {#if phase === 'idle'}
-    <div class="center-col">
-      <h2>What Changed?</h2>
-      <Choice label="Pieces" options={[4, 6, 8].map((n) => ({ value: n, label: String(n) }))} bind:value={level} />
-      {#if bestStars > 0}
-        <StarRating stars={bestStars} size="sm" />
-      {/if}
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-  {:else if phase === 'done'}
-    <div class="center-col">
-      <h2>Complete!</h2>
-      <p class="big-score">{correct}/{total} correct</p>
-      {#if stars > 0}
-        <StarRating {stars} size="lg" />
-      {/if}
-      <FinishActions label="Play Again" onclick={goIdle} />
-    </div>
-  {:else if phase === 'showing' && challenge}
-    <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS} &mdash; Memorize!</div>
-      <div class="board">
-        <Board board={createBoardState(challenge.before)} readOnly coordinates={false} label="Chess position to memorize" />
-      </div>
-      <div class="studying">Studying...</div>
-    </div>
-  {:else if phase === 'guessing' && challenge}
-    <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS}</div>
-      <div class="board">
-        <Board board={createBoardState(challenge.after)} readOnly coordinates={false} label="Chess position after the move" />
-      </div>
-      <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Square" placeholder="Square..." />
-    </div>
-  {:else if phase === 'feedback' && challenge}
-    <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS}</div>
-      <p class={['feedback', isCorrect ? 'correct' : 'wrong']}>
-        {isCorrect ? '✓ Correct!' : '✗ Wrong!'}
-      </p>
-      <p class="muted">{challenge.answer}</p>
-      <div class="board">
+{#if (phase === 'showing' || phase === 'guessing' || phase === 'feedback') && challenge}
+  <!-- Snippets don't keep the null check, so name the narrowed value -->
+  {@const ch = challenge}
+  <!-- One board for the round: before the move, after it, then the answer -->
+  <BoardLayout>
+    {#snippet boardArea()}
+      {#if phase === 'showing'}
+        <Board board={createBoardState(ch.before)} readOnly coordinates={false} label="Chess position to memorize" />
+      {:else if phase === 'guessing'}
+        <Board board={createBoardState(ch.after)} readOnly coordinates={false} label="Chess position after the move" />
+      {:else}
         <Board
-          board={createBoardState(challenge.after)}
+          board={createBoardState(ch.after)}
           readOnly
           coordinates={false}
-          highlights={highlight([challenge.movedPiece.square, challenge.movedTo], MARK.note)}
-          arrows={[{ from: challenge.movedPiece.square, to: challenge.movedTo, color: MARK.note }]}
+          highlights={highlight([ch.movedPiece.square, ch.movedTo], MARK.note)}
+          arrows={[{ from: ch.movedPiece.square, to: ch.movedTo, color: MARK.note }]}
           label="Chess position showing the move"
         />
+      {/if}
+    {/snippet}
+
+    {#snippet sidebarArea()}
+      <div class="center-col">
+        {#if phase === 'showing'}
+          <div class="muted">Round {round}/{ROUNDS} &mdash; Memorize!</div>
+          <div class="studying">Studying...</div>
+        {:else if phase === 'guessing'}
+          <div class="muted">Round {round}/{ROUNDS}</div>
+          <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Square" placeholder="Square..." />
+        {:else}
+          <div class="muted">Round {round}/{ROUNDS}</div>
+          <p class={['feedback', isCorrect ? 'correct' : 'wrong']}>
+            {isCorrect ? '✓ Correct!' : '✗ Wrong!'}
+          </p>
+          <p class="muted">{ch.answer}</p>
+          <Button variant="primary" onclick={nextRound}>
+            {round >= ROUNDS ? 'See Results' : 'Next'}
+          </Button>
+        {/if}
       </div>
-      <Button variant="primary" onclick={nextRound}>
-        {round >= ROUNDS ? 'See Results' : 'Next'}
-      </Button>
-    </div>
-  {/if}
-</div>
+    {/snippet}
+  </BoardLayout>
+{:else}
+  <div class="container">
+    {#if phase === 'idle'}
+      <div class="center-col">
+        <h2>What Changed?</h2>
+        <Choice label="Pieces" options={[4, 6, 8].map((n) => ({ value: n, label: String(n) }))} bind:value={level} />
+        {#if bestStars > 0}
+          <StarRating stars={bestStars} size="sm" />
+        {/if}
+        <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+      </div>
+    {:else if phase === 'done'}
+      <div class="center-col">
+        <h2>Complete!</h2>
+        <p class="big-score">{correct}/{total} correct</p>
+        {#if stars > 0}
+          <StarRating {stars} size="lg" />
+        {/if}
+        <FinishActions label="Play Again" onclick={goIdle} />
+      </div>
+    {/if}
+  </div>
+{/if}
 
 <style>
   .container {
@@ -336,11 +345,6 @@
   .big-score {
     font-size: var(--size-title);
     font-weight: var(--weight-strong);
-  }
-
-  .board {
-    width: 100%;
-    max-width: 24rem;
   }
 
   .studying {

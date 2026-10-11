@@ -83,13 +83,10 @@
     stars = s;
   });
 
-  let totalTrainers = $derived(GROUPS.reduce((n, g) => n + g.trainers.length, 0));
-  let completedTrainers = $derived(Object.values(stars).filter(s => s > 0).length);
 </script>
 
 <Page
   title="Vision"
-  subtitle="{completedTrainers}/{totalTrainers}"
   back={{ href: '/', label: 'Back to home' }}
 >
   {#each GROUPS as group}

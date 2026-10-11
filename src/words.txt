@@ -19,7 +19,9 @@ We still have Qa5+ so we don't need to give them a tempo
 # Names and labels (headings, back links, screen-reader labels)
 Back to advanced endings
 Back to How to Win
+Back to Pawn Endings
 Back to Rook Ladder
+Back to The Board
 Bishop + Knight vs King
 Bishop route on chess board
 Can't reach!

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { EMPTY_BOARD, FILES, RANKS, type SquareId } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import BestScore from '$lib/components/ui/BestScore.svelte';
   import Button from '$lib/components/ui/Button.svelte';
@@ -9,6 +10,12 @@
   import Countdown from '$lib/components/ui/Countdown.svelte';
   import { playSound } from '$lib/state/sound';
   import { MARK, highlight } from '$lib/board-marks';
+
+  interface Props {
+    title: string;
+  }
+
+  let { title }: Props = $props();
 
   const GAME_DURATION = 30;
 
@@ -118,36 +125,12 @@
   );
 </script>
 
-<div class="trainer">
-  {#if gameState === 'idle'}
-    <div class="screen">
-      <div class="thresholds">
-        <span class="threshold"><StarRating stars={1} size="sm" /> 3 correct</span>
-        <span class="threshold"><StarRating stars={2} size="sm" /> 5 correct</span>
-        <span class="threshold"><StarRating stars={3} size="sm" /> 10 correct</span>
-      </div>
-      <BestScore score={bestScore} stars={bestStars} />
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-  {:else if gameState === 'playing'}
-    <div class="countdown">
-      <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
-    </div>
-  {:else}
-    <div class="screen">
-      <div class="final-score">{score}</div>
-      <StarRating stars={scoreToStars(score)} size="lg" />
-      <div class="thresholds done-thresholds">
-        <span class={['threshold', score >= 3 && 'achieved']}><StarRating stars={1} size="sm" /> 3</span>
-        <span class={['threshold', score >= 5 && 'achieved']}><StarRating stars={2} size="sm" /> 5</span>
-        <span class={['threshold', score >= 10 && 'achieved']}><StarRating stars={3} size="sm" /> 10</span>
-      </div>
-      <BestScore score={bestScore} stars={bestStars} />
-      <FinishActions label="Play Again" onclick={startGame} />
-    </div>
-  {/if}
+<BoardLayout>
+  {#snippet headerArea()}
+    <h2 class="title">{title}</h2>
+  {/snippet}
 
-  <div class="board-wrapper">
+  {#snippet boardArea()}
     <Board
       board={EMPTY_BOARD}
       readOnly={gameState !== 'playing'}
@@ -158,37 +141,42 @@
         <text x="400" y="400" class="target-name">{target}</text>
       {/if}
     </Board>
-  </div>
-</div>
+  {/snippet}
+
+  {#snippet sidebarArea()}
+    {#if gameState === 'idle'}
+      <div class="screen">
+        <div class="thresholds">
+          <span class="threshold"><StarRating stars={1} size="sm" /> 3 correct</span>
+          <span class="threshold"><StarRating stars={2} size="sm" /> 5 correct</span>
+          <span class="threshold"><StarRating stars={3} size="sm" /> 10 correct</span>
+        </div>
+        <BestScore score={bestScore} stars={bestStars} />
+        <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+      </div>
+    {:else if gameState === 'playing'}
+      <div class="countdown">
+        <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
+      </div>
+    {:else}
+      <div class="screen">
+        <div class="final-score">{score}</div>
+        <StarRating stars={scoreToStars(score)} size="lg" />
+        <div class="thresholds done-thresholds">
+          <span class={['threshold', score >= 3 && 'achieved']}><StarRating stars={1} size="sm" /> 3</span>
+          <span class={['threshold', score >= 5 && 'achieved']}><StarRating stars={2} size="sm" /> 5</span>
+          <span class={['threshold', score >= 10 && 'achieved']}><StarRating stars={3} size="sm" /> 10</span>
+        </div>
+        <BestScore score={bestScore} stars={bestStars} />
+        <FinishActions label="Play Again" onclick={startGame} />
+      </div>
+    {/if}
+  {/snippet}
+</BoardLayout>
 
 <style>
-  .trainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .trainer {
-      flex: 1;
-      min-height: 0;
-    }
-  }
-
-  .board-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-wrapper {
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
+  .title {
+    text-align: center;
   }
 
   /* The square to find, written large across the board. A dark edge keeps it
@@ -222,7 +210,9 @@
 
   .thresholds {
     display: flex;
-    gap: 1.25rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 1.25rem;
     font-size: var(--size-secondary);
     color: var(--ink-muted);
   }

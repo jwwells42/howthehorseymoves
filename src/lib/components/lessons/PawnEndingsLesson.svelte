@@ -4,6 +4,7 @@
   import { page } from '$app/state';
   import { doneHref, stopFromUrl, withStop } from '$lib/curriculum';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
   import ResultSymbol from '$lib/components/board/ResultSymbol.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
@@ -231,113 +232,105 @@
 </script>
 
 {#if trainerStep}
-  <div class="lesson trainer-lesson">
-    <p class="progress">{stepIndex + 1} / {totalSteps}</p>
-    {#if trainerStep.trainerType === 'endgame'}
-      <EndgameShell
-        title="Pawn Endings"
-        placements={trainerStep.placements}
-        onNext={nextStep}
-      />
-    {:else}
-      <DrawTrainer
-        title="Pawn Endings"
-        placements={trainerStep.placements}
-        storageKey={trainerStep.storageKey ?? `pawn-endings-${trainerStep.id}-best-stars`}
-        botStrategy={trainerStep.botStrategy}
-        onNext={nextStep}
-      />
-    {/if}
-  </div>
+  {#if trainerStep.trainerType === 'endgame'}
+    <EndgameShell
+      title="Pawn Endings"
+      progress="{stepIndex + 1} / {totalSteps}"
+      placements={trainerStep.placements}
+      onNext={nextStep}
+    />
+  {:else}
+    <DrawTrainer
+      title="Pawn Endings"
+      progress="{stepIndex + 1} / {totalSteps}"
+      placements={trainerStep.placements}
+      storageKey={trainerStep.storageKey ?? `pawn-endings-${trainerStep.id}-best-stars`}
+      botStrategy={trainerStep.botStrategy}
+      onNext={nextStep}
+    />
+  {/if}
 {:else}
-  <div class="lesson">
-    <div class="header">
-      <h2 class="title">Pawn Endings</h2>
-      <p class="progress">{stepIndex + 1} / {totalSteps}</p>
-    </div>
-
-    {#if isQuiz}
-      <div class="side-to-move">
-        <div class={['side-dot', sideToMove === 'w' ? 'white' : 'black']}></div>
-        <span class="side-label">{sideToMove === 'w' ? 'White' : 'Black'} to move</span>
+  <BoardLayout>
+    {#snippet headerArea()}
+      <div class="header">
+        <h2 class="title">Pawn Endings</h2>
+        <p class="progress">{stepIndex + 1} / {totalSteps}</p>
+        {#if isQuiz}
+          <div class="side-to-move">
+            <div class={['side-dot', sideToMove === 'w' ? 'white' : 'black']}></div>
+            <span class="side-label">{sideToMove === 'w' ? 'White' : 'Black'} to move</span>
+          </div>
+        {/if}
       </div>
-    {/if}
+    {/snippet}
 
-    <div class={['lesson-layout', hasExplorer && 'has-panel']}>
-      <div class="board-side">
-        <div class="board-area">
-          <div class="board-wrap">
-            <Board
-              board={explorerBoard ?? board}
-              targets={keySquares}
-              opponentSlide={explorerBoard ? null : opponentSlide}
-              arrows={explorerBoard ? explorerArrows : diagramArrows}
-            />
+    {#snippet boardArea()}
+      <Board
+        board={explorerBoard ?? board}
+        targets={keySquares}
+        opponentSlide={explorerBoard ? null : opponentSlide}
+        arrows={explorerBoard ? explorerArrows : diagramArrows}
+      />
 
-            <!-- Result overlay (hide when exploring) -->
-            {#if phase === 'result' && quizStep && !explorerBoard}
-              <BoardOverlay dim={false}>
-                <ResultSymbol result={quizStep.endState === 'promotion' ? 'win' : 'draw'} />
-              </BoardOverlay>
-            {/if}
+      <!-- Result overlay (hide when exploring) -->
+      {#if phase === 'result' && quizStep && !explorerBoard}
+        <BoardOverlay dim={false}>
+          <ResultSymbol result={quizStep.endState === 'promotion' ? 'win' : 'draw'} />
+        </BoardOverlay>
+      {/if}
+    {/snippet}
+
+    {#snippet sidebarArea()}
+      <!-- Diagram: Next button -->
+      {#if phase === 'diagram'}
+        <Button variant="primary" onclick={nextStep}>Next</Button>
+      {/if}
+
+      <!-- Quiz: answer buttons -->
+      {#if phase === 'asking' || phase === 'wrong'}
+        <div class="answer-buttons">
+          <button
+            class={['answer-btn', wrongAnswer === 'white' && 'wrong-flash']}
+            onclick={() => handleAnswer('white')}
+          >
+            <div class="answer-square white"></div>
+            <span>White wins</span>
+          </button>
+          <button
+            class={['answer-btn draw-btn', wrongAnswer === 'draw' && 'wrong-flash']}
+            onclick={() => handleAnswer('draw')}
+          >
+            <span class="draw-icon">&#189;</span>
+            <span>Draw</span>
+          </button>
+          <button
+            class={['answer-btn', wrongAnswer === 'black' && 'wrong-flash']}
+            onclick={() => handleAnswer('black')}
+          >
+            <div class="answer-square black"></div>
+            <span>Black wins</span>
+          </button>
+        </div>
+      {/if}
+
+      {#if phase === 'animating'}
+        <Button onclick={skipToResult}>Skip</Button>
+      {/if}
+
+      {#if phase === 'result'}
+        <div class="result-area">
+          <StarRating {stars} size="lg" />
+          <div class="result-buttons">
+            <Button onclick={retry}>Try Again</Button>
+            <Button variant="primary" onclick={nextStep}>
+              {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
+            </Button>
           </div>
         </div>
-
-        <!-- Diagram: Next button -->
-        {#if phase === 'diagram'}
-          <div class="nav-row">
-            <Button variant="primary" onclick={nextStep}>Next</Button>
-          </div>
-        {/if}
-
-        <!-- Quiz: answer buttons -->
-        {#if phase === 'asking' || phase === 'wrong'}
-          <div class="question">
-            <div class="answer-buttons">
-              <button
-                class={['answer-btn', wrongAnswer === 'white' && 'wrong-flash']}
-                onclick={() => handleAnswer('white')}
-              >
-                <div class="answer-square white"></div>
-                <span>White wins</span>
-              </button>
-              <button
-                class={['answer-btn draw-btn', wrongAnswer === 'draw' && 'wrong-flash']}
-                onclick={() => handleAnswer('draw')}
-              >
-                <span class="draw-icon">&#189;</span>
-                <span>Draw</span>
-              </button>
-              <button
-                class={['answer-btn', wrongAnswer === 'black' && 'wrong-flash']}
-                onclick={() => handleAnswer('black')}
-              >
-                <div class="answer-square black"></div>
-                <span>Black wins</span>
-              </button>
-            </div>
-          </div>
-        {/if}
-
-        {#if phase === 'animating'}
-          <Button onclick={skipToResult}>Skip</Button>
-        {/if}
-
-        {#if phase === 'result'}
-          <div class="result-area">
-            <StarRating {stars} size="lg" />
-            <div class="result-buttons">
-              <Button onclick={retry}>Try Again</Button>
-              <Button variant="primary" onclick={nextStep}>
-                {stepIndex < totalSteps - 1 ? 'Next' : 'Finish'}
-              </Button>
-            </div>
-          </div>
-        {/if}
-      </div>
+      {/if}
 
       {#if hasExplorer && quizStep?.annotatedPgn}
-        <div class="move-list-side">
+        <div class="explorer">
           <PgnExplorer
             pgn={quizStep.annotatedPgn}
             fen={quizStep.startFen}
@@ -346,26 +339,19 @@
           />
         </div>
       {/if}
-    </div>
-  </div>
+    {/snippet}
+  </BoardLayout>
 {/if}
 
 <style>
-  .lesson {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  .header { text-align: center; flex-shrink: 0; }
+  .header { display: flex; flex-direction: column; align-items: center; text-align: center; flex-shrink: 0; }
   .title { font-size: var(--size-large); font-weight: var(--weight-strong); margin-bottom: 0.25rem; }
   .progress { color: var(--ink-muted); font-size: var(--size-small); margin-top: 0.25rem; }
 
   /* Side to move */
   .side-to-move {
     display: flex;
+    margin-top: 0.5rem;
     align-items: center;
     gap: 0.5rem;
     padding: 0.25rem 0.75rem;
@@ -387,74 +373,16 @@
     font-weight: var(--weight-medium);
   }
 
-  /* --- Layout: board + optional move list panel --- */
-  .lesson-layout {
+  /* The move list from the quiz's analysis, filling the rest of the sidebar */
+  .explorer {
     width: 100%;
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-  }
-
-  @media (min-width: 52rem) {
-    .lesson-layout.has-panel {
-      flex-direction: row;
-      align-items: flex-start;
-      gap: 1rem;
-      max-width: 56rem;
-      margin: 0 auto;
-    }
-  }
-
-  .board-side {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  @media (min-width: 52rem) {
-    .has-panel .board-side {
-      flex: 1;
-    }
-  }
-
-  .board-area {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  .board-wrap {
-    position: relative;
-    width: 100%;
-    max-width: 500px;
-  }
-
-  .move-list-side {
-    width: 100%;
-    margin-top: 1rem;
-  }
-
-  @media (min-width: 52rem) {
-    .move-list-side {
-      width: 14rem;
-      align-self: stretch;
-      display: flex;
-      flex-direction: column;
-      margin-top: 0;
-    }
-  }
-
-  /* Navigation */
-  .nav-row {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
   }
 
   /* Question area */
-  .question { text-align: center; }
   .answer-buttons {
     display: flex;
     gap: 0.75rem;
@@ -520,11 +448,4 @@
     gap: 0.75rem;
   }
 
-  /* Trainer (inline EndgameShell / DrawTrainer) */
-  .trainer-lesson {
-    width: 100%;
-  }
-  .trainer-lesson .progress {
-    text-align: center;
-  }
 </style>

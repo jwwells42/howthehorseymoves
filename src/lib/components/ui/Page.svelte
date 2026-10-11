@@ -7,15 +7,15 @@
     subtitle?: string;
     /** The page one level up, e.g. { href: '/', label: 'Back to home' }. */
     back?: { href: string; label: string };
-    /** `narrow` suits a single column of text, `wide` a grid or a board. */
-    width?: 'narrow' | 'normal' | 'wide';
     children?: Snippet;
   }
 
-  let { title, subtitle, back, width = 'normal', children }: Props = $props();
+  let { title, subtitle, back, children }: Props = $props();
 </script>
 
-<main class={['page', width]}>
+<!-- Every page is the same width (--column), so the back link and the left
+     edge of the page stay in the same place from page to page -->
+<main class="page">
   {#if back}
     <BackLink href={back.href}>{back.label}</BackLink>
   {/if}
@@ -32,12 +32,10 @@
 
 <style>
   .page {
+    max-width: calc(var(--column) + 2 * var(--gutter));
     margin: 0 auto;
-    padding: 1.5rem;
+    padding: 1.5rem var(--gutter);
   }
-  .narrow { max-width: 42rem; }
-  .normal { max-width: 48rem; }
-  .wide { max-width: 56rem; }
 
   .header {
     margin-bottom: 2rem;

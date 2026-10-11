@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
@@ -168,43 +169,40 @@
   });
 </script>
 
-<div class="container">
-  {#if phase === 'idle'}
-    <div class="center-col">
-      <h2>Flash Position</h2>
-      <Choice
-        label="Difficulty"
-        options={LEVELS.map((l, i) => ({ value: i, label: l.label }))}
-        bind:value={levelIdx}
-      />
-      {#if bestStars > 0}
-        <StarRating stars={bestStars} size="sm" />
-      {/if}
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-  {:else if phase === 'done'}
-    <div class="center-col">
-      <h2>Complete!</h2>
-      <p class="big-score">{totalCorrect}/{totalPieces} pieces correct</p>
-      {#if overallStars > 0}
-        <StarRating stars={overallStars} size="lg" />
-      {/if}
-      <FinishActions label="Play Again" onclick={goIdle} />
-    </div>
-  {:else if phase === 'showing'}
-    <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS} &mdash; Memorize!</div>
-      <div class="board">
-        <Board board={createBoardState(position)} readOnly coordinates={false} label="Chess position to memorize" />
+{#if phase === 'idle' || phase === 'done'}
+  <div class="container">
+    {#if phase === 'idle'}
+      <div class="center-col">
+        <h2>Flash Position</h2>
+        <Choice
+          label="Difficulty"
+          options={LEVELS.map((l, i) => ({ value: i, label: l.label }))}
+          bind:value={levelIdx}
+        />
+        {#if bestStars > 0}
+          <StarRating stars={bestStars} size="sm" />
+        {/if}
+        <Button variant="primary" size="large" onclick={startGame}>Start</Button>
       </div>
-      <div class="studying">Studying...</div>
-    </div>
-  {:else if phase === 'result'}
-    <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS}</div>
-      <p class="result-count">{rightSquares.length}/{position.length} correct</p>
-      <div class="muted">Correct answer:</div>
-      <div class="board">
+    {:else}
+      <div class="center-col">
+        <h2>Complete!</h2>
+        <p class="big-score">{totalCorrect}/{totalPieces} pieces correct</p>
+        {#if overallStars > 0}
+          <StarRating stars={overallStars} size="lg" />
+        {/if}
+        <FinishActions label="Play Again" onclick={goIdle} />
+      </div>
+    {/if}
+  </div>
+{:else}
+  <!-- One board for the round: the position to remember, then the empty
+       board to rebuild it on, then the answer -->
+  <BoardLayout>
+    {#snippet boardArea()}
+      {#if phase === 'showing'}
+        <Board board={createBoardState(position)} readOnly coordinates={false} label="Chess position to memorize" />
+      {:else if phase === 'result'}
         <Board
           board={createBoardState(position)}
           readOnly
@@ -212,17 +210,7 @@
           highlights={[...highlight(rightSquares, MARK.good), ...highlight(wrongSquares, MARK.danger)]}
           label="Correct chess position"
         />
-      </div>
-      <Button variant="primary" onclick={nextRound}>
-        {round >= ROUNDS ? 'See Results' : 'Next'}
-      </Button>
-    </div>
-  {:else}
-    <!-- placing phase -->
-    <div class="center-col">
-      <div class="muted">Round {round}/{ROUNDS}</div>
-
-      <div class="board">
+      {:else}
         <Board
           board={createBoardState(placed)}
           coordinates={false}
@@ -230,33 +218,50 @@
           onSquareClick={placePiece}
           label="Chess board"
         />
-      </div>
+      {/if}
+    {/snippet}
 
-      <div class="tray">
-        {#each TRAY_PIECES as p}
-          {@const isSelected = selectedPiece?.piece === p.piece && selectedPiece?.color === p.color}
-          <button
-            class={['tray-piece', isSelected && 'selected']}
-            aria-pressed={isSelected}
-            onclick={() => { selectedPiece = isSelected ? null : p; }}
-          >
-            <img
-              src="/pieces/{p.color}{p.piece}.svg"
-              alt="{p.color === 'w' ? 'White' : 'Black'} {PIECE_NAMES[p.piece]}"
-            />
-          </button>
-        {/each}
-      </div>
+    {#snippet sidebarArea()}
+      <div class="center-col">
+        {#if phase === 'showing'}
+          <div class="muted">Round {round}/{ROUNDS} &mdash; Memorize!</div>
+          <div class="studying">Studying...</div>
+        {:else if phase === 'result'}
+          <div class="muted">Round {round}/{ROUNDS}</div>
+          <p class="result-count">{rightSquares.length}/{position.length} correct</p>
+          <Button variant="primary" onclick={nextRound}>
+            {round >= ROUNDS ? 'See Results' : 'Next'}
+          </Button>
+        {:else}
+          <div class="muted">Round {round}/{ROUNDS}</div>
 
-      <div class="actions">
-        <Button onclick={clearPlaced}>Clear</Button>
-        <Button variant="primary" onclick={checkAnswer}>
-          Check ({placed.length}/{level.pieces})
-        </Button>
+          <div class="tray">
+            {#each TRAY_PIECES as p}
+              {@const isSelected = selectedPiece?.piece === p.piece && selectedPiece?.color === p.color}
+              <button
+                class={['tray-piece', isSelected && 'selected']}
+                aria-pressed={isSelected}
+                onclick={() => { selectedPiece = isSelected ? null : p; }}
+              >
+                <img
+                  src="/pieces/{p.color}{p.piece}.svg"
+                  alt="{p.color === 'w' ? 'White' : 'Black'} {PIECE_NAMES[p.piece]}"
+                />
+              </button>
+            {/each}
+          </div>
+
+          <div class="actions">
+            <Button onclick={clearPlaced}>Clear</Button>
+            <Button variant="primary" onclick={checkAnswer}>
+              Check ({placed.length}/{level.pieces})
+            </Button>
+          </div>
+        {/if}
       </div>
-    </div>
-  {/if}
-</div>
+    {/snippet}
+  </BoardLayout>
+{/if}
 
 <style>
   .container {
@@ -290,10 +295,6 @@
     font-weight: var(--weight-strong);
   }
 
-  .board {
-    width: 100%;
-    max-width: 24rem;
-  }
 
   .studying {
     color: var(--ink-muted);

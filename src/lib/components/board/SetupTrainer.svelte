@@ -49,7 +49,7 @@
   import { type BoardState, type PieceColor, RANKS } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
-  import BackLink from '$lib/components/ui/BackLink.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import { playSound } from '$lib/state/sound';
 
   function mistakesToStars(m: number): number {
@@ -280,17 +280,18 @@
     onpointermove={handleContainerPointerMove}
     onpointerup={handleContainerPointerUp}
   >
-    <!-- Board side -->
-    <div class="board-side">
-      <div class="stage-info">
-        <h2 class="stage-title">{stage.label}</h2>
-        <p class="faint small">
-          {#if mistakes > 0}{mistakes} mistake{mistakes === 1 ? '' : 's'} &middot; {/if}
-          {placed.size}/{stage.piecesToPlace.length} placed
-        </p>
-      </div>
+    <BoardLayout>
+      {#snippet headerArea()}
+        <div class="stage-info">
+          <h2 class="stage-title">{stage.label}</h2>
+          <p class="faint small">
+            {#if mistakes > 0}{mistakes} mistake{mistakes === 1 ? '' : 's'} &middot; {/if}
+            {placed.size}/{stage.piecesToPlace.length} placed
+          </p>
+        </div>
+      {/snippet}
 
-      <div class="board-tray-row">
+      {#snippet boardArea()}
         <div bind:this={boardEl} class="board-wrapper">
           <Board
             {board}
@@ -299,7 +300,9 @@
             wrongMoveSquare={wrongSquare}
           />
         </div>
+      {/snippet}
 
+      {#snippet sidebarArea()}
         <!-- Piece tray -->
         <div class="tray">
           {#if hasBackRankRemaining}
@@ -329,32 +332,29 @@
             </div>
           {/if}
         </div>
-      </div>
-    </div>
 
-    <!-- Stage list sidebar -->
-    <div class="stage-list-side">
-      <div class="stage-list">
-        {#each SETUP_STAGES as s, idx}
-          {@const stars = allStageStars[s.slug] ?? 0}
-          {@const isCurrent = s.slug === stageSlug}
-          <a
-            href={withStop(`/setup/${s.slug}`, pathStop)}
-            class={['stage-item', isCurrent && 'active']}
-          >
-            <span class="stage-num">{idx + 1}.</span>
-            <img src={s.icon} alt={s.label} class="stage-icon" />
-            <span class="stage-name">{s.label}</span>
-            {#if stars > 0}
-              <span class="stage-stars">
-                <StarRating {stars} size="sm" />
-              </span>
-            {/if}
-          </a>
-        {/each}
-      </div>
-      <BackLink href="/">Back to home</BackLink>
-    </div>
+        <!-- Stage list -->
+        <div class="stage-list">
+          {#each SETUP_STAGES as s, idx}
+            {@const stars = allStageStars[s.slug] ?? 0}
+            {@const isCurrent = s.slug === stageSlug}
+            <a
+              href={withStop(`/setup/${s.slug}`, pathStop)}
+              class={['stage-item', isCurrent && 'active']}
+            >
+              <span class="stage-num">{idx + 1}.</span>
+              <img src={s.icon} alt={s.label} class="stage-icon" />
+              <span class="stage-name">{s.label}</span>
+              {#if stars > 0}
+                <span class="stage-stars">
+                  <StarRating {stars} size="sm" />
+                </span>
+              {/if}
+            </a>
+          {/each}
+        </div>
+      {/snippet}
+    </BoardLayout>
 
     <!-- Drag ghost -->
     {#if trayDrag}
@@ -370,14 +370,15 @@
 
 <style>
   /* ── Done screen ─── */
+  /* Where the board was */
   .screen {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1.5rem;
     padding: 1rem;
-    max-width: 42rem;
-    margin: 0 auto;
+    width: var(--board-size);
+    max-width: 100%;
   }
   .screen-text {
     text-align: center;
@@ -389,42 +390,12 @@
 
 
 
-  /* ── Layout (matches GameViewer / OpeningTrainer) ─── */
+  /* ── Layout: passes the page's height on to the BoardLayout ─── */
   .setup-layout {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    max-width: 56rem;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .setup-layout {
-      flex: 1;
-      min-height: 0;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .setup-layout {
-      flex-direction: row;
-      align-items: flex-start;
-    }
-  }
-
-  .board-side {
     flex: 1;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-side {
-      min-height: 0;
-    }
+    min-height: 0;
   }
 
   .stage-info {
@@ -436,57 +407,32 @@
     font-weight: var(--weight-strong);
   }
 
-  /* Board + Tray row */
-  .board-tray-row {
+  .board-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Piece tray: a row under the board on a phone, four across in the
+     sidebar */
+  .tray {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-  }
-  @media (min-width: 640px) {
-    .board-tray-row {
-      flex-direction: row;
-      align-items: flex-start;
-    }
-  }
-  .board-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-wrapper {
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
-  }
-
-  /* Piece tray */
-  .tray {
-    display: flex;
     gap: 0.5rem;
-    justify-content: center;
-  }
-  @media (min-width: 640px) {
-    .tray {
-      flex-direction: column;
-      justify-content: flex-start;
-      padding-top: 0.5rem;
-      min-width: 7.5rem;
-    }
   }
   .tray-grid {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 0.375rem;
   }
-  @media (min-width: 640px) {
+  @media (min-width: 900px) {
     .tray-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.375rem;
+      grid-template-columns: repeat(4, 1fr);
     }
   }
   .tray-piece {
@@ -523,20 +469,9 @@
     pointer-events: none;
   }
 
-  /* ── Stage list sidebar ─── */
-  .stage-list-side {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  @media (min-width: 1024px) {
-    .stage-list-side {
-      width: 14rem;
-    }
-  }
-
+  /* ── Stage list ─── */
   .stage-list {
+    width: 100%;
     border-radius: 0.5rem;
     border: 1px solid var(--line);
     background: var(--surface);

@@ -2,10 +2,10 @@
   import { page } from '$app/state';
   import { onMount } from 'svelte';
   import Page from '$lib/components/ui/Page.svelte';
+  import BoardPage from '$lib/components/board/BoardPage.svelte';
   import CardList from '$lib/components/ui/CardList.svelte';
   import LinkCard from '$lib/components/ui/LinkCard.svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import BackLink from '$lib/components/ui/BackLink.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import PuzzleSetCard from '$lib/components/puzzle/PuzzleSetCard.svelte';
   import { getPuzzlesForPiece, PIECES, getCategory } from '$lib/puzzles';
@@ -122,7 +122,7 @@
     : '/'
   );
   let backLabel = $derived(
-    parentCategory ? `Back to ${parentCategory}`
+    parentCategory ? `Back to ${getCategory(parentCategory)?.name ?? 'home'}`
     : 'Back to home'
   );
 
@@ -138,24 +138,21 @@
 
 {#if endgame}
   <!-- Endgame trainer (e.g. KPK) -->
-  <main class="board-page">
-    <BackLink href="/">Back to home</BackLink>
+  <BoardPage back={{ href: '/', label: 'Back to home' }}>
     <EndgameShell title={endgame.title} placements={endgame.placements} onNext={() => window.location.href = '/'} />
-  </main>
+  </BoardPage>
 {:else if mateEndgameMatch}
   <!-- Mate conversion trainer (KQK, KRRK, etc.) -->
-  <main class="board-page">
-    {#if mateEndgameMatch[1] === 'krrk'}
-      <BackLink href="/learn/checkmate-rook-ladder">Back to Rook Ladder</BackLink>
-    {:else}
-      <BackLink href="/">Back to home</BackLink>
-    {/if}
+  <BoardPage
+    back={mateEndgameMatch[1] === 'krrk'
+      ? { href: '/learn/checkmate-rook-ladder', label: 'Back to Rook Ladder' }
+      : { href: '/', label: 'Back to home' }}
+  >
     <MateTrainer type={mateEndgameMatch[1] as MateEndgameType} />
-  </main>
+  </BoardPage>
 {:else if drawEndgame}
   <!-- Draw endgame trainer (Philidor, etc.) -->
-  <main class="board-page">
-    <BackLink href="/learn/advanced-endings">Back to advanced endings</BackLink>
+  <BoardPage back={{ href: '/learn/advanced-endings', label: 'Back to advanced endings' }}>
     <DrawTrainer
       title={drawEndgame.title}
       placements={drawEndgame.placements}
@@ -163,12 +160,11 @@
       botStrategy={drawEndgame.botStrategy}
       onNext={pathStop ? goDone : undefined}
     />
-  </main>
+  </BoardPage>
 {:else if piece === 'pawn-endings-lesson'}
   <Page
     title="Pawn Endings"
     back={{ href: '/', label: 'Back to home' }}
-    width="narrow"
   >
     <div class="start">
       <Button variant="primary" size="large" href={withStop(`/learn/pawn-endings-lesson/${pawnEndingSteps[0].id}`, pathStop)}>Start</Button>
@@ -189,7 +185,6 @@
   <Page
     title="How to Win"
     back={{ href: '/', label: 'Back to home' }}
-    width="narrow"
   >
     <CardList>
       {#each HOW_TO_WIN_SECTIONS as sec}
@@ -208,7 +203,6 @@
     <Page
       title={sectionInfo.title}
       back={{ href: withStop('/learn/how-to-win', pathStop), label: 'Back to How to Win' }}
-      width="narrow"
     >
       <div class="start">
         <Button variant="primary" size="large" href={withStop(`/learn/${piece}/${steps[0].slug}`, pathStop)}>
@@ -227,7 +221,6 @@
   <Page
     title={category.name}
     back={{ href: '/practice', label: 'Back to practice' }}
-    width="narrow"
   >
     <CardList>
       {#each category.subcategories as set}
@@ -239,7 +232,6 @@
   <Page
     title="{displayName} Puzzles"
     back={{ href: backHref, label: backLabel }}
-    width="narrow"
   >
     <CardList>
       {#each puzzleSet.puzzles as puzz, idx}
@@ -268,29 +260,14 @@
     {/if}
   </Page>
 {:else}
-  <Page title="Not found" back={{ href: '/', label: 'Back to home' }} width="narrow" />
+  <Page title="Not found" back={{ href: '/', label: 'Back to home' }} />
 {/if}
 
 <style>
-  /* A trainer with a board fills the screen below the nav bar. */
-  .board-page {
-    min-height: calc(100dvh - 3rem);
-    display: flex;
-    flex-direction: column;
-    padding: 1.5rem;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-page {
-      height: calc(100dvh - 3rem);
-      overflow: hidden;
-    }
-  }
-
   .start {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
   }

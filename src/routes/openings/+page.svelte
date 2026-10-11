@@ -37,7 +37,6 @@
 <Page
   title="Opening Repertoire"
   back={{ href: '/study', label: 'Back to study' }}
-  width="narrow"
 >
   {#each groups as group}
     <CardList title={group}>

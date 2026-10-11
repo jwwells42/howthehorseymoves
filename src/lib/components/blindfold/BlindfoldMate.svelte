@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import MoveNav from '$lib/components/board/MoveNav.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
@@ -233,48 +234,38 @@
   }
 </script>
 
-<div class="blindfold-mate">
-  {#if phase === 'idle'}
-    <div class="idle-screen">
+<!-- After a win the game can be stepped through on the board -->
+{#if phase === 'won' && boardHistory.length > 1}
+  <BoardLayout>
+    {#snippet headerArea()}
       <h2 class="title">{info.name}</h2>
-      {#if bestStars > 0}
-        <StarRating stars={bestStars} size="sm" />
-      {/if}
+    {/snippet}
 
-      <label class="toggle-label">
-        <input type="checkbox" bind:checked={hideHistory} />
-        Hide move list
-      </label>
+    {#snippet boardArea()}
+      <Board board={boardHistory[reviewStep]} readOnly />
+    {/snippet}
 
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-
-  {:else}
-    <!-- Playing / Won -->
-    <h2 class="title">{info.name}</h2>
-
-    <!-- Starting position -->
-    <div class="position-box">
-      <div>
-        <span class="pos-label">White: </span>
-        {startPos.white}
-      </div>
-      <div>
-        <span class="pos-label">Black: </span>
-        {startPos.black}
-      </div>
-    </div>
-
-    {#if phase === 'playing'}
-      <!-- Move list or last opponent move -->
-      {#if hideHistory}
-        {#if lastOpponentMove}
-          <div class="opponent-move-box">
-            <span class="pos-label">Opponent played </span>
-            <span class="opponent-move-val">{lastOpponentMove}</span>
-          </div>
+    {#snippet sidebarArea()}
+      <div class="won-area">
+        <p class="checkmate-text">✓ Checkmate!</p>
+        <StarRating {stars} size="lg" />
+        {#if mistakes > 0}
+          <p class="won-detail">{mistakes} mistake{mistakes > 1 ? 's' : ''}</p>
         {/if}
-      {:else if moves.length > 0}
+
+        <MoveNav
+          canGoBack={reviewStep > 0}
+          canGoForward={reviewStep < boardHistory.length - 1}
+          onStart={() => (reviewStep = 0)}
+          onBack={() => (reviewStep = Math.max(0, reviewStep - 1))}
+          onForward={() => (reviewStep = Math.min(boardHistory.length - 1, reviewStep + 1))}
+          onEnd={() => (reviewStep = boardHistory.length - 1)}
+        >
+          <span class="nav-label">
+            {reviewStep === 0 ? 'Start' : (halfMoves[reviewStep - 1]?.notation ?? '')}
+          </span>
+        </MoveNav>
+
         <div class="move-list">
           {#each moves as m}
             <div>
@@ -284,81 +275,101 @@
               {/if}
             </div>
           {/each}
-          <div bind:this={movesEndEl}></div>
         </div>
-      {/if}
-
-      <AnswerInput
-        bind:value={input}
-        onsubmit={handleSubmit}
-        label="Your move"
-        placeholder={waitingForBot ? '...' : 'e.g. Qd2'}
-        maxlength={6}
-        disabled={waitingForBot}
-        {error}
-      />
-
-      {#if mistakes > 0}
-        <p class="mistake-count">
-          {mistakes} mistake{mistakes !== 1 ? 's' : ''}
-        </p>
-      {/if}
-    {/if}
-
-    {#if phase === 'won'}
-      <div class="won-area">
-        <p class="checkmate-text">✓ Checkmate!</p>
-        <StarRating {stars} size="lg" />
-        <p class="won-detail">
-          {#if mistakes > 0}
-            {mistakes} mistake{mistakes > 1 ? 's' : ''}
-          {/if}
-        </p>
-
-        <!-- Analysis board -->
-        {#if boardHistory.length > 1}
-          <div class="review-area">
-            <p class="review-label">Review</p>
-            <div class="review-board">
-              <Board
-                board={boardHistory[reviewStep]}
-                readOnly
-              />
-            </div>
-
-            <!-- Navigation -->
-            <MoveNav
-              canGoBack={reviewStep > 0}
-              canGoForward={reviewStep < boardHistory.length - 1}
-              onStart={() => (reviewStep = 0)}
-              onBack={() => (reviewStep = Math.max(0, reviewStep - 1))}
-              onForward={() => (reviewStep = Math.min(boardHistory.length - 1, reviewStep + 1))}
-              onEnd={() => (reviewStep = boardHistory.length - 1)}
-            >
-              <span class="nav-label">
-                {reviewStep === 0 ? 'Start' : (halfMoves[reviewStep - 1]?.notation ?? '')}
-              </span>
-            </MoveNav>
-
-            <!-- Full move list in review -->
-            <div class="move-list">
-              {#each moves as m}
-                <div>
-                  <span class="move-num">{m.number}.</span> {m.white}
-                  {#if m.black}
-                    &nbsp;&nbsp;{m.black}
-                  {/if}
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/if}
 
         <FinishActions label="New Position" onclick={startGame} size="normal" />
       </div>
+    {/snippet}
+  </BoardLayout>
+{:else}
+  <div class="blindfold-mate">
+    {#if phase === 'idle'}
+      <div class="idle-screen">
+        <h2 class="title">{info.name}</h2>
+        {#if bestStars > 0}
+          <StarRating stars={bestStars} size="sm" />
+        {/if}
+
+        <label class="toggle-label">
+          <input type="checkbox" bind:checked={hideHistory} />
+          Hide move list
+        </label>
+
+        <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+      </div>
+
+    {:else}
+      <!-- Playing / Won -->
+      <h2 class="title">{info.name}</h2>
+
+      <!-- Starting position -->
+      <div class="position-box">
+        <div>
+          <span class="pos-label">White: </span>
+          {startPos.white}
+        </div>
+        <div>
+          <span class="pos-label">Black: </span>
+          {startPos.black}
+        </div>
+      </div>
+
+      {#if phase === 'playing'}
+        <!-- Move list or last opponent move -->
+        {#if hideHistory}
+          {#if lastOpponentMove}
+            <div class="opponent-move-box">
+              <span class="pos-label">Opponent played </span>
+              <span class="opponent-move-val">{lastOpponentMove}</span>
+            </div>
+          {/if}
+        {:else if moves.length > 0}
+          <div class="move-list">
+            {#each moves as m}
+              <div>
+                <span class="move-num">{m.number}.</span> {m.white}
+                {#if m.black}
+                  &nbsp;&nbsp;{m.black}
+                {/if}
+              </div>
+            {/each}
+            <div bind:this={movesEndEl}></div>
+          </div>
+        {/if}
+
+        <AnswerInput
+          bind:value={input}
+          onsubmit={handleSubmit}
+          label="Your move"
+          placeholder={waitingForBot ? '...' : 'e.g. Qd2'}
+          maxlength={6}
+          disabled={waitingForBot}
+          {error}
+        />
+
+        {#if mistakes > 0}
+          <p class="mistake-count">
+            {mistakes} mistake{mistakes !== 1 ? 's' : ''}
+          </p>
+        {/if}
+      {/if}
+
+      {#if phase === 'won'}
+        <div class="won-area">
+          <p class="checkmate-text">✓ Checkmate!</p>
+          <StarRating {stars} size="lg" />
+          <p class="won-detail">
+            {#if mistakes > 0}
+              {mistakes} mistake{mistakes > 1 ? 's' : ''}
+            {/if}
+          </p>
+
+          <FinishActions label="New Position" onclick={startGame} size="normal" />
+        </div>
+      {/if}
     {/if}
-  {/if}
-</div>
+  </div>
+{/if}
 
 <style>
   .blindfold-mate {
@@ -477,26 +488,6 @@
   }
 
   /* Review area */
-  .review-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .review-label {
-    font-size: var(--size-secondary);
-    font-weight: var(--weight-medium);
-    color: var(--ink-muted);
-    margin: 0;
-  }
-
-  .review-board {
-    width: 100%;
-    max-width: 360px;
-  }
-
   .nav-label {
     font-size: var(--size-small);
     color: var(--ink-muted);

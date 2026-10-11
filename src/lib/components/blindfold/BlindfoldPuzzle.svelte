@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
@@ -129,61 +130,65 @@
   }
 </script>
 
-<div class="trainer">
-  {#if phase === 'idle'}
-    <div class="center-panel">
-      <h2 class="title">Blindfold Puzzle Solving</h2>
-      {#if bestStars > 0}
-        <StarRating stars={bestStars} size="sm" />
-      {/if}
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-
-  {:else if phase === 'done'}
-    <div class="center-panel">
-      <h2 class="title">Complete!</h2>
-      <p class="final-score">{correct}/{total} correct</p>
-      {#if doneStars >= 1}
-        <StarRating stars={doneStars} size="lg" />
-      {/if}
-      <FinishActions label="Play Again" onclick={() => { phase = 'idle'; }} />
-    </div>
-
-  {:else if (phase === 'solved' || phase === 'wrong') && board}
-    <div class="center-panel">
-      <p class={['result-text', phase === 'solved' ? 'result-correct' : 'result-wrong']}>
-        {phase === 'solved' ? '✓ Checkmate!' : '✗'}
-      </p>
-      <div class="info-text">{correct}/{total} correct</div>
-      <div class="board-container">
+{#if phase === 'idle' || phase === 'done'}
+  <div class="trainer">
+    {#if phase === 'idle'}
+      <div class="center-panel">
+        <h2 class="title">Blindfold Puzzle Solving</h2>
+        {#if bestStars > 0}
+          <StarRating stars={bestStars} size="sm" />
+        {/if}
+        <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+      </div>
+    {:else}
+      <div class="center-panel">
+        <h2 class="title">Complete!</h2>
+        <p class="final-score">{correct}/{total} correct</p>
+        {#if doneStars >= 1}
+          <StarRating stars={doneStars} size="lg" />
+        {/if}
+        <FinishActions label="Play Again" onclick={() => { phase = 'idle'; }} />
+      </div>
+    {/if}
+  </div>
+{:else}
+  <!-- One board for the puzzle: empty to play on, then the answer -->
+  <BoardLayout>
+    {#snippet boardArea()}
+      {#if (phase === 'solved' || phase === 'wrong') && board}
         <Board {board} readOnly />
-      </div>
-      <Button variant="primary" onclick={nextPuzzle}>
-        {puzzleIdx + 1 >= PUZZLES.length ? 'See Results' : 'Next'}
-      </Button>
-    </div>
-
-  {:else}
-    <!-- playing phase -->
-    <div class="center-panel">
-      <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length}</div>
-
-      <!-- Position description -->
-      <div class="desc-box">
-        {puzzle.desc}
-      </div>
-
-      <div class="board-container">
+      {:else}
         <Board
           board={emptyBoard}
           selectedSquare={selectedSquare}
           validMoves={validMoves}
           onSquareClick={handleSquareClick}
         />
+      {/if}
+    {/snippet}
+
+    {#snippet sidebarArea()}
+      <div class="center-panel">
+        {#if (phase === 'solved' || phase === 'wrong') && board}
+          <p class={['result-text', phase === 'solved' ? 'result-correct' : 'result-wrong']}>
+            {phase === 'solved' ? '✓ Checkmate!' : '✗'}
+          </p>
+          <div class="info-text">{correct}/{total} correct</div>
+          <Button variant="primary" onclick={nextPuzzle}>
+            {puzzleIdx + 1 >= PUZZLES.length ? 'See Results' : 'Next'}
+          </Button>
+        {:else}
+          <div class="info-text">Puzzle {puzzleIdx + 1}/{PUZZLES.length}</div>
+
+          <!-- Position description -->
+          <div class="desc-box">
+            {puzzle.desc}
+          </div>
+        {/if}
       </div>
-    </div>
-  {/if}
-</div>
+    {/snippet}
+  </BoardLayout>
+{/if}
 
 <style>
   .trainer {
@@ -211,11 +216,6 @@
   .final-score {
     font-size: var(--size-title);
     font-weight: var(--weight-strong);
-  }
-
-  .board-container {
-    width: 100%;
-    max-width: 24rem;
   }
 
   .info-text {

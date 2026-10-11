@@ -8,7 +8,6 @@
 <Page
   title="Model Games"
   back={{ href: '/study', label: 'Back to study' }}
-  width="narrow"
 >
   <CardList>
     {#each GAMES as game}

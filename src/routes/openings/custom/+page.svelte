@@ -5,6 +5,7 @@
   import OpeningTrainer from '$lib/components/opening/OpeningTrainer.svelte';
   import Page from '$lib/components/ui/Page.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import BoardPage from '$lib/components/board/BoardPage.svelte';
   import Choice from '$lib/components/ui/Choice.svelte';
 
   let pgnInput = $state('');
@@ -46,19 +47,18 @@
 </script>
 
 {#if activeOpening}
-  <main class="trainer-page">
-    <div class="change">
+  <BoardPage back={{ href: '/openings', label: 'Back to openings' }}>
+    {#snippet action()}
       <Button onclick={goBack}>&larr; Change PGN</Button>
-    </div>
+    {/snippet}
     {#key activeOpening.pgn + activeOpening.color}
       <OpeningTrainer opening={activeOpening} />
     {/key}
-  </main>
+  </BoardPage>
 {:else}
   <Page
     title="Paste your own PGN"
     back={{ href: '/openings', label: 'Back to openings' }}
-    width="narrow"
   >
     <div class="form">
       <textarea
@@ -90,15 +90,6 @@
 {/if}
 
 <style>
-  .trainer-page {
-    min-height: 100vh;
-    padding: 1rem;
-  }
-
-  .change {
-    margin-bottom: 1rem;
-  }
-
   .form {
     display: flex;
     flex-direction: column;

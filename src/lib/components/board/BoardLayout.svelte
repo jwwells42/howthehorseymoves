@@ -78,7 +78,8 @@
     }
   }
 
-  /* Desktop: horizontal layout */
+  /* Desktop: the board, var(--board-size) on every screen, with the sidebar
+     on its right. Inside a BoardPage the board lines up under the back link */
   @media (min-width: 900px) {
     .mobile-header {
       display: none;
@@ -86,24 +87,25 @@
 
     .desktop-header {
       display: block;
+      width: 100%;
     }
     .board-layout {
-      flex-direction: row;
+      display: grid;
+      grid-template-columns: var(--board-size) var(--sidebar);
+      grid-template-rows: var(--board-size);
+      column-gap: 1.5rem;
+      justify-content: start;
       align-items: stretch;
-      justify-content: center;
-      gap: 1rem;
+      flex: none;
     }
 
     .board-area {
-      flex: 0 0 auto;
-      width: min(calc(100dvh - 6rem), calc(100% - 19rem));
-      aspect-ratio: 1;
+      width: auto;
     }
 
     .sidebar-area {
-      width: 18rem;
-      flex-shrink: 0;
-      align-items: center;
+      width: auto;
+      min-height: 0;
     }
   }
 </style>

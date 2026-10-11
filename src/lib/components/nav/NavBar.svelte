@@ -106,10 +106,6 @@
     height: 1.5rem;
     display: none;
   }
-  @media (max-width: 640px) {
-    .site-text { display: none; }
-    .site-icon { display: block; }
-  }
   .nav-links {
     display: flex;
     gap: 0.25rem;
@@ -149,5 +145,15 @@
   }
   .mute-btn:hover {
     color: var(--ink);
+  }
+
+  /* On a phone the title becomes the icon and everything packs closer, so
+     all five links fit without scrolling */
+  @media (max-width: 640px) {
+    .site-text { display: none; }
+    .site-icon { display: block; }
+    .navbar { gap: 0.5rem; padding: 0 0.75rem; }
+    .nav-links { gap: 0; }
+    .nav-link { padding: 0.375rem; }
   }
 </style>

@@ -15,7 +15,6 @@
 <Page
   title="The Board"
   back={{ href: '/', label: 'Back to home' }}
-  width="narrow"
 >
   <CardList>
     <LinkCard

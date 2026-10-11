@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import SetupTrainer from '$lib/components/board/SetupTrainer.svelte';
+  import BoardPage from '$lib/components/board/BoardPage.svelte';
   import { SETUP_STAGES } from '$lib/components/board/SetupTrainer.svelte';
 
   let stageSlug = $derived(page.params.stage);
@@ -8,9 +9,11 @@
 </script>
 
 {#if stageExists && stageSlug}
-  {#key stageSlug}
-    <SetupTrainer {stageSlug} />
-  {/key}
+  <BoardPage back={{ href: '/', label: 'Back to home' }}>
+    {#key stageSlug}
+      <SetupTrainer {stageSlug} />
+    {/key}
+  </BoardPage>
 {:else}
   <main class="page center">
     <h1>Stage not found</h1>

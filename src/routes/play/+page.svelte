@@ -2,7 +2,8 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import GameShell from '$lib/components/game/GameShell.svelte';
-  import BackLink from '$lib/components/ui/BackLink.svelte';
+  import Page from '$lib/components/ui/Page.svelte';
+  import BoardPage from '$lib/components/board/BoardPage.svelte';
   import { getCharacter } from '$lib/characters/bots';
   import { BOT_LADDER, BOT_SPECS, type BotLevel } from '$lib/logic/bot';
 
@@ -40,12 +41,7 @@
 </script>
 
 {#if !level}
-  <main class="page">
-    <BackLink href="/">Back to home</BackLink>
-    <header class="header">
-      <h1>Play vs Computer</h1>
-      <p class="subtitle">Choose your opponent</p>
-    </header>
+  <Page title="Play vs Computer" subtitle="Choose your opponent" back={{ href: '/', label: 'Back to home' }}>
     <div class="level-list">
       {#each BOT_LADDER as botLevel (botLevel)}
         {@const char = getCharacter(botLevel)}
@@ -72,43 +68,22 @@
         </button>
       {/each}
     </div>
-  </main>
+  </Page>
 {:else}
-  <main class="page">
-    <BackLink href="/play">Change opponent</BackLink>
+  <BoardPage back={{ href: '/play', label: 'Change opponent' }}>
     {#key level}
       <GameShell botLevel={level} />
     {/key}
-  </main>
+  </BoardPage>
 {/if}
 
 <style>
-  .page {
-    min-height: calc(100dvh - 3rem);
-    display: flex;
-    flex-direction: column;
-    padding: 1.5rem;
-  }
-
-  @media (min-height: 32rem) and (min-width: 32rem) {
-    .page {
-      height: calc(100dvh - 3rem);
-      overflow: hidden;
-    }
-  }
-  .header { text-align: center; margin-bottom: 2rem; }
-  .subtitle { margin-top: 0.25rem; color: var(--ink-muted); }
-
-  /* Two columns where there's room — eight rungs don't fit in one column on a
-     Chromebook (1366x768), and .page clips overflow at that size. */
+  /* Two columns where there's room, so all eight rungs fit on a Chromebook
+     (1366x768) without scrolling */
   .level-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
     gap: 0.75rem;
-    max-width: 44rem;
-    margin: 0 auto;
-    width: 100%;
-    overflow-y: auto;
   }
   .level-card {
     width: 100%; padding: 0.875rem 1rem; border-radius: 0.75rem;

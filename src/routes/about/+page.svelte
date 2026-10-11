@@ -2,7 +2,7 @@
   import Page from '$lib/components/ui/Page.svelte';
 </script>
 
-<Page title="About How The Horsey Moves" back={{ href: '/', label: 'Back to home' }} width="narrow">
+<Page title="About How The Horsey Moves" back={{ href: '/', label: 'Back to home' }}>
   <section>
     <h2>What is this?</h2>
     <div class="prose">

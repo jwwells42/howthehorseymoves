@@ -670,33 +670,33 @@
 
 <BoardLayout>
   {#snippet boardArea()}
-    <div class="board-column">
+    <Board
+      board={testMode ? testBoard : displayBoard}
+      selectedSquare={testMode ? testSelected : viewerSelected}
+      validMoves={testMode ? testValidMoves : viewerValidMoves}
+      dragValidMoves={testMode ? testDragMoves : viewerDragMoves}
+      onSquareClick={testMode ? handleTestClick : handleViewerClick}
+      onDrop={testMode ? handleTestDrop : handleViewerDrop}
+      onDragStart={testMode ? handleTestDragStart : handleViewerDragStart}
+      onDragEnd={testMode ? handleTestDragEnd : handleViewerDragEnd}
+      arrows={testMode ? testArrows : (exploring ? undefined : currentArrows)}
+      playableColors={['w', 'b']}
+    />
+  {/snippet}
+
+  {#snippet sidebarArea()}
+    <!-- Black first, as Black sits at the top of the board -->
+    <div class="players">
       <div class="player-label">
         <div class="player-dot player-dot-black"></div>
         <span class="player-name">{game.black}</span>
       </div>
-
-      <Board
-        board={testMode ? testBoard : displayBoard}
-        selectedSquare={testMode ? testSelected : viewerSelected}
-        validMoves={testMode ? testValidMoves : viewerValidMoves}
-        dragValidMoves={testMode ? testDragMoves : viewerDragMoves}
-        onSquareClick={testMode ? handleTestClick : handleViewerClick}
-        onDrop={testMode ? handleTestDrop : handleViewerDrop}
-        onDragStart={testMode ? handleTestDragStart : handleViewerDragStart}
-        onDragEnd={testMode ? handleTestDragEnd : handleViewerDragEnd}
-        arrows={testMode ? testArrows : (exploring ? undefined : currentArrows)}
-        playableColors={['w', 'b']}
-      />
-
       <div class="player-label">
         <div class="player-dot player-dot-white"></div>
         <span class="player-name">{game.white}</span>
       </div>
     </div>
-  {/snippet}
 
-  {#snippet sidebarArea()}
     {#if !testMode && exploring}
       <div class="explore-indicator">
         <span class="explore-label">Exploring</span>
@@ -859,6 +859,12 @@
   }
 
   /* --- Player labels --- */
+  .players {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
   .player-label {
     display: flex;
     align-items: center;
@@ -885,15 +891,6 @@
   .player-name {
     font-size: var(--size-secondary);
     color: var(--ink-muted);
-  }
-
-  /* --- Board column (player labels + board) --- */
-  .board-column {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    height: 100%;
   }
 
   /* --- Explore indicator: off the game's own moves, so "look here". --- */

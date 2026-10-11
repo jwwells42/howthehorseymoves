@@ -2,6 +2,7 @@
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Board from '$lib/components/board/Board.svelte';
+  import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import AnswerInput from './AnswerInput.svelte';
   import RouteTrail from './RouteTrail.svelte';
   import { playSound } from '$lib/state/sound';
@@ -124,36 +125,45 @@
   }
 </script>
 
-<div class="trainer">
+{#snippet header()}
   <header class="header">
     <h2>Knight Routes</h2>
     <p class="instructions">
       <strong>{puzzle.start}</strong> &rarr; <strong>{puzzle.target}</strong>
     </p>
   </header>
+{/snippet}
 
-  <RouteTrail stops={allStops} target={puzzle.target} open={result === 'playing'} />
+{#if result === 'playing'}
+  <div class="trainer">
+    {@render header()}
 
-  {#if result === 'playing'}
+    <RouteTrail stops={allStops} target={puzzle.target} open={result === 'playing'} />
+
     <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Next square" placeholder="Next square..." {error} />
-  {:else}
-    <div class="result">
-      <p class="result-title">✓</p>
-      <p class="instructions">{moveCount} moves (optimal: {puzzle.optimal})</p>
-      <StarRating {stars} size="lg" />
-      <div class="route-board">
-        <Board
-          board={EMPTY_BOARD}
-          readOnly
-          route={allStops as SquareId[]}
-          highlights={highlight([puzzle.start, puzzle.target], MARK.note, 'solid')}
-          label="Knight route on chess board"
-        />
+  </div>
+{:else}
+  <BoardLayout headerArea={header}>
+    {#snippet boardArea()}
+      <Board
+        board={EMPTY_BOARD}
+        readOnly
+        route={allStops as SquareId[]}
+        highlights={highlight([puzzle.start, puzzle.target], MARK.note, 'solid')}
+        label="Knight route on chess board"
+      />
+    {/snippet}
+    {#snippet sidebarArea()}
+      <RouteTrail stops={allStops} target={puzzle.target} open={result === 'playing'} />
+      <div class="result">
+        <p class="result-title">✓</p>
+        <p class="instructions">{moveCount} moves (optimal: {puzzle.optimal})</p>
+        <StarRating {stars} size="lg" />
+        <FinishActions bind:this={newRouteButton} label="New Route" onclick={newPuzzle} size="normal" />
       </div>
-      <FinishActions bind:this={newRouteButton} label="New Route" onclick={newPuzzle} size="normal" />
-    </div>
-  {/if}
-</div>
+    {/snippet}
+  </BoardLayout>
+{/if}
 
 <style>
   .trainer {
@@ -183,9 +193,5 @@
   }
   .result-title {
     font-weight: var(--weight-strong);
-  }
-  .route-board {
-    width: 100%;
-    max-width: 24rem;
   }
 </style>
