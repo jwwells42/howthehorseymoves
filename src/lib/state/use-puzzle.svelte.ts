@@ -947,10 +947,12 @@ function createFindMovesState(puzzle: FindMovesPuzzle) {
 // Tour state
 // ═══════════════════════════════════════════════
 
-/** How long the piece stands still with its arrows before it sets off, and
-    how long each step takes (0.4 s of it is the slide). */
-const TOUR_LOOK_MS = 1500;
-const TOUR_STEP_MS = 900;
+/** How long the piece stands still with its arrows before it sets off, how
+    long each step takes (0.4 s of it is the slide), and the longest a whole
+    tour may take: a long route steps faster to fit. */
+const TOUR_LOOK_MS = 1000;
+const TOUR_STEP_MS = 1000;
+const TOUR_MAX_MS = 8000;
 
 function createTourState(puzzle: TourPuzzle) {
   const piece = { piece: puzzle.playerPiece, color: 'w' as PieceColor };
@@ -970,6 +972,7 @@ function createTourState(puzzle: TourPuzzle) {
     slideAnim = null;
     isComplete = false;
 
+    const step = Math.min(TOUR_STEP_MS, (TOUR_MAX_MS - TOUR_LOOK_MS) / puzzle.route.length);
     await pause(TOUR_LOOK_MS);
     for (const to of puzzle.route) {
       if (thisRun !== run) return;
@@ -980,7 +983,7 @@ function createTourState(puzzle: TourPuzzle) {
       board = boardAt(to);
       at = to;
       if (slides) playSound('move');
-      await pause(TOUR_STEP_MS);
+      await pause(step);
     }
     if (thisRun !== run) return;
     isComplete = true;

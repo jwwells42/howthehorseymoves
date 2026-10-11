@@ -9,7 +9,7 @@
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import PuzzleSetCard from '$lib/components/puzzle/PuzzleSetCard.svelte';
   import { getPuzzlesForPiece, PIECES, getCategory } from '$lib/puzzles';
-  import { progressState, isPuzzleUnlocked, getPuzzleProgress } from '$lib/state/progress-store';
+  import { progressState, isPuzzleUnlocked } from '$lib/state/progress-store';
   import EndgameShell from '$lib/components/endgame/EndgameShell.svelte';
   import MateTrainer from '$lib/components/endgame/MateTrainer.svelte';
   import DrawTrainer from '$lib/components/endgame/DrawTrainer.svelte';
@@ -244,7 +244,7 @@
     <CardList>
       {#each puzzleSet.puzzles as puzz, idx}
         {@const unlocked = $progressState.loaded && isPuzzleUnlocked(puzz.id, puzzleIds)}
-        {@const progress = getPuzzleProgress(puzz.id)}
+        {@const progress = $progressState.puzzles[puzz.id]}
         <LinkCard
           href={unlocked ? withStop(`/learn/${piece}/${puzz.id}`, pathStop) : undefined}
           reason="🔒 Locked"
