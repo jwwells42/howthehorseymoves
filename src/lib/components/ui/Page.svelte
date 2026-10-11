@@ -9,7 +9,7 @@
     back?: { href: string; label: string };
     /** `narrow` suits a single column of text, `wide` a grid or a board. */
     width?: 'narrow' | 'normal' | 'wide';
-    children: Snippet;
+    children?: Snippet;
   }
 
   let { title, subtitle, back, width = 'normal', children }: Props = $props();
@@ -27,7 +27,7 @@
     {/if}
   </header>
 
-  {@render children()}
+  {@render children?.()}
 </main>
 
 <style>

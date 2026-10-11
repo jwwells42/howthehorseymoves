@@ -28,7 +28,6 @@
 <BoardOverlay>
   <div class="card">
     <div class="party" aria-hidden="true">&#127881;</div>
-    <h3 class="title">Puzzle Complete!</h3>
     <StarRating {stars} size="lg" />
     <div class="buttons">
       {#if onNext}
@@ -53,7 +52,6 @@
     box-shadow: var(--shadow);
   }
   .party { font-size: 3rem; margin-bottom: 0.5rem; }
-  .title { font-size: var(--size-large); margin-bottom: 0.75rem; }
   /* A grid stretches Next to the card's width: a big target. Retry keeps its
      own size underneath, so it reads as the lesser choice. */
   .buttons {

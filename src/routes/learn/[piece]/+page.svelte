@@ -268,9 +268,7 @@
     {/if}
   </Page>
 {:else}
-  <Page title="Not found" back={{ href: '/', label: 'Back to home' }} width="narrow">
-    <p>There is nothing at this address.</p>
-  </Page>
+  <Page title="Not found" back={{ href: '/', label: 'Back to home' }} width="narrow" />
 {/if}
 
 <style>

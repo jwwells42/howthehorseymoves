@@ -401,7 +401,7 @@ ${position.join(',\n')},
   {#if (mode === 'route' && routeTool === 'arrow') || (mode === 'position' && posTool === 'arrow')}
     <div class="arrow-controls">
       <span>
-        {arrowStart ? `Click destination for arrow from ${arrowStart}` : 'Click start square, then end square'}
+        {arrowStart ? `${arrowStart} →` : ''}
       </span>
       <div class="arrow-colors">
         {#each ARROW_COLORS as [name, color]}
@@ -454,10 +454,8 @@ ${position.join(',\n')},
   <!-- Mode-specific controls -->
   {#if mode === 'route'}
     <div class="solution-info">
-      {#if !studentSquare}
-        <p class="muted">Click a piece, then click a square to place it.</p>
-      {:else if targets.length === 0}
-        <p class="muted">Place at least one target star.</p>
+      {#if !studentSquare || targets.length === 0}
+        <!-- Nothing to solve yet -->
       {:else if routeResult}
         <p class="solution-text">
           Solution: {routeResult.solution.join(' → ')} ({routeResult.moves} move{routeResult.moves !== 1 ? 's' : ''})
@@ -466,7 +464,7 @@ ${position.join(',\n')},
           Stars: 3★ ≤ {routeResult.moves} &nbsp; 2★ ≤ {routeResult.moves + 1} &nbsp; 1★ ≤ {routeResult.moves + 2}
         </p>
       {:else}
-        <p class="error-text">✗ No solution found — target is unreachable.</p>
+        <p class="error-text">✗</p>
       {/if}
     </div>
   {:else}
@@ -493,12 +491,12 @@ ${position.join(',\n')},
         </label>
       </div>
       <label class="meta-label">
-        Solution squares (space-separated)
+        Solution squares
         <input type="text" bind:value={posSolution} placeholder="e.g. e7 e8" class="meta-input" />
       </label>
       {#if posMode === 'reach-target'}
         <label class="meta-label">
-          Target squares (space-separated)
+          Target squares
           <input type="text" bind:value={posTargets} placeholder="e.g. e8" class="meta-input" />
         </label>
       {/if}
@@ -722,11 +720,6 @@ ${position.join(',\n')},
     border-radius: 0.5rem;
     border: 1px solid var(--line);
     background: var(--surface);
-  }
-
-  .muted {
-    color: var(--ink-muted);
-    font-size: var(--size-secondary);
   }
 
   .solution-text {

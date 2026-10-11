@@ -38,7 +38,6 @@
 <main class="page">
   <header class="hero">
     <h1>How The Horsey Moves</h1>
-    <p class="subtitle">Learn how each chess piece moves through interactive puzzles</p>
   </header>
 
   {#if continueTarget}
@@ -67,11 +66,6 @@
     text-align: center;
     margin-bottom: 2rem;
   }
-  .subtitle {
-    margin-top: 0.5rem;
-    color: var(--ink-muted);
-  }
-
   .continue {
     display: flex;
     justify-content: center;

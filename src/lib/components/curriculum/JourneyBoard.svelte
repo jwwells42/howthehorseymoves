@@ -75,7 +75,7 @@
     const rank = ranks[at.level];
     const done = rank.stops.filter((s) => s?.done).length;
     const total = rank.stops.filter(Boolean).length;
-    return `The knight is on ${at.name}, in ${rank.title}. ${done} of ${total} stops done in this level.`;
+    return `${at.name}, ${rank.title}: ${done}/${total}`;
   });
 
   // Rows top to bottom, Level 8 first

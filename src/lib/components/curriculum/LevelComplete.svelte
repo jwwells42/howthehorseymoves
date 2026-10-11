@@ -36,7 +36,7 @@
   <h1>{level.title} Complete!</h1>
 
   {#if nextLevel}
-    <p class="level-title">Up to {nextLevel.title}</p>
+    <p class="level-title">{nextLevel.title}</p>
   {/if}
   <JourneyBoard knightAt={walked && nextLevel ? nextLevel.first : level.bot} />
 

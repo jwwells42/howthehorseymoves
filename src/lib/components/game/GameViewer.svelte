@@ -94,7 +94,7 @@
   });
 
   let testStatusText = $derived.by(() => {
-    if (testComplete) return 'You did it! You reproduced the entire game.';
+    if (testComplete) return '✓';
     if (!testAtFrontier) {
       const viewNum = Math.floor(testViewIdx / 2) + 1;
       const isWhite = testViewIdx % 2 === 0;
@@ -799,9 +799,7 @@
       </div>
 
       <div class="comment-area">
-        {#if exploring}
-          <p class="comment-text">Try any move. Arrow left to undo, Esc to return.</p>
-        {:else if currentComment}
+        {#if currentComment && !exploring}
           <p class="comment-text">{currentComment}</p>
         {/if}
       </div>

@@ -20,7 +20,7 @@
 </script>
 
 <BoardOverlay>
-  <div class="picker" role="group" aria-label="Promote the pawn to">
+  <div class="picker" role="group" aria-label="Promote">
     {#each CHOICES as { piece, name }}
       <button class="choice" onclick={() => onpick(piece)}>
         <img src="/pieces/{color}{piece}.svg" alt={name} />

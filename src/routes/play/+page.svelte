@@ -59,7 +59,7 @@
               <div class="name-row">
                 <h3 style:color={char?.color}>{char?.name ?? botLevel}</h3>
                 {#if beaten[botLevel]}
-                  <span class="trophy" role="img" aria-label="You have beaten this opponent">&#127942;</span>
+                  <span class="trophy" role="img" aria-label="Beaten">&#127942;</span>
                 {/if}
               </div>
               <div class="pips" role="img" aria-label={`Difficulty ${spec.rung} of ${MAX_RUNG}`}>

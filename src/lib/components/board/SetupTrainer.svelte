@@ -25,19 +25,18 @@
   export interface SetupStage {
     slug: string;
     label: string;
-    instruction: string;
     icon: string;
     piecesToPlace: { piece: PieceKind; square: SquareId }[];
   }
 
   export const SETUP_STAGES: SetupStage[] = [
-    { slug: 'rooks', label: 'Rooks', instruction: 'Place the white rooks!', icon: '/pieces/wR.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'R') },
-    { slug: 'knights', label: 'Knights', instruction: 'Place the white knights!', icon: '/pieces/wN.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'N') },
-    { slug: 'bishops', label: 'Bishops', instruction: 'Place the white bishops!', icon: '/pieces/wB.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'B') },
-    { slug: 'king', label: 'King', instruction: 'Place the white king!', icon: '/pieces/wK.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'K') },
-    { slug: 'queen', label: 'Queen', instruction: 'Place the white queen!', icon: '/pieces/wQ.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'Q') },
-    { slug: 'pawns', label: 'Pawns', instruction: 'Place the white pawns!', icon: '/pieces/wP.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'P') },
-    { slug: 'full', label: 'Full Setup', instruction: 'Set up all the white pieces!', icon: '/pieces/wK.svg', piecesToPlace: [...WHITE_PIECES] },
+    { slug: 'rooks', label: 'Rooks', icon: '/pieces/wR.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'R') },
+    { slug: 'knights', label: 'Knights', icon: '/pieces/wN.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'N') },
+    { slug: 'bishops', label: 'Bishops', icon: '/pieces/wB.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'B') },
+    { slug: 'king', label: 'King', icon: '/pieces/wK.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'K') },
+    { slug: 'queen', label: 'Queen', icon: '/pieces/wQ.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'Q') },
+    { slug: 'pawns', label: 'Pawns', icon: '/pieces/wP.svg', piecesToPlace: WHITE_PIECES.filter(p => p.piece === 'P') },
+    { slug: 'full', label: 'Full Setup', icon: '/pieces/wK.svg', piecesToPlace: [...WHITE_PIECES] },
   ];
 </script>
 
@@ -265,12 +264,9 @@
   <div class="screen">
     <div class="screen-text">
       <div class="tada">&#127881;</div>
-      <h2>Board Complete!</h2>
-      <p class="muted">
-        {mistakes === 0
-          ? 'Perfect — no mistakes!'
-          : `${mistakes} mistake${mistakes === 1 ? '' : 's'}`}
-      </p>
+      {#if mistakes > 0}
+        <p class="muted">{mistakes} mistake{mistakes === 1 ? '' : 's'}</p>
+      {/if}
     </div>
     <StarRating stars={doneStars} size="lg" />
     <FinishActions label="Play Again" onclick={restart} />
@@ -287,7 +283,7 @@
     <!-- Board side -->
     <div class="board-side">
       <div class="stage-info">
-        <h2 class="stage-title">{stage.instruction}</h2>
+        <h2 class="stage-title">{stage.label}</h2>
         <p class="faint small">
           {#if mistakes > 0}{mistakes} mistake{mistakes === 1 ? '' : 's'} &middot; {/if}
           {placed.size}/{stage.piecesToPlace.length} placed
@@ -306,9 +302,6 @@
 
         <!-- Piece tray -->
         <div class="tray">
-          <div class="tray-label">
-            {isSingleType ? 'Click or drag' : 'Pick & place'}
-          </div>
           {#if hasBackRankRemaining}
             <div class="tray-grid">
               {#each backRankRemaining as p (p.square)}
@@ -388,11 +381,6 @@
   }
   .screen-text {
     text-align: center;
-  }
-  .screen-text h2 {
-    font-size: var(--size-large);
-    font-weight: var(--weight-strong);
-    margin-bottom: 0.5rem;
   }
   .muted { color: var(--ink-muted); }
   .faint { color: var(--ink-muted); }
@@ -489,15 +477,6 @@
       padding-top: 0.5rem;
       min-width: 7.5rem;
     }
-  }
-  .tray-label {
-    font-size: var(--size-small);
-    color: var(--ink-muted);
-    text-align: center;
-    display: none;
-  }
-  @media (min-width: 640px) {
-    .tray-label { display: block; }
   }
   .tray-grid {
     display: flex;

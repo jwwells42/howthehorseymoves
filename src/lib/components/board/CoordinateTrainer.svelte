@@ -121,7 +121,6 @@
 <div class="trainer">
   {#if gameState === 'idle'}
     <div class="screen">
-      <p class="instructions">Click the correct square as fast as you can!</p>
       <div class="thresholds">
         <span class="threshold"><StarRating stars={1} size="sm" /> 3 correct</span>
         <span class="threshold"><StarRating stars={2} size="sm" /> 5 correct</span>
@@ -219,10 +218,6 @@
     align-items: center;
     gap: 0.75rem;
     flex-shrink: 0;
-  }
-
-  .instructions {
-    color: var(--ink-muted);
   }
 
   .thresholds {

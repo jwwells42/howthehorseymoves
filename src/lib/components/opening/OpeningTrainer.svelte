@@ -673,7 +673,7 @@
 
       <label class="toggle-label">
         <input type="checkbox" bind:checked={autoNext} onchange={saveAutoNext} />
-        Go to the next line by itself
+        Auto-advance
       </label>
     </div>
   </div>
@@ -745,17 +745,15 @@
           {#if !fullDepth}
             <!-- A stage in breadth order is done, but the lines go deeper -->
             {@render stepTrack(currentStage, false)}
-            <p class="done-title">Moves 1–{stageDepth} {phase === 'learn' ? 'learned' : 'practiced'}!</p>
+            <p class="done-title">Moves 1–{stageDepth}</p>
             {#if phase === 'learn'}
               <Button variant="primary" onclick={goDeeper}>Keep going</Button>
             {:else}
               <Button variant="primary" onclick={() => startDrilling('learn')}>Keep learning</Button>
             {/if}
           {:else if phase === 'learn'}
-            <p class="done-title">Lines learned!</p>
             <Button variant="primary" onclick={() => startDrilling('practice')}>Practice now</Button>
           {:else}
-            <p class="done-title">Lines mastered!</p>
             <Button variant="primary" onclick={() => startDrilling('practice')}>Practice again</Button>
           {/if}
           <Button onclick={backToSetup}>Back to setup</Button>
@@ -772,9 +770,9 @@
             {lineIdx + 1 < drillLines.length ? 'Next line' : 'Finish'}
           </Button>
         {:else if !lineComplete && !allDone && atFrontier && !waiting && !atEnd}
-          <span class="muted">
-            {isPlayerTurn ? (showArrow ? 'Follow the arrow' : 'Your move') : 'Opponent is thinking...'}
-          </span>
+          {#if !isPlayerTurn}
+            <span class="muted">…</span>
+          {/if}
         {/if}
       </div>
 

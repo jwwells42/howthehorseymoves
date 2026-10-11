@@ -38,13 +38,13 @@
     if (solved || tried.includes(choice)) return;
     if (choice === question.answer) {
       solved = true;
-      feedback = `Right! That's how the ${PIECE_NAMES[choice]} moves.`;
+      feedback = `✓ ${PIECE_NAMES[choice]}`;
       playSound('correct');
       nextTimer = setTimeout(next, NEXT_DELAY_MS);
     } else {
       tried = [...tried, choice];
       mistakes++;
-      feedback = `Not that one. That board is the ${PIECE_NAMES[choice]}.`;
+      feedback = `✗ ${PIECE_NAMES[choice]}`;
       playSound('wrong');
     }
   }
@@ -84,10 +84,9 @@
 {#if phase === 'done'}
   <div class="done">
     <div class="tada" aria-hidden="true">&#127881;</div>
-    <h2>All {ROUND_LENGTH} done!</h2>
-    <p class="muted">
-      {mistakes === 0 ? 'Perfect — no mistakes!' : `${mistakes} mistake${mistakes === 1 ? '' : 's'}`}
-    </p>
+    {#if mistakes > 0}
+      <p class="muted">{mistakes} mistake{mistakes === 1 ? '' : 's'}</p>
+    {/if}
     <StarRating {stars} size="lg" />
     <FinishActions label="Play Again" onclick={restart} />
   </div>
@@ -97,7 +96,7 @@
 
     <div class="prompt">
       <img class="prompt-piece" src="/pieces/w{question.answer}.svg" alt="The {PIECE_NAMES[question.answer]}" />
-      <p>Which board shows how the <strong>{PIECE_NAMES[question.answer]}</strong> moves?</p>
+      <p><strong>{PIECE_NAMES[question.answer]}</strong>?</p>
     </div>
 
     <div class={['choices', solved && 'solved']}>
@@ -211,10 +210,6 @@
     align-items: center;
     gap: 1rem;
     text-align: center;
-  }
-  .done h2 {
-    font-size: var(--size-large);
-    font-weight: var(--weight-strong);
   }
   .tada { font-size: 3rem; }
   .muted { color: var(--ink-muted); }

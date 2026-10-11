@@ -9,31 +9,31 @@
 
   let pgnInput = $state('');
   let selectedColor = $state<PieceColor>('w');
-  let error = $state('');
+  /** null = no error; '' = ✗ with nothing more to say */
+  let error = $state<string | null>(null);
   let activeOpening = $state<Opening | null>(null);
 
   function start() {
-    error = '';
+    error = null;
     const trimmed = pgnInput.trim();
     if (!trimmed) {
-      error = 'Paste a PGN to get started.';
+      error = '';
       return;
     }
     try {
       const tree = parseOpeningPgn(trimmed);
       const lines = extractLines(tree);
       if (lines.length === 0) {
-        error = 'No moves found in this PGN.';
+        error = '';
         return;
       }
     } catch (e) {
-      error = `Could not parse this PGN: ${e instanceof Error ? e.message : String(e)}`;
+      error = e instanceof Error ? e.message : String(e);
       return;
     }
     activeOpening = {
       id: 'custom',
       name: 'Custom Opening',
-      description: '',
       color: selectedColor,
       pgn: trimmed,
     };
@@ -41,7 +41,7 @@
 
   function goBack() {
     activeOpening = null;
-    error = '';
+    error = null;
   }
 </script>
 
@@ -78,7 +78,7 @@
         bind:value={selectedColor}
       />
 
-      {#if error}
+      {#if error !== null}
         <p class="error" role="alert">✗ {error}</p>
       {/if}
 
