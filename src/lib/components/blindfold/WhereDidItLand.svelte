@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
@@ -198,10 +199,7 @@
   function nextRound() {
     if (round >= ROUNDS) {
       const stars = getStars(correct, total);
-      if (stars > bestStars) {
-        localStorage.setItem('blindfold-landed-best-stars', String(stars));
-        bestStars = stars;
-      }
+      bestStars = saveBest('blindfold-landed-best-stars', stars);
       if (stars > 0) playSound('stars');
       phase = 'done';
       return;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onDestroy, onMount } from 'svelte';
   import type { PieceKind } from '$lib/logic/types';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
@@ -63,10 +64,7 @@
   function finish() {
     phase = 'done';
     playSound('stars');
-    if (stars > bestStars) {
-      bestStars = stars;
-      localStorage.setItem(STORAGE_KEY, String(stars));
-    }
+    bestStars = saveBest(STORAGE_KEY, stars);
   }
 
   function restart() {

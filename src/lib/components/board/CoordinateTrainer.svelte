@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import { EMPTY_BOARD, FILES, RANKS, type SquareId } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
@@ -89,14 +90,8 @@
     gameState = 'done';
 
     const stars = scoreToStars(score);
-    if (score > bestScore) {
-      bestScore = score;
-      localStorage.setItem('coord-best', String(score));
-    }
-    if (stars > bestStars) {
-      bestStars = stars;
-      localStorage.setItem('coord-best-stars', String(stars));
-    }
+    bestScore = saveBest('coord-best', score);
+    bestStars = saveBest('coord-best-stars', stars);
     if (stars > 0) playSound('stars');
   }
 

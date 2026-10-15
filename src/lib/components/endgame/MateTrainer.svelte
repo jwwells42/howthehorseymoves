@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
@@ -112,11 +113,7 @@
       result = 'won';
       playSound('stars');
       const s = mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
-      const prev = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
-      if (s > prev) {
-        localStorage.setItem(storageKey, s.toString());
-        bestStars = s;
-      }
+      bestStars = saveBest(storageKey, s);
       return;
     }
 

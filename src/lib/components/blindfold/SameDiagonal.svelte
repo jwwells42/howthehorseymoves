@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import BestScore from '$lib/components/ui/BestScore.svelte';
@@ -120,14 +121,8 @@
 
     const s = getStars(score);
     if (s > 0) playSound('stars');
-    if (score > bestScore) {
-      bestScore = score;
-      localStorage.setItem('blindfold-diagonal-best', String(score));
-    }
-    if (s > bestStars) {
-      bestStars = s;
-      localStorage.setItem('blindfold-diagonal-best-stars', String(s));
-    }
+    bestScore = saveBest('blindfold-diagonal-best', score);
+    bestStars = saveBest('blindfold-diagonal-best-stars', s);
   }
 
   function handleAnswer(answeredYes: boolean) {

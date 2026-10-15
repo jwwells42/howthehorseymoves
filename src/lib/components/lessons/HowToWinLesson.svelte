@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { stopFromUrl, withStop } from '$lib/curriculum';
@@ -132,11 +133,7 @@
       // Section complete -- save stars
       const mistakes = parseInt(localStorage.getItem(mistakesKey) ?? '0', 10);
       const stars = mistakesToStars(mistakes);
-      const prev = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
-      if (stars > prev) {
-        localStorage.setItem(storageKey, stars.toString());
-        bestStars = stars;
-      }
+      bestStars = saveBest(storageKey, stars);
       updateCombinedStars();
       done = true;
       playSound('stars');

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -182,10 +183,7 @@
   function saveStepStars() {
     if (step.type !== 'quiz') return;
     const key = stepStorageKey(step.id);
-    const existing = parseInt(localStorage.getItem(key) ?? '0', 10);
-    if (stars > existing) {
-      localStorage.setItem(key, String(stars));
-    }
+    saveBest(key, stars);
     updateOverallStars();
   }
 
@@ -199,10 +197,7 @@
       min = Math.min(min, val);
     }
     if (allDone && min !== Infinity) {
-      const existing = parseInt(localStorage.getItem('pawn-endings-lesson-best-stars') ?? '0', 10);
-      if (min > existing) {
-        localStorage.setItem('pawn-endings-lesson-best-stars', String(min));
-      }
+      saveBest('pawn-endings-lesson-best-stars', min);
     }
   }
 

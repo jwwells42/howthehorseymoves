@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -142,14 +143,8 @@
   $effect(() => {
     if (phase !== 'done') return;
     const stars = getStars(score);
-    if (score > bestScore) {
-      localStorage.setItem('blindfold-piececount-best', String(score));
-      bestScore = score;
-    }
-    if (stars > bestStars) {
-      localStorage.setItem('blindfold-piececount-best-stars', String(stars));
-      bestStars = stars;
-    }
+    bestScore = saveBest('blindfold-piececount-best', score);
+    bestStars = saveBest('blindfold-piececount-best-stars', stars);
     if (stars > 0) playSound('stars');
   });
 

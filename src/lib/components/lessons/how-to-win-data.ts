@@ -1,3 +1,4 @@
+import { saveBest } from "$lib/state/storage";
 import type { SquareId } from "$lib/logic/types";
 import type { Arrow } from "$lib/logic/pgn";
 import { MARK, type SquareHighlight } from "$lib/board-marks";
@@ -209,5 +210,5 @@ export function updateCombinedStars(): void {
     parseInt(localStorage.getItem(k) ?? "0", 10),
   );
   const min = Math.min(...allStars);
-  localStorage.setItem("how-to-win-best-stars", min.toString());
+  saveBest("how-to-win-best-stars", min);
 }

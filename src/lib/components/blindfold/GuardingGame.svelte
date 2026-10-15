@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -154,14 +155,8 @@
 
   function persistBest(s: number) {
     const stars = getStars(s);
-    if (s > best) {
-      localStorage.setItem('blindfold-guarding-best', String(s));
-      best = s;
-    }
-    if (stars > bestStars) {
-      localStorage.setItem('blindfold-guarding-best-stars', String(stars));
-      bestStars = stars;
-    }
+    best = saveBest('blindfold-guarding-best', s);
+    bestStars = saveBest('blindfold-guarding-best-stars', stars);
   }
 
   function startGame() {

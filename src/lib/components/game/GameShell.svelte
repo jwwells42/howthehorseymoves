@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
@@ -276,7 +277,7 @@
   // parseInts localStorage progress values as a star count.
   $effect(() => {
     if (game.result === 'checkmate-white') {
-      localStorage.setItem(`bot-beaten-${botLevel}`, '3');
+      saveBest(`bot-beaten-${botLevel}`, 3);
     }
   });
 

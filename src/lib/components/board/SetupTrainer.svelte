@@ -41,6 +41,7 @@
 </script>
 
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -205,11 +206,7 @@
       setTimeout(() => {
         const stars = mistakesToStars(mistakes);
         const key = `setup-${stage.slug}-best-stars`;
-        const prev = parseInt(localStorage.getItem(key) ?? '0', 10);
-        if (stars > prev) {
-          localStorage.setItem(key, stars.toString());
-        }
-        allStageStars = { ...allStageStars, [stage.slug]: Math.max(stars, prev) };
+        allStageStars = { ...allStageStars, [stage.slug]: saveBest(key, stars) };
         playSound('stars');
 
         // Advance to next stage or show done

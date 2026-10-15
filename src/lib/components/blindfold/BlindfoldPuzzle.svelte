@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -117,10 +118,7 @@
     if (nextIdx >= PUZZLES.length) {
       const pct = total > 0 ? correct / total : 0;
       const stars = pct >= 0.9 ? 3 : pct >= 0.6 ? 2 : pct >= 0.3 ? 1 : 0;
-      if (stars > bestStars) {
-        localStorage.setItem('blindfold-puzzle-best-stars', String(stars));
-        bestStars = stars;
-      }
+      bestStars = saveBest('blindfold-puzzle-best-stars', stars);
       if (stars >= 1) playSound('stars');
       phase = 'done';
       return;

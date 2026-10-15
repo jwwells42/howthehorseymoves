@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -136,10 +137,7 @@
     if (round >= ROUNDS) {
       const pct = totalPieces > 0 ? totalCorrect / totalPieces : 0;
       const stars = pct >= 0.9 ? 3 : pct >= 0.7 ? 2 : pct >= 0.4 ? 1 : 0;
-      if (stars > bestStars) {
-        localStorage.setItem('blindfold-flash-best-stars', String(stars));
-        bestStars = stars;
-      }
+      bestStars = saveBest('blindfold-flash-best-stars', stars);
       if (stars > 0) playSound('stars');
       phase = 'done';
       return;

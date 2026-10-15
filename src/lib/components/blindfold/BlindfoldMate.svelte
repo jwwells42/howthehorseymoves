@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { saveBest } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -200,10 +201,7 @@
       phase = 'won';
       reviewStep = 0;
       const s = mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
-      if (s > bestStars) {
-        localStorage.setItem(storageKey, s.toString());
-        bestStars = s;
-      }
+      bestStars = saveBest(storageKey, s);
       playSound('stars');
       return;
     }
