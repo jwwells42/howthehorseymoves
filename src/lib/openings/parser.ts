@@ -1,5 +1,5 @@
 import type { BoardState, PieceColor, PieceKind, SquareId } from "../logic/types";
-import { parseFen, createBoardState } from "../logic/types";
+import { parseFen, createBoardState, boardToKey } from "../logic/types";
 import { parseSan, applyMove, parseArrows } from "../logic/pgn";
 import type { Arrow } from "../logic/pgn";
 
@@ -8,6 +8,8 @@ const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 // === Types ===
 
 export interface OpeningMove {
+  /** The position it's played in plus the move, hashed: what saved progress is kept under */
+  key: string;
   san: string;
   from: SquareId;
   to: SquareId;
@@ -56,6 +58,35 @@ const NAG_DISPLAY: Record<number, string> = {
 
 export function nagToSymbol(n: number): string {
   return NAG_DISPLAY[n] ?? `$${n}`;
+}
+
+// === Move keys ===
+
+// Two 32-bit FNV-1a hashes side by side: short, and with a few thousand moves
+// in a repertoire, two of them sharing a key won't happen.
+function fnv1a(text: string, seed: number): string {
+  let h = seed >>> 0;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h.toString(36);
+}
+
+// A move is known by the position it's played in, so two lines that reach the
+// same position by different move orders share what was learned there. The
+// en passant square counts only when a pawn can take there: 1.e4 e5 2.Nf3 Nc6
+// and 1.Nf3 Nc6 2.e4 e5 are the same position.
+export function moveKey(board: BoardState, color: PieceColor, from: SquareId, to: SquareId, promotion?: PieceKind): string {
+  const ep = board.enPassantSquare;
+  const takerRank = color === "w" ? "5" : "4";
+  const canTake = ep !== undefined && [-1, 1].some((df) => {
+    const p = board.pieces.get(`${String.fromCharCode(ep.charCodeAt(0) + df)}${takerRank}` as SquareId);
+    return p?.piece === "P" && p.color === color;
+  });
+  const position = boardToKey(canTake ? board : { ...board, enPassantSquare: undefined }, color);
+  const text = `${position} ${from}${to}${promotion ?? ""}`;
+  return fnv1a(text, 2166136261) + fnv1a(text, 3735928559);
 }
 
 // === Tokenizer ===
@@ -185,6 +216,7 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
       const newBoard = applyMove(state.board, resolved.from, resolved.to, resolved.promotion);
 
       const node: OpeningMove = {
+        key: moveKey(state.board, state.color, resolved.from, resolved.to, resolved.promotion),
         san: token,
         from: resolved.from,
         to: resolved.to,
@@ -262,23 +294,6 @@ export function splitPgnChapters(pgn: string): PgnChapter[] {
     chapters.push({ name, pgn: text });
   }
   return chapters;
-}
-
-// Cut each line after its `depth`-th move by `color`, dropping duplicates.
-// Lines start from the standard position (White to move), so White's Nth move
-// is ply 2N-1 and Black's is ply 2N. Keeps the input (tree) order.
-export function truncateLines(lines: OpeningLine[], color: PieceColor, depth: number): OpeningLine[] {
-  const plies = color === "w" ? 2 * depth - 1 : 2 * depth;
-  const seen = new Set<string>();
-  const result: OpeningLine[] = [];
-  for (const line of lines) {
-    const cut = line.slice(0, plies);
-    const key = cut.map(m => m.san).join(" ");
-    if (seen.has(key)) continue;
-    seen.add(key);
-    result.push(cut);
-  }
-  return result;
 }
 
 export function findBranchPoint(line1: OpeningLine, line2: OpeningLine): number {

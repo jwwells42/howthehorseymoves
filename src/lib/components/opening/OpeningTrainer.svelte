@@ -2,27 +2,40 @@
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
-  import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
   import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import Choice from '$lib/components/ui/Choice.svelte';
-  import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
-  import { MARK } from '$lib/board-marks';
-  import { type SquareId, type BoardState } from '$lib/logic/types';
-  import { getLegalMoves } from '$lib/logic/attacks';
+  import OpeningLobby from './OpeningLobby.svelte';
+  import OpeningDrill from './OpeningDrill.svelte';
+  import OpeningFlow from './OpeningFlow.svelte';
+  import type { BoardState } from '$lib/logic/types';
   import type { Arrow } from '$lib/logic/pgn';
-  import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
-  import { playSound } from '$lib/state/sound';
+  import { type Opening, parseOpeningPgn, extractLines } from '$lib/openings';
   import {
-    type Opening,
-    type OpeningLine,
-    parseOpeningPgn,
-    extractLines,
-    findBranchPoint,
-    truncateLines,
-  } from '$lib/openings';
+    type MoveProgress,
+    type MoveState,
+    NEW,
+    loadProgress,
+    migrateOldProgress,
+    playerMoves,
+    saveStates,
+    savesProgress,
+  } from '$lib/openings/progress';
+  import {
+    type StudyOrder,
+    DEFAULT_PER_VISIT,
+    DEFAULT_SPEED,
+    PER_VISIT_OPTIONS,
+    PREFS,
+    SPEED_OPTIONS,
+    orderKey,
+  } from './study-order';
 
-  type Phase = 'setup' | 'learn' | 'practice' | 'explore';
+  /**
+   * An opening: the lobby, then one of flow (watch every line), breadth or
+   * depth (play the lines from memory), or explore (the whole tree).
+   */
+
+  type Phase = 'lobby' | 'study' | 'explore';
 
   interface Props {
     opening: Opening;
@@ -30,125 +43,105 @@
 
   let { opening }: Props = $props();
 
-  let playerColor = $derived(opening.color);
-  let flipped = $derived(playerColor === 'b');
+  let flipped = $derived(opening.color === 'b');
 
   let parsed = $derived.by(() => {
     const tree = parseOpeningPgn(opening.pgn);
-    const lines = extractLines(tree);
-    return { tree, lines };
+    return { tree, lines: extractLines(tree) };
   });
-
   let startBoard = $derived(parsed.tree.startBoard);
   let lines = $derived(parsed.lines);
 
-  // === Setup state ===
-  let deselectedLines = $state<Set<number>>(new Set());
-  let activeLines = $derived(lines.filter((_, i) => !deselectedLines.has(i)));
-  let canStart = $derived(activeLines.length > 0);
+  let deselected = $state<Set<number>>(new Set());
+  let activeLines = $derived(lines.filter((_, i) => !deselected.has(i)));
 
-  // === Order: one line at a time (depth) or STEP moves at a time (breadth) ===
-  const STEP = 3;
-  // The ways to learn, as shown on the setup screen. A new way = a row here,
-  // plus its rules in startDrilling, drillLines and isNew.
-  const ORDERS: { value: 'depth' | 'breadth'; label: string }[] = [
-    { value: 'breadth', label: `${STEP} moves at a time` },
-    { value: 'depth', label: 'One line at a time' },
-  ];
-  function initialOrder() { return opening.defaultOrder ?? 'depth'; }
-  let order = $state<'depth' | 'breadth'>(initialOrder());
-  // How many of your moves are learned in breadth order — saved per built-in opening
-  let learnedDepth = $state(0);
-  // Where the drilled lines stop. Set when a drill starts rather than derived
-  // from phase, so flipping Learn/Practice mid-drill keeps the same lines.
-  let stageDepth = $state(Infinity);
-  let maxDepth = $derived(Math.max(0, ...activeLines.map(
-    (line) => line.filter((m) => m.colorPlayed === playerColor).length,
-  )));
-  let fullDepth = $derived(stageDepth >= maxDepth);
-  let stageCount = $derived(Math.ceil(maxDepth / STEP));
-  let learnedStages = $derived(Math.ceil(Math.min(learnedDepth, maxDepth) / STEP));
-  let currentStage = $derived(Math.ceil(Math.min(stageDepth, maxDepth) / STEP) - 1);
-  let allLearned = $derived(order === 'breadth' && maxDepth > 0 && learnedDepth >= maxDepth);
+  let phase = $state<Phase>('lobby');
 
-  // Your moves in step i (counting from 0), e.g. "4–6"
-  function stepRange(i: number) {
-    const first = i * STEP + 1;
-    const last = Math.min((i + 1) * STEP, maxDepth);
-    return first === last ? `${first}` : `${first}–${last}`;
+  // === Settings, remembered on this device ===
+
+  function initialOrder(): StudyOrder { return opening.defaultOrder ?? 'depth'; }
+  let order = $state<StudyOrder>(initialOrder());
+  let perVisit = $state(DEFAULT_PER_VISIT);
+  let speed = $state(DEFAULT_SPEED);
+  let autoNext = $state(false);
+  let settingsLoaded = false;
+
+  function readPref<T>(key: string, allowed: readonly T[], parse: (raw: string) => T): T | undefined {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === null) return undefined;
+      const value = parse(raw);
+      return allowed.includes(value) ? value : undefined;
+    } catch {
+      return undefined;
+    }
   }
 
-  // The Start buttons say what they will drill (see startDrilling)
-  let learnLabel = $derived(
-    order !== 'breadth' ? 'Start learning' : allLearned ? 'Learn again' : `Learn moves ${stepRange(learnedStages)}`,
-  );
-  let practiceLabel = $derived(
-    order !== 'breadth' ? 'Start practicing'
-      : allLearned ? 'Practice all moves'
-      : `Practice moves 1–${Math.min(Math.max(learnedDepth, STEP), maxDepth)}`,
-  );
-  let drillLines = $derived(
-    order === 'breadth' ? truncateLines(activeLines, playerColor, stageDepth) : activeLines,
-  );
+  function writePref(key: string, value: string) {
+    try { localStorage.setItem(key, value); } catch {}
+  }
 
-  onMount(() => {
-    try { autoNext = localStorage.getItem('opening-auto-next') === 'true'; } catch {}
-    if (opening.id === 'custom') return;
-    try {
-      const saved = parseInt(localStorage.getItem(`opening-${opening.id}-learned-depth`) ?? '', 10);
-      if (saved > 0) {
-        learnedDepth = saved;
-        order = 'breadth';
-      }
-    } catch {}
+  $effect(() => {
+    const values = [order, perVisit, speed, autoNext];
+    if (!settingsLoaded) return;
+    writePref(orderKey(opening.id), values[0] as string);
+    writePref(PREFS.perVisit, String(values[1]));
+    writePref(PREFS.speed, String(values[2]));
+    writePref(PREFS.autoNext, String(values[3]));
   });
 
-  function saveLearnedDepth() {
-    if (opening.id === 'custom') return;
-    try {
-      if (learnedDepth > 0) localStorage.setItem(`opening-${opening.id}-learned-depth`, String(learnedDepth));
-      else localStorage.removeItem(`opening-${opening.id}-learned-depth`);
-    } catch {}
+  // === Progress ===
+
+  let progress = $state.raw<MoveProgress>({});
+
+  function reloadProgress() {
+    if (savesProgress(opening)) progress = loadProgress(opening.id);
   }
 
-  function saveAutoNext() {
-    try { localStorage.setItem('opening-auto-next', String(autoNext)); } catch {}
+  function setStates(states: Record<string, MoveState>) {
+    if (savesProgress(opening)) {
+      progress = saveStates(opening.id, states);
+    } else {
+      // A pasted PGN keeps its progress only while it's open
+      const now = Math.floor(Date.now() / 1000);
+      const next = { ...progress };
+      for (const [key, state] of Object.entries(states)) next[key] = [state, now];
+      progress = next;
+    }
   }
 
   function startOver() {
-    learnedDepth = 0;
-    saveLearnedDepth();
+    const states: Record<string, MoveState> = {};
+    for (const move of playerMoves(lines, opening.color)) {
+      if (progress[move.key]) states[move.key] = NEW;
+    }
+    setStates(states);
   }
 
-  // White's Nth move is ply 2N-2 and Black's is 2N-1 (lines start with White)
-  function moveNumber(i: number) {
-    return Math.floor(i / 2) + 1;
+  onMount(() => {
+    order = readPref(orderKey(opening.id), ['flow', 'breadth', 'depth'] as const, (r) => r as StudyOrder) ?? order;
+    perVisit = readPref(PREFS.perVisit, PER_VISIT_OPTIONS.map((o) => o.value), Number) ?? perVisit;
+    speed = readPref(PREFS.speed, SPEED_OPTIONS.map((o) => o.value), Number) ?? speed;
+    autoNext = readPref(PREFS.autoNext, [true, false], (r) => r === 'true') ?? autoNext;
+    settingsLoaded = true;
+
+    migrateOldProgress(opening, lines);
+    reloadProgress();
+    // Another tab, or sync, saved progress for this opening
+    const onStorage = (e: StorageEvent) => {
+      if (phase === 'lobby' && (e.key === null || e.key === `opening-${opening.id}-moves`)) reloadProgress();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  });
+
+  function backToLobby() {
+    phase = 'lobby';
+    reloadProgress();
   }
 
-  // Learn mode shows arrows only on new moves. In breadth order, moves from
-  // earlier stages are recalled without help (a mistake still brings the hint back).
-  function isNew(i: number) {
-    return phase === 'learn' && (order === 'depth' || moveNumber(i) > learnedDepth);
-  }
+  // === Explore ===
 
-  // === Drill state ===
-  let lineIdx = $state(0);
-  let moveIdx = $state(0);
-  let maxReachedIdx = $state(0);
-  function initialBoard() { return startBoard; }
-  let board = $state(initialBoard());
-  let phase = $state<Phase>('setup');
-  let selectedSquare = $state<SquareId | null>(null);
-  let wrongMoveSquare = $state<SquareId | null>(null);
-  let showHint = $state(false);
-  let opponentSlide = $state<SlideAnimation | null>(null);
-  let waiting = $state(false);
-  let lineComplete = $state(false);
-  let allDone = $state(false);
-  let dragFrom = $state<SquareId | null>(null);
-  let autoNext = $state(false);
-
-  // Explore mode state
   let exploreBoardOverride = $state<BoardState | null>(null);
   let exploreBoard = $derived(exploreBoardOverride ?? startBoard);
   let exploreArrows = $state<Arrow[] | undefined>(undefined);
@@ -157,1046 +150,56 @@
     exploreBoardOverride = b;
     exploreArrows = a;
   }
-  let linesDone = $derived(lineIdx + (lineComplete || allDone ? 1 : 0));
-  let browsing = $derived(moveIdx < maxReachedIdx);
-  let atFrontier = $derived(moveIdx >= maxReachedIdx);
-
-  let currentLine = $derived(phase !== 'setup' && drillLines.length > 0 ? drillLines[lineIdx] : lines[0]);
-  let isPlayerTurn = $derived(moveIdx < currentLine.length && currentLine[moveIdx].colorPlayed === playerColor);
-  let atEnd = $derived(moveIdx >= currentLine.length);
-  let showArrow = $derived(!atEnd && isPlayerTurn && !waiting && !browsing && (isNew(moveIdx) || showHint));
-
-  let currentComment = $derived.by(() => {
-    if (phase === 'setup') return undefined;
-    // With an arrow up, show the comment for the upcoming move alongside it
-    if (showArrow) {
-      const upcoming = currentLine[moveIdx].comment;
-      if (upcoming) return upcoming;
-    }
-    // Otherwise show the comment for the move just played
-    if (moveIdx === 0) return undefined;
-    return currentLine[moveIdx - 1].comment;
-  });
-
-  // Annotation arrows from the most recently played move
-  let annotationArrows = $derived.by((): Arrow[] => {
-    if (phase === 'setup' || moveIdx === 0) return [];
-    return currentLine[moveIdx - 1].arrows ?? [];
-  });
-
-  let arrows = $derived.by((): Arrow[] | undefined => {
-    if (phase === 'setup') return undefined;
-    const hintArrows: Arrow[] = [];
-    if (showArrow) {
-      const move = currentLine[moveIdx];
-      hintArrows.push({ from: move.from, to: move.to, color: MARK.good });
-    }
-    const all = [...annotationArrows, ...hintArrows];
-    return all.length > 0 ? all : undefined;
-  });
-
-  let validMoves = $derived.by(() => {
-    if (phase === 'setup' || !selectedSquare || waiting || atEnd || !isPlayerTurn || browsing) return [];
-    const p = board.pieces.get(selectedSquare);
-    if (!p || p.color !== playerColor) return [];
-    return getLegalMoves(selectedSquare, board, playerColor);
-  });
-
-  let dragMoves = $derived.by(() => {
-    if (phase === 'setup' || !dragFrom || waiting || atEnd || !isPlayerTurn || browsing) return [];
-    const p = board.pieces.get(dragFrom);
-    if (!p || p.color !== playerColor) return [];
-    return getLegalMoves(dragFrom, board, playerColor);
-  });
-
-  let moveDisplay = $derived.by(() => {
-    const pairs: { num: number; white: string; black?: string; whiteIdx: number; blackIdx?: number }[] = [];
-    for (let i = 0; i < currentLine.length; i += 2) {
-      const w = currentLine[i];
-      const b = currentLine[i + 1];
-      pairs.push({
-        num: Math.floor(i / 2) + 1,
-        white: w.san + (w.nag ?? ''),
-        black: b ? b.san + (b.nag ?? '') : undefined,
-        whiteIdx: i,
-        blackIdx: b ? i + 1 : undefined,
-      });
-    }
-    return pairs;
-  });
-
-  // === Setup helpers ===
-
-  function toggleLine(idx: number) {
-    const next = new Set(deselectedLines);
-    if (next.has(idx)) next.delete(idx);
-    else next.add(idx);
-    deselectedLines = next;
-  }
-
-  // Picks every line of a chapter, or clears them all if they were all picked
-  function toggleChapter(indices: number[]) {
-    const next = new Set(deselectedLines);
-    const allPicked = indices.every((i) => !next.has(i));
-    for (const i of indices) {
-      if (allPicked) next.add(i);
-      else next.delete(i);
-    }
-    deselectedLines = next;
-  }
-
-  function selectAll() { deselectedLines = new Set(); }
-  function selectNone() { deselectedLines = new Set(lines.map((_, i) => i)); }
-
-  // The line picker's groups: a study's lines under its chapter names, in the
-  // study's order; any other opening's lines in one group with no name.
-  // (The drill keeps the tree's order, so the picker's order is only for picking.)
-  let lineGroups = $derived.by(() => {
-    const all = lines.map((_, i) => i);
-    const chapters = opening.chapters ?? [];
-    if (chapters.length === 0) return [{ name: '', indices: all }];
-    // Every line of the joined tree is a whole line of the chapter it came from
-    const chapterOf = new Map<string, number>();
-    chapters.forEach((ch, c) => {
-      for (const line of extractLines(parseOpeningPgn(ch.pgn))) {
-        const key = line.map((m) => m.san).join(' ');
-        if (!chapterOf.has(key)) chapterOf.set(key, c);
-      }
-    });
-    const groups = chapters.map((ch) => ({ name: ch.name, indices: [] as number[] }));
-    for (const i of all) groups[chapterOf.get(lines[i].map((m) => m.san).join(' ')) ?? 0].indices.push(i);
-    return groups.filter((g) => g.indices.length > 0);
-  });
-
-  // Each line is shown from where it leaves the line above it in the picker,
-  // and a chapter's first line from the start. Shown from the start, lines that
-  // share a long trunk all looked the same.
-  let linePreviews = $derived.by(() => {
-    const previews: string[] = [];
-    for (const { indices } of lineGroups) {
-      indices.forEach((li, k) => {
-        const from = k > 0 ? findBranchPoint(lines[indices[k - 1]], lines[li]) : 0;
-        previews[li] = formatLinePreview(lines[li], from);
-      });
-    }
-    return previews;
-  });
-
-  // "all 19", or the chapters picked when whole chapters are, else "4 of 19"
-  let linesSummary = $derived.by(() => {
-    if (activeLines.length === lines.length) return `all ${lines.length}`;
-    const count = `${activeLines.length} of ${lines.length}`;
-    const named = lineGroups.filter((g) => g.name);
-    const whole = named.filter((g) => g.indices.every((i) => !deselectedLines.has(i)));
-    const onlyWhole = named.every((g) => whole.includes(g) || g.indices.every((i) => deselectedLines.has(i)));
-    return whole.length > 0 && onlyWhole ? `${whole.map((g) => g.name).join(', ')} (${count})` : count;
-  });
-
-  function formatLinePreview(line: OpeningLine, from: number): string {
-    const start = Math.min(from, line.length - 1);
-    const end = Math.min(line.length, start + 8);
-    const parts: string[] = [];
-    for (let i = start; i < end; i++) {
-      if (line[i].colorPlayed === 'w') parts.push(`${moveNumber(i)}.`);
-      else if (i === start) parts.push(`${moveNumber(i)}…`);
-      parts.push(line[i].san + (line[i].nag ?? ''));
-    }
-    if (end < line.length) parts.push('…');
-    return parts.join(' ');
-  }
-
-  // === Drill control ===
-
-  function resetDrill(line: number, move: number, newBoard: BoardState) {
-    lineIdx = line;
-    moveIdx = move;
-    maxReachedIdx = move;
-    board = newBoard;
-    lineComplete = false;
-    allDone = false;
-    selectedSquare = null;
-    wrongMoveSquare = null;
-    showHint = false;
-    waiting = false;
-    opponentSlide = null;
-  }
-
-  function startDrilling(mode: 'learn' | 'practice') {
-    if (!canStart) return;
-    if (order === 'depth') {
-      stageDepth = Infinity;
-    } else if (mode === 'learn') {
-      // Everything learned already: learn it again from the top
-      if (learnedDepth >= maxDepth) learnedDepth = 0;
-      stageDepth = learnedDepth + STEP;
-    } else {
-      // Practice what has been learned so far
-      stageDepth = Math.max(learnedDepth, STEP);
-    }
-    phase = mode;
-    resetDrill(0, 0, startBoard);
-    maybeAutoPlayOpponent();
-  }
-
-  // Next stage in breadth order: the same lines, STEP moves deeper
-  function goDeeper() {
-    stageDepth += STEP;
-    resetDrill(0, 0, startBoard);
-    maybeAutoPlayOpponent();
-  }
-
-  function backToSetup() {
-    phase = 'setup';
-    resetDrill(0, 0, startBoard);
-  }
-
-  function setMode(mode: 'learn' | 'practice') {
-    if (mode === phase) return;
-    phase = mode;
-    showHint = false;
-  }
-
-  function jumpToLine(targetIdx: number) {
-    if (targetIdx < 0 || targetIdx >= drillLines.length) return;
-    const targetLine = drillLines[targetIdx];
-    const bp = lineIdx < drillLines.length ? findBranchPoint(drillLines[lineIdx], targetLine) : 0;
-    const newBoard = bp > 0 ? targetLine[bp - 1].boardAfter : startBoard;
-
-    resetDrill(targetIdx, bp, newBoard);
-
-    if (bp < targetLine.length && targetLine[bp].colorPlayed !== playerColor) {
-      setTimeout(() => autoPlayOpponent(bp, targetLine), 400);
-    }
-  }
-
-  // === Drill logic ===
-
-  function autoPlayOpponent(idx: number, line: OpeningLine) {
-    if (idx >= line.length) return;
-    const move = line[idx];
-    const movedPiece = board.pieces.get(move.from);
-    waiting = true;
-
-    setTimeout(() => {
-      opponentSlide = {
-        piece: movedPiece?.piece ?? 'P',
-        color: move.colorPlayed,
-        from: move.from,
-        to: move.to,
-      };
-      board = move.boardAfter;
-      const nextIdx = idx + 1;
-      moveIdx = nextIdx;
-      if (nextIdx > maxReachedIdx) maxReachedIdx = nextIdx;
-      playSound('move');
-
-      setTimeout(() => {
-        opponentSlide = null;
-        waiting = false;
-        if (nextIdx >= line.length) {
-          lineComplete = true;
-          playSound('correct');
-        }
-      }, 400);
-    }, 300);
-  }
-
-  function maybeAutoPlayOpponent() {
-    const line = drillLines[lineIdx];
-    if (moveIdx < line.length && line[moveIdx].colorPlayed !== playerColor) {
-      setTimeout(() => autoPlayOpponent(moveIdx, line), 400);
-    }
-  }
-
-  function advanceLine() {
-    lineComplete = false;
-    selectedSquare = null;
-
-    if (lineIdx + 1 < drillLines.length) {
-      const nextLine = drillLines[lineIdx + 1];
-      const bp = findBranchPoint(currentLine, nextLine);
-      const newBoard = bp > 0 ? nextLine[bp - 1].boardAfter : startBoard;
-
-      lineIdx = lineIdx + 1;
-      moveIdx = bp;
-      maxReachedIdx = bp;
-      board = newBoard;
-
-      if (bp < nextLine.length && nextLine[bp].colorPlayed !== playerColor) {
-        setTimeout(() => autoPlayOpponent(bp, nextLine), 400);
-      }
-    } else if (phase === 'learn') {
-      allDone = true;
-      if (order === 'breadth') {
-        learnedDepth = Math.min(stageDepth, maxDepth);
-        saveLearnedDepth();
-      }
-    } else {
-      allDone = true;
-      // Only full-length lines count as mastered
-      if (fullDepth && opening.id !== 'custom') {
-        try { localStorage.setItem(`opening-${opening.id}-complete`, 'true'); } catch {}
-      }
-    }
-  }
-
-  function executePlayerMove(from: SquareId, to: SquareId) {
-    if (atEnd || !isPlayerTurn || waiting) return;
-
-    const expected = currentLine[moveIdx];
-    if (from === expected.from && to === expected.to) {
-      board = expected.boardAfter;
-      selectedSquare = null;
-      showHint = false;
-      wrongMoveSquare = null;
-      const nextIdx = moveIdx + 1;
-      moveIdx = nextIdx;
-      if (nextIdx > maxReachedIdx) maxReachedIdx = nextIdx;
-      playSound('move');
-
-      if (nextIdx >= currentLine.length) {
-        lineComplete = true;
-        playSound('correct');
-      } else if (currentLine[nextIdx].colorPlayed !== playerColor) {
-        autoPlayOpponent(nextIdx, currentLine);
-      }
-    } else {
-      wrongMoveSquare = to;
-      showHint = true;
-      selectedSquare = null;
-      playSound('wrong');
-      setTimeout(() => (wrongMoveSquare = null), 600);
-    }
-  }
-
-  function handleSquareClick(sq: SquareId) {
-    if (phase === 'setup' || waiting || atEnd || lineComplete) return;
-    // If browsing, snap back to frontier on any click
-    if (browsing) {
-      navigateTo(maxReachedIdx);
-      return;
-    }
-    if (!isPlayerTurn) return;
-
-    if (!selectedSquare) {
-      const p = board.pieces.get(sq);
-      if (p && p.color === playerColor) selectedSquare = sq;
-      return;
-    }
-
-    if (sq === selectedSquare) {
-      selectedSquare = null;
-      return;
-    }
-
-    const target = board.pieces.get(sq);
-    if (target && target.color === playerColor) {
-      selectedSquare = sq;
-      return;
-    }
-
-    const moves = getLegalMoves(selectedSquare, board, playerColor);
-    if (!moves.includes(sq)) {
-      selectedSquare = null;
-      return;
-    }
-
-    executePlayerMove(selectedSquare, sq);
-  }
-
-  function handleDrop(from: SquareId, to: SquareId) {
-    if (phase === 'setup' || waiting || atEnd || lineComplete || from === to) return;
-    if (browsing) {
-      navigateTo(maxReachedIdx);
-      return;
-    }
-    if (!isPlayerTurn) return;
-    const p = board.pieces.get(from);
-    if (!p || p.color !== playerColor) return;
-    const moves = getLegalMoves(from, board, playerColor);
-    if (!moves.includes(to)) return;
-    executePlayerMove(from, to);
-  }
-
-  function onDragStart(sq: SquareId) {
-    dragFrom = sq;
-  }
-
-  function onDragEnd() {
-    dragFrom = null;
-  }
-
-  // === Move list navigation ===
-
-  function navigateTo(idx: number) {
-    if (waiting || phase === 'setup') return;
-    if (idx < 0 || idx > currentLine.length) return;
-    // In practice mode, can only navigate to already-seen moves
-    if (phase === 'practice' && idx > maxReachedIdx) return;
-
-    moveIdx = idx;
-    board = idx > 0 ? currentLine[idx - 1].boardAfter : startBoard;
-    selectedSquare = null;
-    wrongMoveSquare = null;
-    showHint = false;
-    opponentSlide = null;
-  }
-
-  function goBack() {
-    navigateTo(moveIdx - 1);
-  }
-
-  function goForward() {
-    if (moveIdx < maxReachedIdx) {
-      navigateTo(moveIdx + 1);
-    }
-  }
-
-  function handleKeydown(e: KeyboardEvent) {
-    if (phase === 'setup') return;
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      goBack();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      goForward();
-    }
-  }
-
-  // Auto-scroll active move into view
-  let moveListEl = $state<HTMLDivElement | null>(null);
-  $effect(() => {
-    void moveIdx;
-    if (!moveListEl) return;
-    const active = moveListEl.querySelector("[data-active='true']") as HTMLElement | null;
-    if (!active) return;
-    const top = active.offsetTop - moveListEl.offsetTop;
-    const bottom = top + active.offsetHeight;
-    if (top < moveListEl.scrollTop) {
-      moveListEl.scrollTop = top;
-    } else if (bottom > moveListEl.scrollTop + moveListEl.clientHeight) {
-      moveListEl.scrollTop = bottom - moveListEl.clientHeight;
-    }
-  });
-
-  // Auto-advance to next variation
-  $effect(() => {
-    if (!autoNext || !lineComplete || allDone) return;
-    const timer = setTimeout(() => advanceLine(), 800);
-    return () => clearTimeout(timer);
-  });
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
-<!-- One dot per step of STEP moves: filled = learned, ringed = the step being
-     learned. Readable without reading; the move numbers are for those who can. -->
-{#snippet stepTrack(current: number, withNumbers: boolean)}
-  <ol class="steps" aria-label={`Learned ${learnedStages} of ${stageCount} steps`}>
-    {#each { length: stageCount }, i}
-      <li class={['step', i < learnedStages && 'learned', i === current && 'current']}>
-        <span class="dot"></span>
-        {#if withNumbers}{stepRange(i)}{/if}
-      </li>
-    {/each}
-  </ol>
-{/snippet}
-
-{#if phase === 'setup'}
-  <div class="trainer">
-    <div class="header">
-      <h2>{opening.name}</h2>
-      {#if opening.description}
-        <p class="description">{opening.description}</p>
-      {/if}
-    </div>
-
-    <!-- The next thing to do comes first; the settings are underneath -->
-    {#if order === 'breadth' && canStart}
-      <div class="progress">
-        {@render stepTrack(allLearned ? -1 : learnedStages, true)}
-        {#if learnedDepth > 0}
-          <Button onclick={startOver}>Start over</Button>
-        {/if}
-      </div>
-    {/if}
-
-    <div class="setup-actions">
-      <Button variant={allLearned ? 'secondary' : 'primary'} onclick={() => startDrilling('learn')} disabled={!canStart}>
-        {learnLabel}
-      </Button>
-      <Button variant={allLearned ? 'primary' : 'secondary'} onclick={() => startDrilling('practice')} disabled={!canStart}>
-        {practiceLabel}
-      </Button>
-      <Button onclick={() => (phase = 'explore')}>Explore</Button>
-    </div>
-
-    <div class="options">
-      <Choice label="How to learn" stacked options={ORDERS} bind:value={order} />
-
-      <details class="lines">
-        <summary>Lines: {linesSummary}</summary>
-        <div class="setup-controls">
-          <Button onclick={selectAll}>All</Button>
-          <Button onclick={selectNone}>None</Button>
-        </div>
-        <div class="line-list">
-          {#each lineGroups as group}
-            {#if group.name}
-              {@const picked = group.indices.filter((i) => !deselectedLines.has(i)).length}
-              <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
-              <label class="chapter">
-                <input
-                  type="checkbox"
-                  checked={picked === group.indices.length}
-                  bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
-                  onchange={() => toggleChapter(group.indices)}
-                />
-                {group.name}
-                <span class="chapter-count">{group.indices.length} line{group.indices.length === 1 ? '' : 's'}</span>
-              </label>
-            {/if}
-            {#each group.indices as li, k (li)}
-              <label class="line-item">
-                <input
-                  type="checkbox"
-                  checked={!deselectedLines.has(li)}
-                  onchange={() => toggleLine(li)}
-                />
-                <span class="line-num">{k + 1}.</span>
-                <span class="line-preview">{linePreviews[li]}</span>
-              </label>
-            {/each}
-          {/each}
-        </div>
-      </details>
-
-      <label class="toggle-label">
-        <input type="checkbox" bind:checked={autoNext} onchange={saveAutoNext} />
-        Auto-advance
-      </label>
-    </div>
-  </div>
+{#if phase === 'lobby'}
+  <OpeningLobby
+    {opening}
+    {lines}
+    bind:deselected
+    {progress}
+    bind:order
+    bind:perVisit
+    bind:speed
+    bind:autoNext
+    onStart={() => (phase = 'study')}
+    onExplore={() => (phase = 'explore')}
+    onStartOver={startOver}
+  />
 {:else if phase === 'explore'}
   <BoardLayout>
     {#snippet boardArea()}
-      <Board
-        board={exploreBoard}
-        readOnly
-        arrows={exploreArrows}
-        {flipped}
-      />
+      <Board board={exploreBoard} readOnly arrows={exploreArrows} {flipped} />
     {/snippet}
 
     {#snippet sidebarArea()}
       <PgnExplorer pgn={opening.pgn} {flipped} noBoard onBoardChange={onExploreBoardChange} />
-      <div class="drill-footer">
-        <Button onclick={backToSetup}>&larr; Setup</Button>
+      <div class="explore-footer">
+        <Button onclick={backToLobby}>&larr; Setup</Button>
       </div>
     {/snippet}
   </BoardLayout>
+{:else if order === 'flow'}
+  <OpeningFlow {opening} {startBoard} lines={activeLines} bind:speed onExit={backToLobby} />
 {:else}
-  <BoardLayout>
-    <!-- Where am I: above the board on a phone, top of the sidebar otherwise -->
-    {#snippet headerArea()}
-      <div class="drill-header">
-        <h2 class="drill-title">{opening.name}</h2>
-        <div class="line-nav">
-          <button
-            class="nav-btn"
-            onclick={() => jumpToLine(lineIdx - 1)}
-            disabled={lineIdx === 0 || waiting}
-            aria-label="Previous line"
-          >&lsaquo;</button>
-          <span>Line {lineIdx + 1} of {drillLines.length}</span>
-          <button
-            class="nav-btn"
-            onclick={() => jumpToLine(lineIdx + 1)}
-            disabled={lineIdx >= drillLines.length - 1 || waiting}
-            aria-label="Next line"
-          >&rsaquo;</button>
-          {#if order === 'breadth'}
-            <span class="stage">Moves 1–{Math.min(stageDepth, maxDepth)}</span>
-          {/if}
-        </div>
-        <ProgressBar value={linesDone} max={drillLines.length} label="Lines done" />
-      </div>
-    {/snippet}
-
-    {#snippet boardArea()}
-      <Board
-        {board}
-        {selectedSquare}
-        {validMoves}
-        dragValidMoves={dragMoves}
-        onSquareClick={handleSquareClick}
-        onDrop={handleDrop}
-        {onDragStart}
-        {onDragEnd}
-        {wrongMoveSquare}
-        {opponentSlide}
-        {arrows}
-        {flipped}
-        playableColors={[playerColor]}
-      />
-      {#if allDone}
-        <BoardOverlay>
-          <div class="done-check" aria-hidden="true">&#10003;</div>
-          {#if !fullDepth}
-            <!-- A stage in breadth order is done, but the lines go deeper -->
-            {@render stepTrack(currentStage, false)}
-            <p class="done-title">Moves 1–{stageDepth}</p>
-            {#if phase === 'learn'}
-              <Button variant="primary" onclick={goDeeper}>Keep going</Button>
-            {:else}
-              <Button variant="primary" onclick={() => startDrilling('learn')}>Keep learning</Button>
-            {/if}
-          {:else if phase === 'learn'}
-            <Button variant="primary" onclick={() => startDrilling('practice')}>Practice now</Button>
-          {:else}
-            <Button variant="primary" onclick={() => startDrilling('practice')}>Practice again</Button>
-          {/if}
-          <Button onclick={backToSetup}>Back to setup</Button>
-        </BoardOverlay>
-      {/if}
-    {/snippet}
-
-    {#snippet sidebarArea()}
-      <!-- What to do now: always in this one place -->
-      <div class="status">
-        {#if lineComplete && !allDone}
-          <span class="complete-text">✓ Line done</span>
-          <Button variant="primary" onclick={advanceLine}>
-            {lineIdx + 1 < drillLines.length ? 'Next line' : 'Finish'}
-          </Button>
-        {:else if !lineComplete && !allDone && atFrontier && !waiting && !atEnd}
-          {#if !isPlayerTurn}
-            <span class="muted">…</span>
-          {/if}
-        {/if}
-      </div>
-
-      {#if currentComment}
-        <div class="comment-area">
-          <p class="comment-text">{currentComment}</p>
-        </div>
-      {/if}
-
-      <div class="move-list" bind:this={moveListEl}>
-        <div class="move-grid">
-          {#each moveDisplay as pair}
-            {@const whiteReached = maxReachedIdx > pair.whiteIdx}
-            {@const blackReached = pair.blackIdx !== undefined && maxReachedIdx > pair.blackIdx}
-            {@const whitePlayed = moveIdx > pair.whiteIdx}
-            {@const blackPlayed = pair.blackIdx !== undefined && moveIdx > pair.blackIdx}
-            {@const hideWhite = !whiteReached && !isNew(pair.whiteIdx)}
-            {@const hideBlack = !blackReached && !isNew(pair.blackIdx ?? pair.whiteIdx)}
-            {@const whiteActive = moveIdx === pair.whiteIdx + 1}
-            {@const blackActive = pair.blackIdx !== undefined && moveIdx === pair.blackIdx + 1}
-            <!-- Upcoming new moves are listed once the student is past the recalled ones -->
-            {#if (isNew(pair.whiteIdx) && isNew(maxReachedIdx)) || whiteReached || maxReachedIdx === pair.whiteIdx || blackReached}
-              <span class="move-num">{pair.num}.</span>
-              <button
-                class={['move-btn', whitePlayed && 'move-played', whiteActive && 'move-active']}
-                data-active={whiteActive}
-                onclick={() => navigateTo(pair.whiteIdx + 1)}
-                disabled={hideWhite}
-              >
-                {hideWhite ? '...' : pair.white}
-              </button>
-              {#if pair.black}
-                <button
-                  class={['move-btn', blackPlayed && 'move-played', blackActive && 'move-active']}
-                  data-active={blackActive}
-                  onclick={() => pair.blackIdx !== undefined && navigateTo(pair.blackIdx + 1)}
-                  disabled={hideBlack}
-                >
-                  {hideBlack ? '...' : pair.black}
-                </button>
-              {:else}
-                <span></span>
-              {/if}
-            {/if}
-          {/each}
-        </div>
-      </div>
-
-      <div class="drill-footer">
-        <!-- Read the mode from phase, and change it through setMode. -->
-        <Choice
-          label="Mode"
-          hideLabel
-          options={[
-            { value: 'learn', label: 'Learn' },
-            { value: 'practice', label: 'Practice' },
-          ]}
-          bind:value={() => phase as 'learn' | 'practice', setMode}
-        />
-        <Button onclick={backToSetup}>&larr; Setup</Button>
-      </div>
-    {/snippet}
-  </BoardLayout>
+  <OpeningDrill
+    {opening}
+    {startBoard}
+    lines={activeLines}
+    {order}
+    {perVisit}
+    {progress}
+    onStates={setStates}
+    {autoNext}
+    onExit={backToLobby}
+  />
 {/if}
 
 <style>
-  .trainer {
+  .explore-footer {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    /* The page's column (see BoardPage), so it's centred on the page */
-    width: min(var(--column), 100%);
-    /* The opening page is one screen high and doesn't scroll, so on a screen
-       too short for the setup, the setup scrolls rather than being cut off. */
-    min-height: 0;
-    overflow-y: auto;
-  }
-
-  .header {
-    text-align: center;
-  }
-
-  .header h2 {
-    font-size: var(--size-large);
-    font-weight: var(--weight-strong);
-    margin-bottom: 0.25rem;
-  }
-
-  .description {
-    color: var(--ink-muted);
-  }
-
-  /* === Setup === */
-
-  .progress {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  /* Step dots, each with its move numbers underneath */
-  .steps {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.25rem 0.75rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: var(--size-small);
-    color: var(--ink-muted);
-  }
-
-  .dot {
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 50%;
-    background: var(--line);
-  }
-
-  .step.learned .dot {
-    background: var(--correct);
-  }
-
-  .step.current {
-    color: var(--ink);
-    font-weight: var(--weight-strong);
-  }
-
-  .step.current .dot {
-    outline: 2px solid var(--ink);
-    outline-offset: 2px;
-  }
-
-  .setup-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
-  }
-
-  /* Settings sit under the actions, set apart by a rule */
-  .options {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-    max-width: 32rem;
-    margin-top: 0.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--line);
-  }
-
-  .lines summary {
-    cursor: pointer;
-    font-size: var(--size-secondary);
-    color: var(--ink-muted);
-  }
-
-  .lines summary:hover {
-    color: var(--ink);
-  }
-
-  .lines[open] summary {
-    margin-bottom: 0.75rem;
-  }
-
-  .setup-controls {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .line-list {
-    max-height: 16rem;
-    overflow-y: auto;
-    border: 1px solid var(--line);
-    border-radius: 0.5rem;
-    background: var(--surface);
-  }
-
-  /* Chapter heading: stays in view while its lines scroll under it */
-  .chapter {
-    position: sticky;
-    top: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: var(--surface-raised);
-    border-bottom: 1px solid var(--line);
-    font-size: var(--size-secondary);
-    font-weight: var(--weight-strong);
-    cursor: pointer;
-  }
-
-  .chapter input[type="checkbox"] {
-    margin: 0;
-  }
-
-  .chapter-count {
-    margin-left: auto;
-    font-size: var(--size-small);
-    font-weight: var(--weight-regular);
-  }
-
-  .line-item {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    font-size: var(--size-small);
-    cursor: pointer;
-    border-bottom: 1px solid var(--line);
-    line-height: 1.4;
-  }
-
-  .line-item:last-child {
-    border-bottom: none;
-  }
-
-  .line-item:hover {
-    background: var(--surface-raised);
-  }
-
-  .line-item input[type="checkbox"] {
-    flex-shrink: 0;
-    margin-top: 0.125rem;
-  }
-
-  .line-num {
-    color: var(--ink-muted);
-    flex-shrink: 0;
-    min-width: 1.5rem;
-  }
-
-  .line-preview {
-    color: var(--ink-muted);
-    word-break: break-word;
-  }
-
-  .toggle-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    font-size: var(--size-secondary);
-    color: var(--ink-muted);
-  }
-
-  .toggle-label input[type="checkbox"] {
-    margin: 0;
-  }
-
-  .done-check {
-    font-size: 2.5rem;
-    color: var(--correct-text);
-  }
-
-  .done-title {
-    font-size: var(--size-body);
-    font-weight: var(--weight-strong);
-  }
-
-  /* === Drill: where am I, what to do now, the moves, then the controls === */
-
-  .drill-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    width: 100%;
-    text-align: center;
-  }
-
-  .drill-title {
-    font-size: var(--size-secondary);
-    font-weight: var(--weight-strong);
-  }
-
-  .line-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    font-size: var(--size-small);
-    color: var(--ink-muted);
-  }
-
-  .stage {
-    margin-left: 0.75rem;
-  }
-
-  .nav-btn {
-    background: var(--surface-raised);
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    font-size: var(--size-body);
-    line-height: 1;
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
-    transition: background 0.15s;
-  }
-
-  .nav-btn:hover:not(:disabled) {
-    background: var(--line);
-  }
-
-  .nav-btn:disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
-
-  .drill-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
+    justify-content: flex-end;
     width: 100%;
     flex-shrink: 0;
   }
-
-  .comment-area {
-    width: 100%;
-    max-height: 6rem;
-    overflow-y: auto;
-    border-radius: 0.5rem;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    padding: 0.5rem 0.75rem;
-    flex-shrink: 0;
-  }
-
-  .comment-text {
-    font-size: var(--size-secondary);
-    color: var(--ink-muted);
-    text-align: center;
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  /* Tall enough for the Next line button, so the sidebar doesn't jump */
-  .status {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    font-size: var(--size-secondary);
-    min-height: 2.75rem;
-    flex-shrink: 0;
-  }
-
-  .complete-text {
-    color: var(--correct-text);
-    font-weight: var(--weight-strong);
-  }
-
-  .muted {
-    color: var(--ink-muted);
-  }
-
-  /* === Move list === */
-
-  .move-list {
-    width: 100%;
-    border-radius: 0.5rem;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    padding: 0.75rem;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-  }
-
-  .move-grid {
-    display: grid;
-    grid-template-columns: 2rem minmax(0, 5rem) minmax(0, 5rem);
-    column-gap: 0.25rem;
-    row-gap: 0.125rem;
-    font-size: var(--size-secondary);
-  }
-
-  .move-num {
-    color: var(--ink-muted);
-    text-align: right;
-  }
-
-  .move-btn {
-    text-align: left;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: var(--ink-muted);
-    font-family: inherit;
-    font-size: inherit;
-    transition: background-color 0.15s;
-  }
-
-  .move-btn:hover:not(:disabled) {
-    background: var(--surface-raised);
-  }
-
-  .move-btn:disabled {
-    cursor: default;
-  }
-
-  .move-btn.move-played {
-    color: var(--ink);
-  }
-
-  .move-btn.move-active {
-    background: var(--line);
-    font-weight: var(--weight-strong);
-  }
-
 </style>

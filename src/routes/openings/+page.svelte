@@ -3,8 +3,9 @@
   import Page from '$lib/components/ui/Page.svelte';
   import CardList from '$lib/components/ui/CardList.svelte';
   import LinkCard from '$lib/components/ui/LinkCard.svelte';
-  import { OPENINGS } from '$lib/openings';
+  import { OPENINGS, parseOpeningPgn, extractLines } from '$lib/openings';
   import type { Opening } from '$lib/openings';
+  import { KNOWN, loadProgress, migrateOldProgress, playerMoves, stateOf } from '$lib/openings/progress';
 
   // Grouped openings (e.g. a repertoire from one study) get their own section
   let groups = $derived([...new Set(OPENINGS.flatMap(o => o.group ? [o.group] : []))]);
@@ -14,11 +15,17 @@
   let completedIds = $state<Set<string>>(new Set());
 
   onMount(() => {
+    // Learned = every move of yours known
     const completed = new Set<string>();
     for (const opening of OPENINGS) {
-      if (localStorage.getItem(`opening-${opening.id}-complete`) === 'true') {
-        completed.add(opening.id);
-      }
+      try {
+        const lines = extractLines(parseOpeningPgn(opening.pgn));
+        migrateOldProgress(opening, lines);
+        const progress = loadProgress(opening.id);
+        if (playerMoves(lines, opening.color).every((m) => stateOf(progress, m.key) === KNOWN)) {
+          completed.add(opening.id);
+        }
+      } catch {}
     }
     completedIds = completed;
   });
