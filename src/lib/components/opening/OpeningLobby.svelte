@@ -7,14 +7,16 @@
     parseOpeningPgn,
     extractLines,
     findBranchPoint,
+    lineId,
   } from '$lib/openings';
-  import { type MoveProgress, KNOWN, NEW, playerMoves, stateOf, tally } from '$lib/openings/progress';
-  import type { StudyOrder } from './study-order';
+  import { type MoveProgress, type Tally, KNOWN, NEW, playerMoves, stateOf, tally } from '$lib/openings/progress';
+  import type { StudyMode, StudyOrder } from './study-order';
   import { PER_VISIT_OPTIONS, SPEED_OPTIONS } from './study-order';
 
   /**
-   * The screen an opening opens on. The next thing to do comes first: how
-   * much is learned, how to study, Start. The settings are underneath.
+   * The screen an opening opens on: a button for each way to study, the
+   * chapters to study with how much of each is learned, and the settings,
+   * which are set once and remembered, folded away underneath.
    */
 
   interface Props {
@@ -26,7 +28,7 @@
     perVisit: number;
     speed: number;
     autoNext: boolean;
-    onStart: () => void;
+    onStart: (mode: StudyMode) => void;
     onExplore: () => void;
     onStartOver: () => void;
   }
@@ -45,12 +47,16 @@
     onStartOver,
   }: Props = $props();
 
+  // Read once each time the lobby opens: what's due doesn't change while it's open
+  const now = Math.floor(Date.now() / 1000);
+
   let activeLines = $derived(lines.filter((_, i) => !deselected.has(i)));
   let canStart = $derived(activeLines.length > 0);
-  let counts = $derived(tally(playerMoves(activeLines, opening.color), progress));
+  let counts = $derived(tally(playerMoves(activeLines, opening.color), progress, now));
+  // Review needs something learned (or seen) to go over
+  let canReview = $derived(canStart && counts.known + counts.seen > 0);
 
   const ORDERS: { value: StudyOrder; label: string }[] = [
-    { value: 'flow', label: 'Flow' },
     { value: 'breadth', label: 'Breadth' },
     { value: 'depth', label: 'Depth' },
   ];
@@ -61,6 +67,10 @@
   // White's Nth move is ply 2N-2 and Black's is 2N-1 (lines start with White)
   function moveNumber(i: number) {
     return Math.floor(i / 2) + 1;
+  }
+
+  function percent(n: number, total: number) {
+    return total ? (n / total) * 100 : 0;
   }
 
   // === Lines ===
@@ -86,8 +96,8 @@
   function selectAll() { deselected = new Set(); }
   function selectNone() { deselected = new Set(lines.map((_, i) => i)); }
 
-  // The line picker's groups: a study's lines under its chapter names, in the
-  // study's order; any other opening's lines in one group with no name.
+  // The chapters: a study's lines under its chapter names, in the study's
+  // order; any other opening's lines in one group with no name.
   // (A pass keeps the tree's order, so the picker's order is only for picking.)
   let lineGroups = $derived.by(() => {
     const all = lines.map((_, i) => i);
@@ -97,14 +107,19 @@
     const chapterOf = new Map<string, number>();
     chapters.forEach((ch, c) => {
       for (const line of extractLines(parseOpeningPgn(ch.pgn))) {
-        const key = line.map((m) => m.san).join(' ');
+        const key = lineId(line);
         if (!chapterOf.has(key)) chapterOf.set(key, c);
       }
     });
     const groups = chapters.map((ch) => ({ name: ch.name, indices: [] as number[] }));
-    for (const i of all) groups[chapterOf.get(lines[i].map((m) => m.san).join(' ')) ?? 0].indices.push(i);
+    for (const i of all) groups[chapterOf.get(lineId(lines[i])) ?? 0].indices.push(i);
     return groups.filter((g) => g.indices.length > 0);
   });
+
+  // How much of each chapter is learned (all of it, picked or not)
+  let groupCounts = $derived(
+    lineGroups.map((g) => tally(playerMoves(g.indices.map((i) => lines[i]), opening.color), progress, now)),
+  );
 
   // Each line is shown from where it leaves the line above it in the picker,
   // and a chapter's first line from the start. Shown from the start, lines that
@@ -124,7 +139,7 @@
   let lineStates = $derived(
     lines.map((line) => {
       const states = line.filter((m) => m.colorPlayed === opening.color).map((m) => stateOf(progress, m.key));
-      if (states.every((s) => s === KNOWN)) return 'known';
+      if (states.every((s) => s >= KNOWN)) return 'known';
       return states.some((s) => s !== NEW) ? 'some' : 'none';
     }),
   );
@@ -153,108 +168,132 @@
   }
 </script>
 
+<!-- How much is learned: solid = known, pale = seen once -->
+{#snippet learnedBar(t: Tally, label: string)}
+  <div
+    class="learned"
+    role="progressbar"
+    aria-label={label}
+    aria-valuemin={0}
+    aria-valuemax={t.total}
+    aria-valuenow={t.known}
+  >
+    <div class="known" style:width="{percent(t.known, t.total)}%"></div>
+    <div class="seen" style:width="{percent(t.seen, t.total)}%"></div>
+  </div>
+{/snippet}
+
 <div class="lobby">
-  <div class="header">
-    <h2>{opening.name}</h2>
-    {#if opening.description}
-      <p class="description">{opening.description}</p>
-    {/if}
-  </div>
+  <h2>{opening.name}</h2>
 
-  <!-- How much is learned: solid = known, pale = seen once -->
-  <div class="progress">
-    <div
-      class="learned"
-      role="progressbar"
-      aria-label="Moves known"
-      aria-valuemin={0}
-      aria-valuemax={counts.total}
-      aria-valuenow={counts.known}
-    >
-      <div class="known" style:width="{counts.total ? (counts.known / counts.total) * 100 : 0}%"></div>
-      <div class="seen" style:width="{counts.total ? (counts.seen / counts.total) * 100 : 0}%"></div>
-    </div>
-    <span class="count">{counts.known} / {counts.total}</span>
-    {#if confirmingStartOver}
-      <div class="confirm">
-        <span aria-hidden="true">&#8634;</span>
-        <button
-          class="confirm-btn confirm-yes"
-          onclick={() => { confirmingStartOver = false; onStartOver(); }}
-          aria-label="Yes, start over"
-        >&#10003;</button>
-        <button class="confirm-btn confirm-no" onclick={() => (confirmingStartOver = false)} aria-label="No">&#10007;</button>
-      </div>
-    {:else}
-      <Button onclick={() => (confirmingStartOver = true)} disabled={counts.known + counts.seen === 0}>
-        <span aria-hidden="true">&#8634;</span> Start over
-      </Button>
-    {/if}
-  </div>
-
-  <div class="study">
-    <Choice label="How to study" hideLabel options={ORDERS} bind:value={order} />
-    <!-- The chosen way's one setting; the row keeps its height when there is none -->
-    <div class="setting">
-      {#if order === 'flow'}
-        <Choice label="Speed" options={SPEED_OPTIONS} bind:value={speed} />
-      {:else if order === 'breadth'}
-        <Choice label="Moves per visit" options={PER_VISIT_OPTIONS} bind:value={perVisit} />
-      {/if}
-    </div>
-  </div>
-
-  <div class="actions">
-    <Button variant="primary" size="large" onclick={onStart} disabled={!canStart}>
-      {#if order === 'flow'}<span aria-hidden="true">&#9654;</span>{/if} Start
+  <!-- Each way to study starts straight away -->
+  <div class="modes">
+    <Button variant="primary" size="large" onclick={() => onStart('flow')} disabled={!canStart}>
+      <span aria-hidden="true">&#9654;</span> Flow
     </Button>
-    <Button onclick={onExplore}>Explore</Button>
+    <Button variant="primary" size="large" onclick={() => onStart('learn')} disabled={!canStart}>Learn</Button>
+    <Button variant="primary" size="large" onclick={() => onStart('review')} disabled={!canReview}>
+      Review
+      {#if counts.due > 0}<span class="due">{counts.due}</span>{/if}
+    </Button>
   </div>
 
-  <div class="options">
-    <details class="lines">
-      <summary>Lines: {linesSummary}</summary>
-      <div class="setup-controls">
-        <Button onclick={selectAll}>All</Button>
-        <Button onclick={selectNone}>None</Button>
+  <div class="chapters">
+    {#each lineGroups as group, g}
+      {#if group.name}
+        {@const picked = group.indices.filter((i) => !deselected.has(i)).length}
+        <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
+        <label class={['chapter', picked === 0 && 'left-out']}>
+          <input
+            type="checkbox"
+            checked={picked === group.indices.length}
+            bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
+            onchange={() => toggleChapter(group.indices)}
+          />
+          <span class="chapter-name">{group.name}</span>
+          {@render learnedBar(groupCounts[g], group.name)}
+        </label>
+      {:else}
+        <div class="chapter">{@render learnedBar(groupCounts[g], 'Moves known')}</div>
+      {/if}
+    {/each}
+    <div class="explore">
+      <Button onclick={onExplore}>Explore</Button>
+    </div>
+  </div>
+
+  <!-- Set once and remembered -->
+  <details class="settings">
+    <summary><span aria-hidden="true">&#9881;</span><span class="sr-only">Settings</span></summary>
+    <div class="settings-body">
+      <Choice label="Learn" options={ORDERS} bind:value={order} />
+      <!-- Breadth's one setting; the row keeps its height for depth -->
+      <div class="setting">
+        {#if order === 'breadth'}
+          <Choice label="Moves per visit" options={PER_VISIT_OPTIONS} bind:value={perVisit} />
+        {/if}
       </div>
-      <div class="line-list">
-        {#each lineGroups as group}
-          {#if group.name}
-            {@const picked = group.indices.filter((i) => !deselected.has(i)).length}
-            <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
-            <label class="chapter">
-              <input
-                type="checkbox"
-                checked={picked === group.indices.length}
-                bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
-                onchange={() => toggleChapter(group.indices)}
-              />
-              {group.name}
-              <span class="chapter-count">{group.indices.length} line{group.indices.length === 1 ? '' : 's'}</span>
-            </label>
-          {/if}
-          {#each group.indices as li, k (li)}
-            <label class="line-item">
-              <input
-                type="checkbox"
-                checked={!deselected.has(li)}
-                onchange={() => toggleLine(li)}
-              />
-              <span class={['line-dot', lineStates[li]]} aria-hidden="true"></span>
-              <span class="line-num">{k + 1}.</span>
-              <span class="line-preview">{linePreviews[li]}</span>
-            </label>
+      <label class="toggle-label">
+        <input type="checkbox" bind:checked={autoNext} />
+        Auto-advance
+      </label>
+      <Choice label="Flow" options={SPEED_OPTIONS} bind:value={speed} />
+
+      <details class="lines">
+        <summary>Lines: {linesSummary}</summary>
+        <div class="setup-controls">
+          <Button onclick={selectAll}>All</Button>
+          <Button onclick={selectNone}>None</Button>
+        </div>
+        <div class="line-list">
+          {#each lineGroups as group}
+            {#if group.name}
+              {@const picked = group.indices.filter((i) => !deselected.has(i)).length}
+              <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
+              <label class="line-chapter">
+                <input
+                  type="checkbox"
+                  checked={picked === group.indices.length}
+                  bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
+                  onchange={() => toggleChapter(group.indices)}
+                />
+                {group.name}
+                <span class="chapter-count">{group.indices.length} line{group.indices.length === 1 ? '' : 's'}</span>
+              </label>
+            {/if}
+            {#each group.indices as li, k (li)}
+              <label class="line-item">
+                <input
+                  type="checkbox"
+                  checked={!deselected.has(li)}
+                  onchange={() => toggleLine(li)}
+                />
+                <span class={['line-dot', lineStates[li]]} aria-hidden="true"></span>
+                <span class="line-num">{k + 1}.</span>
+                <span class="line-preview">{linePreviews[li]}</span>
+              </label>
+            {/each}
           {/each}
-        {/each}
-      </div>
-    </details>
+        </div>
+      </details>
 
-    <label class="toggle-label">
-      <input type="checkbox" bind:checked={autoNext} />
-      Auto-advance
-    </label>
-  </div>
+      <div class="start-over">
+        {#if confirmingStartOver}
+          <span aria-hidden="true">&#8634;</span>
+          <button
+            class="confirm-btn confirm-yes"
+            onclick={() => { confirmingStartOver = false; onStartOver(); }}
+            aria-label="Yes, start over"
+          >&#10003;</button>
+          <button class="confirm-btn confirm-no" onclick={() => (confirmingStartOver = false)} aria-label="No">&#10007;</button>
+        {:else}
+          <Button onclick={() => (confirmingStartOver = true)} disabled={counts.known + counts.seen === 0}>
+            <span aria-hidden="true">&#8634;</span> Start over
+          </Button>
+        {/if}
+      </div>
+    </div>
+  </details>
 </div>
 
 <style>
@@ -262,7 +301,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1.5rem;
     padding: 1rem;
     /* The page's column (see BoardPage), so it's centred on the page */
     width: min(var(--column), 100%);
@@ -272,29 +311,65 @@
     overflow-y: auto;
   }
 
-  .header {
+  h2 {
+    font-size: var(--size-large);
+    font-weight: var(--weight-strong);
     text-align: center;
   }
 
-  .header h2 {
-    font-size: var(--size-large);
-    font-weight: var(--weight-strong);
-    margin-bottom: 0.25rem;
-  }
+  /* === The ways to study: equal buttons, two to a row on a phone === */
 
-  .description {
-    color: var(--ink-muted);
-  }
-
-  /* === How much is learned === */
-
-  .progress {
-    display: flex;
-    align-items: center;
+  .modes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
     gap: 0.75rem;
     width: 100%;
     max-width: 32rem;
-    min-height: 2.75rem;
+  }
+
+  .due {
+    border: 1px solid currentColor;
+    border-radius: 9999px;
+    padding: 0 0.5rem;
+    font-size: var(--size-secondary);
+  }
+
+  /* === The chapters === */
+
+  .chapters {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 32rem;
+  }
+
+  .chapter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  label.chapter {
+    cursor: pointer;
+  }
+
+  .chapter input[type="checkbox"] {
+    margin: 0;
+  }
+
+  .chapter-name {
+    flex: 0 0 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* A chapter left out of studying */
+  .left-out .chapter-name {
+    color: var(--ink-muted);
   }
 
   .learned {
@@ -315,51 +390,42 @@
     background: var(--correct-tint);
   }
 
-  .count {
-    font-size: var(--size-small);
-    color: var(--ink-muted);
-    white-space: nowrap;
-  }
-
-  .confirm {
+  .explore {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: var(--size-large);
+    justify-content: flex-end;
+    margin-top: 0.75rem;
   }
 
-  .confirm-btn {
-    width: 2.75rem;
-    height: 2.75rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: var(--size-large);
-    font-weight: var(--weight-strong);
+  /* === Settings, folded away under ⚙ === */
+
+  .settings {
+    width: 100%;
+    max-width: 32rem;
+  }
+
+  /* Just the ⚙: the usual ▸ beside it looked like Flow's ▶ */
+  .settings > summary {
     cursor: pointer;
+    font-size: var(--size-large);
+    color: var(--ink-muted);
+    width: fit-content;
+    list-style: none;
   }
 
-  /* Starting over is the danger: the ✓ that confirms it is the wrong colour */
-  .confirm-yes {
-    background: var(--wrong);
-    color: var(--on-answer);
+  .settings > summary::-webkit-details-marker {
+    display: none;
   }
 
-  .confirm-no {
-    background: var(--surface-raised);
-    border: 1px solid var(--line);
+  .settings > summary:hover {
+    color: var(--ink);
   }
 
-  .confirm-no:hover {
-    background: var(--line);
-  }
-
-  /* === How to study === */
-
-  .study {
+  .settings-body {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-top: 0.75rem;
   }
 
   .setting {
@@ -368,24 +434,21 @@
     align-items: center;
   }
 
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+  .toggle-label {
+    display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: var(--size-secondary);
+    color: var(--ink-muted);
   }
 
-  /* === Settings, under the actions, set apart by a rule === */
+  .toggle-label input[type="checkbox"] {
+    margin: 0;
+  }
 
-  .options {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  .lines {
     width: 100%;
-    max-width: 32rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--line);
   }
 
   .lines summary {
@@ -417,7 +480,7 @@
   }
 
   /* Chapter heading: stays in view while its lines scroll under it */
-  .chapter {
+  .line-chapter {
     position: sticky;
     top: 0;
     display: flex;
@@ -431,7 +494,7 @@
     cursor: pointer;
   }
 
-  .chapter input[type="checkbox"] {
+  .line-chapter input[type="checkbox"] {
     margin: 0;
   }
 
@@ -496,16 +559,36 @@
     word-break: break-word;
   }
 
-  .toggle-label {
-    display: inline-flex;
+  .start-over {
+    display: flex;
     align-items: center;
     gap: 0.5rem;
-    cursor: pointer;
-    font-size: var(--size-secondary);
-    color: var(--ink-muted);
+    min-height: 2.75rem;
+    font-size: var(--size-large);
   }
 
-  .toggle-label input[type="checkbox"] {
-    margin: 0;
+  .confirm-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: var(--size-large);
+    font-weight: var(--weight-strong);
+    cursor: pointer;
+  }
+
+  /* Starting over is the danger: the ✓ that confirms it is the wrong colour */
+  .confirm-yes {
+    background: var(--wrong);
+    color: var(--on-answer);
+  }
+
+  .confirm-no {
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+  }
+
+  .confirm-no:hover {
+    background: var(--line);
   }
 </style>

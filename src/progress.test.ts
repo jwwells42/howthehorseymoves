@@ -2,7 +2,18 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { mergeSnapshots, mergeValue, coerceSnapshot, type Snapshot } from '$lib/sync/merge';
 import { parseOpeningPgn, extractLines } from '$lib/openings';
-import { buildPass, KNOWN, NEW, SEEN, type MoveProgress, type MoveState } from '$lib/openings/progress';
+import {
+  afterMove,
+  buildPass,
+  isDue,
+  stateOf,
+  KNOWN,
+  NEW,
+  REVIEW_DAYS,
+  SEEN,
+  type MoveProgress,
+  type MoveState,
+} from '$lib/openings/progress';
 
 vi.mock('$env/dynamic/private', () => ({ env: { SESSION_SECRET: 'test-secret' } }));
 
@@ -109,11 +120,11 @@ describe('merging two copies of progress', () => {
       'opening-e4-order': 'flow',
       'how-to-win-check-mistakes': '4',
       'coord-best': 12,
-      'opening-e4-moves': JSON.stringify({ ok: [1, 5], bad: [7, 5], worse: 'x' }),
+      'opening-e4-moves': JSON.stringify({ ok: [1, 5], box: [7, 5], bad: [100, 5], half: [1.5, 5], worse: 'x' }),
       'pawn-endings-lesson-best-stars': '2',
     });
     expect(m).toEqual({
-      'opening-e4-moves': JSON.stringify({ ok: [1, 5] }),
+      'opening-e4-moves': JSON.stringify({ box: [7, 5], ok: [1, 5] }),
       'pawn-endings-lesson-best-stars': '2',
     });
     expect(coerceSnapshot('nonsense')).toEqual({});
@@ -161,6 +172,63 @@ describe('opening passes', () => {
     const [q] = extractLines(parseOpeningPgn('1.e4 d5 2.e5 a6 3.Nf3'));
     expect(p[4].key).not.toBe(q[4].key);
     expect(NEW).toBe(0);
+  });
+});
+
+describe('opening review', () => {
+  const lines = extractLines(parseOpeningPgn('1.e4 e5 2.Nf3 Nc6 3.Bb5 (3.Bc4 Bc5 4.c3) a6 4.Ba4 Nf6 5.O-O'));
+  const mine = (i: number) => lines[i].filter((m) => m.colorPlayed === 'w');
+  const sans = (pass: typeof lines) => pass.map((l) => l.map((m) => m.san).join(' '));
+  const DAY = 86400;
+  // Noon on a day, local time, so a day either way stays on the calendar day
+  const noon = new Date(2026, 9, 17, 12).getTime() / 1000;
+  const saved = (entries: [string, MoveState, number][]): MoveProgress =>
+    Object.fromEntries(entries.map(([k, s, t]) => [k, [s, t]]));
+
+  it('reads progress saved before review boxes the same: known is the first box, due a day later', () => {
+    const p = saved([['a', KNOWN, noon], ['b', SEEN, noon], ['c', NEW, noon]]);
+    expect([stateOf(p, 'a'), stateOf(p, 'b'), stateOf(p, 'c'), stateOf(p, 'none')]).toEqual([KNOWN, SEEN, NEW, NEW]);
+    expect(isDue(p, 'a', noon + 6 * 3600)).toBe(false);
+    expect(isDue(p, 'a', noon + DAY)).toBe(true);
+    // Seen moves come back straight away; new ones aren't reviews
+    expect(isDue(p, 'b', noon)).toBe(true);
+    expect(isDue(p, 'c', noon + 100 * DAY)).toBe(false);
+  });
+
+  it('counts calendar days, so a move learned late in the evening is due the next morning', () => {
+    const lateEvening = new Date(2026, 9, 17, 23).getTime() / 1000;
+    const nextMorning = new Date(2026, 9, 18, 7).getTime() / 1000;
+    const p = saved([['a', KNOWN, lateEvening]]);
+    expect(isDue(p, 'a', lateEvening + 3600 / 2)).toBe(false);
+    expect(isDue(p, 'a', nextMorning)).toBe(true);
+  });
+
+  it('goes up a box when due and played from memory, back to seen after help, and stays when played early', () => {
+    const last = REVIEW_DAYS.length - 1;
+    const p = saved([['due', 3, noon - 3 * DAY], ['early', 3, noon - DAY], ['top', last, noon - 365 * DAY]]);
+    expect(afterMove(p, 'due', false, noon)).toBe(4);
+    expect(afterMove(p, 'early', false, noon)).toBe(null);
+    expect(afterMove(p, 'due', true, noon)).toBe(SEEN);
+    expect(afterMove(p, 'new', false, noon)).toBe(SEEN);
+    // The last box is saved again, so its next review is counted from now
+    expect(afterMove(p, 'top', false, noon)).toBe(last);
+    expect(afterMove(saved([['s', SEEN, noon]]), 's', true, noon)).toBe(null);
+    expect(afterMove(saved([['s', SEEN, noon]]), 's', false, noon)).toBe(KNOWN);
+  });
+
+  it('a review plays each line up to its last move due, and one line covers another that starts it', () => {
+    const fresh: [string, MoveState, number][] = [...mine(0), ...mine(1)].map((m) => [m.key, KNOWN, noon]);
+    // Nothing due: everything learned, each line to its last learned move
+    expect(sans(buildPass(lines, 'w', 'review', 3, saved(fresh), noon))).toEqual([
+      'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O',
+      'e4 e5 Nf3 Nc6 Bc4 Bc5 c3',
+    ]);
+    // Only Nf3 due: one visit, shared by both lines
+    const nf3 = saved(fresh.map(([k, s, t]) => [k, s, k === mine(0)[1].key ? t - DAY : t]));
+    expect(sans(buildPass(lines, 'w', 'review', 3, nf3, noon))).toEqual(['e4 e5 Nf3']);
+    // Nf3 and Ba4 due: the Bb5 line up to Ba4 covers Nf3 too
+    const two = saved(fresh.map(([k, s, t]) => [k, s, [mine(0)[1].key, mine(0)[3].key].includes(k) ? t - DAY : t]));
+    expect(sans(buildPass(lines, 'w', 'review', 3, two, noon))).toEqual(['e4 e5 Nf3 Nc6 Bb5 a6 Ba4']);
   });
 });
 

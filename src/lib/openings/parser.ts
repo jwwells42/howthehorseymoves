@@ -36,7 +36,7 @@ export interface Opening {
   color: PieceColor;
   pgn: string;
   group?: string; // openings sharing a group get their own section on /openings
-  defaultOrder?: "depth" | "breadth"; // setup toggle's starting order (default "depth": one line at a time)
+  defaultOrder?: "depth" | "breadth"; // Learn's order until the student picks one (default "depth": one line at a time)
   chapters?: PgnChapter[]; // from a study: the setup's line picker groups the lines by chapter
 }
 
@@ -294,6 +294,11 @@ export function splitPgnChapters(pgn: string): PgnChapter[] {
     chapters.push({ name, pgn: text });
   }
   return chapters;
+}
+
+/** A line's moves as text: how a line is known across a re-export of its PGN. */
+export function lineId(line: OpeningLine): string {
+  return line.map((m) => m.san).join(" ");
 }
 
 export function findBranchPoint(line1: OpeningLine, line2: OpeningLine): number {

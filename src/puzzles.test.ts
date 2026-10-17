@@ -5,6 +5,7 @@ import { getAllPieceKeys, getPuzzlesForPiece } from '$lib/puzzles';
 import { parsePuzzleMoves } from '$lib/puzzles/parse-moves';
 import { parseFen, createBoardState, type PieceColor } from '$lib/logic/types';
 import { isInCheck } from '$lib/logic/attacks';
+import { OPENINGS, parseOpeningPgn, extractLines } from '$lib/openings';
 
 /*
   Catches puzzle data that would break a page. A puzzle whose moves can't be
@@ -29,6 +30,27 @@ describe('puzzles', () => {
           } catch (e) {
             broken.push(`${where}: ${(e as Error).message}`);
           }
+        }
+      }
+    }
+    expect(broken).toEqual([]);
+  });
+});
+
+describe('openings', () => {
+  // A repertoire is re-exported from Lichess and its file overwritten, so a
+  // move that doesn't parse would break its page; this finds it before a push
+  it('every opening loads', () => {
+    const broken: string[] = [];
+    for (const opening of OPENINGS) {
+      const where = `/openings/${opening.id}`;
+      const pgns: [string, string][] = [['all', opening.pgn]];
+      for (const chapter of opening.chapters ?? []) pgns.push([chapter.name, chapter.pgn]);
+      for (const [label, pgn] of pgns) {
+        try {
+          if (extractLines(parseOpeningPgn(pgn)).length === 0) broken.push(`${where} (${label}): no moves`);
+        } catch (e) {
+          broken.push(`${where} (${label}): ${(e as Error).message}`);
         }
       }
     }

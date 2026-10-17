@@ -12,13 +12,14 @@
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import { playSound } from '$lib/state/sound';
   import { type Opening, type OpeningLine, findBranchPoint } from '$lib/openings';
-  import { type MoveProgress, type MoveState, NEW, SEEN, KNOWN, buildPass, stateOf } from '$lib/openings/progress';
+  import { type MoveProgress, type MoveState, type PassKind, NEW, afterMove, buildPass, stateOf } from '$lib/openings/progress';
 
   /**
-   * Playing an opening's lines from memory, breadth or depth. A move not
-   * played before is shown with an arrow; one played before is played from
-   * memory, and a mistake brings its arrow back. Every move played is saved
-   * (see $lib/openings/progress), so there's no separate learn and practice.
+   * Playing an opening's lines from memory: learning (breadth or depth) or
+   * review. A move not played before is shown with an arrow; one played
+   * before is played from memory, and a mistake brings its arrow back. Every
+   * move played is saved (see $lib/openings/progress), which is what decides
+   * when it comes back for review.
    */
 
   interface Props {
@@ -26,7 +27,7 @@
     startBoard: BoardState;
     /** The lines picked on the lobby */
     lines: OpeningLine[];
-    order: 'breadth' | 'depth';
+    order: PassKind;
     perVisit: number;
     progress: MoveProgress;
     onStates: (states: Record<string, MoveState>) => void;
@@ -211,10 +212,9 @@
 
     const expected = currentLine[moveIdx];
     if (from === expected.from && to === expected.to) {
-      // Played with help (an arrow) it's seen; from memory, known
-      const before = stateOf(progress, expected.key);
-      const after = before === NEW || showHint ? SEEN : KNOWN;
-      if (after !== before) onStates({ [expected.key]: after });
+      // Played with help (an arrow) it's seen; from memory when due, a box up
+      const after = afterMove(progress, expected.key, showHint, Math.floor(Date.now() / 1000));
+      if (after !== null) onStates({ [expected.key]: after });
 
       board = expected.boardAfter;
       selectedSquare = null;

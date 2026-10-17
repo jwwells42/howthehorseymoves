@@ -9,7 +9,7 @@
   import OpeningFlow from './OpeningFlow.svelte';
   import type { BoardState } from '$lib/logic/types';
   import type { Arrow } from '$lib/logic/pgn';
-  import { type Opening, parseOpeningPgn, extractLines } from '$lib/openings';
+  import { type Opening, parseOpeningPgn, extractLines, lineId } from '$lib/openings';
   import {
     type MoveProgress,
     type MoveState,
@@ -21,6 +21,7 @@
     savesProgress,
   } from '$lib/openings/progress';
   import {
+    type StudyMode,
     type StudyOrder,
     DEFAULT_PER_VISIT,
     DEFAULT_SPEED,
@@ -28,14 +29,16 @@
     PREFS,
     SPEED_OPTIONS,
     orderKey,
+    skippedKey,
   } from './study-order';
 
   /**
-   * An opening: the lobby, then one of flow (watch every line), breadth or
-   * depth (play the lines from memory), or explore (the whole tree).
+   * An opening: the lobby, then one of flow (watch every line), learn (new
+   * moves, breadth or depth), review (the moves due), or explore (the whole
+   * tree).
    */
 
-  type Phase = 'lobby' | 'study' | 'explore';
+  type Phase = 'lobby' | StudyMode | 'explore';
 
   interface Props {
     opening: Opening;
@@ -90,6 +93,22 @@
     writePref(PREFS.autoNext, String(values[3]));
   });
 
+  // The lines left out, kept by their moves so a re-exported PGN keeps them
+  $effect(() => {
+    const skipped = [...deselected].map((i) => lineId(lines[i]));
+    if (!settingsLoaded || !savesProgress(opening)) return;
+    writePref(skippedKey(opening.id), JSON.stringify(skipped));
+  });
+
+  function readSkipped(): Set<number> {
+    try {
+      const ids = new Set(JSON.parse(localStorage.getItem(skippedKey(opening.id)) ?? '[]'));
+      return new Set(lines.flatMap((line, i) => (ids.has(lineId(line)) ? [i] : [])));
+    } catch {
+      return new Set();
+    }
+  }
+
   // === Progress ===
 
   let progress = $state.raw<MoveProgress>({});
@@ -119,10 +138,11 @@
   }
 
   onMount(() => {
-    order = readPref(orderKey(opening.id), ['flow', 'breadth', 'depth'] as const, (r) => r as StudyOrder) ?? order;
+    order = readPref(orderKey(opening.id), ['breadth', 'depth'] as const, (r) => r as StudyOrder) ?? order;
     perVisit = readPref(PREFS.perVisit, PER_VISIT_OPTIONS.map((o) => o.value), Number) ?? perVisit;
     speed = readPref(PREFS.speed, SPEED_OPTIONS.map((o) => o.value), Number) ?? speed;
     autoNext = readPref(PREFS.autoNext, [true, false], (r) => r === 'true') ?? autoNext;
+    if (savesProgress(opening)) deselected = readSkipped();
     settingsLoaded = true;
 
     migrateOldProgress(opening, lines);
@@ -162,7 +182,7 @@
     bind:perVisit
     bind:speed
     bind:autoNext
-    onStart={() => (phase = 'study')}
+    onStart={(mode) => (phase = mode)}
     onExplore={() => (phase = 'explore')}
     onStartOver={startOver}
   />
@@ -179,14 +199,14 @@
       </div>
     {/snippet}
   </BoardLayout>
-{:else if order === 'flow'}
+{:else if phase === 'flow'}
   <OpeningFlow {opening} {startBoard} lines={activeLines} bind:speed onExit={backToLobby} />
 {:else}
   <OpeningDrill
     {opening}
     {startBoard}
     lines={activeLines}
-    {order}
+    order={phase === 'review' ? 'review' : order}
     {perVisit}
     {progress}
     onStates={setStates}

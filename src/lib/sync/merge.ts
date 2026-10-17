@@ -81,13 +81,17 @@ function mergePuzzles(a: string | undefined, b: string | undefined): string {
   return JSON.stringify(sortKeys(out));
 }
 
-/** An opening move's progress: [state, seconds since 1970 when it was saved]. */
+/**
+ * An opening move's progress: [state, seconds since 1970 when it was saved].
+ * The state is new, seen or a review box (see $lib/openings/progress); any
+ * whole number up to 99 is kept, so a box added there needs no change here.
+ */
 type MoveEntry = [number, number];
 
 function moveEntry(value: unknown): MoveEntry | null {
   if (!Array.isArray(value) || value.length !== 2) return null;
   const [state, time] = value.map(Number);
-  if (![0, 1, 2].includes(state) || !Number.isFinite(time)) return null;
+  if (!Number.isInteger(state) || state < 0 || state > 99 || !Number.isFinite(time)) return null;
   return [state, time];
 }
 
