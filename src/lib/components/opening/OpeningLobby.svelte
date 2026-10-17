@@ -121,6 +121,9 @@
     lineGroups.map((g) => tally(playerMoves(g.indices.map((i) => lines[i]), opening.color), progress, now)),
   );
 
+  // And of each line, for an opening without chapters, whose lobby lists its lines
+  let lineCounts = $derived(lines.map((line) => tally(playerMoves([line], opening.color), progress, now)));
+
   // Each line is shown from where it leaves the line above it in the picker,
   // and a chapter's first line from the start. Shown from the start, lines that
   // share a long trunk all looked the same.
@@ -212,7 +215,14 @@
           {@render learnedBar(groupCounts[g], group.name)}
         </label>
       {:else}
-        <div class="chapter">{@render learnedBar(groupCounts[g], 'Moves known')}</div>
+        <!-- No chapters: a row for each line, ticked or not like a chapter -->
+        {#each group.indices as li (li)}
+          <label class={['chapter', 'line-row', deselected.has(li) && 'left-out']}>
+            <input type="checkbox" checked={!deselected.has(li)} onchange={() => toggleLine(li)} />
+            <span class="chapter-name">{linePreviews[li]}</span>
+            {@render learnedBar(lineCounts[li], linePreviews[li])}
+          </label>
+        {/each}
       {/if}
     {/each}
     <div class="explore">
@@ -363,6 +373,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* A line's moves are longer than a chapter's name */
+  .line-row .chapter-name {
+    flex: 1;
+    font-size: var(--size-secondary);
+  }
+
+  .line-row .learned {
+    flex: 0 0 6rem;
   }
 
   /* A chapter left out of studying */
