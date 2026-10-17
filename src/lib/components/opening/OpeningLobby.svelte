@@ -188,9 +188,7 @@
 
   <!-- Each way to study starts straight away -->
   <div class="modes">
-    <Button variant="primary" size="large" onclick={() => onStart('flow')} disabled={!canStart}>
-      <span aria-hidden="true">&#9654;</span> Flow
-    </Button>
+    <Button variant="primary" size="large" onclick={() => onStart('flow')} disabled={!canStart}>Flow</Button>
     <Button variant="primary" size="large" onclick={() => onStart('learn')} disabled={!canStart}>Learn</Button>
     <Button variant="primary" size="large" onclick={() => onStart('review')} disabled={!canReview}>
       Review
@@ -403,7 +401,7 @@
     max-width: 32rem;
   }
 
-  /* Just the ⚙: the usual ▸ beside it looked like Flow's ▶ */
+  /* Just the ⚙, without the usual ▸ beside it */
   .settings > summary {
     cursor: pointer;
     font-size: var(--size-large);

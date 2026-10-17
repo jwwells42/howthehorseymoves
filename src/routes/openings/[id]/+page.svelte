@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { getOpening } from '$lib/openings';
-  import OpeningTrainer from '$lib/components/opening/OpeningTrainer.svelte';
+  import OpeningTrainer, { backLink } from '$lib/components/opening/OpeningTrainer.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import BoardPage from '$lib/components/board/BoardPage.svelte';
   import { doneHref, stopFromUrl } from '$lib/curriculum';
@@ -14,7 +14,7 @@
 </script>
 
 {#if opening}
-  <BoardPage back={{ href: '/openings', label: 'Back to openings' }}>
+  <BoardPage back={backLink()}>
     {#snippet action()}
       {#if pathStop}
         <Button variant="primary" href={doneHref(pathStop)}>Continue <span aria-hidden="true">&rarr;</span></Button>

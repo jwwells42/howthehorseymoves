@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import type { PieceColor } from '$lib/logic/types';
   import type { Opening } from '$lib/openings';
   import { parseOpeningPgn, extractLines } from '$lib/openings';
-  import OpeningTrainer from '$lib/components/opening/OpeningTrainer.svelte';
+  import OpeningTrainer, { backLink } from '$lib/components/opening/OpeningTrainer.svelte';
   import Page from '$lib/components/ui/Page.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import BoardPage from '$lib/components/board/BoardPage.svelte';
@@ -41,13 +42,15 @@
   }
 
   function goBack() {
+    // Out of the mode too, so the next PGN opens on its lobby
+    if (page.state.openingPhase) history.back();
     activeOpening = null;
     error = null;
   }
 </script>
 
 {#if activeOpening}
-  <BoardPage back={{ href: '/openings', label: 'Back to openings' }}>
+  <BoardPage back={backLink()}>
     {#snippet action()}
       <Button onclick={goBack}>&larr; Change PGN</Button>
     {/snippet}

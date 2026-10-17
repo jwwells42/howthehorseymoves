@@ -1,5 +1,27 @@
+<script lang="ts" module>
+  import { page } from '$app/state';
+
+  /**
+   * The link above the board: in a mode, back to the lobby (as the browser's
+   * Back does, since each mode is a step in its history); in the lobby, to
+   * the list of openings.
+   */
+  export function backLink() {
+    if (!page.state.openingPhase) return { href: '/openings', label: 'Back to openings' };
+    return {
+      href: page.url.pathname + page.url.search,
+      label: 'Back to setup',
+      onclick: (e: MouseEvent) => {
+        e.preventDefault();
+        history.back();
+      },
+    };
+  }
+</script>
+
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
+  import { pushState } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';
@@ -58,7 +80,12 @@
   let deselected = $state<Set<number>>(new Set());
   let activeLines = $derived(lines.filter((_, i) => !deselected.has(i)));
 
-  let phase = $state<Phase>('lobby');
+  // Each mode is a step in the browser's history, so Back comes to the lobby
+  let phase = $derived<Phase>(page.state.openingPhase ?? 'lobby');
+
+  function open(mode: Exclude<Phase, 'lobby'>) {
+    pushState('', { openingPhase: mode });
+  }
 
   // === Settings, remembered on this device ===
 
@@ -156,9 +183,13 @@
   });
 
   function backToLobby() {
-    phase = 'lobby';
-    reloadProgress();
+    history.back();
   }
+
+  // What was saved while away (by another tab, or sync) shows in the lobby
+  $effect(() => {
+    if (phase === 'lobby') untrack(reloadProgress);
+  });
 
   // === Explore ===
 
@@ -182,8 +213,8 @@
     bind:perVisit
     bind:speed
     bind:autoNext
-    onStart={(mode) => (phase = mode)}
-    onExplore={() => (phase = 'explore')}
+    onStart={open}
+    onExplore={() => open('explore')}
     onStartOver={startOver}
   />
 {:else if phase === 'explore'}

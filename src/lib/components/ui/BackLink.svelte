@@ -3,14 +3,16 @@
 
   interface Props {
     href: string;
+    /** Instead of following the link, e.g. going back in the browser's history */
+    onclick?: (e: MouseEvent) => void;
     /** Where it goes, e.g. "Back to home". */
     children: Snippet;
   }
 
-  let { href, children }: Props = $props();
+  let { href, onclick, children }: Props = $props();
 </script>
 
-<a {href} class="back-link">&larr; {@render children()}</a>
+<a {href} {onclick} class="back-link">&larr; {@render children()}</a>
 
 <style>
   .back-link {

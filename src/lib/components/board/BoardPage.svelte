@@ -4,7 +4,7 @@
 
   interface Props {
     /** The page one level up, e.g. { href: '/', label: 'Back to home' }. */
-    back?: { href: string; label: string };
+    back?: { href: string; label: string; onclick?: (e: MouseEvent) => void };
     /** At the right end of the back link's row, e.g. Continue. */
     action?: Snippet;
     children: Snippet;
@@ -21,7 +21,7 @@
 <main class="board-page">
   <div class="top-row">
     {#if back}
-      <BackLink href={back.href}>{back.label}</BackLink>
+      <BackLink href={back.href} onclick={back.onclick}>{back.label}</BackLink>
     {/if}
     {#if action}
       <div class="action">{@render action()}</div>
