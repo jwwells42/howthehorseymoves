@@ -87,7 +87,7 @@ function sine(freq: number, duration: number, volume: number, delay = 0) {
 }
 
 /** The move "tap": a short burst of noise. Raw noise is mostly hiss, so it is
- *  low-passed to leave a soft, wooden knock. */
+ *  low-passed at 1 kHz to leave a soft, wooden knock. */
 function noiseBurst(duration: number, volume: number) {
   const c = getCtx();
   const sr = c.sampleRate;
@@ -104,7 +104,7 @@ function noiseBurst(duration: number, volume: number) {
   source.buffer = buffer;
   const filter = c.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.value = 2400;
+  filter.frequency.value = 1000;
   filter.Q.value = 0.7;
   source.connect(filter);
   filter.connect(getOutput());
@@ -113,9 +113,12 @@ function noiseBurst(duration: number, volume: number) {
 
 const SOUNDS = {
   move() {
-    noiseBurst(0.06, 0.4);
-    sine(800, 0.05, 0.3);
-    sine(400, 0.04, 0.15);
+    noiseBurst(0.06, 0.5);
+    // Two octaves of one low note: 130 Hz is the warmth on headphones and
+    // proper speakers, 260 Hz is what a Chromebook's small speakers can play.
+    sine(130, 0.08, 0.25);
+    sine(260, 0.07, 0.25);
+    sine(400, 0.04, 0.1);
   },
   correct() {
     sine(523, 0.15, 0.45);
