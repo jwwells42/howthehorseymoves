@@ -37,9 +37,11 @@
     min-height: calc(100dvh - 3rem);
     padding: 1.5rem var(--gutter) 1rem;
   }
-  /* Never scrolls when there's room for the board */
+  /* Never scrolls when there's room for the board. A screen with no board
+     on it (a trainer's start or results) scrolls like any other page, so
+     results longer than the screen can be read */
   @media (min-height: 32rem) and (min-width: 32rem) {
-    .board-page {
+    .board-page:has(:global(.board-layout)) {
       height: calc(100dvh - 3rem);
       overflow: hidden;
     }
