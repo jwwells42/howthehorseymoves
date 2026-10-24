@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { readNumber } from '$lib/state/storage';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import GameShell from '$lib/components/game/GameShell.svelte';
@@ -27,7 +28,7 @@
     if (level) return;
     const found: Record<string, boolean> = {};
     for (const l of BOT_LADDER) {
-      found[l] = (parseInt(localStorage.getItem(`bot-beaten-${l}`) ?? '0', 10) || 0) > 0;
+      found[l] = readNumber(`bot-beaten-${l}`) > 0;
     }
     beaten = found;
   });

@@ -1,5 +1,6 @@
 import { getPuzzlesForPiece } from '$lib/puzzles';
 import { getPuzzleProgress } from '$lib/state/progress-store';
+import { readNumber } from '$lib/state/storage';
 
 // ═══════════════════════════════════════════════
 // Types
@@ -193,12 +194,12 @@ export function getStopStars(stop: CurriculumStop): number {
     case 'puzzle-set':
       return getPuzzleSetStars(src.key);
     case 'localStorage': {
-      return parseInt(localStorage.getItem(src.key) ?? '0', 10);
+      return readNumber(src.key);
     }
     case 'localStorage-all': {
       let min = Infinity;
       for (const key of src.keys) {
-        const val = parseInt(localStorage.getItem(key) ?? '0', 10);
+        const val = readNumber(key);
         if (val === 0) return 0;
         min = Math.min(min, val);
       }

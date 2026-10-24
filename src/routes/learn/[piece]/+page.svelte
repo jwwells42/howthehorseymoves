@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { readNumber } from '$lib/state/storage';
   import { page } from '$app/state';
   import { onMount } from 'svelte';
   import Page from '$lib/components/ui/Page.svelte';
@@ -94,18 +95,18 @@
   onMount(() => {
     const s: Record<string, number> = {};
     for (const sec of HOW_TO_WIN_SECTIONS) {
-      s[sec.key] = parseInt(localStorage.getItem(sec.storageKey) ?? '0', 10);
+      s[sec.key] = readNumber(sec.storageKey);
     }
     sectionStars = s;
     if (howToWinMatch) {
       const sectionInfo = HOW_TO_WIN_SECTIONS.find(s => s.key === howToWinMatch![1]);
       if (sectionInfo) {
-        hwStepStars = parseInt(localStorage.getItem(sectionInfo.storageKey) ?? '0', 10);
+        hwStepStars = readNumber(sectionInfo.storageKey);
       }
     }
-    krrkTrainerStars = parseInt(localStorage.getItem('endings-krrk-best-stars') ?? '0', 10);
+    krrkTrainerStars = readNumber('endings-krrk-best-stars');
     pawnStepStars = Object.fromEntries(
-      pawnEndingSteps.map((step) => [step.id, parseInt(localStorage.getItem(stepStorageKey(step.id)) ?? '0', 10)])
+      pawnEndingSteps.map((step) => [step.id, readNumber(stepStorageKey(step.id))])
     );
   });
 

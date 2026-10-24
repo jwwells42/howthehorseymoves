@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import { EMPTY_BOARD, FILES, RANKS, type SquareId } from '$lib/logic/types';
   import Board from '$lib/components/board/Board.svelte';
@@ -57,8 +57,8 @@
   let flashRef: ReturnType<typeof setTimeout> | null = null;
 
   onMount(() => {
-    bestScore = parseInt(localStorage.getItem('coord-best') ?? '0', 10);
-    bestStars = parseInt(localStorage.getItem('coord-best-stars') ?? '0', 10);
+    bestScore = readNumber('coord-best');
+    bestStars = readNumber('coord-best-stars');
 
     return () => {
       if (timerRef) clearInterval(timerRef);

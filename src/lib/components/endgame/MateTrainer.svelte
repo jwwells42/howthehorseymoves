@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
@@ -43,7 +43,7 @@
   let bestStars = $state(0);
 
   $effect(() => {
-    bestStars = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
+    bestStars = readNumber(storageKey);
   });
 
   let validMoves = $derived.by(() => {

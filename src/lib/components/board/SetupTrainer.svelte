@@ -41,7 +41,7 @@
 </script>
 
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -88,10 +88,7 @@
   onMount(() => {
     const stars: Record<string, number> = {};
     for (const s of SETUP_STAGES) {
-      stars[s.slug] = parseInt(
-        localStorage.getItem(`setup-${s.slug}-best-stars`) ?? '0',
-        10
-      );
+      stars[s.slug] = readNumber(`setup-${s.slug}-best-stars`);
     }
     allStageStars = stars;
   });

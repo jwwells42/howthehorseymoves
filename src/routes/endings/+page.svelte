@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Page from '$lib/components/ui/Page.svelte';
   import CardList from '$lib/components/ui/CardList.svelte';
@@ -19,7 +20,7 @@
 
   onMount(() => {
     pawnEndingStars = Object.fromEntries(
-      PAWN_ENDINGS.map((e) => [e.storageKey, parseInt(localStorage.getItem(e.storageKey) ?? '0', 10)])
+      PAWN_ENDINGS.map((e) => [e.storageKey, readNumber(e.storageKey)])
     );
   });
 </script>

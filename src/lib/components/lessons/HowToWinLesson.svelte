@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { stopFromUrl, withStop } from '$lib/curriculum';
@@ -110,7 +110,7 @@
     wrongMoveSquare = null;
     feedbackMessage = null;
     done = false;
-    bestStars = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
+    bestStars = readNumber(storageKey);
     // Reset mistakes at the start of a section
     if (stepIndex === 0) {
       localStorage.setItem(mistakesKey, '0');
@@ -131,7 +131,7 @@
   function goToNext() {
     if (stepIndex + 1 >= steps.length) {
       // Section complete -- save stars
-      const mistakes = parseInt(localStorage.getItem(mistakesKey) ?? '0', 10);
+      const mistakes = readNumber(mistakesKey);
       const stars = mistakesToStars(mistakes);
       bestStars = saveBest(storageKey, stars);
       updateCombinedStars();
@@ -145,7 +145,7 @@
   /* ── Mistake tracking ──────────────────────────────────── */
 
   function addMistake() {
-    const cur = parseInt(localStorage.getItem(mistakesKey) ?? '0', 10);
+    const cur = readNumber(mistakesKey);
     localStorage.setItem(mistakesKey, (cur + 1).toString());
   }
 
@@ -264,10 +264,7 @@
 
   /* ── Done screen helpers ───────────────────────────────── */
 
-  let doneMistakes = $derived(parseInt(
-    (typeof localStorage !== 'undefined' ? localStorage.getItem(mistakesKey) : null) ?? '0',
-    10,
-  ));
+  let doneMistakes = $derived(readNumber(mistakesKey));
   let doneStars = $derived(mistakesToStars(doneMistakes));
   let sectionIdx = $derived(SECTIONS.findIndex((s) => s.key === section));
   let nextSection = $derived(SECTIONS[sectionIdx + 1] ?? null);

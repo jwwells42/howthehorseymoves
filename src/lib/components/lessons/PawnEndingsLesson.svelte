@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -192,7 +192,7 @@
     let allDone = true;
     for (const s of pawnEndingSteps) {
       if (s.type !== 'quiz') continue;
-      const val = parseInt(localStorage.getItem(stepStorageKey(s.id)) ?? '0', 10);
+      const val = readNumber(stepStorageKey(s.id));
       if (val === 0) { allDone = false; break; }
       min = Math.min(min, val);
     }

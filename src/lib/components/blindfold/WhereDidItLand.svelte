@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
@@ -171,7 +171,7 @@
   let bestStars = $state(0);
 
   onMount(() => {
-    bestStars = parseInt(localStorage.getItem('blindfold-landed-best-stars') ?? '0', 10);
+    bestStars = readNumber('blindfold-landed-best-stars');
   });
 
   function startGame() {

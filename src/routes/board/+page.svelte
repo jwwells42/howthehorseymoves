@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Page from '$lib/components/ui/Page.svelte';
   import CardList from '$lib/components/ui/CardList.svelte';
@@ -8,7 +9,7 @@
   let coordStars = $state(0);
 
   onMount(() => {
-    coordStars = parseInt(localStorage.getItem('coord-best-stars') ?? '0', 10);
+    coordStars = readNumber('coord-best-stars');
   });
 </script>
 

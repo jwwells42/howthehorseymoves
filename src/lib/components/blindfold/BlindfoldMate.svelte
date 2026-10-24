@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -139,7 +139,7 @@
   });
 
   onMount(() => {
-    bestStars = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
+    bestStars = readNumber(storageKey);
   });
 
   /* Auto-scroll move list */

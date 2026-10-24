@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -194,7 +194,7 @@
   let showTimerRef: ReturnType<typeof setTimeout> | null = null;
 
   onMount(() => {
-    bestStars = parseInt(localStorage.getItem('blindfold-changed-best-stars') ?? '0', 10);
+    bestStars = readNumber('blindfold-changed-best-stars');
 
     return () => {
       if (showTimerRef) clearTimeout(showTimerRef);

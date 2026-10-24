@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -87,7 +87,7 @@
   let level = $derived(LEVELS[levelIdx]);
 
   onMount(() => {
-    bestStars = parseInt(localStorage.getItem('blindfold-flash-best-stars') ?? '0', 10);
+    bestStars = readNumber('blindfold-flash-best-stars');
 
     return () => {
       if (showTimerRef) clearTimeout(showTimerRef);

@@ -1,4 +1,4 @@
-import { saveBest } from "$lib/state/storage";
+import { saveBest, readNumber } from "$lib/state/storage";
 import type { SquareId } from "$lib/logic/types";
 import type { Arrow } from "$lib/logic/pgn";
 import { MARK, type SquareHighlight } from "$lib/board-marks";
@@ -206,9 +206,7 @@ export function mistakesToStars(m: number): number {
 
 export function updateCombinedStars(): void {
   const allKeys = SECTIONS.map((s) => s.storageKey);
-  const allStars = allKeys.map((k) =>
-    parseInt(localStorage.getItem(k) ?? "0", 10),
-  );
+  const allStars = allKeys.map((k) => readNumber(k));
   const min = Math.min(...allStars);
   saveBest("how-to-win-best-stars", min);
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onDestroy, onMount } from 'svelte';
   import type { PieceKind } from '$lib/logic/types';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
@@ -30,7 +30,7 @@
 
   onMount(() => {
     round = makeRound();
-    bestStars = parseInt(localStorage.getItem(STORAGE_KEY) ?? '0', 10);
+    bestStars = readNumber(STORAGE_KEY);
   });
 
   onDestroy(() => clearTimeout(nextTimer));

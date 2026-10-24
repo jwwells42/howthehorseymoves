@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Page from '$lib/components/ui/Page.svelte';
   import CardList from '$lib/components/ui/CardList.svelte';
@@ -76,7 +77,7 @@
     for (const group of GROUPS) {
       for (const t of group.trainers) {
         if (t.storageKey) {
-          s[t.key] = parseInt(localStorage.getItem(t.storageKey) ?? '0', 10);
+          s[t.key] = readNumber(t.storageKey);
         }
       }
     }

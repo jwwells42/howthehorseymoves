@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
+  import { saveBest, readNumber } from '$lib/state/storage';
   import { onMount } from 'svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -149,8 +149,8 @@
   let bestStars = $state(0);
 
   onMount(() => {
-    best = parseInt(localStorage.getItem('blindfold-guarding-best') ?? '0', 10);
-    bestStars = parseInt(localStorage.getItem('blindfold-guarding-best-stars') ?? '0', 10);
+    best = readNumber('blindfold-guarding-best');
+    bestStars = readNumber('blindfold-guarding-best-stars');
   });
 
   function persistBest(s: number) {
