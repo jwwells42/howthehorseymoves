@@ -1,17 +1,10 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
-  import { onMount } from 'svelte';
-  import StarRating from '$lib/components/ui/StarRating.svelte';
-  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import { createTimedRound } from '$lib/state/use-timed-round.svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
-  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import TimedRound from './TimedRound.svelte';
   import ReviewCard from './ReviewCard.svelte';
   import ReviewGrid from './ReviewGrid.svelte';
-  import { playSound } from '$lib/state/sound';
   import { MARK, highlight, type SquareHighlight } from '$lib/board-marks';
-
-  const GAME_DURATION = 30;
 
   interface Attempt {
     sq1: string;
@@ -57,91 +50,22 @@
     }
   }
 
-  function getStars(score: number): number {
-    if (score >= 20) return 3;
-    if (score >= 12) return 2;
-    if (score >= 6) return 1;
-    return 0;
-  }
-
   function sqToCoords(sq: string): [number, number] {
     return [sq.charCodeAt(0) - 97, 8 - parseInt(sq[1])];
   }
 
-  type GameState = 'idle' | 'playing' | 'done';
-
-  let gameState = $state<GameState>('idle');
-  let score = $state(0);
-  let timeLeft = $state(GAME_DURATION);
   let pair = $state(generatePair());
-  let flash = $state<'correct' | 'wrong' | null>(null);
-  let bestScore = $state(0);
-  let bestStars = $state(0);
-  let history = $state<Attempt[]>([]);
 
-  let timerRef: ReturnType<typeof setInterval> | null = null;
-  let flashRef: ReturnType<typeof setTimeout> | null = null;
-
-  let stars = $derived(getStars(score));
-  let mistakes = $derived(history.filter((a) => !a.correct));
-
-  onMount(() => {
-    bestScore = parseInt(localStorage.getItem('blindfold-diagonal-best') ?? '0', 10);
-    bestStars = parseInt(localStorage.getItem('blindfold-diagonal-best-stars') ?? '0', 10);
-
-    return () => {
-      if (timerRef) clearInterval(timerRef);
-      if (flashRef) clearTimeout(flashRef);
-    };
+  const round = createTimedRound<Attempt>({
+    key: 'blindfold-diagonal',
+    stars: [6, 12, 20],
+    onStart: () => (pair = generatePair()),
   });
 
-  function startGame() {
-    score = 0;
-    timeLeft = GAME_DURATION;
-    pair = generatePair();
-    flash = null;
-    history = [];
-    gameState = 'playing';
-
-    if (timerRef) clearInterval(timerRef);
-    timerRef = setInterval(() => {
-      timeLeft -= 1;
-      if (timeLeft <= 0) {
-        endGame();
-      }
-    }, 1000);
-  }
-
-  function endGame() {
-    if (timerRef) {
-      clearInterval(timerRef);
-      timerRef = null;
-    }
-    gameState = 'done';
-
-    const s = getStars(score);
-    if (s > 0) playSound('stars');
-    bestScore = saveBest('blindfold-diagonal-best', score);
-    bestStars = saveBest('blindfold-diagonal-best-stars', s);
-  }
-
   function handleAnswer(answeredYes: boolean) {
-    if (gameState !== 'playing') return;
-    if (flashRef) clearTimeout(flashRef);
-
     const correct = pair.same === answeredYes;
-    history = [...history, { sq1: pair.sq1, sq2: pair.sq2, same: pair.same, correct }];
-
-    if (correct) {
-      score += 1;
-      flash = 'correct';
-      playSound('correct');
-    } else {
-      flash = 'wrong';
-      playSound('wrong');
-    }
+    round.answer({ sq1: pair.sq1, sq2: pair.sq2, same: pair.same, correct });
     pair = generatePair();
-    flashRef = setTimeout(() => { flash = null; }, 200);
   }
 
   function getDiagonalSquares(attempt: Attempt): [number, number][] {
@@ -192,62 +116,27 @@
   </ReviewGrid>
 {/snippet}
 
-<div class="trainer">
-  {#if gameState === 'idle'}
-    <div class="screen">
-      <h2>Same Diagonal?</h2>
-      <BestScore score={bestScore} stars={bestStars} />
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-
-  {:else if gameState === 'playing'}
-    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
-
-    <div class={['target', flash]}>{pair.sq1} &mdash; {pair.sq2}</div>
+<TimedRound {round} title="Same Diagonal?">
+  {#snippet play()}
+    <div class={['target', round.flash]}>{pair.sq1} &mdash; {pair.sq2}</div>
 
     <div class="answers">
       <Button size="large" onclick={() => handleAnswer(true)}>Yes</Button>
       <Button size="large" onclick={() => handleAnswer(false)}>No</Button>
     </div>
+  {/snippet}
 
-  {:else}
-    <div class="screen">
-      <h2>⏱</h2>
-      <p class="final-score">{score}/{history.length} correct</p>
-      {#if stars > 0}
-        <StarRating {stars} size="lg" />
-      {/if}
-      <BestScore score={bestScore} />
-      <FinishActions label="Play Again" onclick={startGame} />
-
-      {#if mistakes.length > 0}
-        {@render review(`Mistakes (${mistakes.length})`, mistakes)}
-      {/if}
-      {#if history.length > 0}
-        {@render review(`All answers (${history.length})`, history)}
-      {/if}
-    </div>
-  {/if}
-</div>
+  {#snippet results()}
+    {#if round.mistakes.length > 0}
+      {@render review(`Mistakes (${round.mistakes.length})`, round.mistakes)}
+    {/if}
+    {#if round.history.length > 0}
+      {@render review(`All answers (${round.history.length})`, round.history)}
+    {/if}
+  {/snippet}
+</TimedRound>
 
 <style>
-  .trainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    max-width: 28rem;
-    margin: 0 auto;
-  }
-
-  .screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    text-align: center;
-  }
-
   .instructions {
     color: var(--ink-muted);
   }
@@ -262,11 +151,6 @@
   .answers {
     display: flex;
     gap: 1rem;
-  }
-
-  .final-score {
-    font-size: var(--size-title);
-    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }

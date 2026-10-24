@@ -1,20 +1,14 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
-  import { onMount } from 'svelte';
+  import { onDestroy } from 'svelte';
+  import { createTimedRound } from '$lib/state/use-timed-round.svelte';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
-  import StarRating from '$lib/components/ui/StarRating.svelte';
-  import BestScore from '$lib/components/ui/BestScore.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
-  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import Countdown from '$lib/components/ui/Countdown.svelte';
+  import TimedRound from './TimedRound.svelte';
   import AnswerInput from './AnswerInput.svelte';
   import ReviewCard from './ReviewCard.svelte';
   import ReviewGrid from './ReviewGrid.svelte';
-  import { playSound } from '$lib/state/sound';
   import { createBoardState, type PieceColor, type PieceKind, type PiecePlacement, type SquareId } from '$lib/logic/types';
-
-  const GAME_DURATION = 30;
 
   type QuestionType = 'white' | 'black' | 'total' | 'pawns' | 'knights' | 'bishops' | 'rooks';
 
@@ -104,184 +98,90 @@
     correct: boolean;
   }
 
-  function getStars(score: number): number {
-    if (score >= 8) return 3;
-    if (score >= 5) return 2;
-    if (score >= 3) return 1;
-    return 0;
-  }
-
+  /** How long the position is shown before the question. */
   const FLASH_TIME = 3000;
 
-  type Phase = 'idle' | 'flash' | 'answer' | 'done';
-
-  let phase = $state<Phase>('idle');
   let challenge = $state<Challenge>(generateChallenge());
-  let score = $state(0);
-  let timeLeft = $state(GAME_DURATION);
+  /** The position is on the board, to be remembered. */
+  let showing = $state(false);
   let input = $state('');
-  let flash = $state<'correct' | 'wrong' | null>(null);
-  let bestScore = $state(0);
-  let bestStars = $state(0);
-  let history = $state<Attempt[]>([]);
+  let showTimer: ReturnType<typeof setTimeout> | null = null;
 
-  let flashTimeout: ReturnType<typeof setTimeout> | null = null;
-  let showTimerRef: ReturnType<typeof setTimeout> | null = null;
-  let timerInterval: ReturnType<typeof setInterval> | null = null;
-
-  onMount(() => {
-    bestScore = parseInt(localStorage.getItem('blindfold-piececount-best') ?? '0', 10);
-    bestStars = parseInt(localStorage.getItem('blindfold-piececount-best-stars') ?? '0', 10);
-
-    return () => {
-      if (showTimerRef) clearTimeout(showTimerRef);
-      if (flashTimeout) clearTimeout(flashTimeout);
-      if (timerInterval) clearInterval(timerInterval);
-    };
+  const round = createTimedRound<Attempt>({
+    key: 'blindfold-piececount',
+    stars: [3, 5, 8],
+    onStart: showNextChallenge,
+    onEnd: () => {
+      if (showTimer) clearTimeout(showTimer);
+      showTimer = null;
+    },
   });
 
-  $effect(() => {
-    if (phase !== 'done') return;
-    const stars = getStars(score);
-    bestScore = saveBest('blindfold-piececount-best', score);
-    bestStars = saveBest('blindfold-piececount-best-stars', stars);
-    if (stars > 0) playSound('stars');
+  onDestroy(() => {
+    if (showTimer) clearTimeout(showTimer);
   });
 
   function showNextChallenge() {
-    const ch = generateChallenge();
-    challenge = ch;
-    phase = 'flash';
-    showTimerRef = setTimeout(() => {
-      phase = 'answer';
+    challenge = generateChallenge();
+    showing = true;
+    showTimer = setTimeout(() => {
+      showing = false;
     }, FLASH_TIME);
   }
 
-  function startGame() {
-    score = 0;
-    timeLeft = GAME_DURATION;
-    history = [];
-    flash = null;
-
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      timeLeft -= 1;
-      if (timeLeft <= 0) {
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = null;
-        if (showTimerRef) clearTimeout(showTimerRef);
-        showTimerRef = null;
-        phase = 'done';
-      }
-    }, 1000);
-
-    showNextChallenge();
-  }
-
   function handleSubmit() {
-    if (phase !== 'answer') return;
+    if (!round.playing || showing) return;
     const answer = parseInt(input.trim());
     if (isNaN(answer)) return;
-    if (flashTimeout) clearTimeout(flashTimeout);
-
-    const correct = answer === challenge.answer;
-    history = [...history, {
+    round.answer({
       position: challenge.position,
       questionType: challenge.questionType,
       answer: challenge.answer,
       playerAnswer: answer,
-      correct,
-    }];
-
-    if (correct) {
-      score += 1;
-      flash = 'correct';
-      playSound('correct');
-    } else {
-      flash = 'wrong';
-      playSound('wrong');
-    }
+      correct: answer === challenge.answer,
+    });
     input = '';
-    flashTimeout = setTimeout(() => { flash = null; }, 200);
     showNextChallenge();
   }
-
-  let wrongOnes = $derived(history.filter((a) => !a.correct));
 </script>
 
 <!-- The position to remember is a full-size board -->
-{#if phase === 'flash'}
+{#if round.playing && showing}
   <BoardLayout>
     {#snippet boardArea()}
       <Board board={createBoardState(challenge.position)} readOnly coordinates={false} label="Chess position to memorize" />
     {/snippet}
     {#snippet sidebarArea()}
-      <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
+      <Countdown remaining={round.timeLeft} total={round.seconds}>Score: {round.score}</Countdown>
       <div class="muted studying">Memorize...</div>
     {/snippet}
   </BoardLayout>
 {:else}
-  <div class="trainer">
-    {#if phase === 'idle'}
-      <div class="screen">
-        <h2>Piece Count</h2>
-        <BestScore score={bestScore} stars={bestStars} />
-        <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-      </div>
-
-    {:else if phase === 'done'}
-      <div class="screen">
-        <h2>⏱</h2>
-        <p class="final-score">{score}/{history.length} correct</p>
-        {#if getStars(score) > 0}
-          <StarRating stars={getStars(score)} size="lg" />
-        {/if}
-        <BestScore score={bestScore} />
-        <FinishActions label="Play Again" onclick={startGame} />
-
-        {#if wrongOnes.length > 0}
-          <ReviewGrid title="Mistakes ({wrongOnes.length})">
-            {#each wrongOnes as attempt}
-              <ReviewCard correct={false} board={createBoardState(attempt.position)}>
-                <span class="muted">{QUESTION_LABELS[attempt.questionType]}</span><br />
-                <span class="correct">{attempt.answer}</span>
-                <span class="muted">(you: {attempt.playerAnswer})</span>
-              </ReviewCard>
-            {/each}
-          </ReviewGrid>
-        {/if}
-      </div>
-
-    {:else}
-      <!-- answer phase -->
-      <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
-      <div class={['question', flash]}>
+  <TimedRound {round} title="Piece Count">
+    {#snippet play()}
+      <div class={['question', round.flash]}>
         {QUESTION_LABELS[challenge.questionType]}
       </div>
       <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Number of pieces" placeholder="#" numeric />
-    {/if}
-  </div>
+    {/snippet}
+
+    {#snippet results()}
+      {#if round.mistakes.length > 0}
+        <ReviewGrid title="Mistakes ({round.mistakes.length})">
+          {#each round.mistakes as attempt}
+            <ReviewCard correct={false} board={createBoardState(attempt.position)}>
+              <span class="muted">{QUESTION_LABELS[attempt.questionType]}</span><br />
+              <span class="correct">{attempt.answer}</span>
+              <span class="muted">(you: {attempt.playerAnswer})</span>
+            </ReviewCard>
+          {/each}
+        </ReviewGrid>
+      {/if}
+    {/snippet}
+  </TimedRound>
 {/if}
 
 <style>
-  .trainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    max-width: 28rem;
-    margin: 0 auto;
-  }
-
-  .screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-    text-align: center;
-  }
-
   .muted {
     color: var(--ink-muted);
   }
@@ -299,11 +199,6 @@
     font-weight: var(--weight-strong);
     padding: 1rem 0;
     transition: color 0.1s;
-  }
-
-  .final-score {
-    font-size: var(--size-title);
-    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }

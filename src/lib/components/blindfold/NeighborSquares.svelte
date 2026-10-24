@@ -1,18 +1,12 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
-  import { onMount } from 'svelte';
-  import StarRating from '$lib/components/ui/StarRating.svelte';
-  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import { createTimedRound } from '$lib/state/use-timed-round.svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
-  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import TimedRound from './TimedRound.svelte';
   import AnswerInput from './AnswerInput.svelte';
   import ReviewCard from './ReviewCard.svelte';
   import ReviewGrid from './ReviewGrid.svelte';
   import { playSound } from '$lib/state/sound';
   import { MARK, highlight, type SquareHighlight } from '$lib/board-marks';
-
-  const GAME_DURATION = 30;
 
   interface Attempt {
     square: string;
@@ -48,13 +42,6 @@
     return f >= 0 && f <= 7 && r >= 0 && r <= 7;
   }
 
-  function getStars(score: number): number {
-    if (score >= 8) return 3;
-    if (score >= 5) return 2;
-    if (score >= 3) return 1;
-    return 0;
-  }
-
   /** The square asked about, and every answer square: found or missed. */
   function reviewMarks(attempt: Attempt): SquareHighlight[] {
     return [
@@ -64,83 +51,42 @@
     ];
   }
 
-  let gameState = $state<'idle' | 'playing' | 'done'>('idle');
-  let score = $state(0);
-  let timeLeft = $state(GAME_DURATION);
   let target = $state(randomSquare());
   let input = $state('');
   let entered = $state<string[]>([]);
   let error = $state<string | null>(null);
-  let bestScore = $state(0);
-  let bestStars = $state(0);
-  let history = $state<Attempt[]>([]);
-
-  let timerRef: ReturnType<typeof setInterval> | null = null;
 
   let neighbors = $derived(getNeighbors(target));
-  let stars = $derived(getStars(score));
-  let mistakes = $derived(history.filter((a) => !a.correct));
 
-  onMount(() => {
-    bestScore = parseInt(localStorage.getItem('blindfold-neighbors-best') ?? '0', 10);
-    bestStars = parseInt(localStorage.getItem('blindfold-neighbors-best-stars') ?? '0', 10);
-
-    return () => {
-      if (timerRef) clearInterval(timerRef);
-    };
+  const round = createTimedRound<Attempt>({
+    key: 'blindfold-neighbors',
+    stars: [3, 5, 8],
+    onStart: () => {
+      target = randomSquare();
+      entered = [];
+      input = '';
+      error = null;
+    },
   });
-
-  function startGame() {
-    gameState = 'playing';
-    score = 0;
-    timeLeft = GAME_DURATION;
-    target = randomSquare();
-    entered = [];
-    input = '';
-    error = null;
-    history = [];
-
-    if (timerRef) clearInterval(timerRef);
-    timerRef = setInterval(() => {
-      timeLeft -= 1;
-      if (timeLeft <= 0) {
-        endGame();
-      }
-    }, 1000);
-  }
-
-  function endGame() {
-    if (timerRef) {
-      clearInterval(timerRef);
-      timerRef = null;
-    }
-    gameState = 'done';
-
-    const s = getStars(score);
-    if (s > 0) playSound('stars');
-    bestScore = saveBest('blindfold-neighbors-best', score);
-    bestStars = saveBest('blindfold-neighbors-best-stars', s);
-  }
 
   function advanceToNext(currentEntered: string[]) {
     const currentNeighbors = getNeighbors(target);
     const missed = currentNeighbors.filter((n) => !currentEntered.includes(n));
     const allCorrect = missed.length === 0;
-    history = [...history, {
+    round.record({
       square: target,
       neighbors: currentNeighbors,
       found: currentEntered,
       missed,
       correct: allCorrect,
-    }];
-    if (allCorrect) score += 1;
+    });
     target = randomSquare();
     entered = [];
     error = null;
   }
 
   function handleSubmit() {
-    if (gameState !== 'playing') return;
+    if (!round.playing) return;
     const sq = input.trim().toLowerCase();
     input = '';
 
@@ -173,7 +119,7 @@
   }
 
   function handleSkip() {
-    if (gameState !== 'playing') return;
+    if (!round.playing) return;
     advanceToNext(entered);
   }
 </script>
@@ -192,35 +138,8 @@
   </ReviewGrid>
 {/snippet}
 
-<div class="trainer">
-  {#if gameState === 'idle'}
-    <div class="screen">
-      <h2>Neighbor Squares</h2>
-      <BestScore score={bestScore} stars={bestStars} />
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-
-  {:else if gameState === 'done'}
-    <div class="screen">
-      <h2>⏱</h2>
-      <p class="final-score">{score} completed</p>
-      {#if stars > 0}
-        <StarRating {stars} size="lg" />
-      {/if}
-      <BestScore score={bestScore} />
-      <FinishActions label="Play Again" onclick={startGame} />
-
-      {#if mistakes.length > 0}
-        {@render review(`Incomplete (${mistakes.length})`, mistakes)}
-      {/if}
-      {#if history.length > 0}
-        {@render review(`All squares (${history.length})`, history)}
-      {/if}
-    </div>
-
-  {:else}
-    <Countdown remaining={timeLeft} total={GAME_DURATION}>Completed: {score}</Countdown>
-
+<TimedRound {round} title="Neighbor Squares" counts="completed">
+  {#snippet play()}
     <div class="target">{target}</div>
     <p class="progress">{entered.length}/{neighbors.length} neighbors found</p>
 
@@ -236,27 +155,19 @@
       <AnswerInput bind:value={input} onsubmit={handleSubmit} label="Square" placeholder="Square..." {error} />
       <Button onclick={handleSkip}>Skip</Button>
     </div>
-  {/if}
-</div>
+  {/snippet}
+
+  {#snippet results()}
+    {#if round.mistakes.length > 0}
+      {@render review(`Incomplete (${round.mistakes.length})`, round.mistakes)}
+    {/if}
+    {#if round.history.length > 0}
+      {@render review(`All squares (${round.history.length})`, round.history)}
+    {/if}
+  {/snippet}
+</TimedRound>
 
 <style>
-  .trainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    max-width: 28rem;
-    margin: 0 auto;
-  }
-
-  .screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    text-align: center;
-  }
-
   .progress {
     color: var(--ink-muted);
   }
@@ -286,11 +197,6 @@
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-  }
-
-  .final-score {
-    font-size: var(--size-title);
-    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }

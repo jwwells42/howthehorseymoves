@@ -1,14 +1,6 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
-  import { onMount } from 'svelte';
-  import StarRating from '$lib/components/ui/StarRating.svelte';
-  import BestScore from '$lib/components/ui/BestScore.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
-  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
-  import Countdown from '$lib/components/ui/Countdown.svelte';
-  import { playSound } from '$lib/state/sound';
-
-  const GAME_DURATION = 30;
+  import { createTimedRound } from '$lib/state/use-timed-round.svelte';
+  import TimedRound from './TimedRound.svelte';
 
   type Direction = 'above' | 'below' | 'left' | 'right' | 'above-left' | 'above-right' | 'below-left' | 'below-right';
 
@@ -66,13 +58,6 @@
     }
   }
 
-  function getStars(score: number): number {
-    if (score >= 20) return 3;
-    if (score >= 12) return 2;
-    if (score >= 6) return 1;
-    return 0;
-  }
-
   const BUTTON_LAYOUT: Direction[][] = [
     ['above-left', 'above', 'above-right'],
     ['left', 'right'],
@@ -90,180 +75,65 @@
     'below-right': '\u2198',
   };
 
-  let gameState = $state<'idle' | 'playing' | 'done'>('idle');
-  let score = $state(0);
-  let timeLeft = $state(GAME_DURATION);
   let question = $state<Question>(generateQuestion());
-  let flash = $state<'correct' | 'wrong' | null>(null);
-  let bestScore = $state(0);
-  let bestStars = $state(0);
-  let history = $state<Attempt[]>([]);
 
-  let timerRef: ReturnType<typeof setInterval> | null = null;
-  let flashTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  onMount(() => {
-    bestScore = parseInt(localStorage.getItem('blindfold-relative-best') ?? '0', 10);
-    bestStars = parseInt(localStorage.getItem('blindfold-relative-best-stars') ?? '0', 10);
-
-    return () => {
-      if (timerRef) clearInterval(timerRef);
-      if (flashTimeout) clearTimeout(flashTimeout);
-    };
+  const round = createTimedRound<Attempt>({
+    key: 'blindfold-relative',
+    stars: [6, 12, 20],
+    onStart: () => (question = generateQuestion()),
   });
 
-  function startGame() {
-    gameState = 'playing';
-    score = 0;
-    timeLeft = GAME_DURATION;
-    question = generateQuestion();
-    flash = null;
-    history = [];
-
-    if (timerRef) clearInterval(timerRef);
-    timerRef = setInterval(() => {
-      timeLeft -= 1;
-      if (timeLeft <= 0) {
-        endGame();
-      }
-    }, 1000);
-  }
-
-  function endGame() {
-    if (timerRef) {
-      clearInterval(timerRef);
-      timerRef = null;
-    }
-    gameState = 'done';
-
-    const stars = getStars(score);
-    if (stars > 0) playSound('stars');
-    bestScore = saveBest('blindfold-relative-best', score);
-    bestStars = saveBest('blindfold-relative-best-stars', stars);
-  }
-
   function handleAnswer(dir: Direction) {
-    if (gameState !== 'playing') return;
-    if (flashTimeout) clearTimeout(flashTimeout);
-
-    const correct = question.direction === dir;
-    history = [...history, { ...question, correct, answered: dir }];
-
-    if (correct) {
-      score += 1;
-      flash = 'correct';
-      playSound('correct');
-    } else {
-      flash = 'wrong';
-      playSound('wrong');
-    }
+    round.answer({ ...question, correct: question.direction === dir, answered: dir });
     question = generateQuestion();
-    flashTimeout = setTimeout(() => { flash = null; }, 200);
   }
-
-  let stars = $derived(getStars(score));
-
-  let wrongOnes = $derived(history.filter((a) => !a.correct));
 </script>
 
-<div class="container">
-  {#if gameState === 'idle'}
-    <div class="center-col">
-      <h2 class="title">Relative Position</h2>
-      <BestScore score={bestScore} stars={bestStars} />
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-  {:else if gameState === 'done'}
-    <div class="center-col">
-      <h2 class="title">⏱</h2>
-      <p class="big-score">{score}/{history.length} correct</p>
-      {#if stars > 0}
-        <StarRating {stars} size="lg" />
-      {/if}
-      <BestScore score={bestScore} />
-      <FinishActions label="Play Again" onclick={startGame} />
-
-      {#if wrongOnes.length > 0}
-        <div class="mistakes-section">
-          <h3 class="mistakes-title">Mistakes ({wrongOnes.length})</h3>
-          <div class="mistakes-list">
-            {#each wrongOnes as a, i}
-              <div class="mistake-row">
-                <span class="mono-bold">{a.sq1} &rarr; {a.sq2}</span>
-                {' '}
-                <span class="correct-label">{DIRECTION_LABELS[a.direction]}</span>
-                {' '}
-                <span class="faint">(you: {DIRECTION_LABELS[a.answered]})</span>
-              </div>
-            {/each}
-          </div>
-        </div>
-      {/if}
-    </div>
-  {:else}
-    <div class="play-col">
-      <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
-
-      <div class="question-area">
-        <div class="question-label">
-          Where is <span class="bold">{question.sq2}</span> from <span class="bold">{question.sq1}</span>?
-        </div>
-        <div class={['question-main', flash === 'correct' && 'flash-correct', flash === 'wrong' && 'flash-wrong']}>
-          {question.sq1} &rarr; {question.sq2}
-        </div>
+<TimedRound {round} title="Relative Position">
+  {#snippet play()}
+    <div class="question-area">
+      <div class="question-label">
+        Where is <span class="bold">{question.sq2}</span> from <span class="bold">{question.sq1}</span>?
       </div>
-
-      <div class="dpad">
-        {#each BUTTON_LAYOUT as row}
-          <div class="dpad-row">
-            {#each row as dir}
-              <button class="dir-btn" onclick={() => handleAnswer(dir)}>
-                {BUTTON_SYMBOLS[dir]}
-              </button>
-            {/each}
-          </div>
-        {/each}
+      <div class={['question-main', round.flash === 'correct' && 'flash-correct', round.flash === 'wrong' && 'flash-wrong']}>
+        {question.sq1} &rarr; {question.sq2}
       </div>
     </div>
-  {/if}
-</div>
+
+    <div class="dpad">
+      {#each BUTTON_LAYOUT as row}
+        <div class="dpad-row">
+          {#each row as dir}
+            <button class="dir-btn" onclick={() => handleAnswer(dir)}>
+              {BUTTON_SYMBOLS[dir]}
+            </button>
+          {/each}
+        </div>
+      {/each}
+    </div>
+  {/snippet}
+
+  {#snippet results()}
+    {#if round.mistakes.length > 0}
+      <div class="mistakes-section">
+        <h3 class="mistakes-title">Mistakes ({round.mistakes.length})</h3>
+        <div class="mistakes-list">
+          {#each round.mistakes as a}
+            <div class="mistake-row">
+              <span class="mono-bold">{a.sq1} &rarr; {a.sq2}</span>
+              {' '}
+              <span class="correct-label">{DIRECTION_LABELS[a.direction]}</span>
+              {' '}
+              <span class="faint">(you: {DIRECTION_LABELS[a.answered]})</span>
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/if}
+  {/snippet}
+</TimedRound>
 
 <style>
-  .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    max-width: 28rem;
-    margin: 0 auto;
-  }
-
-  .center-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    text-align: center;
-  }
-
-  .play-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    width: 100%;
-  }
-
-  .title {
-    font-size: var(--size-large);
-    font-weight: var(--weight-strong);
-  }
-
-  .big-score {
-    font-size: var(--size-title);
-    font-weight: var(--weight-strong);
-  }
-
   .question-area {
     text-align: center;
     padding: 0.5rem 0;

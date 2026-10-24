@@ -1,17 +1,10 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
-  import { onMount } from 'svelte';
-  import StarRating from '$lib/components/ui/StarRating.svelte';
-  import BestScore from '$lib/components/ui/BestScore.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
-  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
-  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import { createTimedRound } from '$lib/state/use-timed-round.svelte';
+  import TimedRound from './TimedRound.svelte';
   import ReviewCard from './ReviewCard.svelte';
   import ReviewGrid from './ReviewGrid.svelte';
-  import { playSound } from '$lib/state/sound';
   import { MARK, highlight } from '$lib/board-marks';
 
-  const GAME_DURATION = 30;
   const ALL_SQUARES: string[] = [];
   for (let f = 0; f < 8; f++) {
     for (let r = 1; r <= 8; r++) {
@@ -29,93 +22,23 @@
     return ALL_SQUARES[Math.floor(Math.random() * ALL_SQUARES.length)];
   }
 
-  function getStars(score: number): number {
-    if (score >= 15) return 3;
-    if (score >= 10) return 2;
-    if (score >= 5) return 1;
-    return 0;
-  }
-
   interface Attempt {
     square: string;
     dark: boolean;
     correct: boolean;
   }
 
-  type GameState = 'idle' | 'playing' | 'done';
-
-  let gameState = $state<GameState>('idle');
-  let score = $state(0);
-  let timeLeft = $state(GAME_DURATION);
   let target = $state(randomSquare());
-  let flash = $state<'correct' | 'wrong' | null>(null);
-  let bestScore = $state(0);
-  let bestStars = $state(0);
-  let history = $state<Attempt[]>([]);
 
-  let timerRef: ReturnType<typeof setInterval> | null = null;
-  let flashRef: ReturnType<typeof setTimeout> | null = null;
-
-  let stars = $derived(getStars(score));
-  let mistakes = $derived(history.filter((a) => !a.correct));
-
-  onMount(() => {
-    bestScore = parseInt(localStorage.getItem('blindfold-color-best') ?? '0', 10);
-    bestStars = parseInt(localStorage.getItem('blindfold-color-best-stars') ?? '0', 10);
-
-    return () => {
-      if (timerRef) clearInterval(timerRef);
-      if (flashRef) clearTimeout(flashRef);
-    };
+  const round = createTimedRound<Attempt>({
+    key: 'blindfold-color',
+    stars: [5, 10, 15],
+    onStart: () => (target = randomSquare()),
   });
 
-  function startGame() {
-    score = 0;
-    timeLeft = GAME_DURATION;
-    target = randomSquare();
-    flash = null;
-    history = [];
-    gameState = 'playing';
-
-    if (timerRef) clearInterval(timerRef);
-    timerRef = setInterval(() => {
-      timeLeft -= 1;
-      if (timeLeft <= 0) {
-        endGame();
-      }
-    }, 1000);
-  }
-
-  function endGame() {
-    if (timerRef) {
-      clearInterval(timerRef);
-      timerRef = null;
-    }
-    gameState = 'done';
-
-    const s = getStars(score);
-    if (s > 0) playSound('stars');
-    bestScore = saveBest('blindfold-color-best', score);
-    bestStars = saveBest('blindfold-color-best-stars', s);
-  }
-
   function handleAnswer(answeredDark: boolean) {
-    if (gameState !== 'playing') return;
-    if (flashRef) clearTimeout(flashRef);
-
-    const correct = isDark(target) === answeredDark;
-    history = [...history, { square: target, dark: isDark(target), correct }];
-
-    if (correct) {
-      score += 1;
-      flash = 'correct';
-      playSound('correct');
-    } else {
-      flash = 'wrong';
-      playSound('wrong');
-    }
+    round.answer({ square: target, dark: isDark(target), correct: isDark(target) === answeredDark });
     target = randomSquare();
-    flashRef = setTimeout(() => { flash = null; }, 200);
   }
 
   const colourName = (dark: boolean) => (dark ? 'Dark' : 'Light');
@@ -136,66 +59,34 @@
   </ReviewGrid>
 {/snippet}
 
-<div class="trainer">
-  {#if gameState === 'idle'}
-    <div class="screen">
-      <h2>Color of Square</h2>
-      <div class="swatches">
-        <div class="swatch dark"></div>
-        <div class="swatch light"></div>
-      </div>
-      <BestScore score={bestScore} stars={bestStars} />
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
+<TimedRound {round} title="Color of Square">
+  {#snippet intro()}
+    <div class="swatches">
+      <div class="swatch dark"></div>
+      <div class="swatch light"></div>
     </div>
+  {/snippet}
 
-  {:else if gameState === 'playing'}
-    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
-
-    <div class={['target', flash]}>{target}</div>
+  {#snippet play()}
+    <div class={['target', round.flash]}>{target}</div>
 
     <div class="answers">
       <button class="swatch-button dark" onclick={() => handleAnswer(true)} aria-label="Dark square"></button>
       <button class="swatch-button light" onclick={() => handleAnswer(false)} aria-label="Light square"></button>
     </div>
+  {/snippet}
 
-  {:else}
-    <div class="screen">
-      <h2>⏱</h2>
-      <p class="final-score">{score}/{history.length} correct</p>
-      {#if stars > 0}
-        <StarRating {stars} size="lg" />
-      {/if}
-      <BestScore score={bestScore} />
-      <FinishActions label="Play Again" onclick={startGame} />
-
-      {#if mistakes.length > 0}
-        {@render review(`Mistakes (${mistakes.length})`, mistakes)}
-      {/if}
-      {#if history.length > 0}
-        {@render review(`All answers (${history.length})`, history)}
-      {/if}
-    </div>
-  {/if}
-</div>
+  {#snippet results()}
+    {#if round.mistakes.length > 0}
+      {@render review(`Mistakes (${round.mistakes.length})`, round.mistakes)}
+    {/if}
+    {#if round.history.length > 0}
+      {@render review(`All answers (${round.history.length})`, round.history)}
+    {/if}
+  {/snippet}
+</TimedRound>
 
 <style>
-  .trainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    max-width: 28rem;
-    margin: 0 auto;
-  }
-
-  .screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    text-align: center;
-  }
-
   .instructions {
     color: var(--ink-muted);
   }
@@ -241,11 +132,6 @@
   }
   .swatch-button:active {
     transform: scale(0.95);
-  }
-
-  .final-score {
-    font-size: var(--size-title);
-    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }

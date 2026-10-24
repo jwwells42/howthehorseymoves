@@ -1,17 +1,10 @@
 <script lang="ts">
-  import { saveBest } from '$lib/state/storage';
-  import { onMount } from 'svelte';
-  import StarRating from '$lib/components/ui/StarRating.svelte';
-  import BestScore from '$lib/components/ui/BestScore.svelte';
+  import { createTimedRound } from '$lib/state/use-timed-round.svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
-  import Countdown from '$lib/components/ui/Countdown.svelte';
+  import TimedRound from './TimedRound.svelte';
   import ReviewCard from './ReviewCard.svelte';
   import ReviewGrid from './ReviewGrid.svelte';
-  import { playSound } from '$lib/state/sound';
   import { MARK, highlight } from '$lib/board-marks';
-
-  const GAME_DURATION = 30;
 
   type PieceType = 'N' | 'B';
 
@@ -97,86 +90,17 @@
     }
   }
 
-  function getStars(score: number): number {
-    if (score >= 18) return 3;
-    if (score >= 10) return 2;
-    if (score >= 5) return 1;
-    return 0;
-  }
-
-  let gameState = $state<'idle' | 'playing' | 'done'>('idle');
-  let score = $state(0);
-  let timeLeft = $state(GAME_DURATION);
   let question = $state<Question>(generateQuestion());
-  let flash = $state<'correct' | 'wrong' | null>(null);
-  let bestScore = $state(0);
-  let bestStars = $state(0);
-  let history = $state<Attempt[]>([]);
 
-  let timerRef: ReturnType<typeof setInterval> | null = null;
-  let flashTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  let stars = $derived(getStars(score));
-  let mistakes = $derived(history.filter((a) => !a.correct));
-
-
-  onMount(() => {
-    bestScore = parseInt(localStorage.getItem('blindfold-reachability-best') ?? '0', 10);
-    bestStars = parseInt(localStorage.getItem('blindfold-reachability-best-stars') ?? '0', 10);
-
-    return () => {
-      if (timerRef) clearInterval(timerRef);
-      if (flashTimeout) clearTimeout(flashTimeout);
-    };
+  const round = createTimedRound<Attempt>({
+    key: 'blindfold-reachability',
+    stars: [5, 10, 18],
+    onStart: () => (question = generateQuestion()),
   });
 
-  function startGame() {
-    gameState = 'playing';
-    score = 0;
-    timeLeft = GAME_DURATION;
-    question = generateQuestion();
-    flash = null;
-    history = [];
-
-    if (timerRef) clearInterval(timerRef);
-    timerRef = setInterval(() => {
-      timeLeft -= 1;
-      if (timeLeft <= 0) {
-        endGame();
-      }
-    }, 1000);
-  }
-
-  function endGame() {
-    if (timerRef) {
-      clearInterval(timerRef);
-      timerRef = null;
-    }
-    gameState = 'done';
-
-    const s = getStars(score);
-    if (s > 0) playSound('stars');
-    bestScore = saveBest('blindfold-reachability-best', score);
-    bestStars = saveBest('blindfold-reachability-best-stars', s);
-  }
-
   function handleAnswer(answeredYes: boolean) {
-    if (gameState !== 'playing') return;
-    if (flashTimeout) clearTimeout(flashTimeout);
-
-    const correct = question.reachable === answeredYes;
-    history = [...history, { ...question, correct }];
-
-    if (correct) {
-      score += 1;
-      flash = 'correct';
-      playSound('correct');
-    } else {
-      flash = 'wrong';
-      playSound('wrong');
-    }
+    round.answer({ ...question, correct: question.reachable === answeredYes });
     question = generateQuestion();
-    flashTimeout = setTimeout(() => { flash = null; }, 200);
   }
 </script>
 
@@ -198,38 +122,11 @@
   </ReviewGrid>
 {/snippet}
 
-<div class="trainer">
-  {#if gameState === 'idle'}
-    <div class="screen">
-      <h2>Piece Reachability</h2>
-      <BestScore score={bestScore} stars={bestStars} />
-      <Button variant="primary" size="large" onclick={startGame}>Start</Button>
-    </div>
-
-  {:else if gameState === 'done'}
-    <div class="screen">
-      <h2>⏱</h2>
-      <p class="final-score">{score}/{history.length} correct</p>
-      {#if stars > 0}
-        <StarRating {stars} size="lg" />
-      {/if}
-      <BestScore score={bestScore} />
-      <FinishActions label="Play Again" onclick={startGame} />
-
-      {#if mistakes.length > 0}
-        {@render review(`Mistakes (${mistakes.length})`, mistakes)}
-      {/if}
-      {#if history.length > 0}
-        {@render review(`All answers (${history.length})`, history)}
-      {/if}
-    </div>
-
-  {:else}
-    <Countdown remaining={timeLeft} total={GAME_DURATION}>Score: {score}</Countdown>
-
+<TimedRound {round} title="Piece Reachability">
+  {#snippet play()}
     <div class="question">
       <img src="/pieces/w{question.piece}.svg" alt={PIECE_NAMES[question.piece]} class="piece" />
-      <div class={['squares', flash]}>{question.from} &rarr; {question.to}</div>
+      <div class={['squares', round.flash]}>{question.from} &rarr; {question.to}</div>
       {#if question.moves}
         <p class="instructions">&le;{question.moves} moves?</p>
       {/if}
@@ -239,27 +136,19 @@
       <Button size="large" onclick={() => handleAnswer(true)}>Yes</Button>
       <Button size="large" onclick={() => handleAnswer(false)}>No</Button>
     </div>
-  {/if}
-</div>
+  {/snippet}
+
+  {#snippet results()}
+    {#if round.mistakes.length > 0}
+      {@render review(`Mistakes (${round.mistakes.length})`, round.mistakes)}
+    {/if}
+    {#if round.history.length > 0}
+      {@render review(`All answers (${round.history.length})`, round.history)}
+    {/if}
+  {/snippet}
+</TimedRound>
 
 <style>
-  .trainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    max-width: 28rem;
-    margin: 0 auto;
-  }
-
-  .screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    text-align: center;
-  }
-
   .instructions {
     color: var(--ink-muted);
   }
@@ -283,11 +172,6 @@
   .answers {
     display: flex;
     gap: 1rem;
-  }
-
-  .final-score {
-    font-size: var(--size-title);
-    font-weight: var(--weight-strong);
   }
 
   .correct { color: var(--correct-text); }
