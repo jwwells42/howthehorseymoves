@@ -3,12 +3,14 @@
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
+  import NotationBoard from '$lib/components/board/NotationBoard.svelte';
+  import AnswerInput from '$lib/components/blindfold/AnswerInput.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
   import { MARK } from '$lib/board-marks';
   import type { SquareId, BoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
-  import type { Arrow } from '$lib/logic/pgn';
+  import { type Arrow, readTypedMove } from '$lib/logic/pgn';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import { playSound } from '$lib/state/sound';
   import { type Opening, type OpeningLine, findBranchPoint } from '$lib/openings';
@@ -20,6 +22,9 @@
    * before is played from memory, and a mistake brings its arrow back. Every
    * move played is saved (see $lib/openings/progress), which is what decides
    * when it comes back for review.
+   *
+   * Blindfold: no board, only the moves written out, and the student types
+   * each move. A new move is written out where its arrow would be.
    */
 
   interface Props {
@@ -32,10 +37,11 @@
     progress: MoveProgress;
     onStates: (states: Record<string, MoveState>) => void;
     autoNext: boolean;
+    blindfold: boolean;
     onExit: () => void;
   }
 
-  let { opening, startBoard, lines, order, perVisit, progress, onStates, autoNext, onExit }: Props = $props();
+  let { opening, startBoard, lines, order, perVisit, progress, onStates, autoNext, blindfold, onExit }: Props = $props();
 
   let playerColor = $derived(opening.color);
   let flipped = $derived(playerColor === 'b');
@@ -60,6 +66,9 @@
   let lineComplete = $state(false);
   let passDone = $state(false);
   let dragFrom = $state<SquareId | null>(null);
+  // Blindfold: the move being typed, and what was wrong with the last one
+  let typed = $state('');
+  let typedError = $state<string | null>(null);
 
   let currentLine = $derived(pass[lineIdx]);
   let linesDone = $derived(lineIdx + (lineComplete || passDone ? 1 : 0));
@@ -141,6 +150,7 @@
     showHint = false;
     waiting = false;
     opponentSlide = null;
+    typedError = null;
   }
 
   // Each line starts where it leaves the one before
@@ -289,6 +299,21 @@
     executePlayerMove(from, to);
   }
 
+  // Blindfold: a typed move is played as if it were played on the board.
+  // Text that isn't a legal move is only marked ✗, as the board wouldn't
+  // have let it be played.
+  function submitTyped() {
+    if (waiting || lineComplete || passDone) return;
+    if (browsing) navigateTo(maxReachedIdx);
+    const text = typed.trim();
+    typed = '';
+    if (atEnd || !isPlayerTurn || !text) return;
+    const move = readTypedMove(text, board, playerColor);
+    const expected = currentLine[moveIdx];
+    typedError = move && move.from === expected.from && move.to === expected.to ? null : `✗ ${text}`;
+    if (move) executePlayerMove(move.from, move.to);
+  }
+
   // === Move list navigation: back through what has been played ===
 
   function navigateTo(idx: number) {
@@ -303,6 +328,8 @@
 
   function handleKeydown(e: KeyboardEvent) {
     if (passDone) return;
+    // The arrow keys move the cursor in the blindfold move box
+    if ((e.target as HTMLElement | null)?.closest('input,textarea')) return;
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       navigateTo(moveIdx - 1);
@@ -326,6 +353,15 @@
     } else if (bottom > moveListEl.scrollTop + moveListEl.clientHeight) {
       moveListEl.scrollTop = bottom - moveListEl.clientHeight;
     }
+  });
+
+  // Blindfold: the keyboard goes to the button to press next, so Enter goes on
+  let nextLineButton = $state<Button>();
+  let keepGoingButton = $state<Button>();
+  $effect(() => {
+    if (!blindfold) return;
+    if (passDone) keepGoingButton?.focus();
+    else if (lineComplete) nextLineButton?.focus();
   });
 
   // Auto-advance to the next line
@@ -363,25 +399,44 @@
   {/snippet}
 
   {#snippet boardArea()}
-    <Board
-      {board}
-      {selectedSquare}
-      {validMoves}
-      dragValidMoves={dragMoves}
-      onSquareClick={handleSquareClick}
-      onDrop={handleDrop}
-      onDragStart={(sq) => (dragFrom = sq)}
-      onDragEnd={() => (dragFrom = null)}
-      {wrongMoveSquare}
-      {opponentSlide}
-      {arrows}
-      {flipped}
-      playableColors={[playerColor]}
-    />
+    {#if blindfold}
+      <NotationBoard
+        moves={currentLine.slice(0, moveIdx)}
+        ask={!atEnd && isPlayerTurn && !waiting && !browsing}
+        label={opening.name}
+      >
+        <!-- Where the arrow would be: a new move, or the right one after a mistake -->
+        <p class="hint">{#if showArrow}&rarr; {currentLine[moveIdx].san}{/if}</p>
+        <AnswerInput
+          bind:value={typed}
+          onsubmit={submitTyped}
+          label="Your move"
+          maxlength={8}
+          disabled={waiting || atEnd || lineComplete || passDone}
+          error={typedError}
+        />
+      </NotationBoard>
+    {:else}
+      <Board
+        {board}
+        {selectedSquare}
+        {validMoves}
+        dragValidMoves={dragMoves}
+        onSquareClick={handleSquareClick}
+        onDrop={handleDrop}
+        onDragStart={(sq) => (dragFrom = sq)}
+        onDragEnd={() => (dragFrom = null)}
+        {wrongMoveSquare}
+        {opponentSlide}
+        {arrows}
+        {flipped}
+        playableColors={[playerColor]}
+      />
+    {/if}
     {#if passDone}
       <BoardOverlay>
         <div class="done-check" aria-hidden="true">&#10003;</div>
-        <Button variant="primary" onclick={keepGoing}>Keep going</Button>
+        <Button bind:this={keepGoingButton} variant="primary" onclick={keepGoing}>Keep going</Button>
         <Button onclick={onExit}>Back to setup</Button>
       </BoardOverlay>
     {/if}
@@ -392,7 +447,7 @@
     <div class="status">
       {#if lineComplete && !passDone}
         <span class="complete-text">✓</span>
-        <Button variant="primary" onclick={advanceLine}>
+        <Button bind:this={nextLineButton} variant="primary" onclick={advanceLine}>
           {lineIdx + 1 < pass.length ? 'Next line' : 'Finish'}
         </Button>
       {:else if !lineComplete && !passDone && atFrontier && !waiting && !atEnd && !isPlayerTurn}
@@ -476,6 +531,15 @@
   .nav-btn:disabled {
     opacity: 0.3;
     cursor: default;
+  }
+
+  /* Keeps its height when empty, so the move box doesn't jump */
+  .hint {
+    min-height: 1.5em;
+    margin: 0;
+    font-size: var(--size-large);
+    font-weight: var(--weight-strong);
+    color: var(--correct-text);
   }
 
   .done-check {

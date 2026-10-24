@@ -3,6 +3,7 @@
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import BoardOverlay from '$lib/components/board/BoardOverlay.svelte';
+  import NotationBoard from '$lib/components/board/NotationBoard.svelte';
   import MoveNav from '$lib/components/board/MoveNav.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Choice from '$lib/components/ui/Choice.svelte';
@@ -19,6 +20,7 @@
    * qchess's Repertoire Flow). At the end of a line it holds a moment, then
    * steps back to where the next line leaves this one and plays on from
    * there. ◀ ▶ and the move list step by hand, which pauses it.
+   * Blindfold: the moves are written out instead of played on a board.
    */
 
   interface Props {
@@ -27,10 +29,11 @@
     lines: OpeningLine[];
     /** Milliseconds per move */
     speed: number;
+    blindfold: boolean;
     onExit: () => void;
   }
 
-  let { opening, startBoard, lines, speed = $bindable(), onExit }: Props = $props();
+  let { opening, startBoard, lines, speed = $bindable(), blindfold, onExit }: Props = $props();
 
   /** How fast it steps back to where the next line starts */
   const REWIND_MS = 120;
@@ -229,7 +232,11 @@
   {/snippet}
 
   {#snippet boardArea()}
-    <Board {board} {opponentSlide} {arrows} {highlights} {flipped} playableColors={[]} label={opening.name} />
+    {#if blindfold}
+      <NotationBoard moves={line.slice(0, moveIdx)} label={opening.name} />
+    {:else}
+      <Board {board} {opponentSlide} {arrows} {highlights} {flipped} playableColors={[]} label={opening.name} />
+    {/if}
     {#if finished}
       <BoardOverlay>
         <div class="done-check" aria-hidden="true">&#10003;</div>

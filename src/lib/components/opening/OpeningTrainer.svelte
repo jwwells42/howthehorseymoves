@@ -94,6 +94,7 @@
   let perVisit = $state(DEFAULT_PER_VISIT);
   let speed = $state(DEFAULT_SPEED);
   let autoNext = $state(false);
+  let blindfold = $state(false);
   let settingsLoaded = false;
 
   function readPref<T>(key: string, allowed: readonly T[], parse: (raw: string) => T): T | undefined {
@@ -112,12 +113,13 @@
   }
 
   $effect(() => {
-    const values = [order, perVisit, speed, autoNext];
+    const values = [order, perVisit, speed, autoNext, blindfold];
     if (!settingsLoaded) return;
     writePref(orderKey(opening.id), values[0] as string);
     writePref(PREFS.perVisit, String(values[1]));
     writePref(PREFS.speed, String(values[2]));
     writePref(PREFS.autoNext, String(values[3]));
+    writePref(PREFS.blindfold, String(values[4]));
   });
 
   // The lines left out, kept by their moves so a re-exported PGN keeps them
@@ -169,6 +171,7 @@
     perVisit = readPref(PREFS.perVisit, PER_VISIT_OPTIONS.map((o) => o.value), Number) ?? perVisit;
     speed = readPref(PREFS.speed, SPEED_OPTIONS.map((o) => o.value), Number) ?? speed;
     autoNext = readPref(PREFS.autoNext, [true, false], (r) => r === 'true') ?? autoNext;
+    blindfold = readPref(PREFS.blindfold, [true, false], (r) => r === 'true') ?? blindfold;
     if (savesProgress(opening)) deselected = readSkipped();
     settingsLoaded = true;
 
@@ -213,6 +216,7 @@
     bind:perVisit
     bind:speed
     bind:autoNext
+    bind:blindfold
     onStart={open}
     onExplore={() => open('explore')}
     onStartOver={startOver}
@@ -231,7 +235,7 @@
     {/snippet}
   </BoardLayout>
 {:else if phase === 'flow'}
-  <OpeningFlow {opening} {startBoard} lines={activeLines} bind:speed onExit={backToLobby} />
+  <OpeningFlow {opening} {startBoard} lines={activeLines} bind:speed {blindfold} onExit={backToLobby} />
 {:else}
   <OpeningDrill
     {opening}
@@ -242,6 +246,7 @@
     {progress}
     onStates={setStates}
     {autoNext}
+    {blindfold}
     onExit={backToLobby}
   />
 {/if}

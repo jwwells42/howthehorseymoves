@@ -32,6 +32,7 @@ export const PREFS = {
   perVisit: "opening-per-visit",
   speed: "opening-flow-speed",
   autoNext: "opening-auto-next",
+  blindfold: "opening-blindfold",
 };
 
 /** Each opening remembers Learn's order. */

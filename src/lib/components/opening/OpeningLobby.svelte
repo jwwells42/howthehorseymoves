@@ -28,6 +28,7 @@
     perVisit: number;
     speed: number;
     autoNext: boolean;
+    blindfold: boolean;
     onStart: (mode: StudyMode) => void;
     onExplore: () => void;
     onStartOver: () => void;
@@ -42,6 +43,7 @@
     perVisit = $bindable(),
     speed = $bindable(),
     autoNext = $bindable(),
+    blindfold = $bindable(),
     onStart,
     onExplore,
     onStartOver,
@@ -244,6 +246,10 @@
       <label class="toggle-label">
         <input type="checkbox" bind:checked={autoNext} />
         Auto-advance
+      </label>
+      <label class="toggle-label">
+        <input type="checkbox" bind:checked={blindfold} />
+        Blindfold
       </label>
       <Choice label="Flow" options={SPEED_OPTIONS} bind:value={speed} />
 

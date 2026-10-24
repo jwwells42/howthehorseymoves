@@ -179,6 +179,52 @@ export function parseSan(
   return { from, to, promotion };
 }
 
+/**
+ * A move a student typed, if it's one legal move in this position; null if
+ * it isn't a move, isn't legal, or could be more than one. Forgiving where a
+ * student would be: "nf3" is Nf3, "ed5" is exd5, "0-0" is O-O, and checks
+ * and !? marks don't matter. A lowercase b is tried as a pawn first, since
+ * bxc3 is a pawn move.
+ */
+export function readTypedMove(
+  text: string,
+  board: BoardState,
+  color: PieceColor,
+): { from: SquareId; to: SquareId; promotion?: PieceKind } | null {
+  const s = text.trim().replace(/[+#!?\s]/g, "").replace(/0/g, "O");
+  if (/^O-?O(-?O)?$/i.test(s)) {
+    const rank = color === "w" ? "1" : "8";
+    const from = `e${rank}` as SquareId;
+    const to = (s.replace(/-/g, "").length === 2 ? `g${rank}` : `c${rank}`) as SquareId;
+    const king = board.pieces.get(from);
+    if (king?.piece !== "K" || !getLegalMoves(from, board, color).includes(to)) return null;
+    return { from, to };
+  }
+  const asTyped = resolveMove(s, board, color);
+  if (asTyped || !/^[kqrbn]/.test(s)) return asTyped;
+  return resolveMove(s[0].toUpperCase() + s.slice(1), board, color);
+}
+
+function resolveMove(
+  s: string,
+  board: BoardState,
+  color: PieceColor,
+): { from: SquareId; to: SquareId; promotion?: PieceKind } | null {
+  const m = s.replace(/[x:-]/g, "").match(/^([KQRBN])?([a-h])?([1-8])?([a-h][1-8])=?([QRBNqrbn])?$/);
+  if (!m) return null;
+  const piece = (m[1] ?? "P") as PieceKind;
+  const to = m[4] as SquareId;
+  const candidates: SquareId[] = [];
+  for (const [sq, p] of board.pieces) {
+    if (p.color !== color || p.piece !== piece) continue;
+    if ((m[2] && sq[0] !== m[2]) || (m[3] && sq[1] !== m[3])) continue;
+    if (getLegalMoves(sq, board, color).includes(to)) candidates.push(sq);
+  }
+  if (candidates.length !== 1) return null;
+  const promotion = m[5] ? (m[5].toUpperCase() as PieceKind) : undefined;
+  return { from: candidates[0], to, promotion };
+}
+
 /** Apply a move to the board, handling captures, castling, en passant, and promotion. */
 export function applyMove(
   board: BoardState,

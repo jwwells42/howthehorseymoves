@@ -6,6 +6,7 @@ import { parsePuzzleMoves } from '$lib/puzzles/parse-moves';
 import { parseFen, createBoardState, type PieceColor } from '$lib/logic/types';
 import { isInCheck } from '$lib/logic/attacks';
 import { OPENINGS, parseOpeningPgn, extractLines } from '$lib/openings';
+import { readTypedMove } from '$lib/logic/pgn';
 
 /*
   Catches puzzle data that would break a page. A puzzle whose moves can't be
@@ -96,5 +97,51 @@ describe('starting positions', () => {
       });
     }
     expect(illegal).toEqual([]);
+  });
+});
+
+describe('typed moves', () => {
+  function boardOf(fen: string) {
+    const { placements, castlingRights, enPassantSquare } = parseFen(fen);
+    return createBoardState(placements, { castlingRights, enPassantSquare });
+  }
+  const START = boardOf('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+
+  it('reads a move however it is typed', () => {
+    for (const text of ['Nf3', 'nf3', 'Ngf3', 'Nf3+', ' Nf3! ']) {
+      expect(readTypedMove(text, START, 'w'), text).toEqual({ from: 'g1', to: 'f3' });
+    }
+    expect(readTypedMove('e4', START, 'w')).toEqual({ from: 'e2', to: 'e4' });
+    expect(readTypedMove('e5', START, 'b')).toEqual({ from: 'e7', to: 'e5' });
+  });
+
+  it('reads captures with or without the x', () => {
+    const board = boardOf('rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2');
+    expect(readTypedMove('exd5', board, 'w')).toEqual({ from: 'e4', to: 'd5' });
+    expect(readTypedMove('ed5', board, 'w')).toEqual({ from: 'e4', to: 'd5' });
+  });
+
+  it('reads castling with O or 0', () => {
+    const board = boardOf('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1');
+    for (const text of ['O-O', '0-0', 'o-o']) expect(readTypedMove(text, board, 'w'), text).toEqual({ from: 'e1', to: 'g1' });
+    for (const text of ['O-O-O', '0-0-0']) expect(readTypedMove(text, board, 'b'), text).toEqual({ from: 'e8', to: 'c8' });
+  });
+
+  it('tries a lowercase b as a pawn first', () => {
+    expect(readTypedMove('bxc3', boardOf('4k3/8/8/8/8/2n5/1P6/4K3 w - - 0 1'), 'w')).toEqual({ from: 'b2', to: 'c3' });
+    expect(readTypedMove('bc2', boardOf('4k3/8/8/8/8/8/8/1B2K3 w - - 0 1'), 'w')).toEqual({ from: 'b1', to: 'c2' });
+  });
+
+  it('needs to know which piece when two can go', () => {
+    const board = boardOf('4k3/8/8/8/8/8/8/1N2KN2 w - - 0 1');
+    expect(readTypedMove('Nd2', board, 'w')).toBeNull();
+    expect(readTypedMove('Nbd2', board, 'w')).toEqual({ from: 'b1', to: 'd2' });
+    expect(readTypedMove('Nfd2', board, 'w')).toEqual({ from: 'f1', to: 'd2' });
+  });
+
+  it('is null for anything that is not a legal move', () => {
+    for (const text of ['', 'zz', 'Bc4', 'Nd2', 'e5', 'O-O', 'Ke2', 'Qh5']) {
+      expect(readTypedMove(text, START, 'w'), text).toBeNull();
+    }
   });
 });
