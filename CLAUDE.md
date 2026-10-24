@@ -253,7 +253,7 @@ Optional "Lichess login" (nav bar, right end) that keeps a copy of a student's p
 
 ## Deployment
 
-Vercel auto-deploys on `git push` — no manual deployment steps needed. Uses `@sveltejs/adapter-vercel` with `runtime: 'nodejs22.x'`.
+Vercel auto-deploys on `git push` — no manual deployment steps needed. Uses `@sveltejs/adapter-vercel` with `runtime: 'nodejs24.x'`.
 
 ## Svelte 5 Conventions
 
