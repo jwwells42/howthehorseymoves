@@ -3,7 +3,7 @@
   import { type BoardState, FILES, RANKS, type SquareId, type PieceKind, type PieceColor, squareToCoords } from '$lib/logic/types';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import type { Arrow } from '$lib/logic/pgn';
-  import type { SquareHighlight } from '$lib/board-marks';
+  import { MARK, type SquareHighlight } from '$lib/board-marks';
   import Wall from './Wall.svelte';
 
   /**
@@ -13,6 +13,10 @@
    *
    * It is drawn 800 units across, 100 to a square, so anything inside it,
    * text included, is sized in those units.
+   *
+   * On any board, read-only ones too, right-click and drag draws an arrow, as
+   * on Lichess. The same arrow again takes it away; a left click or a new
+   * position clears them all.
    */
 
   const SQUARE_SIZE = 100;
@@ -20,6 +24,9 @@
 
   /** How far a ring highlight sits inside its square. */
   const RING_INSET = 14;
+
+  /** Arrows drawn with right-click are Lichess's green, which here is the right-move colour. */
+  const DRAWN_COLOR = MARK.good;
 
   interface DragState {
     from: SquareId;
@@ -106,6 +113,25 @@
   let drag = $state<DragState | null>(null);
   let clickSquare = $state<SquareId | null>(null);
 
+  // Arrows drawn with right-click. They belong to the position they were drawn
+  // on, so they go when the position changes.
+  let drawn = $state.raw<{ on: BoardState | null; arrows: Arrow[] }>({ on: null, arrows: [] });
+  let drawnArrows = $derived(drawn.on === board ? drawn.arrows : []);
+  // A right-click drag in progress: where it started and where the pointer is now.
+  let drawFrom = $state<SquareId | null>(null);
+  let drawTo = $state<SquareId | null>(null);
+  let shownArrows = $derived.by(() => {
+    const all = [...arrows, ...drawnArrows];
+    if (drawFrom && drawTo && drawTo !== drawFrom) all.push({ from: drawFrom, to: drawTo, color: DRAWN_COLOR });
+    return all;
+  });
+
+  function toggleDrawnArrow(from: SquareId, to: SquareId) {
+    const rest = drawnArrows.filter((a) => !(a.from === from && a.to === to));
+    const added = rest.length === drawnArrows.length;
+    drawn = { on: board, arrows: added ? [...rest, { from, to, color: DRAWN_COLOR }] : rest };
+  }
+
   // The board's size on screen, in pixels.
   let width = $state(0);
   let height = $state(0);
@@ -151,11 +177,20 @@
   }
 
   function handlePointerDown(e: PointerEvent) {
-    if (readOnly) return;
     const svgPt = pointerToSvg(e);
     if (!svgPt) return;
     const sq = svgToSquare(svgPt.x, svgPt.y);
     if (!sq) return;
+
+    if (e.button === 2) {
+      (e.target as Element).setPointerCapture(e.pointerId);
+      drawFrom = sq;
+      drawTo = sq;
+      return;
+    }
+    if (e.button !== 0) return;
+    if (drawnArrows.length > 0) drawn = { on: null, arrows: [] };
+    if (readOnly) return;
 
     const p = board.pieces.get(sq);
     if (p) {
@@ -173,6 +208,11 @@
   }
 
   function handlePointerMove(e: PointerEvent) {
+    if (drawFrom) {
+      const svgPt = pointerToSvg(e);
+      drawTo = svgPt ? svgToSquare(svgPt.x, svgPt.y) : null;
+      return;
+    }
     if (!drag) return;
     const svgPt = pointerToSvg(e);
     if (!svgPt) return;
@@ -180,6 +220,15 @@
   }
 
   function handlePointerUp(e: PointerEvent) {
+    if (drawFrom) {
+      if (e.button !== 2) return;
+      const svgPt = pointerToSvg(e);
+      const to = svgPt ? svgToSquare(svgPt.x, svgPt.y) : null;
+      if (to && to !== drawFrom) toggleDrawnArrow(drawFrom, to);
+      drawFrom = null;
+      drawTo = null;
+      return;
+    }
     if (drag) {
       const svgPt = pointerToSvg(e);
       if (svgPt) {
@@ -277,6 +326,7 @@
   onpointerdown={handlePointerDown}
   onpointermove={handlePointerMove}
   onpointerup={handlePointerUp}
+  oncontextmenu={(e) => e.preventDefault()}
 >
   <!-- Squares -->
   {#each displayRanks as rank, ri}
@@ -432,7 +482,7 @@
   {/if}
 
   <!-- Arrows -->
-  {#each arrows as arrow}
+  {#each shownArrows as arrow}
     {@const a = getArrowPath(arrow)}
     <g class="no-pointer arrow">
       <polyline
