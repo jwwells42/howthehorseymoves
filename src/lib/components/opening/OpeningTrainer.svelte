@@ -58,15 +58,21 @@
    * An opening: the lobby, then one of flow (watch every line), learn (new
    * moves, breadth or depth), review (the moves due), or explore (the whole
    * tree).
+   *
+   * Opened from the path (`path`), there's no lobby: it goes straight into
+   * learn, every line, with none of the lobby's settings, and ends with
+   * Continue. Progress is saved the same way, so the lobby shows it later.
    */
 
   type Phase = 'lobby' | StudyMode | 'explore';
 
   interface Props {
     opening: Opening;
+    /** Opened from the path: no lobby, no settings */
+    path?: boolean;
   }
 
-  let { opening }: Props = $props();
+  let { opening, path = false }: Props = $props();
 
   let flipped = $derived(opening.color === 'b');
 
@@ -81,7 +87,7 @@
   let activeLines = $derived(lines.filter((_, i) => !deselected.has(i)));
 
   // Each mode is a step in the browser's history, so Back comes to the lobby
-  let phase = $derived<Phase>(page.state.openingPhase ?? 'lobby');
+  let phase = $derived<Phase>(page.state.openingPhase ?? (path ? 'learn' : 'lobby'));
 
   function open(mode: Exclude<Phase, 'lobby'>) {
     pushState('', { openingPhase: mode });
@@ -141,6 +147,9 @@
   // === Progress ===
 
   let progress = $state.raw<MoveProgress>({});
+  // Saved progress is read in the browser. A pass is worked out from it when
+  // it starts, so on the path (no lobby first) it waits for this
+  let progressLoaded = $state(false);
 
   function reloadProgress() {
     if (savesProgress(opening)) progress = loadProgress(opening.id);
@@ -167,16 +176,11 @@
   }
 
   onMount(() => {
-    order = readPref(orderKey(opening.id), ['breadth', 'depth'] as const, (r) => r as StudyOrder) ?? order;
-    perVisit = readPref(PREFS.perVisit, PER_VISIT_OPTIONS.map((o) => o.value), Number) ?? perVisit;
-    speed = readPref(PREFS.speed, SPEED_OPTIONS.map((o) => o.value), Number) ?? speed;
-    autoNext = readPref(PREFS.autoNext, [true, false], (r) => r === 'true') ?? autoNext;
-    blindfold = readPref(PREFS.blindfold, [true, false], (r) => r === 'true') ?? blindfold;
-    if (savesProgress(opening)) deselected = readSkipped();
-    settingsLoaded = true;
-
     migrateOldProgress(opening, lines);
     reloadProgress();
+    progressLoaded = true;
+    // On the path the lobby's settings stay as they start, and aren't saved
+    if (!path) loadSettings();
     // Another tab, or sync, saved progress for this opening
     const onStorage = (e: StorageEvent) => {
       if (phase === 'lobby' && (e.key === null || e.key === `opening-${opening.id}-moves`)) reloadProgress();
@@ -184,6 +188,16 @@
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
   });
+
+  function loadSettings() {
+    order = readPref(orderKey(opening.id), ['breadth', 'depth'] as const, (r) => r as StudyOrder) ?? order;
+    perVisit = readPref(PREFS.perVisit, PER_VISIT_OPTIONS.map((o) => o.value), Number) ?? perVisit;
+    speed = readPref(PREFS.speed, SPEED_OPTIONS.map((o) => o.value), Number) ?? speed;
+    autoNext = readPref(PREFS.autoNext, [true, false], (r) => r === 'true') ?? autoNext;
+    blindfold = readPref(PREFS.blindfold, [true, false], (r) => r === 'true') ?? blindfold;
+    if (savesProgress(opening)) deselected = readSkipped();
+    settingsLoaded = true;
+  }
 
   function backToLobby() {
     history.back();
@@ -234,6 +248,13 @@
       </div>
     {/snippet}
   </BoardLayout>
+{:else if path && !progressLoaded}
+  <BoardLayout>
+    {#snippet boardArea()}
+      <Board board={startBoard} readOnly {flipped} />
+    {/snippet}
+    {#snippet sidebarArea()}{/snippet}
+  </BoardLayout>
 {:else if phase === 'flow'}
   <OpeningFlow {opening} {startBoard} lines={activeLines} bind:speed {blindfold} onExit={backToLobby} />
 {:else}
@@ -247,7 +268,7 @@
     onStates={setStates}
     {autoNext}
     {blindfold}
-    onExit={backToLobby}
+    onExit={path ? undefined : backToLobby}
   />
 {/if}
 

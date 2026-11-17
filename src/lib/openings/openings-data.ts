@@ -49,7 +49,28 @@ export const OPENINGS: Opening[] = [
     color: "w",
     pgn: "1.e4 e5 2.Qh5 Nc6 3.Bc4 Nf6 (3...g6 4.Qf3) 4.Qxf7#",
   },
+  // On the path, for young students. Only the first moves until the teacher
+  // writes the lines: paste a PGN over `pgn` and progress carries over. Keep
+  // the ids (progress is saved under them).
+  {
+    id: "first-e4",
+    name: "1.e4",
+    color: "w",
+    pgn: "1.e4",
+  },
   // === Black openings ===
+  {
+    id: "first-e4-e5",
+    name: "1.e4 e5",
+    color: "b",
+    pgn: "1.e4 e5",
+  },
+  {
+    id: "first-d4-d5",
+    name: "1.d4 d5",
+    color: "b",
+    pgn: "1.d4 d5",
+  },
   {
     id: "c6-qb6-vs-london",
     name: "c6 Qb6 vs London",

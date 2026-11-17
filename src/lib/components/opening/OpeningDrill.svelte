@@ -7,6 +7,7 @@
   import AnswerInput from '$lib/components/blindfold/AnswerInput.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
+  import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
   import { MARK } from '$lib/board-marks';
   import type { SquareId, BoardState } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
@@ -38,7 +39,8 @@
     onStates: (states: Record<string, MoveState>) => void;
     autoNext: boolean;
     blindfold: boolean;
-    onExit: () => void;
+    /** Back to the lobby. Left out on the path, where there's no lobby. */
+    onExit?: () => void;
   }
 
   let { opening, startBoard, lines, order, perVisit, progress, onStates, autoNext, blindfold, onExit }: Props = $props();
@@ -357,10 +359,10 @@
 
   // Blindfold: the keyboard goes to the button to press next, so Enter goes on
   let nextLineButton = $state<Button>();
-  let keepGoingButton = $state<Button>();
+  let finish = $state<FinishActions>();
   $effect(() => {
     if (!blindfold) return;
-    if (passDone) keepGoingButton?.focus();
+    if (passDone) finish?.focus();
     else if (lineComplete) nextLineButton?.focus();
   });
 
@@ -436,8 +438,11 @@
     {#if passDone}
       <BoardOverlay>
         <div class="done-check" aria-hidden="true">&#10003;</div>
-        <Button bind:this={keepGoingButton} variant="primary" onclick={keepGoing}>Keep going</Button>
-        <Button onclick={onExit}>Back to setup</Button>
+        <!-- On the path: Continue, with Keep going under it -->
+        <FinishActions bind:this={finish} label="Keep going" onclick={keepGoing} size="normal" />
+        {#if onExit}
+          <Button onclick={onExit}>Back to setup</Button>
+        {/if}
       </BoardOverlay>
     {/if}
   {/snippet}
@@ -483,9 +488,11 @@
       </div>
     </div>
 
-    <div class="drill-footer">
-      <Button onclick={onExit}>&larr; Setup</Button>
-    </div>
+    {#if onExit}
+      <div class="drill-footer">
+        <Button onclick={onExit}>&larr; Setup</Button>
+      </div>
+    {/if}
   {/snippet}
 </BoardLayout>
 

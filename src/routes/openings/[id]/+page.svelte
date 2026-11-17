@@ -2,11 +2,11 @@
   import { page } from '$app/state';
   import { getOpening } from '$lib/openings';
   import OpeningTrainer, { backLink } from '$lib/components/opening/OpeningTrainer.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
   import BoardPage from '$lib/components/board/BoardPage.svelte';
-  import { doneHref, stopFromUrl } from '$lib/curriculum';
+  import { stopFromUrl } from '$lib/curriculum';
 
-  // Opened from the path: there's no finish here, so Continue is always on offer
+  // Opened from the path: straight into play, with Continue at the end, and
+  // back goes home rather than to the list of openings
   let pathStop = $derived(stopFromUrl(page.url));
 
   let id = $derived(page.params.id ?? '');
@@ -14,14 +14,9 @@
 </script>
 
 {#if opening}
-  <BoardPage back={backLink()}>
-    {#snippet action()}
-      {#if pathStop}
-        <Button variant="primary" href={doneHref(pathStop)}>Continue <span aria-hidden="true">&rarr;</span></Button>
-      {/if}
-    {/snippet}
+  <BoardPage back={pathStop ? { href: '/', label: 'Back to home' } : backLink()}>
     {#key opening.id}
-      <OpeningTrainer {opening} />
+      <OpeningTrainer {opening} path={!!pathStop} />
     {/key}
   </BoardPage>
 {:else}
