@@ -29,7 +29,7 @@
   }
 
   // Endgame positions
-  const ENDGAME_POSITIONS: Record<string, { title: string; placements: PiecePlacement[] }> = {
+  const ENDGAME_POSITIONS: Record<string, { title: string; placements: PiecePlacement[]; storageKey: string }> = {
     'endings-kpk': {
       title: 'King + Pawn vs King',
       placements: [
@@ -37,6 +37,7 @@
         { piece: 'P', color: 'w', square: 'd4' },
         { piece: 'K', color: 'b', square: 'd8' },
       ],
+      storageKey: 'endings-kpk-best-stars',
     },
   };
 
@@ -140,7 +141,12 @@
 {#if endgame}
   <!-- Endgame trainer (e.g. KPK) -->
   <BoardPage back={{ href: '/', label: 'Back to home' }}>
-    <EndgameShell title={endgame.title} placements={endgame.placements} onNext={() => window.location.href = '/'} />
+    <EndgameShell
+      title={endgame.title}
+      placements={endgame.placements}
+      storageKey={endgame.storageKey}
+      onNext={pathStop ? goDone : undefined}
+    />
   </BoardPage>
 {:else if mateEndgameMatch}
   <!-- Mate conversion trainer (KQK, KRRK, etc.) -->

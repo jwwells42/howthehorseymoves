@@ -4,6 +4,7 @@
   import StarRating from '$lib/components/ui/StarRating.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { playSound } from '$lib/state/sound';
+  import { saveBest } from '$lib/state/storage';
   import {
     type BoardState,
     type SquareId,
@@ -20,10 +21,12 @@
     /** Where this is in a lesson, e.g. "7 / 24", under the title. */
     progress?: string;
     placements: PiecePlacement[];
+    /** Where the best stars are saved; leave out to save nothing (a lesson step) */
+    storageKey?: string;
     onNext?: () => void;
   }
 
-  let { title, progress, placements, onNext }: Props = $props();
+  let { title, progress, placements, storageKey, onNext }: Props = $props();
 
   /* ── KPK helpers ──────────────────────────────── */
 
@@ -188,6 +191,7 @@
       result = 'won';
       feedback = null;
       playSound('stars');
+      if (storageKey) saveBest(storageKey, stars);
       return;
     }
 
