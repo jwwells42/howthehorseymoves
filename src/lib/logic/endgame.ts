@@ -5,12 +5,13 @@
  * for KQK, KRRK, KRK, and KBBK endgames.
  *
  * No bitbase needed — all these positions are theoretical wins.
- * Validation rejects stalemate and hanging pieces.
+ * Validation reports a move that stalemates or hangs a piece, with the
+ * king's capture or the squares it can't go to, so the trainer can show it.
  * Bot defense maximises king mobility and avoids mate-in-1.
  */
 
 import type { BoardState, SquareId, PiecePlacement, PieceKind } from "./types";
-import { createBoardState, squareToCoords } from "./types";
+import { createBoardState, squareToCoords, coordsToSquare } from "./types";
 import {
   getAllLegalMoves,
   getLegalMoves,
@@ -77,6 +78,20 @@ function kingsAdjacent(a: SquareId, b: SquareId): boolean {
   const [ax, ay] = squareToCoords(a);
   const [bx, by] = squareToCoords(b);
   return Math.abs(ax - bx) <= 1 && Math.abs(ay - by) <= 1;
+}
+
+/** Every square next to `sq` that is on the board. */
+function neighbours(sq: SquareId): SquareId[] {
+  const [x, y] = squareToCoords(sq);
+  const out: SquareId[] = [];
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      if (dx === 0 && dy === 0) continue;
+      const n = coordsToSquare(x + dx, y + dy);
+      if (n) out.push(n);
+    }
+  }
+  return out;
 }
 
 function squareColorParity(sq: SquareId): number {
@@ -220,6 +235,10 @@ export interface MoveResult {
   valid: boolean;
   checkmate?: boolean;
   reason?: string;
+  /** Hanging: the black king's move that takes the piece. */
+  capture?: { from: SquareId; to: SquareId };
+  /** Stalemate: the squares next to the black king, none of which it can go to. */
+  blocked?: SquareId[];
 }
 
 export function validateEndgameMove(
@@ -236,7 +255,14 @@ export function validateEndgameMove(
 
   // Stalemate? Bad.
   if (isStalemate("b", newBoard)) {
-    return { valid: false, reason: "Stalemate" };
+    const king = [...newBoard.pieces].find(
+      ([, p]) => p.color === "b" && p.piece === "K",
+    )?.[0];
+    return {
+      valid: false,
+      reason: "Stalemate",
+      blocked: king ? neighbours(king) : [],
+    };
   }
 
   // Any white piece hanging? (black can capture it legally)
@@ -247,6 +273,7 @@ export function validateEndgameMove(
       return {
         valid: false,
         reason: "Hanging",
+        capture: { from: m.from, to: m.to },
       };
     }
   }

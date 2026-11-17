@@ -9,6 +9,7 @@
   import { getLegalMoves } from '$lib/logic/attacks';
   import {
     type MateEndgameType,
+    type MoveResult,
     ENDGAME_INFO,
     generatePosition,
     validateEndgameMove,
@@ -16,12 +17,21 @@
     pickDefenseMove,
   } from '$lib/logic/endgame';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
+  import { MARK, highlight, type SquareHighlight } from '$lib/board-marks';
 
   interface Props {
     type: MateEndgameType;
   }
 
   let { type }: Props = $props();
+
+  /* A move that hangs a piece or stalemates is played, shown, then taken back. */
+  /** How long the bot waits before it moves (or takes the hanging piece). */
+  const BOT_DELAY_MS = 400;
+  /** How long the capture, or the ✗s around the king, stay on the board. */
+  const HOLD_MS = 1500;
+  /** How long each step back takes. */
+  const STEP_MS = 500;
 
   let info = $derived(ENDGAME_INFO[type]);
   let storageKey = $derived(`endings-${type}-best-stars`);
@@ -41,6 +51,10 @@
   let waitingForBot = $state(false);
   let dragFrom = $state<SquareId | null>(null);
   let bestStars = $state(0);
+  /** A mistake being shown: no moves until it has been taken back. */
+  let replaying = $state(false);
+  /** ✗ on the squares the black king can't go to, after a stalemate. */
+  let crosses = $state<SquareHighlight[]>([]);
 
   $effect(() => {
     bestStars = readNumber(storageKey);
@@ -88,26 +102,70 @@
         botSlide = null;
         waitingForBot = false;
       }, 500);
-    }, 400);
+    }, BOT_DELAY_MS);
+  }
+
+  /* ── A mistake: show it, then take it back ────── */
+
+  function showMistake(
+    before: BoardState,
+    after: BoardState,
+    from: SquareId,
+    to: SquareId,
+    validation: MoveResult,
+  ) {
+    replaying = true;
+    const moved = before.pieces.get(from)!;
+
+    function takeBack() {
+      board = before;
+      botSlide = { piece: moved.piece, color: moved.color, from: to, to: from };
+      setTimeout(() => {
+        botSlide = null;
+        replaying = false;
+      }, STEP_MS);
+    }
+
+    setTimeout(() => {
+      feedback = validation.reason ?? null;
+      const capture = validation.capture;
+      if (capture) {
+        // The king takes the piece, then steps back off it.
+        board = applyEndgameMove(after, capture.from, capture.to);
+        botSlide = { piece: 'K', color: 'b', from: capture.from, to: capture.to };
+        playSound('botCaptures');
+        setTimeout(() => {
+          board = after;
+          botSlide = { piece: 'K', color: 'b', from: capture.to, to: capture.from };
+          setTimeout(takeBack, STEP_MS);
+        }, HOLD_MS);
+      } else {
+        crosses = highlight(validation.blocked ?? [], MARK.danger, 'cross');
+        playSound('wrong');
+        setTimeout(() => {
+          crosses = [];
+          takeBack();
+        }, HOLD_MS);
+      }
+    }, BOT_DELAY_MS);
   }
 
   /* ── Execute player move ──────────────────────── */
 
   function executeMove(from: SquareId, to: SquareId) {
     const validation = validateEndgameMove(board, from, to);
-    if (!validation.valid) {
-      mistakes += 1;
-      feedback = validation.reason ?? 'Invalid move';
-      selectedSquare = null;
-      playSound('wrong');
-      return;
-    }
-
+    const before = board;
     const newBoard = applyEndgameMove(board, from, to);
     board = newBoard;
     selectedSquare = null;
     feedback = null;
     playSound('move');
+
+    if (!validation.valid) {
+      mistakes += 1;
+      showMistake(before, newBoard, from, to, validation);
+      return;
+    }
 
     if (validation.checkmate) {
       result = 'won';
@@ -123,7 +181,7 @@
   /* ── Click handling ───────────────────────────── */
 
   function handleSquareClick(sq: SquareId) {
-    if (result !== 'playing' || waitingForBot) return;
+    if (result !== 'playing' || waitingForBot || replaying) return;
 
     if (!selectedSquare) {
       const p = board.pieces.get(sq);
@@ -157,7 +215,7 @@
   /* ── Drag-and-drop handling ───────────────────── */
 
   function handleDrop(from: SquareId, to: SquareId) {
-    if (result !== 'playing' || waitingForBot || from === to) return;
+    if (result !== 'playing' || waitingForBot || replaying || from === to) return;
     const p = board.pieces.get(from);
     if (!p || p.color !== 'w') return;
     const legal = getLegalMoves(from, board, 'w');
@@ -166,7 +224,7 @@
   }
 
   function onDragStart(sq: SquareId) {
-    if (result !== 'playing' || waitingForBot) return;
+    if (result !== 'playing' || waitingForBot || replaying) return;
     dragFrom = sq;
   }
 
@@ -185,6 +243,8 @@
     botSlide = null;
     waitingForBot = false;
     dragFrom = null;
+    replaying = false;
+    crosses = [];
   }
 </script>
 
@@ -200,6 +260,7 @@
       {onDragStart}
       {onDragEnd}
       opponentSlide={botSlide}
+      highlights={crosses}
     />
   {/snippet}
 

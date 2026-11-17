@@ -25,6 +25,9 @@
   /** How far a ring highlight sits inside its square. */
   const RING_INSET = 14;
 
+  /** How far each arm of a cross highlight reaches from the square's centre. */
+  const CROSS_REACH = 30;
+
   /** Arrows drawn with right-click are Lichess's green, which here is the right-move colour. */
   const DRAWN_COLOR = MARK.good;
 
@@ -373,7 +376,7 @@
             style:stroke={highlight.color}
             class="no-pointer ring"
           />
-        {:else if highlight}
+        {:else if highlight && highlight.look !== 'cross'}
           <rect
             {x}
             {y}
@@ -455,6 +458,16 @@
         />
       {/if}
     {/if}
+  {/each}
+
+  <!-- Crosses go over the pieces, so one on a piece still shows. -->
+  {#each highlights.filter((h) => h.look === 'cross') as h}
+    {@const [cx, cy] = centre(h.square)}
+    {@const d = `M${cx - CROSS_REACH},${cy - CROSS_REACH} L${cx + CROSS_REACH},${cy + CROSS_REACH} M${cx + CROSS_REACH},${cy - CROSS_REACH} L${cx - CROSS_REACH},${cy + CROSS_REACH}`}
+    <g class="no-pointer">
+      <path {d} class="cross-edge" />
+      <path {d} style:stroke={h.color} class="cross" />
+    </g>
   {/each}
 
   <!-- Stars on top of target pieces -->
@@ -559,6 +572,18 @@
   .ring {
     fill: none;
     stroke-width: 16;
+  }
+  /* The same dark edge for a cross. */
+  .cross-edge {
+    fill: none;
+    stroke: var(--scrim);
+    stroke-width: 28;
+    stroke-linecap: round;
+  }
+  .cross {
+    fill: none;
+    stroke-width: 16;
+    stroke-linecap: round;
   }
 
   /* Each coordinate takes the colour of the squares it is not on. Its size

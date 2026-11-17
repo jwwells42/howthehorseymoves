@@ -36,8 +36,10 @@ export const LICHESS_MARKS: Record<string, string> = {
  * - `tint` (the default) lets the square's own colour show through
  * - `solid` covers the square, which reads better on a small board
  * - `ring` outlines the square, for when its colour is the point
+ * - `cross` draws an ✗ on the square, over any piece on it: a square the king
+ *   can't go to
  */
-export type HighlightLook = 'tint' | 'solid' | 'ring';
+export type HighlightLook = 'tint' | 'solid' | 'ring' | 'cross';
 
 export interface SquareHighlight {
   square: SquareId;
