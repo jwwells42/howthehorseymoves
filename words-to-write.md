@@ -61,7 +61,7 @@ The moments, and what the bot's picture does at each:
 - draw:
 - resign:
 
-### The Frog: Level 3 boss (picks among good moves, often not the best; doesn't see mate in 1 coming)
+### The Pig: Level 3 boss (picks among moves that look good, often a poor one; sometimes leaves a knight to be taken; doesn't see mate in 1 coming)
 
 - greeting:
 - thinking:
@@ -74,7 +74,7 @@ The moments, and what the bot's picture does at each:
 - draw:
 - resign:
 
-### The Rabbit: Level 4 boss (like the Frog but more careful; stops mate in 1)
+### The Frog: Level 4 boss (picks among good moves, often not the best; doesn't see mate in 1 coming)
 
 - greeting:
 - thinking:
@@ -87,7 +87,7 @@ The moments, and what the bot's picture does at each:
 - draw:
 - resign:
 
-### The Panda: Level 5 boss (plays its best one-move answer; takes what you leave, spots mate in 1)
+### The Duck: Level 5 boss (like the Frog but picks better; still doesn't see mate in 1 coming)
 
 - greeting:
 - thinking:
@@ -100,7 +100,7 @@ The moments, and what the bot's picture does at each:
 - draw:
 - resign:
 
-### The Monkey: Level 6 boss (looks two moves ahead, but not always for the best)
+### The Rabbit: Level 6 boss (picks among good moves, not always the best; stops mate in 1)
 
 - greeting:
 - thinking:
@@ -113,7 +113,7 @@ The moments, and what the bot's picture does at each:
 - draw:
 - resign:
 
-### The Bear: Level 7 boss (looks two moves ahead, plays the best it finds)
+### The Penguin: Level 7 boss (plays its best one-move answer, but doesn't see mate in 1 coming)
 
 - greeting:
 - thinking:
@@ -126,7 +126,85 @@ The moments, and what the bot's picture does at each:
 - draw:
 - resign:
 
-### The Owl: Level 8 boss (looks three moves ahead, knows some openings by heart)
+### The Panda: Level 8 boss (plays its best one-move answer; takes what you leave, spots mate in 1)
+
+- greeting:
+- thinking:
+- move:
+- capture:
+- check:
+- captured:
+- checkmate:
+- checkmated:
+- draw:
+- resign:
+
+### The Goat: Level 9 boss (looks two moves ahead, often not for the best)
+
+- greeting:
+- thinking:
+- move:
+- capture:
+- check:
+- captured:
+- checkmate:
+- checkmated:
+- draw:
+- resign:
+
+### The Monkey: Level 10 boss (looks two moves ahead, but not always for the best)
+
+- greeting:
+- thinking:
+- move:
+- capture:
+- check:
+- captured:
+- checkmate:
+- checkmated:
+- draw:
+- resign:
+
+### The Gorilla: Level 11 boss (looks two moves ahead, nearly always plays the best it finds)
+
+- greeting:
+- thinking:
+- move:
+- capture:
+- check:
+- captured:
+- checkmate:
+- checkmated:
+- draw:
+- resign:
+
+### The Bear: Level 12 boss (looks two moves ahead, plays the best it finds)
+
+- greeting:
+- thinking:
+- move:
+- capture:
+- check:
+- captured:
+- checkmate:
+- checkmated:
+- draw:
+- resign:
+
+### The Elephant: Level 13 boss (looks three moves ahead, not always for the best; knows some openings by heart)
+
+- greeting:
+- thinking:
+- move:
+- capture:
+- check:
+- captured:
+- checkmate:
+- checkmated:
+- draw:
+- resign:
+
+### The Owl: Level 14 boss (looks three moves ahead, knows some openings by heart)
 
 - greeting:
 - thinking:
@@ -151,7 +229,6 @@ for students who read. Write one only where you think it's needed.
 
 - Color of Square:
 - Same Diagonal?:
-- Same Rank or File?:
 - Knight Squares:
 - Neighbor Squares:
 - Move Counting:
@@ -169,3 +246,20 @@ for students who read. Write one only where you think it's needed.
 - Bishop Routes (it also said to press Can't reach! when there's no route):
 - Rook Maze:
 - Knight Gauntlet (it also said: don't land on a square the queen attacks):
+
+---
+
+## 3. Names for Levels 9–14
+
+File: `src/lib/curriculum.ts`, each level's `title`.
+
+Levels 1–8 are named after horses (Level 1: The Foal … Level 8: The Charger).
+The six levels added on 2026-11-17 are shown by number only until named. Write
+just the name; it shows as "Level 9: The …".
+
+- Level 9:
+- Level 10:
+- Level 11:
+- Level 12:
+- Level 13:
+- Level 14:

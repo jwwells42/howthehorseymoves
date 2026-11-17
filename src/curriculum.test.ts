@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { CURRICULUM } from '$lib/curriculum';
 import { getPuzzlesForPiece } from '$lib/puzzles';
+import { BOT_LADDER } from '$lib/logic/bot';
 
 /*
   The landing page shows each level as a grid three cards wide, so a level holds
@@ -32,5 +33,10 @@ describe('curriculum', () => {
       }
     }
     expect(wrong).toEqual([]);
+  });
+
+  it('the levels end with the bot ladder, weakest first, one bot each', () => {
+    const bosses = CURRICULUM.map((c) => c.stops.at(-1)?.href.match(/level=([a-z]+)/)?.[1]);
+    expect(bosses).toEqual(BOT_LADDER);
   });
 });

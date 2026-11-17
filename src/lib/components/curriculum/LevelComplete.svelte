@@ -6,8 +6,9 @@
 
   /**
    * Shown after a level's bot is beaten: the journey board, with the knight
-   * jumping from the bot up to the first stop of the next level's rank. One
-   * button. After the last level there's no next level, and the knight stays.
+   * jumping from the bot up to the first stop of the next level's rank (after
+   * Level 8, the next board appears with the knight on it). One button. After
+   * the last level there's no next level, and the knight stays.
    */
 
   interface Props {

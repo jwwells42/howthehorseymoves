@@ -5,11 +5,13 @@
   import { progressState } from '$lib/state/progress-store';
 
   /**
-   * The whole path as a chessboard: one rank per level, Level 1 at the
-   * bottom, each level's stops along its rank and its bot waiting just past
-   * the end of it. Eight levels of eight stops fill the board exactly.
-   * Finished stops are ticked, the knight's level is framed, and the knight
-   * stands on `knightAt`. Change `knightAt` and the knight walks there.
+   * The path as chessboards, eight levels to a board (Levels 1–8, then
+   * 9–16): one rank per level, the board's first level at the bottom, each
+   * level's stops along its rank and its bot waiting just past the end of
+   * it. It shows the board the knight is on; a rank with no level yet is
+   * dimmed. Finished stops are ticked, the knight's level is framed, and the
+   * knight stands on `knightAt`. Change `knightAt` and the knight walks
+   * there, or, onto the next board, that board appears with the knight on it.
    *
    * Reads saved progress, so render it only in the browser, once progress
    * has loaded.
@@ -22,6 +24,8 @@
   let { knightAt }: Props = $props();
 
   const FILES = 8;
+  /** Levels on one board: a rank each. */
+  const LEVELS_PER_BOARD = 8;
   /** The board's eight files plus the bot's square past the end. */
   const COLUMNS = FILES + 1;
 
@@ -40,7 +44,7 @@
     return { id: stop.id, name: stop.name, done: getStopStars(stop) > 0 };
   }
 
-  let ranks = $derived.by((): Rank[] => {
+  let allRanks = $derived.by((): Rank[] => {
     void $progressState;
     return CURRICULUM.map((chapter) => {
       // A level's last stop is its bot (curriculum.test.ts checks it)
@@ -56,13 +60,8 @@
     });
   });
 
-  /** Level 1 is the bottom row. */
-  function rowOf(level: number): number {
-    return ranks.length - 1 - level;
-  }
-
   let at = $derived.by(() => {
-    for (const [level, rank] of ranks.entries()) {
+    for (const [level, rank] of allRanks.entries()) {
       const file = rank.stops.findIndex((s) => s?.id === knightAt);
       if (file >= 0) return { level, column: file, name: rank.stops[file]!.name };
       if (rank.bot?.id === knightAt) return { level, column: FILES, name: rank.bot.name };
@@ -72,28 +71,44 @@
 
   let summary = $derived.by(() => {
     if (!at) return '';
-    const rank = ranks[at.level];
+    const rank = allRanks[at.level];
     const done = rank.stops.filter((s) => s?.done).length;
     const total = rank.stops.filter(Boolean).length;
     return `${at.name}, ${rank.title}: ${done}/${total}`;
   });
 
-  // Rows top to bottom, Level 8 first
-  let rows = $derived([...ranks.entries()].reverse());
+  /** The board the knight is on: 0 for Levels 1–8, 1 for 9–16, … */
+  let board = $derived(Math.floor((at?.level ?? 0) / LEVELS_PER_BOARD));
+  let firstLevel = $derived(board * LEVELS_PER_BOARD);
+
+  /** The board's first level is the bottom row. */
+  function rowOf(level: number): number {
+    return LEVELS_PER_BOARD - 1 - (level - firstLevel);
+  }
+
+  // Rows top to bottom, the board's last level first; null = no level yet
+  let rows = $derived(
+    Array.from({ length: LEVELS_PER_BOARD }, (_, i): [number, Rank | null] => [
+      firstLevel + i,
+      allRanks[firstLevel + i] ?? null,
+    ]).reverse(),
+  );
+  const NO_STOPS: null[] = Array(FILES).fill(null);
 </script>
 
-<div class="journey" style:--levels={ranks.length}>
+<div class="journey">
   <p class="sr-only">{summary}</p>
 
+  {#key board}
   <div class="numbers" aria-hidden="true">
-    {#each rows as [level]}
-      <span class={['number', level === at?.level && 'current']}>{level + 1}</span>
+    {#each rows as [level, rank]}
+      <span class={['number', level === at?.level && 'current']}>{rank ? level + 1 : ''}</span>
     {/each}
   </div>
 
   <div class="squares" aria-hidden="true">
     {#each rows as [level, rank]}
-      {#each rank.stops as stop, file}
+      {#each rank?.stops ?? NO_STOPS as stop, file}
         <div class={['square', (level + file) % 2 === 0 ? 'dark' : 'light', !stop && 'empty']}>
           {#if stop?.done}
             <span class="tick">&#10003;</span>
@@ -101,33 +116,34 @@
         </div>
       {/each}
       <div class="bot">
-        {#if rank.bot?.avatar}
+        {#if rank?.bot?.avatar}
           <img src={rank.bot.avatar} alt="" />
         {/if}
-        {#if rank.bot?.done}
+        {#if rank?.bot?.done}
           <span class="tick corner">&#10003;</span>
         {/if}
       </div>
     {/each}
 
     {#if at}
-      <div class="frame" style:top="{(rowOf(at.level) / ranks.length) * 100}%"></div>
+      <div class="frame" style:top="{(rowOf(at.level) / LEVELS_PER_BOARD) * 100}%"></div>
       <img
         src="/pieces/wN.svg"
         alt=""
         class="knight"
         style:left="{(at.column / COLUMNS) * 100}%"
-        style:top="{(rowOf(at.level) / ranks.length) * 100}%"
+        style:top="{(rowOf(at.level) / LEVELS_PER_BOARD) * 100}%"
       />
     {/if}
   </div>
+  {/key}
 </div>
 
 <style>
   /* Fits a Chromebook window with the rest of the card: no taller than
      about a third of the window. */
   .journey {
-    /* The number of ranks; the markup sets it from the curriculum */
+    /* The number of ranks: levels on one board */
     --levels: 8;
     width: min(100%, 26rem, calc(34dvh * 9 / var(--levels) + 1.75rem));
     display: grid;
