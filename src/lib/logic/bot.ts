@@ -17,19 +17,27 @@ const CENTER_BONUS: Record<string, number> = {
   c6: 0.1, d6: 0.1, e6: 0.1, f6: 0.1,
 };
 
+// These keys are also progress keys (`bot-beaten-{level}`), stop ids
+// (`play-{level}`) and `/play?level=` values, so never rename one.
 export type BotLevel =
   | "random"        // 1. The Sloth
   | "greedy"        // 2. The Chick
-  | "loose"         // 3. The Frog
-  | "careful"       // 4. The Rabbit
-  | "basic"         // 5. The Panda
-  | "sharp"         // 6. The Monkey
-  | "intermediate"  // 7. The Bear
-  | "expert";       // 8. The Owl
+  | "wild"          // 3.
+  | "loose"         // 4. The Frog
+  | "steady"        // 5.
+  | "careful"       // 6. The Rabbit
+  | "tidy"          // 7.
+  | "basic"         // 8. The Panda
+  | "bold"          // 9.
+  | "sharp"         // 10. The Monkey
+  | "keen"          // 11.
+  | "intermediate"  // 12. The Bear
+  | "booked"        // 13.
+  | "expert";       // 14. The Owl
 
 export interface BotSpec {
   level: BotLevel;
-  /** 1-8. Position on the ladder — drives the difficulty pips on the play page. */
+  /** 1-14. Position on the ladder, and the level it ends. Drives the difficulty pips on the play page. */
   rung: number;
   search: "random" | "greedy" | "heuristic" | "minimax";
   /**
@@ -41,8 +49,10 @@ export interface BotSpec {
    * Mind the ceiling on the heuristic bots. `scoreMove` penalizes hanging a
    * piece by `value * 5` while a pawn of material is worth 10, so slack above
    * ~1.4 starts buying knight blunders and above ~2.5 rook blunders. Keep
-   * heuristic slack under 1.5. The minimax bots evaluate in real centipawns,
-   * so their slack means what it says.
+   * heuristic slack under 1.5, except `wild` (the Pig, 2.4): it sits between
+   * the Chick, which hangs pieces on purpose, and the Frog, so the odd knight
+   * blunder is its job. Stay under 2.5. The minimax bots evaluate in real
+   * centipawns, so their slack means what it says.
    */
   slack: number;
   /**
@@ -79,19 +89,26 @@ export interface BotSpec {
  * and a sprite in `static/characters/`. No new algorithm required.
  */
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  random:       { level: "random",        rung: 1, search: "random",     slack: 0,   depth: 0, avoidsMateIn1: false, usesBook: false },
-  greedy:       { level: "greedy",        rung: 2, search: "greedy",     slack: 0,   depth: 0, avoidsMateIn1: false, usesBook: false },
-  loose:        { level: "loose",         rung: 3, search: "heuristic",  slack: 1.4, depth: 0, avoidsMateIn1: false, usesBook: false },
-  careful:      { level: "careful",       rung: 4, search: "heuristic",  slack: 0.6, depth: 0, avoidsMateIn1: true,  usesBook: false },
-  basic:        { level: "basic",         rung: 5, search: "heuristic",  slack: 0,   depth: 0, avoidsMateIn1: true,  usesBook: false },
-  sharp:        { level: "sharp",         rung: 6, search: "minimax",    slack: 0.7, depth: 2, avoidsMateIn1: false, usesBook: false },
-  intermediate: { level: "intermediate",  rung: 7, search: "minimax",    slack: 0,   depth: 2, avoidsMateIn1: false, usesBook: false },
-  expert:       { level: "expert",        rung: 8, search: "minimax",    slack: 0,   depth: 3, avoidsMateIn1: false, usesBook: true  },
+  random:       { level: "random",        rung: 1,  search: "random",     slack: 0,    depth: 0, avoidsMateIn1: false, usesBook: false },
+  greedy:       { level: "greedy",        rung: 2,  search: "greedy",     slack: 0,    depth: 0, avoidsMateIn1: false, usesBook: false },
+  wild:         { level: "wild",          rung: 3,  search: "heuristic",  slack: 2.4,  depth: 0, avoidsMateIn1: false, usesBook: false },
+  loose:        { level: "loose",         rung: 4,  search: "heuristic",  slack: 1.4,  depth: 0, avoidsMateIn1: false, usesBook: false },
+  steady:       { level: "steady",        rung: 5,  search: "heuristic",  slack: 0.9,  depth: 0, avoidsMateIn1: false, usesBook: false },
+  careful:      { level: "careful",       rung: 6,  search: "heuristic",  slack: 0.6,  depth: 0, avoidsMateIn1: true,  usesBook: false },
+  tidy:         { level: "tidy",          rung: 7,  search: "heuristic",  slack: 0,    depth: 0, avoidsMateIn1: false, usesBook: false },
+  basic:        { level: "basic",         rung: 8,  search: "heuristic",  slack: 0,    depth: 0, avoidsMateIn1: true,  usesBook: false },
+  bold:         { level: "bold",          rung: 9,  search: "minimax",    slack: 0.95, depth: 2, avoidsMateIn1: false, usesBook: false },
+  sharp:        { level: "sharp",         rung: 10, search: "minimax",    slack: 0.7,  depth: 2, avoidsMateIn1: false, usesBook: false },
+  keen:         { level: "keen",          rung: 11, search: "minimax",    slack: 0.2,  depth: 2, avoidsMateIn1: false, usesBook: false },
+  intermediate: { level: "intermediate",  rung: 12, search: "minimax",    slack: 0,    depth: 2, avoidsMateIn1: false, usesBook: false },
+  booked:       { level: "booked",        rung: 13, search: "minimax",    slack: 0.5,  depth: 3, avoidsMateIn1: false, usesBook: true  },
+  expert:       { level: "expert",        rung: 14, search: "minimax",    slack: 0,    depth: 3, avoidsMateIn1: false, usesBook: true  },
 };
 
 /** The ladder in display order, weakest first. */
 export const BOT_LADDER: BotLevel[] = [
-  "random", "greedy", "loose", "careful", "basic", "sharp", "intermediate", "expert",
+  "random", "greedy", "wild", "loose", "steady", "careful", "tidy",
+  "basic", "bold", "sharp", "keen", "intermediate", "booked", "expert",
 ];
 
 /**

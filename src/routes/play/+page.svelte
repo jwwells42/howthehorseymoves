@@ -50,7 +50,7 @@
         <button class="level-card" onclick={() => play(botLevel)}>
           <div class="char-card">
             {#if char}
-              <img src={char.avatar} alt="" class="char-avatar" width="56" height="56" />
+              <img src={char.avatar} alt="" class="char-avatar" width="48" height="48" />
             {/if}
             <div class="char-text">
               <div class="name-row">
@@ -79,15 +79,15 @@
 {/if}
 
 <style>
-  /* Two columns where there's room, so all eight rungs fit on a Chromebook
-     (1366x768) without scrolling */
+  /* Two columns where there's room, and compact cards, so all fourteen rungs
+     fit on a Chromebook (1366x768) without scrolling */
   .level-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   .level-card {
-    width: 100%; padding: 0.875rem 1rem; border-radius: 0.75rem;
+    width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.75rem;
     border: 1px solid var(--line); background: var(--surface);
     text-align: left; cursor: pointer;
     transition: background 0.15s;

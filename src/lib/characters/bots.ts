@@ -48,7 +48,6 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       move: [],
     },
   },
-
   // ── 2. Greedy ──────────────────────────────────────────────
   greedy: {
     level: 'greedy',
@@ -68,8 +67,26 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       move: [],
     },
   },
-
-  // ── 3. Loose ───────────────────────────────────────────────
+  // ── 3. Wild ────────────────────────────────────────────────
+  wild: {
+    level: 'wild',
+    name: 'The Pig',
+    avatar: '/characters/pig.png',
+    color: 'var(--bot-pig)',
+    reactions: {
+      greeting: [],
+      thinking: [],
+      capture: [],
+      captured: [],
+      check: [],
+      checkmate: [],
+      checkmated: [],
+      resign: [],
+      draw: [],
+      move: [],
+    },
+  },
+  // ── 4. Loose ───────────────────────────────────────────────
   loose: {
     level: 'loose',
     name: 'The Frog',
@@ -88,8 +105,26 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       move: [],
     },
   },
-
-  // ── 4. Careful ─────────────────────────────────────────────
+  // ── 5. Steady ──────────────────────────────────────────────
+  steady: {
+    level: 'steady',
+    name: 'The Duck',
+    avatar: '/characters/duck.png',
+    color: 'var(--bot-duck)',
+    reactions: {
+      greeting: [],
+      thinking: [],
+      capture: [],
+      captured: [],
+      check: [],
+      checkmate: [],
+      checkmated: [],
+      resign: [],
+      draw: [],
+      move: [],
+    },
+  },
+  // ── 6. Careful ─────────────────────────────────────────────
   careful: {
     level: 'careful',
     name: 'The Rabbit',
@@ -108,8 +143,26 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       move: [],
     },
   },
-
-  // ── 5. Basic ───────────────────────────────────────────────
+  // ── 7. Tidy ────────────────────────────────────────────────
+  tidy: {
+    level: 'tidy',
+    name: 'The Penguin',
+    avatar: '/characters/penguin.png',
+    color: 'var(--bot-penguin)',
+    reactions: {
+      greeting: [],
+      thinking: [],
+      capture: [],
+      captured: [],
+      check: [],
+      checkmate: [],
+      checkmated: [],
+      resign: [],
+      draw: [],
+      move: [],
+    },
+  },
+  // ── 8. Basic ───────────────────────────────────────────────
   basic: {
     level: 'basic',
     name: 'The Panda',
@@ -128,8 +181,26 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       move: [],
     },
   },
-
-  // ── 6. Sharp ───────────────────────────────────────────────
+  // ── 9. Bold ────────────────────────────────────────────────
+  bold: {
+    level: 'bold',
+    name: 'The Goat',
+    avatar: '/characters/goat.png',
+    color: 'var(--bot-goat)',
+    reactions: {
+      greeting: [],
+      thinking: [],
+      capture: [],
+      captured: [],
+      check: [],
+      checkmate: [],
+      checkmated: [],
+      resign: [],
+      draw: [],
+      move: [],
+    },
+  },
+  // ── 10. Sharp ──────────────────────────────────────────────
   sharp: {
     level: 'sharp',
     name: 'The Monkey',
@@ -148,8 +219,26 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       move: [],
     },
   },
-
-  // ── 7. Intermediate ────────────────────────────────────────
+  // ── 11. Keen ───────────────────────────────────────────────
+  keen: {
+    level: 'keen',
+    name: 'The Gorilla',
+    avatar: '/characters/gorilla.png',
+    color: 'var(--bot-gorilla)',
+    reactions: {
+      greeting: [],
+      thinking: [],
+      capture: [],
+      captured: [],
+      check: [],
+      checkmate: [],
+      checkmated: [],
+      resign: [],
+      draw: [],
+      move: [],
+    },
+  },
+  // ── 12. Intermediate ───────────────────────────────────────
   intermediate: {
     level: 'intermediate',
     name: 'The Bear',
@@ -168,8 +257,26 @@ export const BOT_CHARACTERS: Partial<Record<BotLevel, BotCharacter>> = {
       move: [],
     },
   },
-
-  // ── 8. Expert ──────────────────────────────────────────────
+  // ── 13. Booked ─────────────────────────────────────────────
+  booked: {
+    level: 'booked',
+    name: 'The Elephant',
+    avatar: '/characters/elephant.png',
+    color: 'var(--bot-elephant)',
+    reactions: {
+      greeting: [],
+      thinking: [],
+      capture: [],
+      captured: [],
+      check: [],
+      checkmate: [],
+      checkmated: [],
+      resign: [],
+      draw: [],
+      move: [],
+    },
+  },
+  // ── 14. Expert ─────────────────────────────────────────────
   expert: {
     level: 'expert',
     name: 'The Owl',

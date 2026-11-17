@@ -136,7 +136,7 @@
 
   /* Each bot has a colour of its own, for its name and its difficulty pips.
      All are step 11 of a Radix scale (its readable-text step), chosen to suit
-     the animal. */
+     the animal, or (the six added later) a hue the others don't use. */
   --bot-sloth: #dbb594; /* brown 11 */
   --bot-chick: #f5e147; /* yellow 11 */
   --bot-frog: #71d083; /* grass 11 */
@@ -145,6 +145,12 @@
   --bot-monkey: #ffa057; /* orange 11 */
   --bot-bear: #ff977d; /* tomato 11 */
   --bot-owl: #75c7f0; /* sky 11 */
+  --bot-pig: #ff8dcc; /* pink 11 */
+  --bot-duck: #bde56c; /* lime 11 */
+  --bot-penguin: #0bd8b6; /* teal 11 */
+  --bot-goat: #ffca16; /* amber 11 */
+  --bot-gorilla: #baa7ff; /* violet 11 */
+  --bot-elephant: #9eb1ff; /* indigo 11 */
 
   /* Layout. Every page's content sits on one centred column, so the back
      link, and the left edge of what's under it, stay in the same place from
