@@ -164,7 +164,6 @@ export const CATEGORIES: CategoryInfo[] = [
     subcategories: [
       { key: "blindfold-color", name: "Color of Square", icon: "/pieces/wP.svg" },
       { key: "blindfold-diagonals", name: "Same Diagonal?", icon: "/pieces/wB.svg" },
-      { key: "blindfold-rankfile", name: "Same Rank or File?", icon: "/pieces/wR.svg" },
       { key: "blindfold-counting", name: "Move Counting", icon: "/pieces/wQ.svg" },
       { key: "blindfold-knight-routes", name: "Knight Routes", icon: "/pieces/wN.svg" },
       { key: "blindfold-bishop-routes", name: "Bishop Routes", icon: "/pieces/wB.svg" },

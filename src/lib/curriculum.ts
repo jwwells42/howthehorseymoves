@@ -118,14 +118,13 @@ export const CURRICULUM: CurriculumChapter[] = [
     ],
   },
 
-  // ── Level 6: The Destrier (9) ────────────
+  // ── Level 6: The Destrier (8) ────────────
   {
     id: 'the-destrier',
     title: 'Level 6: The Destrier',
     stops: [
       { id: 'endings-reti', name: 'Réti Study', icon: '/pieces/wK.svg', href: '/learn/endings-reti', progress: { type: 'puzzle-set', key: 'endings-reti' } },
       { id: 'vision-color', name: 'Color of Square', icon: '/pieces/wP.svg', href: '/vision/color', progress: { type: 'localStorage', key: 'blindfold-color-best-stars' } },
-      { id: 'vision-rankfile', name: 'Same Rank/File', icon: '/pieces/wR.svg', href: '/vision/rankfile', progress: { type: 'localStorage', key: 'blindfold-rankfile-best-stars' } },
       { id: 'vision-diagonals', name: 'Same Diagonal', icon: '/pieces/wB.svg', href: '/vision/diagonals', progress: { type: 'localStorage', key: 'blindfold-diagonal-best-stars' } },
       { id: 'vision-counting', name: 'Move Counting', icon: '/pieces/wQ.svg', href: '/vision/counting', progress: { type: 'localStorage', key: 'blindfold-counting-best-stars' } },
       { id: 'vision-changed', name: 'What Changed?', icon: '/pieces/wR.svg', href: '/vision/changed', progress: { type: 'localStorage', key: 'blindfold-changed-best-stars' } },

@@ -4,7 +4,6 @@
   import BoardPage from '$lib/components/board/BoardPage.svelte';
   import ColorOfSquare from '$lib/components/blindfold/ColorOfSquare.svelte';
   import SameDiagonal from '$lib/components/blindfold/SameDiagonal.svelte';
-  import SameRankFile from '$lib/components/blindfold/SameRankFile.svelte';
   import MoveCounting from '$lib/components/blindfold/MoveCounting.svelte';
   import KnightRoutes from '$lib/components/blindfold/KnightRoutes.svelte';
   import BishopRoutes from '$lib/components/blindfold/BishopRoutes.svelte';
@@ -29,7 +28,6 @@
   const TRAINER_COMPONENTS: Record<string, any> = {
     'blindfold-color': ColorOfSquare,
     'blindfold-diagonals': SameDiagonal,
-    'blindfold-rankfile': SameRankFile,
     'blindfold-counting': MoveCounting,
     'blindfold-knight-routes': KnightRoutes,
     'blindfold-bishop-routes': BishopRoutes,

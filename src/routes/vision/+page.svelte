@@ -26,7 +26,6 @@
         { key: 'coordinates', name: 'Name the Square', icon: '/pieces/wK.svg', storageKey: 'coord-best-stars', href: '/board/coordinates' },
         { key: 'blindfold-color', name: 'Color of Square', icon: '/pieces/wP.svg', storageKey: 'blindfold-color-best-stars' },
         { key: 'blindfold-diagonals', name: 'Same Diagonal?', icon: '/pieces/wB.svg', storageKey: 'blindfold-diagonal-best-stars' },
-        { key: 'blindfold-rankfile', name: 'Same Rank or File?', icon: '/pieces/wR.svg', storageKey: 'blindfold-rankfile-best-stars' },
         { key: 'blindfold-knightsquares', name: 'Knight Squares', icon: '/pieces/wN.svg', storageKey: 'blindfold-knightsquares-best-stars' },
       ],
     },
