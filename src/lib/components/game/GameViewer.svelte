@@ -48,6 +48,7 @@
     currentPath.length === 0 ? tree.comment : lastNode?.comment
   );
   let currentArrows = $derived(lastNode?.arrows);
+  let currentHighlights = $derived(lastNode?.highlights);
 
   // === Test mode state ===
   let testMode = $state(false);
@@ -671,6 +672,7 @@
       onDragStart={testMode ? handleTestDragStart : handleViewerDragStart}
       onDragEnd={testMode ? handleTestDragEnd : handleViewerDragEnd}
       arrows={boardArrows}
+      highlights={testMode || exploring ? undefined : currentHighlights}
       playableColors={['w', 'b']}
     />
   {/snippet}

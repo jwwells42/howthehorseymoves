@@ -15,7 +15,7 @@ import {
   type MoveState,
 } from '$lib/openings/progress';
 
-vi.mock('$env/dynamic/private', () => ({ env: { SESSION_SECRET: 'test-secret' } }));
+vi.mock('$env/dynamic/private', () => ({ env: { SESSION_SECRET: 'test-secret', TEACHER_LICHESS_IDS: ' CoachJ , second ' } }));
 
 /*
   Saved progress: nothing a student earned is ever lost, whether the save
@@ -244,5 +244,14 @@ describe('the login cookie', () => {
     expect(readSession(`${id}.${Number(expiry) + 1}.${sig}`, 2000)).toBeNull();
     expect(readSession(undefined)).toBeNull();
     expect(readSession('garbage')).toBeNull();
+  });
+
+  it('only the ids in TEACHER_LICHESS_IDS are the teacher', async () => {
+    const { isTeacher } = await import('$lib/server/access');
+    expect(isTeacher('coachj')).toBe(true);
+    expect(isTeacher('Second')).toBe(true);
+    expect(isTeacher('student1')).toBe(false);
+    expect(isTeacher('')).toBe(false);
+    expect(isTeacher(null)).toBe(false);
   });
 });

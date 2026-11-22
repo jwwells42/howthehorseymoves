@@ -1,6 +1,6 @@
 import type { BoardState, PieceColor, PieceKind, SquareId } from "../logic/types";
 import { parseFen, createBoardState, boardToKey } from "../logic/types";
-import { parseSan, applyMove, parseArrows } from "../logic/pgn";
+import { parseSan, applyMove, parseArrows, splitPgnGames } from "../logic/pgn";
 import type { Arrow } from "../logic/pgn";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -270,28 +270,15 @@ export interface PgnChapter {
   pgn: string;
 }
 
-// Split a multi-game PGN into chapters. A header line that comes after some
-// movetext starts the next chapter. The name is [ChapterName] (Lichess studies)
-// or else [Event]. Chapters with no moves (like Lichess's intro chapter) are dropped.
+// Split a multi-game PGN into chapters (splitPgnGames in pgn.ts does the
+// splitting). The name is [ChapterName] (Lichess studies) or else [Event].
+// Chapters with no moves (like Lichess's intro chapter) are dropped.
 export function splitPgnChapters(pgn: string): PgnChapter[] {
-  const chunks: string[][] = [[]];
-  let hasMoves = false;
-  for (const line of pgn.split("\n")) {
-    const isHeader = /^\s*\[\w+ "/.test(line);
-    if (isHeader && hasMoves) {
-      chunks.push([]);
-      hasMoves = false;
-    }
-    if (!isHeader && line.trim()) hasMoves = true;
-    chunks[chunks.length - 1].push(line);
-  }
   const chapters: PgnChapter[] = [];
-  for (const chunk of chunks) {
-    const text = chunk.join("\n").trim();
-    const movetext = text.replace(/^\s*\[\w+ ".*$/gm, "").replace(/\{[^}]*\}/g, "");
+  for (const game of splitPgnGames(pgn)) {
+    const movetext = game.pgn.replace(/^\s*\[\w+ ".*$/gm, "").replace(/\{[^}]*\}/g, "");
     if (!/[a-zA-Z]/.test(movetext)) continue;
-    const name = text.match(/\[ChapterName "([^"]*)"\]/)?.[1] ?? text.match(/\[Event "([^"]*)"\]/)?.[1] ?? "Chapter";
-    chapters.push({ name, pgn: text });
+    chapters.push({ name: game.headers.ChapterName ?? game.headers.Event ?? "Chapter", pgn: game.pgn });
   }
   return chapters;
 }

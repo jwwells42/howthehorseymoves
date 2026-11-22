@@ -5,10 +5,10 @@
  */
 
 import type { BoardState, PieceColor, PieceKind, SquareId } from '$lib/logic/types';
-import { applyMove, toSan } from '$lib/logic/pgn';
+import { applyMove, toSan, type Score } from '$lib/logic/pgn';
 
 /** A score from White's side: centipawns, or mate in N (N > 0: White mates, N < 0: Black mates). */
-export type Score = { cp: number } | { mate: number };
+export type { Score };
 
 export interface UciMove {
   from: SquareId;

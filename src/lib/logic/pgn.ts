@@ -1,7 +1,7 @@
 import type { BoardState, PieceKind, PieceColor, SquareId } from "./types";
 import { parseFen, createBoardState } from "./types";
 import { getLegalMoves, isCheckmate, isInCheck } from "./attacks";
-import { LICHESS_MARKS, MARK } from "../board-marks";
+import { LICHESS_MARKS, MARK, type SquareHighlight } from "../board-marks";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -34,22 +34,49 @@ interface AnnotatedToken {
   arrows?: Arrow[];
 }
 
-/** Parse [%cal Ge2e4,Rd7d5] arrow directives from a comment string. */
-export function parseArrows(comment: string): { text: string; arrows: Arrow[] } {
+/** An evaluation from White's side: centipawns, or mate in N (N > 0: White mates). */
+export type Score = { cp: number } | { mate: number };
+
+/**
+ * A PGN comment's text and the commands in it: arrows `[%cal Ge2e4,Rd7d5]`,
+ * square highlights `[%csl Gd4]` and an evaluation `[%eval 0.17]` /
+ * `[%eval #-3]` (Lichess writes it from White's side). Every other command,
+ * like a clock `[%clk 0:04:52]`, is taken out of the text and dropped.
+ */
+export function parseArrows(comment: string): { text: string; arrows: Arrow[]; highlights: SquareHighlight[]; eval?: Score } {
   const arrows: Arrow[] = [];
-  const text = comment.replace(/\[%cal\s+([^\]]+)\]/g, (_, spec: string) => {
-    for (const entry of spec.split(",")) {
-      const e = entry.trim();
-      if (e.length >= 5) {
-        const colorCode = e[0].toUpperCase();
-        const from = e.slice(1, 3) as SquareId;
-        const to = e.slice(3, 5) as SquareId;
-        arrows.push({ from, to, color: LICHESS_MARKS[colorCode] ?? MARK.good });
+  const highlights: SquareHighlight[] = [];
+  let evaluation: Score | undefined;
+  const text = comment
+    .replace(/\[%cal\s+([^\]]+)\]/g, (_, spec: string) => {
+      for (const entry of spec.split(",")) {
+        const e = entry.trim();
+        if (e.length >= 5) {
+          const colorCode = e[0].toUpperCase();
+          const from = e.slice(1, 3) as SquareId;
+          const to = e.slice(3, 5) as SquareId;
+          arrows.push({ from, to, color: LICHESS_MARKS[colorCode] ?? MARK.good });
+        }
       }
-    }
-    return "";
-  }).trim();
-  return { text, arrows };
+      return "";
+    })
+    .replace(/\[%csl\s+([^\]]+)\]/g, (_, spec: string) => {
+      for (const entry of spec.split(",")) {
+        const e = entry.trim();
+        if (e.length >= 3) {
+          highlights.push({ square: e.slice(1, 3) as SquareId, color: LICHESS_MARKS[e[0].toUpperCase()] ?? MARK.good });
+        }
+      }
+      return "";
+    })
+    .replace(/\[%eval\s+(#?)(-?\d+(?:\.\d+)?)[^\]]*\]/g, (_, mate: string, n: string) => {
+      evaluation = mate ? { mate: parseInt(n, 10) } : { cp: Math.round(parseFloat(n) * 100) };
+      return "";
+    })
+    .replace(/\[%[^\]]*\]/g, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+  return { text, arrows, highlights, eval: evaluation };
 }
 
 /** Map numeric NAG ($1–$146) to display symbol. */
@@ -345,6 +372,43 @@ export function applyMove(
   return { pieces, castlingRights, enPassantSquare };
 }
 
+// === Multi-game PGNs (a database export, a Lichess study) ===
+
+export interface PgnGame {
+  /** The game's [Tag "value"] headers */
+  headers: Record<string, string>;
+  /** The game's text, headers included */
+  pgn: string;
+}
+
+/** A game's [Tag "value"] headers. */
+export function readHeaders(pgn: string): Record<string, string> {
+  const headers: Record<string, string> = {};
+  for (const m of pgn.matchAll(/^\s*\[(\w+)\s+"((?:[^"\\]|\\.)*)"\]\s*$/gm)) {
+    headers[m[1]] = m[2].replace(/\\(["\\])/g, "$1");
+  }
+  return headers;
+}
+
+/** Split a multi-game PGN into games: a header line after some moves starts the next one. */
+export function splitPgnGames(text: string): PgnGame[] {
+  const chunks: string[][] = [[]];
+  let hasMoves = false;
+  for (const line of text.replace(/\r\n?/g, "\n").split("\n")) {
+    const isHeader = /^\s*\[\w+ "/.test(line);
+    if (isHeader && hasMoves) {
+      chunks.push([]);
+      hasMoves = false;
+    }
+    if (!isHeader && line.trim()) hasMoves = true;
+    chunks[chunks.length - 1].push(line);
+  }
+  return chunks
+    .map((chunk) => chunk.join("\n").trim())
+    .filter(Boolean)
+    .map((pgn) => ({ headers: readHeaders(pgn), pgn }));
+}
+
 // === Tree-based PGN parsing (supports variations) ===
 
 export interface GameNode {
@@ -357,6 +421,9 @@ export interface GameNode {
   nag?: string;
   comment?: string;
   arrows?: Arrow[];
+  highlights?: SquareHighlight[];
+  /** [%eval] from the PGN, from White's side */
+  eval?: Score;
   children: GameNode[]; // [0] = main line continuation, [1+] = variations
 }
 
@@ -477,10 +544,12 @@ export function parseGamePgn(pgn: string, fen?: string): GameTree {
       }
     } else if (token.startsWith("{")) {
       const raw = token.slice(1);
-      const { text, arrows } = parseArrows(raw);
+      const { text, arrows, highlights, eval: evaluation } = parseArrows(raw);
       if (state.parentNode) {
         if (text) state.parentNode.comment = text;
         if (arrows.length > 0) state.parentNode.arrows = arrows;
+        if (highlights.length > 0) state.parentNode.highlights = highlights;
+        if (evaluation) state.parentNode.eval = evaluation;
       } else {
         // Comment before first move
         if (text) tree.comment = text;
