@@ -5,7 +5,7 @@
   import { parseFen, createBoardState, type BoardState, type SquareId, type PieceKind, type PieceColor } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { applyMove, parseGamePgn, extractMainLine, type GameMove } from '$lib/logic/pgn';
-  import { boardToFen } from '$lib/probabilitizer/board-to-fen';
+  import { boardToFen } from '$lib/logic/fen';
   import { fetchExplorer, type ExplorerData, type ExplorerSettings, type FetchFn, RATING_BUCKETS, SPEEDS } from '$lib/probabilitizer/lichess';
   import { moveProbability, movePlayRate, lineTotals, nodeTotal } from '$lib/probabilitizer/probability';
   import { createLichessOAuth } from '$lib/probabilitizer/auth';

@@ -1,5 +1,5 @@
-// Serialize a BoardState to FEN. The app has parseFen but no serializer; this is
-// used only to build the "open in Lichess analysis" link for The Probabilitizer.
+// Serialize a BoardState to FEN (parseFen in types.ts is the other way). Used
+// by The Probabilitizer's Lichess link and by the engine (src/lib/engine).
 
 import type { BoardState, PieceColor, SquareId } from "$lib/logic/types";
 import { FILES, RANKS } from "$lib/logic/types";
@@ -28,13 +28,19 @@ export function boardToFen(board: BoardState, colorToMove: PieceColor, fullMove:
   }
   const placement = rankStrings.join("/");
 
+  // Only the castling the pieces still allow: a right with its king or rook
+  // gone can crash an engine reading the FEN (Stockfish looks for the rook).
   const cr = board.castlingRights;
+  const at = (sq: string, code: string) => {
+    const p = board.pieces.get(sq as SquareId);
+    return !!p && `${p.color}${p.piece}` === code;
+  };
   let castling = "";
   if (cr) {
-    if (cr.K) castling += "K";
-    if (cr.Q) castling += "Q";
-    if (cr.k) castling += "k";
-    if (cr.q) castling += "q";
+    if (cr.K && at("e1", "wK") && at("h1", "wR")) castling += "K";
+    if (cr.Q && at("e1", "wK") && at("a1", "wR")) castling += "Q";
+    if (cr.k && at("e8", "bK") && at("h8", "bR")) castling += "k";
+    if (cr.q && at("e8", "bK") && at("a8", "bR")) castling += "q";
   }
   if (!castling) castling = "-";
 

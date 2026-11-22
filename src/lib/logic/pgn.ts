@@ -1,6 +1,6 @@
 import type { BoardState, PieceKind, PieceColor, SquareId } from "./types";
 import { parseFen, createBoardState } from "./types";
-import { getLegalMoves } from "./attacks";
+import { getLegalMoves, isCheckmate, isInCheck } from "./attacks";
 import { LICHESS_MARKS, MARK } from "../board-marks";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -223,6 +223,75 @@ function resolveMove(
   if (candidates.length !== 1) return null;
   const promotion = m[5] ? (m[5].toUpperCase() as PieceKind) : undefined;
   return { from: candidates[0], to, promotion };
+}
+
+/** Generate SAN (Standard Algebraic Notation) for a move. */
+export function toSan(
+  boardBefore: BoardState,
+  from: SquareId,
+  to: SquareId,
+  color: PieceColor,
+  boardAfter: BoardState,
+  promotionPiece?: PieceKind,
+): string {
+  const piece = boardBefore.pieces.get(from)!;
+  const kind = piece.piece;
+  const opponent: PieceColor = color === "w" ? "b" : "w";
+
+  // Castling
+  if (kind === "K") {
+    const fromFile = from.charCodeAt(0);
+    const toFile = to.charCodeAt(0);
+    if (toFile - fromFile === 2) {
+      const suffix = isCheckmate(opponent, boardAfter) ? "#" : isInCheck(opponent, boardAfter) ? "+" : "";
+      return "O-O" + suffix;
+    }
+    if (fromFile - toFile === 2) {
+      const suffix = isCheckmate(opponent, boardAfter) ? "#" : isInCheck(opponent, boardAfter) ? "+" : "";
+      return "O-O-O" + suffix;
+    }
+  }
+
+  const isCapture = !!boardBefore.pieces.get(to) || (kind === "P" && to === boardBefore.enPassantSquare);
+
+  let san = "";
+
+  if (kind === "P") {
+    if (isCapture) san += from[0]; // file of departure for pawn captures
+  } else {
+    san += kind;
+    // Disambiguation: check if another piece of the same type can also reach `to`
+    const ambiguous: SquareId[] = [];
+    for (const [sq, p] of boardBefore.pieces) {
+      if (sq === from || p.piece !== kind || p.color !== color) continue;
+      const legal = getLegalMoves(sq, boardBefore, color);
+      if (legal.includes(to)) ambiguous.push(sq);
+    }
+    if (ambiguous.length > 0) {
+      const sameFile = ambiguous.some(sq => sq[0] === from[0]);
+      const sameRank = ambiguous.some(sq => sq[1] === from[1]);
+      if (!sameFile) san += from[0];
+      else if (!sameRank) san += from[1];
+      else san += from;
+    }
+  }
+
+  if (isCapture) san += "x";
+  san += to;
+
+  // Promotion
+  if (kind === "P") {
+    const rank = to[1];
+    if ((color === "w" && rank === "8") || (color === "b" && rank === "1")) {
+      san += `=${promotionPiece ?? "Q"}`;
+    }
+  }
+
+  // Check / checkmate
+  if (isCheckmate(opponent, boardAfter)) san += "#";
+  else if (isInCheck(opponent, boardAfter)) san += "+";
+
+  return san;
 }
 
 /** Apply a move to the board, handling captures, castling, en passant, and promotion. */

@@ -3,8 +3,10 @@
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
   import MoveNav from '$lib/components/board/MoveNav.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import EnginePanel from '$lib/components/analysis/EnginePanel.svelte';
   import { MARK } from '$lib/board-marks';
-  import { parseGamePgn, extractMainLine } from '$lib/logic/pgn';
+  import { parseGamePgn, extractMainLine, applyMove, toSan } from '$lib/logic/pgn';
+  import type { UciMove } from '$lib/engine/uci';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
   import type { ModelGame } from '$lib/games/types';
@@ -13,7 +15,13 @@
 
   const AUTOPLAY_MS = 1200;
 
-  let { game }: { game: ModelGame } = $props();
+  interface Props {
+    game: ModelGame;
+    /** Stockfish in the sidebar (off in test mode, where it would give the moves away). */
+    analysis?: boolean;
+  }
+
+  let { game, analysis = false }: Props = $props();
 
   let tree = $derived(parseGamePgn(game.pgn));
   let flatParsed = $derived(extractMainLine(tree));
@@ -536,61 +544,18 @@
   }
 
   // === Exploration move logic ===
-  function moveToSan(b: BoardState, from: SquareId, to: SquareId): string {
-    const piece = b.pieces.get(from);
-    if (!piece) return `${from}${to}`;
-    if (piece.piece === 'K') {
-      const df = to.charCodeAt(0) - from.charCodeAt(0);
-      if (df === 2) return 'O-O';
-      if (df === -2) return 'O-O-O';
-    }
-    const cap = b.pieces.has(to);
-    if (piece.piece === 'P') {
-      const isCapture = from[0] !== to[0];
-      const base = isCapture ? `${from[0]}x${to}` : to;
-      const rank = to[1];
-      if ((piece.color === 'w' && rank === '8') || (piece.color === 'b' && rank === '1')) return `${base}=Q`;
-      return base;
-    }
-    return `${piece.piece}${cap ? 'x' : ''}${to}`;
-  }
-
   function goToExploreMove(index: number) {
     exploreStack = exploreStack.slice(0, index + 1);
     viewerSelected = null;
   }
 
-  function applyExploreMove(b: BoardState, from: SquareId, to: SquareId): BoardState {
-    const pieces = new Map(b.pieces);
-    const piece: { piece: PieceKind; color: PieceColor } = pieces.get(from)!;
-    pieces.delete(from);
-    pieces.set(to, piece);
-
-    if (piece.piece === 'P') {
-      if ((piece.color === 'w' && to[1] === '8') || (piece.color === 'b' && to[1] === '1')) {
-        pieces.set(to, { piece: 'Q', color: piece.color });
-      }
-      if (to === b.enPassantSquare) {
-        const epRank = piece.color === 'w' ? String(parseInt(to[1]) - 1) : String(parseInt(to[1]) + 1);
-        pieces.delete(`${to[0]}${epRank}` as SquareId);
-      }
-    }
-
-    if (piece.piece === 'K') {
-      const df = to.charCodeAt(0) - from.charCodeAt(0);
-      if (Math.abs(df) === 2) {
-        const rank = from[1];
-        if (df > 0) {
-          pieces.delete(`h${rank}` as SquareId);
-          pieces.set(`f${rank}` as SquareId, { piece: 'R', color: piece.color });
-        } else {
-          pieces.delete(`a${rank}` as SquareId);
-          pieces.set(`d${rank}` as SquareId, { piece: 'R', color: piece.color });
-        }
-      }
-    }
-
-    return { pieces };
+  /** A move off the game's own moves. A pawn reaching the last rank becomes a queen. */
+  function exploreMove(b: BoardState, from: SquareId, to: SquareId, color: PieceColor, promotion?: PieceKind) {
+    const piece = b.pieces.get(from);
+    const lastRank = color === 'w' ? '8' : '1';
+    const promo = piece?.piece === 'P' && to[1] === lastRank ? (promotion ?? 'Q') : undefined;
+    const newBoard = applyMove(b, from, to, promo);
+    return { board: newBoard, from, to, san: toSan(b, from, to, color, newBoard, promo) };
   }
 
   function handleViewerMove(from: SquareId, to: SquareId) {
@@ -613,14 +578,40 @@
     const curBoard = exploring && exploreStack.length > 0
       ? exploreStack[exploreStack.length - 1].board
       : board;
-    const san = moveToSan(curBoard, from, to);
-    const newBoard = applyExploreMove(curBoard, from, to);
-
     if (!exploring) exploring = true;
-    exploreStack = [...exploreStack, { board: newBoard, from, to, san }];
+    exploreStack = [...exploreStack, exploreMove(curBoard, from, to, viewerColorToMove)];
     viewerSelected = null;
     playSound('move');
   }
+
+  /** Play the engine's line (up to the move tapped) from the position on the board. */
+  function playEngineLine(moves: UciMove[]) {
+    for (const move of moves) {
+      if (!exploring) {
+        const parent = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+        const children = parent ? parent.children : tree.children;
+        const match = children.find((c) => c.from === move.from && c.to === move.to && c.promotion === move.promotion);
+        if (match) {
+          currentPath = [...currentPath, match];
+          continue;
+        }
+        exploring = true;
+      }
+      exploreStack = [...exploreStack, exploreMove(displayBoard, move.from, move.to, viewerColorToMove, move.promotion)];
+    }
+    viewerSelected = null;
+    isPlaying = false;
+    playSound('move');
+  }
+
+  // === Engine ===
+  let engineBest = $state<Arrow | null>(null);
+  let fullMove = $derived(Math.floor((currentPath.length + exploreStack.length) / 2) + 1);
+  let boardArrows = $derived.by(() => {
+    if (testMode) return testArrows;
+    const own = exploring ? [] : (currentArrows ?? []);
+    return analysis && engineBest ? [...own, engineBest] : own;
+  });
 
   function handleViewerClick(sq: SquareId) {
     if (testMode) return;
@@ -679,13 +670,14 @@
       onDrop={testMode ? handleTestDrop : handleViewerDrop}
       onDragStart={testMode ? handleTestDragStart : handleViewerDragStart}
       onDragEnd={testMode ? handleTestDragEnd : handleViewerDragEnd}
-      arrows={testMode ? testArrows : (exploring ? undefined : currentArrows)}
+      arrows={boardArrows}
       playableColors={['w', 'b']}
     />
   {/snippet}
 
   {#snippet sidebarArea()}
     <!-- Black first, as Black sits at the top of the board -->
+    {#if game.white || game.black}
     <div class="players">
       <div class="player-label">
         <div class="player-dot player-dot-black"></div>
@@ -696,6 +688,17 @@
         <span class="player-name">{game.white}</span>
       </div>
     </div>
+    {/if}
+
+    {#if analysis && !testMode}
+      <EnginePanel
+        board={displayBoard}
+        color={viewerColorToMove}
+        {fullMove}
+        bind:best={engineBest}
+        onPlay={playEngineLine}
+      />
+    {/if}
 
     {#if !testMode && exploring}
       <div class="explore-indicator">
@@ -717,7 +720,7 @@
     {:else}
       <div class="game-info">
         <span class="game-event">{game.event}</span>
-        <span class="game-year">{game.year}</span>
+        {#if game.year}<span class="game-year">{game.year}</span>{/if}
       </div>
 
       <div class="move-list" bind:this={moveListEl}>
@@ -826,13 +829,15 @@
       </div>
     {/if}
 
-    <div class="test-btn-wrap">
-      {#if testMode}
-        <Button onclick={exitTestMode}>Back to Viewer</Button>
-      {:else}
-        <Button onclick={startTestMode}>Test Yourself</Button>
-      {/if}
-    </div>
+    {#if testMode || totalMoves > 0}
+      <div class="test-btn-wrap">
+        {#if testMode}
+          <Button onclick={exitTestMode}>Back to Viewer</Button>
+        {:else}
+          <Button onclick={startTestMode}>Test Yourself</Button>
+        {/if}
+      </div>
+    {/if}
   {/snippet}
 </BoardLayout>
 

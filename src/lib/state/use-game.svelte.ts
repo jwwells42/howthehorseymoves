@@ -1,6 +1,7 @@
 import type { BoardState, PieceKind, PieceColor, SquareId, PiecePlacement } from '$lib/logic/types';
 import { boardToKey } from '$lib/logic/types';
 import { getLegalMoves, isInCheck, isCheckmate, isStalemate } from '$lib/logic/attacks';
+import { toSan } from '$lib/logic/pgn';
 import { pickBotMove, type BotLevel } from '$lib/logic/bot';
 import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
 import { playSound } from '$lib/state/sound';
@@ -70,75 +71,6 @@ function isInsufficientMaterial(board: BoardState): boolean {
     return sqColor(nonKings[0].square) === sqColor(nonKings[1].square);
   }
   return false;
-}
-
-/** Generate SAN (Standard Algebraic Notation) for a move. */
-function toSan(
-  boardBefore: BoardState,
-  from: SquareId,
-  to: SquareId,
-  color: PieceColor,
-  boardAfter: BoardState,
-  promotionPiece?: PieceKind,
-): string {
-  const piece = boardBefore.pieces.get(from)!;
-  const kind = piece.piece;
-  const opponent: PieceColor = color === 'w' ? 'b' : 'w';
-
-  // Castling
-  if (kind === 'K') {
-    const fromFile = from.charCodeAt(0);
-    const toFile = to.charCodeAt(0);
-    if (toFile - fromFile === 2) {
-      const suffix = isCheckmate(opponent, boardAfter) ? '#' : isInCheck(opponent, boardAfter) ? '+' : '';
-      return 'O-O' + suffix;
-    }
-    if (fromFile - toFile === 2) {
-      const suffix = isCheckmate(opponent, boardAfter) ? '#' : isInCheck(opponent, boardAfter) ? '+' : '';
-      return 'O-O-O' + suffix;
-    }
-  }
-
-  const isCapture = !!boardBefore.pieces.get(to) || (kind === 'P' && to === boardBefore.enPassantSquare);
-
-  let san = '';
-
-  if (kind === 'P') {
-    if (isCapture) san += from[0]; // file of departure for pawn captures
-  } else {
-    san += kind;
-    // Disambiguation: check if another piece of the same type can also reach `to`
-    const ambiguous: SquareId[] = [];
-    for (const [sq, p] of boardBefore.pieces) {
-      if (sq === from || p.piece !== kind || p.color !== color) continue;
-      const legal = getLegalMoves(sq, boardBefore, color);
-      if (legal.includes(to)) ambiguous.push(sq);
-    }
-    if (ambiguous.length > 0) {
-      const sameFile = ambiguous.some(sq => sq[0] === from[0]);
-      const sameRank = ambiguous.some(sq => sq[1] === from[1]);
-      if (!sameFile) san += from[0];
-      else if (!sameRank) san += from[1];
-      else san += from;
-    }
-  }
-
-  if (isCapture) san += 'x';
-  san += to;
-
-  // Promotion
-  if (kind === 'P') {
-    const rank = to[1];
-    if ((color === 'w' && rank === '8') || (color === 'b' && rank === '1')) {
-      san += `=${promotionPiece ?? 'Q'}`;
-    }
-  }
-
-  // Check / checkmate
-  if (isCheckmate(opponent, boardAfter)) san += '#';
-  else if (isInCheck(opponent, boardAfter)) san += '+';
-
-  return san;
 }
 
 export function createGameState(botLevel: BotLevel = 'random') {
