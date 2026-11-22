@@ -9,11 +9,15 @@ or worse.
 The idea worth chasing: make each bot distinctive by **how it plays and how it
 behaves**, not just how well.
 
+Written for the old eight-rung ladder. The six bots added on 2026-11-17 (the
+Pig, Duck, Penguin, Goat, Gorilla and Elephant; fourteen rungs now, one per
+level) have no rows in the tables below yet.
+
 ## The bug that started this
 
 The Sloth answers instantly. A sloth should be the slowest thing on the board.
 Right now thinking time is a flat 400 ms for every rung
-(`use-game.svelte.ts:188`), so the fastest-computing bot and the slowest-computing
+(`use-game.svelte.ts:120`, the `setTimeout` that ends `}, 400);`), so the fastest-computing bot and the slowest-computing
 bot feel identical to wait for, and neither matches its animal.
 
 ## 1. Per-bot thinking time
@@ -103,10 +107,10 @@ Which rung is a teaching call, not a technical one:
   lunges at material, and it would meet the student *before* the Level 3 lesson.
   Getting mated in four is a strong motivation to go learn why. Or it's just
   demoralising. Your call.
-- **The Rabbit (L4)** — comes right after the lesson, so it's pure practice of
+- **The Pig (L3)** — ends the level the lesson is in, so it's pure practice of
   something just taught. Safer, less dramatic.
-- The Frog (L3) sits at the lesson itself but is already earmarked for the
-  knight book above.
+- The Frog (L4) comes right after, but is already earmarked for the knight book
+  above.
 
 Notes for building it:
 
@@ -125,7 +129,7 @@ Notes for building it:
 
 **Hard requirement:** a filter must never return an empty list. Always fall back
 to the unfiltered moves, or the bot has no move and the game state breaks
-(`use-game.svelte.ts:190` currently leaves `waitingForBot` stuck true if
+(`use-game.svelte.ts:125` currently leaves `waitingForBot` stuck true if
 `pickBotMove` returns null).
 
 **Also:** a constraint changes strength, not just flavor. The Sloth restricted to
@@ -134,29 +138,10 @@ lot by hitting the 300-ply cap in self-play. Re-run
 `scripts/bot-ladder-match.ts` after adding any constraint and confirm the ladder
 is still monotone.
 
-## 3. Horse icons for the levels
+## 3. Horse icons for the levels — dropped
 
-The levels are named for a horse growing up — Foal, Colt, Trotter, Cantering,
-Galloper, Destrier, Stallion, Charger — and now each one ends with an animal
-boss. So Level 3 "The Trotter" is beaten by defeating a frog, and the horse
-naming currently carries no visual weight at all.
-
-Each level should have its own horse icon, the way each boss has its animal.
-Then the trail reads as one idea: *you are the horse growing up, and each level
-has a creature guarding the way out.*
-
-State of play:
-
-- `CurriculumChapter` (`curriculum.ts`) is `{ id, title, stops }` — **there is no
-  icon field on a chapter yet.** Only individual stops have `icon`. So this needs
-  a field plus rendering in the landing-page trail, not just art.
-- Kenney's Animal Pack Remastered has exactly **one** horse sprite, so it can't
-  supply a foal→charger progression. New art is needed.
-- Cheap fallback if art is slow to arrive: the knight piece is already an SVG
-  (`static/pieces/wN.svg`), so it can be recolored and scaled per level — small
-  and pale for the Foal, large and dark for the Charger. Gives a sense of growth
-  with no new assets, and can be swapped for real horse art later without
-  touching the layout.
+Dropped 2026-11-21: the horse level names (Foal, Colt, Trotter, …) were taken
+out, and the levels are just numbered now ("Level 1", "Level 2", …).
 
 ## 4. Smaller things
 
@@ -167,7 +152,7 @@ State of play:
 - **Per-bot board accent.** Each character already has a `color` used for its
   name and pips; tinting something small on the board during that bot's game
   would make the opponent feel present.
-- **Show the trophy count somewhere central**, e.g. "5 of 8 bosses beaten" on the
+- **Show the trophy count somewhere central**, e.g. "5 of 14 bosses beaten" on the
   landing page. The data is already in localStorage (`bot-beaten-{level}`).
 
 ## 5. Known limitations worth fixing if the engine gets another pass

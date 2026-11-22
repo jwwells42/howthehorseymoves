@@ -8,19 +8,22 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 
 ## What it does
 
-- **Basics** — progressive puzzles for each piece (rook, bishop, queen, king, knight, pawn), plus castling, en passant, a timed coordinate trainer, and a piece placement trainer
+- **The path** — the home page is 14 levels, each a handful of cards that ends with a bot to beat. A knight marks the next card. Nothing is locked; the hubs in the nav bar open everything directly
+- **Basics** — progressive puzzles for each piece (rook, bishop, queen, king, knight, pawn), plus castling, en passant, Match the Moves, a timed coordinate trainer, and a piece placement trainer
 - **How to Win** — guided lesson covering check, checkmate, and stalemate with interactive practice
-- **Checkmate patterns** — back rank, rook ladder, queen-bishop battery, knight on f7, Lolli's mate, queen & king endgames, smothered mate
+- **Checkmate patterns** — queen takes f7, queen-bishop battery, Lolli's mate, smothered mate, back rank mate, rook ladder, queen & king, mate in 1, mate in 2
 - **Tactics** — pins, skewers, forks, removing the defender, discovered attacks (hand-authored instruction + Lichess practice puzzles)
-- **Endings** — King + Pawn vs King (bitbase-powered perfect defense), mate conversion (KQK, KRRK, KRK), and advanced endings (KBBK, KBNK, Philidor "hold the draw" trainer)
-- **Blindfold training** — 24 visualization trainers: color of square, same diagonal, knight routes, knight squares, piece reachability, flash position, move counting, blindfold checkmate, and more
-- **Play vs computer** — an eight-rung ladder of animal opponents, from The Sloth (random moves) up to The Owl (opening book + two-move lookahead), each with an animated avatar and reactions. One opponent per curriculum level; beating one earns a trophy
-- **Openings** — learn opening repertoires move by move with arrow hints
-- **Model games** — 14 classical games (Fool's Mate through Kasparov) with move-by-move viewer, annotations, variation support, and a test mode to reproduce games from memory
+- **Endings** — King + Pawn vs King to win and to defend (bitbase-powered perfect play), mate conversion (KQK, KRRK, KRK, KBBK, KBNK), Lucena, Philidor, wrong bishop, Réti, pawn races, and a pawn endings lesson
+- **Vision** — 22 visualization trainers: color of square, same diagonal, knight routes, knight squares, piece reachability, flash position, move counting, blindfold checkmates, and more
+- **Play vs computer** — a fourteen-rung ladder of animal opponents, from The Sloth (random moves) up to The Owl (opening book + three-move lookahead), each with an animated avatar. One opponent ends each level; beating one earns a trophy
+- **Openings** — the teacher's own repertoires (1.e4 and 1.d4 Mainline Starter, Slav, c6 Qb6 vs London, Scholar's Mate), learned move by move with arrow hints: Flow to watch, Learn (breadth or depth first), and Review on a spaced schedule, with an optional blindfold mode where moves are typed
+- **Model games** — 12 games (Fool's Mate to the Game of the Century) with a move-by-move viewer, annotations, variations, and a test mode to reproduce games from memory
+- **Analysis board** (`/analysis`) — play moves or paste a PGN, with Stockfish 19 running in the browser (no outside service, so it works on networks that block engine APIs)
+- **Games library** (`/library`) — for the teacher only: the students' league games, imported from PGN, filterable by player, side, result, event, dates and opening moves, each opening with Stockfish
 - **Star ratings** — 1-3 stars based on move efficiency, shown as mastery badges when all puzzles in a set are completed
-- **Sequential unlock** — complete a puzzle to unlock the next one
+- **Sequential puzzles** — within a set, solve a puzzle to open the next one
 - **Sound effects** — move, correct, wrong, and star sounds with a mute toggle
-- **No accounts** — progress saves to the browser (localStorage)
+- **Accounts are optional** — progress saves to the browser (localStorage). Logging in with Lichess keeps a copy in the site's database, so it follows a student to any device
 - **Breathwork** (`/breathwork`) — a standalone, non-chess extra: a guided breathing trainer (resonance breathing + the cyclic physiological sigh) for performance-coaching students. Not linked from the chess nav
 - **The Probabilitizer** (`/probabilitizer`) — a standalone opening-odds explorer: play or paste a line and see the cumulative chance of the whole line arising from the start (split by which side you play), using the Lichess opening explorer. Requires a one-click "Login with Lichess" (Lichess's explorer now needs authentication). Not linked from the chess nav. Based on [Opening-Explorer-Plus](https://github.com/EikaMikiku/Opening-Explorer-Plus) by EikaMikiku
 
@@ -31,40 +34,42 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # production build
 npm run check    # svelte-check (TypeScript + Svelte diagnostics)
+npm test         # design rules, every puzzle loads, progress is never lost, and more
 ```
 
-Requires Node.js 18+.
+Requires Node.js 22.12 or newer (Vercel runs Node 24).
+
+Everything works without a database. The Lichess login and the games library need a Postgres database ([Neon](https://neon.tech)'s free plan is plenty): set `DATABASE_URL`, `SESSION_SECRET` and `APP_ORIGIN` (and `TEACHER_LICHESS_IDS`, the Lichess ids allowed into the games library), then run `scripts/schema.sql` once, in Neon's SQL editor or with `node --env-file=.env scripts/apply-schema.mjs`. Without them the site shows no login.
 
 ## Adding content
 
-**Puzzles** live in `src/lib/puzzles/`. Each file exports an array of puzzles. Three types: `route` (navigate to target squares), `puzzle` (Lichess-style tactics from FEN+PGN), and `conversion` (play against a bot to checkmate or promote):
+**Puzzles** live in `src/lib/puzzles/`, one file per concept, easy to hard. Each file exports an array of puzzles. A puzzle's name on the site is its set's name and number ("Rook 3"), so puzzles have no title or instruction. The main types are `route` (navigate to target squares), `puzzle` (Lichess-style tactics from FEN+PGN), and `conversion` (play against a bot to checkmate or promote):
 
 ```ts
-// Route puzzle — navigate piece to stars, avoid walls
+// Route puzzle — move the piece to the stars, around any walls
 {
   type: "route",
   id: "rook-01",
-  title: "Rook Path",
-  instruction: "Collect all the stars!",
   playerPiece: "R",
-  position: [{ piece: "R", color: "w", square: "a1" }],
-  walls: ["d4", "d5"],
-  stars: ["a8", "h1"],
-  starThresholds: { three: 4, two: 6, one: 8 },
+  position: [{ piece: "R", color: "w", square: "d1" }],
+  walls: [],
+  stars: ["d8"],
+  starThresholds: { three: 1, two: 2, one: 3 },
 }
 
 // Tactic puzzle — FEN position + PGN solution
 {
   type: "puzzle",
-  id: "tactics-fork-01",
-  title: "Knight Fork",
-  instruction: "Win material with a fork!",
-  fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
-  pgn: "1. Qxf7#",
+  id: "lichess-fork-01",
+  fen: "8/n4k2/6pp/4Kp2/2b5/p5P1/3R3P/8 w - - 2 49",
+  pgn: "1. Rd7+ Ke8 2. Rxa7",
+  starThresholds: { three: 2, two: 3, one: 4 },
 }
 ```
 
-**Model games** live in `src/lib/games/index.ts`. Drop in a PGN string:
+The order students meet things in is `src/lib/curriculum.ts`, read top to bottom.
+
+**Model games** live in `src/lib/games/index.ts`. Drop in a PGN string (comments and Lichess `[%cal]` arrows are shown):
 
 ```ts
 {
@@ -75,16 +80,18 @@ Requires Node.js 18+.
   year: 1851,
   result: "1-0",
   pgn: "1.e4 e5 2.f4 exf4 3.Bc4 ...",
-  description: "The Immortal Game.",
 }
 ```
+
+**Opening repertoires** are Lichess study exports, kept as they are in `src/lib/openings/pgn/`. Re-export the study and overwrite the file to update one; students keep their progress.
 
 ## Tech stack
 
 - SvelteKit + Svelte 5 (runes mode) + TypeScript (strict)
-- Scoped CSS (no Tailwind)
+- Scoped CSS (no Tailwind); every colour and size is a token in `src/app.css`, checked by the tests for contrast and colour blindness
 - SVG chess board with drag-and-drop
-- No backend — everything runs client-side
+- Stockfish 19 (the lite single-threaded WebAssembly build) in a Web Worker, served by the site itself
+- Runs in the browser. The only server code is the optional Lichess login, which keeps a copy of progress, and the teacher's games library, both in Neon Postgres
 - Deployed on Vercel (free tier)
 
 ## Contributing
@@ -108,3 +115,6 @@ Open an issue to discuss before starting large changes.
 - Chess piece SVGs by [Colin M.L. Burnett](https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces) (CC BY-SA 3.0)
 - Bot character art from [Kenney's Animal Pack Remastered](https://kenney.nl/assets/animal-pack-remastered) by Kenney Vleugels (CC0)
 - Practice puzzles from the [Lichess Puzzle Database](https://database.lichess.org/#puzzles) (CC0)
+- [Stockfish](https://stockfishchess.org), in the browser through [Stockfish.js](https://github.com/nmrugg/stockfish.js) by Nathan Rugg (GPL-3.0)
+- Typeface [TeX Gyre Adventor](https://www.gust.org.pl/projects/e-foundry/tex-gyre) by the GUST e-foundry (GUST Font License)
+- Colours from [Radix Colors](https://github.com/radix-ui/colors) (MIT)

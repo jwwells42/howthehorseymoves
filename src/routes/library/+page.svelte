@@ -13,6 +13,8 @@
     numbered,
     NO_FILTERS,
     readTypedLine,
+    leagueOf,
+    weekOf,
     type Filters,
     type LibraryGame,
     type Side,
@@ -54,7 +56,27 @@
     }
     return [...counts].sort((a, b) => a[0].localeCompare(b[0]));
   });
-  let events = $derived([...new Set(games.map((g) => g.summary.event))].sort());
+  // Leagues (an event without its week), the latest first, with their game counts
+  let leagues = $derived.by(() => {
+    const byLeague = new Map<string, { n: number; latest: string }>();
+    for (const { summary } of games) {
+      const league = leagueOf(summary.event);
+      const entry = byLeague.get(league) ?? { n: 0, latest: '' };
+      entry.n++;
+      if (summary.date > entry.latest) entry.latest = summary.date;
+      byLeague.set(league, entry);
+    }
+    return [...byLeague].sort((a, b) => b[1].latest.localeCompare(a[1].latest) || a[0].localeCompare(b[0]));
+  });
+  // The picked league's weeks, in order (Week 2 before Week 10)
+  let weeks = $derived.by(() => {
+    if (!filters.event) return [];
+    const counts = new Map<string, number>();
+    for (const { summary } of games) {
+      if (leagueOf(summary.event) === filters.event) counts.set(summary.event, (counts.get(summary.event) ?? 0) + 1);
+    }
+    return [...counts].sort((a, b) => weekOf(a[0]).localeCompare(weekOf(b[0]), undefined, { numeric: true }));
+  });
   let analysed = $derived(games.some((g) => g.summary.marks));
 
   let movesBad = $derived(filters.moves.trim() !== '' && readTypedLine(filters.moves) === null);
@@ -87,6 +109,7 @@
       side: (params.get('side') as Side) ?? 'either',
       outcome: (params.get('outcome') as Outcome) ?? 'all',
       event: params.get('event') ?? '',
+      week: params.get('week') ?? '',
       from: params.get('from') ?? '',
       to: params.get('to') ?? '',
       moves: params.get('moves') ?? '',
@@ -286,9 +309,9 @@
         </label>
         <label class="field span-2">
           <span>Event</span>
-          <select bind:value={filters.event}>
+          <select bind:value={filters.event} onchange={() => (filters.week = '')}>
             <option value="">—</option>
-            {#each events as event (event)}<option value={event}>{event}</option>{/each}
+            {#each leagues as [league, { n }] (league)}<option value={league}>{league} ({n})</option>{/each}
           </select>
         </label>
         <label class="field">
@@ -300,6 +323,13 @@
           <input type="date" bind:value={filters.to} />
         </label>
         <label class="field span-2">
+          <span>Week</span>
+          <select bind:value={filters.week} disabled={weeks.length < 2}>
+            <option value="">—</option>
+            {#each weeks as [event, n] (event)}<option value={event}>{weekOf(event)} ({n})</option>{/each}
+          </select>
+        </label>
+        <label class="field full">
           <span>Moves</span>
           <input type="search" placeholder="1.e4 c5 2.Nf3" bind:value={filters.moves} class={[movesBad && 'bad']} />
         </label>
@@ -315,18 +345,16 @@
             ]}
             bind:value={filters.outcome}
           />
-          {#if filters.player.trim()}
-            <Choice
-              label="Side"
-              hideLabel
-              options={[
-                { value: 'either', label: 'Either' },
-                { value: 'white', label: 'White' },
-                { value: 'black', label: 'Black' },
-              ]}
-              bind:value={filters.side}
-            />
-          {/if}
+          <Choice
+            label="Side"
+            hideLabel
+            options={[
+              { value: 'either', label: 'Either' },
+              { value: 'white', label: 'White' },
+              { value: 'black', label: 'Black' },
+            ]}
+            bind:value={filters.side}
+          />
         </div>
       </div>
 
@@ -469,6 +497,9 @@
   .span-2 {
     grid-column: span 2;
   }
+  .full {
+    grid-column: 1 / -1;
+  }
   .choices {
     grid-column: 1 / -1;
     display: flex;
@@ -498,6 +529,9 @@
     box-sizing: border-box;
     width: 100%;
     height: 2.5rem;
+  }
+  .field select:disabled {
+    opacity: 0.5;
   }
   .field input.bad {
     border-color: var(--wrong);

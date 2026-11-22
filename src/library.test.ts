@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { summarize, readTypedLine, filterGames, score, numbered, NO_FILTERS, type LibraryGame } from '$lib/library/summary';
+import { summarize, readTypedLine, filterGames, score, numbered, leagueOf, weekOf, NO_FILTERS, type LibraryGame } from '$lib/library/summary';
 
 /*
   The games library's list: each game read once into a summary, and the
@@ -50,8 +50,28 @@ describe('the games library', () => {
     expect(score(GAMES, 'T, Ashton')).toEqual({ won: 0, drew: 1, lost: 2 });
   });
 
-  it('filters by event, dates and opening moves', () => {
-    expect(ids(filterGames(GAMES, { ...NO_FILTERS, event: 'League, Week 7' }, NAMES))).toEqual(['g2', 'g3']);
+  it('filters by side and result with no player', () => {
+    expect(ids(filterGames(GAMES, { ...NO_FILTERS, side: 'black', outcome: 'won' }, NAMES))).toEqual(['g0']);
+    expect(ids(filterGames(GAMES, { ...NO_FILTERS, side: 'white', outcome: 'won' }, NAMES))).toEqual(['g1', 'g3']);
+    // Neither: won = someone won
+    expect(ids(filterGames(GAMES, { ...NO_FILTERS, outcome: 'won' }, NAMES))).toEqual(['g0', 'g1', 'g3']);
+    expect(ids(filterGames(GAMES, { ...NO_FILTERS, outcome: 'drew' }, NAMES))).toEqual(['g2']);
+  });
+
+  it('reads a league and its week out of the event', () => {
+    expect(leagueOf("Thursday Gambit League Fall'25, Week 10")).toBe("Thursday Gambit League Fall'25");
+    expect(leagueOf('Fall 2026 — Thursday 4:30 pm ET, Preseason Week 1')).toBe('Fall 2026 — Thursday 4:30 pm ET');
+    expect(leagueOf('Winter 2026 — 6-9 Top Individuals , Week 1')).toBe('Winter 2026 — 6-9 Top Individuals');
+    expect(weekOf('Fall 2026 — Thursday 4:30 pm ET, Preseason Week 1')).toBe('Preseason Week 1');
+    // Not a league week: the event is its own league
+    expect(leagueOf('Rated Blitz game')).toBe('Rated Blitz game');
+    expect(weekOf('Rated Blitz game')).toBe('Rated Blitz game');
+    expect(leagueOf('Hastings 1895, Round 3')).toBe('Hastings 1895');
+  });
+
+  it('filters by league, week, dates and opening moves', () => {
+    expect(ids(filterGames(GAMES, { ...NO_FILTERS, event: 'League' }, NAMES))).toEqual(['g0', 'g1', 'g2', 'g3']);
+    expect(ids(filterGames(GAMES, { ...NO_FILTERS, event: 'League', week: 'League, Week 7' }, NAMES))).toEqual(['g2', 'g3']);
     expect(ids(filterGames(GAMES, { ...NO_FILTERS, from: '2025-10-10', to: '2025-10-31' }, NAMES))).toEqual(['g1']);
     expect(ids(filterGames(GAMES, { ...NO_FILTERS, moves: '1.e4 c5' }, NAMES))).toEqual(['g0', 'g3']);
     expect(ids(filterGames(GAMES, { ...NO_FILTERS, moves: 'e4 c5 nf3' }, NAMES))).toEqual(['g0']);

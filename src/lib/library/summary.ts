@@ -85,6 +85,21 @@ export function readTypedLine(text: string): string[] | null {
   return squares;
 }
 
+/**
+ * The event without its week, so a league's weeks can be picked together:
+ * "Thursday Gambit League Fall'25, Week 3" → "Thursday Gambit League Fall'25".
+ * An event with no week or round on the end (most databases) is left whole.
+ */
+export function leagueOf(event: string): string {
+  return event.replace(/\s*,\s*(preseason\s+)?(week|round)\s*\d+\s*$/i, '').trim();
+}
+
+/** What's left once the league is taken off ("Week 3"), or the whole event. */
+export function weekOf(event: string): string {
+  const league = leagueOf(event);
+  return league === event ? event : event.slice(event.indexOf(',', league.length) + 1).trim();
+}
+
 export type Side = 'either' | 'white' | 'black';
 export type Outcome = 'all' | 'won' | 'drew' | 'lost';
 
@@ -92,9 +107,15 @@ export interface Filters {
   /** A player's name exactly, or part of one */
   player: string;
   side: Side;
-  /** Won/drew/lost for the player (or for White, with no player) */
+  /**
+   * Won/drew/lost for the player. With no player, for the side picked; with
+   * neither, won or lost = someone won.
+   */
   outcome: Outcome;
+  /** A league: every week of it (leagueOf) */
   event: string;
+  /** One event exactly, e.g. one week of the league */
+  week: string;
   /** 2025-10-09, as an <input type=date> gives it; '' = no limit */
   from: string;
   to: string;
@@ -102,7 +123,7 @@ export interface Filters {
   moves: string;
 }
 
-export const NO_FILTERS: Filters = { player: '', side: 'either', outcome: 'all', event: '', from: '', to: '', moves: '' };
+export const NO_FILTERS: Filters = { player: '', side: 'either', outcome: 'all', event: '', week: '', from: '', to: '', moves: '' };
 
 /** How the game went for White: 1 won, 0.5 drew, 0 lost, null unfinished. */
 export function whiteScore(result: string): number | null {
@@ -133,17 +154,22 @@ export function filterGames(games: LibraryGame[], filters: Filters, names: Set<s
       side = sideOf(summary, player, exact);
       if (!side) return false;
     }
-    if (filters.side !== 'either') {
-      if (player ? side !== filters.side : false) return false;
-    }
+    if (player && filters.side !== 'either' && side !== filters.side) return false;
     if (filters.outcome !== 'all') {
       const white = whiteScore(summary.result);
       if (white === null) return false;
-      const score = (side ?? (filters.side === 'black' ? 'black' : 'white')) === 'white' ? white : 1 - white;
-      const want = filters.outcome === 'won' ? 1 : filters.outcome === 'drew' ? 0.5 : 0;
-      if (score !== want) return false;
+      const whose = side ?? (filters.side === 'either' ? null : filters.side);
+      if (whose === null) {
+        // Neither a player nor a side: won or lost both mean a decisive game
+        if ((filters.outcome === 'drew') !== (white === 0.5)) return false;
+      } else {
+        const score = whose === 'white' ? white : 1 - white;
+        const want = filters.outcome === 'won' ? 1 : filters.outcome === 'drew' ? 0.5 : 0;
+        if (score !== want) return false;
+      }
     }
-    if (filters.event && summary.event !== filters.event) return false;
+    if (filters.event && leagueOf(summary.event) !== filters.event) return false;
+    if (filters.week && summary.event !== filters.week) return false;
     if (from && summary.date < from) return false;
     if (to && summary.date > to) return false;
     if (lineText === null) return false;
