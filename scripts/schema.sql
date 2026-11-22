@@ -1,8 +1,10 @@
 -- The one table behind "Lichess login" (see src/lib/server/db.ts).
 --
 -- Run once, by hand, in the Neon SQL editor (Neon console → your project →
--- SQL Editor → paste this → Run). There is no migration tooling; if this
--- ever changes, the change goes in this file and gets run the same way.
+-- SQL Editor → paste this → Run), or from this computer with
+-- `node --env-file=.env scripts/apply-schema.mjs` (.env holds DATABASE_URL).
+-- There is no migration tooling; if this ever changes, the change goes in
+-- this file and gets run the same way.
 --
 -- `progress` is the student's progress as one JSON document: the same
 -- entries the browser keeps in localStorage, merged by src/lib/sync/merge.ts.
