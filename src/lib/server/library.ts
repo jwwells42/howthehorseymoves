@@ -8,6 +8,7 @@ import { neon } from '@neondatabase/serverless';
 import { env } from '$env/dynamic/private';
 import { splitPgnGames } from '$lib/logic/pgn';
 import { summarize, type GameSummary, type LibraryGame } from '$lib/library/summary';
+import { readAnalysis, markMoves, countMarks } from '$lib/engine/review';
 import { randomToken } from './session';
 
 function sql() {
@@ -76,6 +77,28 @@ export async function importGames(text: string): Promise<ImportResult> {
     returning id
   `) as { id: string }[];
   return { added: added.length, known: ids.length - added.length, failed };
+}
+
+/**
+ * Saves Stockfish's check of a game (see $lib/engine/review), replacing any
+ * earlier one, and puts its ?! ? ?? counts in the summary for the list.
+ * Refused unless it has one eval per position of the game.
+ */
+export async function saveAnalysis(id: string, sent: unknown): Promise<'saved' | 'missing' | 'invalid'> {
+  const rows = (await sql()`select (summary->>'plies')::int as plies from horsey_library where id = ${id}`) as { plies: number }[];
+  if (!rows[0]) return 'missing';
+  const analysis = readAnalysis(sent, rows[0].plies);
+  if (!analysis) return 'invalid';
+  const marks = countMarks(markMoves(analysis.evals));
+  await sql()`
+    update horsey_library
+       set analysis = ${JSON.stringify(analysis)}::jsonb,
+           summary = jsonb_set(summary, '{marks}', ${JSON.stringify(marks)}::jsonb),
+           version = version + 1,
+           updated_at = now()
+     where id = ${id}
+  `;
+  return 'saved';
 }
 
 export async function deleteGame(id: string): Promise<void> {

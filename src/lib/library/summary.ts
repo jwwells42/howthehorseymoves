@@ -6,6 +6,7 @@
 
 import { parseGamePgn, extractMainLine, readHeaders, readTypedMove, applyMove } from '$lib/logic/pgn';
 import { parseFen, createBoardState, type BoardState, type PieceColor } from '$lib/logic/types';
+import type { MarkCounts } from '$lib/engine/review';
 
 /** How many plies of each game the opening filter can look at. */
 export const START_PLIES = 20;
@@ -26,7 +27,7 @@ export interface GameSummary {
   /** The same moves as from-to squares (e2e4 …), for matching typed moves */
   startSquares: string;
   /** ?!, ? and ?? counts once the mistake check has run: [white, black] */
-  marks?: { inaccuracies: [number, number]; mistakes: [number, number]; blunders: [number, number] };
+  marks?: MarkCounts;
 }
 
 export interface LibraryGame {

@@ -96,7 +96,7 @@ const LARGE = 3;
 /** [foreground, background, minimum ratio] */
 const CONTRAST_RULES: [string, string, number][] = [
   ...['page', 'surface', 'surface-raised'].map((bg): [string, string, number] => ['ink', bg, TEXT]),
-  ...['ink-muted', 'correct-text', 'wrong-text', 'highlight'].flatMap((fg) =>
+  ...['ink-muted', 'correct-text', 'wrong-text', 'highlight', 'mark-other'].flatMap((fg) =>
     ['page', 'surface'].map((bg): [string, string, number] => [fg, bg, TEXT])
   ),
   ...['page', 'surface'].map((bg): [string, string, number] => ['star', bg, LARGE]),

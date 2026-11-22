@@ -4,9 +4,11 @@
   import MoveNav from '$lib/components/board/MoveNav.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import EnginePanel from '$lib/components/analysis/EnginePanel.svelte';
+  import EvalGraph from '$lib/components/analysis/EvalGraph.svelte';
   import { MARK } from '$lib/board-marks';
   import { parseGamePgn, extractMainLine, applyMove, toSan } from '$lib/logic/pgn';
-  import type { UciMove } from '$lib/engine/uci';
+  import { playLine, type UciMove } from '$lib/engine/uci';
+  import { markMoves, countMarks, moverOf, MARKS, type GameAnalysis, type Mark } from '$lib/engine/review';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { playSound } from '$lib/state/sound';
   import type { ModelGame } from '$lib/games/types';
@@ -19,9 +21,11 @@
     game: ModelGame;
     /** Stockfish in the sidebar (off in test mode, where it would give the moves away). */
     analysis?: boolean;
+    /** A saved check of the whole game: ?! ? ?? on its moves, and the eval graph */
+    review?: GameAnalysis | null;
   }
 
-  let { game, analysis = false }: Props = $props();
+  let { game, analysis = false, review = null }: Props = $props();
 
   let tree = $derived(parseGamePgn(game.pgn));
   let flatParsed = $derived(extractMainLine(tree));
@@ -614,6 +618,60 @@
     return analysis && engineBest ? [...own, engineBest] : own;
   });
 
+  // === Saved check of the game (the library's Stockfish analysis) ===
+  let mainLine = $derived.by(() => {
+    const nodes: GameNode[] = [];
+    for (let n: GameNode | undefined = tree.children[0]; n; n = n.children[0]) nodes.push(n);
+    return nodes;
+  });
+  /** Only if it was made from these moves (a game edited since has none) */
+  let checked = $derived(review && review.evals.length === mainLine.length + 1 ? review : null);
+  let marks = $derived(checked ? markMoves(checked.evals) : []);
+  let counts = $derived(countMarks(marks));
+  /** A PGN's own ! or ? wins over the engine's mark */
+  let markOf = $derived.by(() => {
+    const m = new Map<GameNode, Mark>();
+    mainLine.forEach((node, i) => {
+      if (marks[i] && !node.nag) m.set(node, marks[i]!);
+    });
+    return m;
+  });
+  /** The position on the board, counted along the game's moves (null off them) */
+  let mainAt = $derived(
+    !exploring && currentPath.every((n, i) => mainLine[i] === n) ? currentPath.length : null,
+  );
+  /** Engine's move where the move just played was marked */
+  let bestHere = $derived.by(() => {
+    if (!checked || !mainAt) return null;
+    const ply = mainAt - 1;
+    const mark = marks[ply];
+    const uci = checked.best[ply];
+    if (!mark || !uci) return null;
+    const before = ply === 0 ? tree.startBoard : mainLine[ply - 1].boardAfter;
+    const move = playLine(before, moverOf(ply), [uci])[0];
+    return move ? { mark, ply, move } : null;
+  });
+
+  function showBest() {
+    if (!bestHere) return;
+    const { ply, move } = bestHere;
+    goToNode(mainLine.slice(0, ply));
+    playEngineLine([move]);
+  }
+
+  /** The next ?! ? or ?? by one side, after the board's move, round to the first */
+  function nextMark(mark: Mark, color: PieceColor) {
+    const plies = marks.flatMap((m, i) => (m === mark && moverOf(i) === color ? [i] : []));
+    const from = mainAt ?? 0;
+    const ply = plies.find((i) => i + 1 > from) ?? plies[0];
+    if (ply !== undefined) {
+      isPlaying = false;
+      goToNode(mainLine.slice(0, ply + 1));
+    }
+  }
+
+  const MARK_NAMES = { '?!': 'inaccuracies', '?': 'mistakes', '??': 'blunders' } as const;
+
   function handleViewerClick(sq: SquareId) {
     if (testMode) return;
 
@@ -681,14 +739,25 @@
     <!-- Black first, as Black sits at the top of the board -->
     {#if game.white || game.black}
     <div class="players">
-      <div class="player-label">
-        <div class="player-dot player-dot-black"></div>
-        <span class="player-name">{game.black}</span>
-      </div>
-      <div class="player-label">
-        <div class="player-dot player-dot-white"></div>
-        <span class="player-name">{game.white}</span>
-      </div>
+      {#each [{ color: 'b' as PieceColor, name: game.black }, { color: 'w' as PieceColor, name: game.white }] as player}
+        <div class="player-label">
+          <div class={['player-dot', player.color === 'w' ? 'player-dot-white' : 'player-dot-black']}></div>
+          <span class="player-name">{player.name}</span>
+          {#if checked && !testMode}
+            <span class="mark-counts">
+              {#each MARKS as mark}
+                {@const n = counts[MARK_NAMES[mark]][player.color === 'w' ? 0 : 1]}
+                <button
+                  class={['mark-count', `mark-${MARK_NAMES[mark]}`]}
+                  disabled={n === 0}
+                  onclick={() => nextMark(mark, player.color)}
+                  aria-label="{mark} {n}"
+                >{mark}&nbsp;{n}</button>
+              {/each}
+            </span>
+          {/if}
+        </div>
+      {/each}
     </div>
     {/if}
 
@@ -699,6 +768,18 @@
         {fullMove}
         bind:best={engineBest}
         onPlay={playEngineLine}
+      />
+    {/if}
+
+    {#if checked && !testMode}
+      <EvalGraph
+        evals={checked.evals}
+        {marks}
+        at={mainAt}
+        onPick={(position) => {
+          isPlaying = false;
+          goToNode(mainLine.slice(0, position));
+        }}
       />
     {/if}
 
@@ -737,7 +818,7 @@
                 data-active={isActivePath(pair.white.path)}
                 onclick={() => goToNode(pair.white!.path)}
               >
-                {pair.white.node.san}{pair.white.node.nag ?? ''}
+                {pair.white.node.san}{pair.white.node.nag ?? ''}{#if markOf.get(pair.white.node)}{@const m = markOf.get(pair.white.node)!}<span class={['mark', `mark-${MARK_NAMES[m]}`]}>{m}</span>{/if}
               </button>
             {:else}
               <span></span>
@@ -773,7 +854,7 @@
                 data-active={isActivePath(pair.black.path)}
                 onclick={() => goToNode(pair.black!.path)}
               >
-                {pair.black.node.san}{pair.black.node.nag ?? ''}
+                {pair.black.node.san}{pair.black.node.nag ?? ''}{#if markOf.get(pair.black.node)}{@const m = markOf.get(pair.black.node)!}<span class={['mark', `mark-${MARK_NAMES[m]}`]}>{m}</span>{/if}
               </button>
             {:else if pair.variationsAfterWhite.length === 0 && !exploreAfterWhite}
               <span></span>
@@ -804,6 +885,13 @@
       </div>
 
       <div class="comment-area">
+        {#if bestHere}
+          <p class="best">
+            <span class={['mark', `mark-${MARK_NAMES[bestHere.mark]}`]}>{bestHere.mark}</span>
+            Best:
+            <button class="best-move" onclick={showBest}>{bestHere.move.san}</button>
+          </p>
+        {/if}
         {#if currentComment && !exploring}
           <p class="comment-text">{currentComment}</p>
         {/if}
@@ -898,6 +986,57 @@
   .player-name {
     font-size: var(--size-secondary);
     color: var(--ink-muted);
+  }
+
+  /* --- The saved check: ?! ? ?? in their colours, always with the symbol --- */
+  .mark {
+    font-weight: var(--weight-strong);
+  }
+  .mark-inaccuracies {
+    color: var(--mark-other);
+  }
+  .mark-mistakes {
+    color: var(--highlight);
+  }
+  .mark-blunders {
+    color: var(--wrong-text);
+  }
+  .mark-counts {
+    display: flex;
+    gap: 0.125rem;
+    margin-left: 0.25rem;
+  }
+  .mark-count {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    padding: 0 0.25rem;
+    font-size: var(--size-small);
+    font-weight: var(--weight-strong);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  .mark-count:hover:not(:disabled) {
+    border-color: var(--line);
+  }
+  .mark-count:disabled {
+    color: var(--ink-muted);
+    font-weight: var(--weight-regular);
+    cursor: default;
+  }
+  .best {
+    font-size: var(--size-secondary);
+    text-align: center;
+    margin-bottom: 0.25rem;
+  }
+  .best-move {
+    background: var(--surface-raised);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 0.25rem;
+    padding: 0 0.375rem;
+    font-weight: var(--weight-strong);
+    cursor: pointer;
   }
 
   /* --- Explore indicator: off the game's own moves, so "look here". --- */

@@ -72,8 +72,10 @@
     <p>
       The teacher keeps the students' games from their online league (Rookly) in a library on
       this site, to go over them in lessons. These are the games as the league exports them: the
-      players' league names (which the league makes up), the event, date, moves and result. Only
-      the teacher can open the library; the site refuses everyone else, including students.
+      players' league names (which the league makes up), the event, date, moves and result. When
+      the teacher has a game checked by the chess engine, the engine's evaluation of each move is
+      saved with it. Only the teacher can open the library; the site refuses everyone else,
+      including students.
     </p>
   </section>
 

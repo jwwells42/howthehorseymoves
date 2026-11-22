@@ -7,6 +7,9 @@
   import Choice from '$lib/components/ui/Choice.svelte';
   import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
   import { splitPgnGames } from '$lib/logic/pgn';
+  import { Engine } from '$lib/engine/stockfish';
+  import { checkGame } from '$lib/engine/check-game';
+  import { gamePositions, markMoves, countMarks, type MarkCounts } from '$lib/engine/review';
   import {
     filterGames,
     score,
@@ -23,7 +26,9 @@
 
   // The students' games: only the teacher (TEACHER_LICHESS_IDS) gets past the
   // lock. Off the nav. Filters live in the address, so a filtered list can be
-  // bookmarked, and the game page's ‹ › step through the same list.
+  // bookmarked, and the game page's ‹ › step through the same list. Analyse
+  // checks the listed games not yet checked, several at once (one Stockfish
+  // per core but one), saving each as it's done.
 
   /** Games per import request: well under Vercel's 4.5 MB per request. */
   const BATCH_GAMES = 300;
@@ -47,6 +52,9 @@
   let dragging = $state(false);
   let exporting = $state(false);
   let clearArmed = $state(false);
+  let checking = $state<{ done: number; total: number; failed: number } | null>(null);
+  /** Stops the check that's running (not state: nothing on screen reads it) */
+  const run = { stop: () => {} };
 
   let names = $derived(new Set(games.flatMap((g) => [g.summary.white, g.summary.black])));
   let nameCounts = $derived.by(() => {
@@ -100,6 +108,7 @@
   });
 
   let totals = $derived(playerExact ? score(shown, filters.player.trim()) : null);
+  let unchecked = $derived(shown.filter((g) => !g.summary.marks));
 
   // === Filters ↔ the address ===
 
@@ -236,6 +245,65 @@
     exporting = false;
   }
 
+  // === Analyse ===
+
+  function setMarks(id: string, marks: MarkCounts | undefined) {
+    if (marks) games = games.map((g) => (g.id === id ? { ...g, summary: { ...g.summary, marks } } : g));
+  }
+
+  /** One game: fetched afresh, so a game another device has checked is left alone */
+  async function checkOne(engine: Engine, id: string, stopped: () => boolean): Promise<boolean> {
+    try {
+      const res = await fetch(`/api/library/${encodeURIComponent(id)}`);
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.analysis) {
+        setMarks(id, data.summary.marks);
+        return true;
+      }
+      const result = await checkGame(engine, gamePositions(data.body), undefined, stopped);
+      if (!result) return false;
+      const put = await fetch(`/api/library/${encodeURIComponent(id)}/analysis`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(result),
+      });
+      if (!put.ok) return false;
+      setMarks(id, countMarks(markMoves(result.evals)));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function analyseShown() {
+    const queue = unchecked.map((g) => g.id);
+    if (queue.length === 0 || checking) return;
+    let stopped = false;
+    const engines: Engine[] = [];
+    run.stop = () => {
+      stopped = true;
+      for (const engine of engines) engine.stop();
+    };
+    checking = { done: 0, total: queue.length, failed: 0 };
+    const cores = Math.max(1, Math.min(8, (navigator.hardwareConcurrency || 2) - 1));
+    const worker = async () => {
+      const engine = new Engine();
+      engines.push(engine);
+      try {
+        for (let id = queue.shift(); id && !stopped; id = queue.shift()) {
+          const ok = await checkOne(engine, id, () => stopped);
+          if (stopped) break;
+          checking = { ...checking!, done: checking!.done + 1, failed: checking!.failed + (ok ? 0 : 1) };
+        }
+      } finally {
+        engine.quit();
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(cores, queue.length) }, worker));
+    checking = null;
+  }
+
   async function clearAll() {
     clearArmed = false;
     const res = await fetch('/api/library', { method: 'DELETE' });
@@ -368,6 +436,14 @@
           </span>
         {/if}
         <span class="spacer"></span>
+        {#if checking}
+          <div class="bar"><ProgressBar value={checking.done} max={checking.total} label="Analyse" /></div>
+          <span class="muted">{checking.done} / {checking.total}</span>
+          {#if checking.failed}<span class="wrong">&#10007; {checking.failed}</span>{/if}
+          <Button onclick={() => run.stop()} aria-label="Stop">&#9632;</Button>
+        {:else if unchecked.length > 0}
+          <Button onclick={analyseShown}>Analyse ({unchecked.length})</Button>
+        {/if}
         <Button onclick={exportShown} disabled={exporting || shown.length === 0}>Export</Button>
       </div>
 
@@ -396,7 +472,7 @@
                 <td class="opening">{numbered(s.start, 6)}</td>
                 <td class="num">{Math.ceil(s.plies / 2)}</td>
                 {#if analysed}
-                  <td class="num">{s.marks ? s.marks.blunders[0] + s.marks.blunders[1] : ''}</td>
+                  <td class="num blunders">{#if s.marks}<span class={[s.marks.blunders[0] && 'wrong']}>{s.marks.blunders[0]}</span>&nbsp;·&nbsp;<span class={[s.marks.blunders[1] && 'wrong']}>{s.marks.blunders[1]}</span>{/if}</td>
                 {/if}
               </tr>
             {/each}
