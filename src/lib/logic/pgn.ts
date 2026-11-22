@@ -154,11 +154,13 @@ export function parseSan(
   board: BoardState,
   color: PieceColor,
 ): { from: SquareId; to: SquareId; promotion?: PieceKind } {
-  if (san === "O-O" || san === "O-O-O") {
+  // Castling, with or without check (O-O-O+)
+  const castle = san.replace(/[+#!?]+$/, "");
+  if (castle === "O-O" || castle === "O-O-O") {
     const rank = color === "w" ? "1" : "8";
     return {
       from: `e${rank}` as SquareId,
-      to: (san === "O-O" ? `g${rank}` : `c${rank}`) as SquareId,
+      to: (castle === "O-O" ? `g${rank}` : `c${rank}`) as SquareId,
     };
   }
 

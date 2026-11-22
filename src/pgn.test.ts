@@ -40,6 +40,14 @@ describe('PGN files from elsewhere', () => {
     expect(games[2].pgn).toMatch(/1\. d4 d5/);
   });
 
+  it('reads castling that gives check (O-O-O+)', () => {
+    const tree = parseGamePgn('1. e4 e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6 5. Nxc6 dxc6 6. Qxd8+ Kxd8 7. Bg5 Be7 8. Nc3 h6 9. O-O-O+ Ke8');
+    let node = tree.children[0];
+    while (node.children[0] && node.san !== 'O-O-O+') node = node.children[0];
+    expect([node.san, node.from, node.to]).toEqual(['O-O-O+', 'e1', 'c1']);
+    expect(node.boardAfter.pieces.get('d1')?.piece).toBe('R');
+  });
+
   it('reads headers', () => {
     expect(readHeaders('[White "A"]\n[WhiteElo "1200"]\n\n1. e4')).toEqual({ White: 'A', WhiteElo: '1200' });
   });
