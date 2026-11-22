@@ -384,22 +384,22 @@ This codebase uses **Svelte 5 runes mode** exclusively. Follow these patterns:
 
 Each bot is the **boss of its curriculum level** — the closing stop of that chapter (`curriculum.ts`).
 
-| Rung = level | Level name | Character | `BotLevel` | `search` | `slack` | `depth` | mate-scan | book | ms/move | beats rung below (games) |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Foal | The Sloth | `random` | random | — | — | — | — | 0.1 | — |
-| 2 | Colt | The Chick | `greedy` | greedy | — | — | — | — | 0.1 | 57% (96) |
-| 3 | Trotter | The Pig | `wild` | heuristic | 2.4 | — | off | — | 0.4 | 66% (32) |
-| 4 | Cantering | The Frog | `loose` | heuristic | 1.4 | — | off | — | 0.3 | 67% (96) |
-| 5 | Galloper | The Duck | `steady` | heuristic | 0.9 | — | off | — | 0.3 | 73% (32) |
-| 6 | Destrier | The Rabbit | `careful` | heuristic | 0.6 | — | on | — | 4.9 | 71% (96) |
-| 7 | Stallion | The Penguin | `tidy` | heuristic | 0 | — | off | — | 0.3 | 64% (96) |
-| 8 | Charger | The Panda | `basic` | heuristic | 0 | — | on | — | 4.7 | 58% (96) |
-| 9 | — | The Goat | `bold` | minimax | 0.95 | 2 | — | — | 6.7 | 66% (32) |
-| 10 | — | The Monkey | `sharp` | minimax | 0.7 | 2 | — | — | 6.7 | 60% (96) |
-| 11 | — | The Gorilla | `keen` | minimax | 0.2 | 2 | — | — | 6.6 | 63% (32) |
-| 12 | — | The Bear | `intermediate` | minimax | 0 | 2 | — | — | 6.6 | 69% (32) |
-| 13 | — | The Elephant | `booked` | minimax | 0.5 | 3 | — | yes | 81 | 86% (32) |
-| 14 | — | The Owl | `expert` | minimax | 0 | 3 | — | yes | 81 | 61% (32) |
+| Rung = level | Character | `BotLevel` | `search` | `slack` | `depth` | mate-scan | book | ms/move | beats rung below (games) |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | The Sloth | `random` | random | — | — | — | — | 0.1 | — |
+| 2 | The Chick | `greedy` | greedy | — | — | — | — | 0.1 | 57% (96) |
+| 3 | The Pig | `wild` | heuristic | 2.4 | — | off | — | 0.4 | 66% (32) |
+| 4 | The Frog | `loose` | heuristic | 1.4 | — | off | — | 0.3 | 67% (96) |
+| 5 | The Duck | `steady` | heuristic | 0.9 | — | off | — | 0.3 | 73% (32) |
+| 6 | The Rabbit | `careful` | heuristic | 0.6 | — | on | — | 4.9 | 71% (96) |
+| 7 | The Penguin | `tidy` | heuristic | 0 | — | off | — | 0.3 | 64% (96) |
+| 8 | The Panda | `basic` | heuristic | 0 | — | on | — | 4.7 | 58% (96) |
+| 9 | The Goat | `bold` | minimax | 0.95 | 2 | — | — | 6.7 | 66% (32) |
+| 10 | The Monkey | `sharp` | minimax | 0.7 | 2 | — | — | 6.7 | 60% (96) |
+| 11 | The Gorilla | `keen` | minimax | 0.2 | 2 | — | — | 6.6 | 63% (32) |
+| 12 | The Bear | `intermediate` | minimax | 0 | 2 | — | — | 6.6 | 69% (32) |
+| 13 | The Elephant | `booked` | minimax | 0.5 | 3 | — | yes | 81 | 86% (32) |
+| 14 | The Owl | `expert` | minimax | 0 | 3 | — | yes | 81 | 61% (32) |
 
 Times are avg ms/move on a dev desktop (measured 2026-11-17; the older numbers were slower on another machine); expect several times this on a Chromebook. The win rates are self-play matches against the rung below (stronger side plays Black), games in brackets. At 32 games a result swings about ±10% between runs (the untouched Chick/Sloth pair read 67% then 56%), so re-measure a step near 60% at 96 games before retuning: copy the harness to a scratch file and loop over just the pairs you need. The six rungs added 2026-11-17 (Pig, Duck, Penguin, Goat, Gorilla, Elephant) each sit in a gap of the old eight-rung ladder. Rabbit → Panda is only ~80% wide, so the Penguin's two steps are 64% / 58%: it's the Panda without the mate-in-1 scan, which split the gap more evenly than any slack did (0.3–0.45 gave 66/53 to 52/60), and a bot that never sees mate-in-1 coming is one students can learn to beat. **Re-run `scripts/bot-ladder-match.ts` after touching any knob** — the whole point of the ladder is that each step is felt, and self-play is the only way to know before a student finds out. Ideas for making the bots distinctive by *playstyle* rather than strength are parked in `bot-personality-ideas.md`.
 

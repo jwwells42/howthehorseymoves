@@ -33,10 +33,10 @@ export interface CurriculumChapter {
 const SETUP_SLUGS = ['rooks', 'knights', 'bishops', 'king', 'queen', 'pawns', 'full'];
 
 export const CURRICULUM: CurriculumChapter[] = [
-  // ── Level 1: The Foal (9) ────────────────
+  // ── Level 1 (9) ──────────────────────────
   {
-    id: 'the-foal',
-    title: 'Level 1: The Foal',
+    id: 'level-1',
+    title: 'Level 1',
     stops: [
       { id: 'piece-rook', name: 'Rook', icon: '/pieces/wR.svg', href: '/learn/rook', progress: { type: 'puzzle-set', key: 'rook' } },
       { id: 'piece-bishop', name: 'Bishop', icon: '/pieces/wB.svg', href: '/learn/bishop', progress: { type: 'puzzle-set', key: 'bishop' } },
@@ -50,10 +50,10 @@ export const CURRICULUM: CurriculumChapter[] = [
     ],
   },
 
-  // ── Level 2: The Colt (9) ────────────────
+  // ── Level 2 (9) ──────────────────────────
   {
-    id: 'the-colt',
-    title: 'Level 2: The Colt',
+    id: 'level-2',
+    title: 'Level 2',
     stops: [
       { id: 'board-setup', name: 'Place the Pieces', icon: '/pieces/wR.svg', href: '/setup', progress: { type: 'localStorage-all', keys: SETUP_SLUGS.map(s => `setup-${s}-best-stars`) } },
       { id: 'danger-zones', name: 'Danger Zones', icon: '/pieces/bQ.svg', href: '/learn/danger-zones', progress: { type: 'puzzle-set', key: 'danger-zones' } },
@@ -71,10 +71,10 @@ export const CURRICULUM: CurriculumChapter[] = [
   // a pattern, an ending, a model game; vision from Level 9), then its bot.
   // Levels 9 and up are titled by number until the teacher names them.
 
-  // ── Level 3: The Trotter (5) ───────────
+  // ── Level 3 (5) ────────────────────────
   {
-    id: 'the-trotter',
-    title: 'Level 3: The Trotter',
+    id: 'level-3',
+    title: 'Level 3',
     stops: [
       { id: 'opening-scholars', name: "Scholar's Mate", icon: '/pieces/wQ.svg', href: '/openings/scholars-mate', progress: { type: 'none' } },
       { id: 'cm-lollis', name: "Lolli's Mate", icon: '/pieces/wQ.svg', href: '/learn/checkmate-lollis', progress: { type: 'puzzle-set', key: 'checkmate-lollis' } },
@@ -84,10 +84,10 @@ export const CURRICULUM: CurriculumChapter[] = [
     ],
   },
 
-  // ── Level 4: The Cantering (5) ─────────
+  // ── Level 4 (5) ────────────────────────
   {
-    id: 'the-cantering',
-    title: 'Level 4: The Cantering',
+    id: 'level-4',
+    title: 'Level 4',
     stops: [
       { id: 'opening-e4', name: '1.e4', icon: '/pieces/wP.svg', href: '/openings/first-e4', progress: { type: 'none' } },
       { id: 'tactics-pins', name: 'Pins', icon: '/pieces/wB.svg', href: '/learn/tactics-pins', progress: { type: 'puzzle-set', key: 'tactics-pins' } },
@@ -97,10 +97,10 @@ export const CURRICULUM: CurriculumChapter[] = [
     ],
   },
 
-  // ── Level 5: The Galloper (5) ──────────
+  // ── Level 5 (5) ────────────────────────
   {
-    id: 'the-galloper',
-    title: 'Level 5: The Galloper',
+    id: 'level-5',
+    title: 'Level 5',
     stops: [
       { id: 'opening-e4-e5', name: '1.e4 e5', icon: '/pieces/bP.svg', href: '/openings/first-e4-e5', progress: { type: 'none' } },
       { id: 'cm-queen-f7', name: 'Queen Takes f7', icon: '/pieces/wQ.svg', href: '/learn/checkmate-queen-f7', progress: { type: 'puzzle-set', key: 'checkmate-queen-f7' } },
@@ -110,10 +110,10 @@ export const CURRICULUM: CurriculumChapter[] = [
     ],
   },
 
-  // ── Level 6: The Destrier (5) ──────────
+  // ── Level 6 (5) ────────────────────────
   {
-    id: 'the-destrier',
-    title: 'Level 6: The Destrier',
+    id: 'level-6',
+    title: 'Level 6',
     stops: [
       { id: 'opening-d4-d5', name: '1.d4 d5', icon: '/pieces/bP.svg', href: '/openings/first-d4-d5', progress: { type: 'none' } },
       { id: 'tactics-forks', name: 'Forks', icon: '/pieces/wN.svg', href: '/learn/tactics-forks', progress: { type: 'puzzle-set', key: 'tactics-forks' } },
@@ -123,10 +123,10 @@ export const CURRICULUM: CurriculumChapter[] = [
     ],
   },
 
-  // ── Level 7: The Stallion (4) ──────────
+  // ── Level 7 (4) ────────────────────────
   {
-    id: 'the-stallion',
-    title: 'Level 7: The Stallion',
+    id: 'level-7',
+    title: 'Level 7',
     stops: [
       { id: 'cm-qb-battery', name: 'QB Battery', icon: '/pieces/wQ.svg', href: '/learn/checkmate-qb-battery', progress: { type: 'puzzle-set', key: 'checkmate-qb-battery' } },
       { id: 'endings-pawn-races', name: 'Pawn Races', icon: '/pieces/wP.svg', href: '/learn/endings-pawn-races', progress: { type: 'puzzle-set', key: 'endings-pawn-races' } },
@@ -135,10 +135,10 @@ export const CURRICULUM: CurriculumChapter[] = [
     ],
   },
 
-  // ── Level 8: The Charger (4) ───────────
+  // ── Level 8 (4) ────────────────────────
   {
-    id: 'the-charger',
-    title: 'Level 8: The Charger',
+    id: 'level-8',
+    title: 'Level 8',
     stops: [
       { id: 'tactics-skewers', name: 'Skewers', icon: '/pieces/wR.svg', href: '/learn/tactics-skewers', progress: { type: 'puzzle-set', key: 'tactics-skewers' } },
       { id: 'endings-reti', name: 'Réti Study', icon: '/pieces/wK.svg', href: '/learn/endings-reti', progress: { type: 'puzzle-set', key: 'endings-reti' } },
