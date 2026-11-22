@@ -13,9 +13,8 @@
         blindfold training, and play against the computer.
       </p>
       <p>
-        There are no ads, no chat and no memberships, and no account is needed. Everything runs
-        in your browser; logging in with Lichess is optional (see
-        <a href="/privacy">Privacy</a>). It will always be free.
+        There are no accounts, no ads, no chat, no memberships, and no data collection.
+        Everything runs in your browser. It will always be free.
       </p>
     </div>
   </section>
@@ -25,23 +24,22 @@
     <div class="prose">
       <p>This site is designed with student privacy as a first principle:</p>
       <ul>
-        <li><strong>Without a login, nothing is collected</strong> — progress is saved locally in the student's browser using localStorage</li>
-        <li><strong>Logging in is optional</strong> — a Lichess login keeps a copy of the student's progress and their Lichess username in the site's database, so it follows them to another computer. No names, emails or passwords</li>
-        <li><strong>Students can download or delete their data</strong> at any time from the account menu</li>
+        <li><strong>No personal information is collected</strong> — no names, emails, or accounts</li>
+        <li><strong>No server-side data storage</strong> — all progress is saved locally in the student's browser using localStorage</li>
         <li><strong>No cookies</strong> for tracking or analytics</li>
         <li><strong>No third-party trackers, ads, or analytics</strong></li>
         <li><strong>No chat or social features</strong></li>
-        <li><strong>The chess engine runs in the browser</strong> — positions never leave the device</li>
+        <li><strong>No external API calls</strong> — the app runs entirely client-side</li>
       </ul>
       <p>
-        Students under 13 log in only with the school's consent, as COPPA (Children's Online
-        Privacy Protection Act) allows. The <a href="/privacy">privacy policy</a> has the details,
-        including FERPA and Arkansas law.
+        Because no personal information is collected from children (or anyone else), COPPA
+        (Children's Online Privacy Protection Act) obligations regarding parental consent do not
+        apply. The site does not collect, use, or disclose personal information from users of any age.
       </p>
       <p>
         The site is hosted on <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>,
         which may collect standard web server logs (IP addresses, request timestamps) as part of
-        normal hosting operations. These logs are governed by
+        normal hosting operations. These logs are not accessible to us and are governed by
         <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel's Privacy Policy</a>.
       </p>
     </div>
@@ -99,18 +97,16 @@
     <div class="prose">
       <p>If you are a school administrator evaluating this tool for classroom use, here is a summary:</p>
       <ul>
-        <li>Without a login, no student data is collected or transmitted to any server</li>
-        <li>No account required; an optional Lichess login keeps a copy of progress in the site's database</li>
-        <li>Students can download or delete their data, and the teacher deletes it when the school asks</li>
+        <li>No student data is collected or transmitted to any server</li>
+        <li>No accounts or login required</li>
         <li>No ads, tracking, or third-party analytics</li>
         <li>No in-app purchases or premium features</li>
         <li>Free and open-source (AGPL-3.0)</li>
         <li>Works on Chromebooks and school networks</li>
-        <li>Progress is saved locally in the browser — clearing browser data resets it, unless the student logs in</li>
+        <li>Progress is saved locally in the browser — clearing browser data resets it</li>
       </ul>
       <p>
-        The full <a href="/privacy">privacy policy</a> covers COPPA, FERPA and Arkansas law. For
-        questions or concerns, please open an issue on our
+        For questions or concerns, please open an issue on our
         <a href="https://github.com/jwwells42/howthehorseymoves/issues" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
       </p>
     </div>

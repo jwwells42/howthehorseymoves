@@ -1,6 +1,5 @@
 import type { PieceColor } from "../logic/types";
 import type { Opening, OpeningLine, OpeningMove } from "./parser";
-import { noteChange } from "../state/storage";
 
 /**
  * What a student has learned of an opening, one entry per move of theirs.
@@ -14,8 +13,7 @@ import { noteChange } from "../state/storage";
  *
  * Saved in localStorage under `opening-{id}-moves` as
  * { [move key]: [state, seconds since 1970] }; the time is when the move was
- * last saved, which says when it's due, and lets sync tell which of two
- * devices saved a move last.
+ * last saved, which says when it's due.
  */
 export const NEW = 0;
 export const SEEN = 1;
@@ -55,7 +53,7 @@ export function loadProgress(openingId: string): MoveProgress {
 /**
  * Saves new states for some moves and returns the whole progress. Starts
  * from what is saved rather than from the caller's copy, so a tab left open
- * doesn't undo what another tab (or sync) saved since.
+ * doesn't undo what another tab saved since.
  */
 export function saveStates(openingId: string, states: Record<string, MoveState>): MoveProgress {
   const progress = loadProgress(openingId);
@@ -64,7 +62,6 @@ export function saveStates(openingId: string, states: Record<string, MoveState>)
   try {
     localStorage.setItem(storageKey(openingId), JSON.stringify(progress));
   } catch {}
-  noteChange();
   return progress;
 }
 

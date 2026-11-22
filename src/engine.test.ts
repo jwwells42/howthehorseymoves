@@ -3,7 +3,7 @@ import { readInfo, readUciMove, playLine, formatScore, winChance } from '$lib/en
 import { boardToFen } from '$lib/logic/fen';
 import { parseFen, createBoardState } from '$lib/logic/types';
 import { applyMove } from '$lib/logic/pgn';
-import { judge, markMoves, countMarks, whiteChance, readAnalysis, gamePositions } from '$lib/engine/review';
+import { judge, markMoves, countMarks, whiteChance, gamePositions } from '$lib/engine/review';
 
 /*
   What the engine says, read right: scores turned to White's side, moves
@@ -127,16 +127,6 @@ describe('marking a game', () => {
     expect(whiteChance({ mate: 0 }, 'b')).toBe(1);
     expect(whiteChance({ mate: 0 }, 'w')).toBe(-1);
     expect(whiteChance({ cp: 0 }, 'w')).toBe(0);
-  });
-
-  it('accepts only an analysis that fits the game', () => {
-    const ok = { nodes: 100000, evals: [{ cp: 20 }, { cp: 30 }, { mate: 0 }], best: ['e2e4', 'e7e5', null] };
-    expect(readAnalysis(ok, 2)).toEqual(ok);
-    expect(readAnalysis(ok, 3)).toBe(null);
-    expect(readAnalysis({ ...ok, evals: [{ cp: 20 }, { cp: 'x' }, { mate: 0 }] }, 2)).toBe(null);
-    expect(readAnalysis({ ...ok, best: ['e2e4', 'drop table', null] }, 2)).toBe(null);
-    expect(readAnalysis({ ...ok, nodes: 0 }, 2)).toBe(null);
-    expect(readAnalysis(null, 2)).toBe(null);
   });
 });
 

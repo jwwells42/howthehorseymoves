@@ -18,9 +18,6 @@ const WORDS = join(SRC, 'words.txt');
 /** Pages left as they are for now. */
 const NOT_CHECKED = [
   'src/routes/about/',
-  // Drafted by Claude at the teacher's request (2026-11-21), awaiting the
-  // teacher's review: see words-to-write.md
-  'src/routes/privacy/',
   'src/routes/breathwork/',
   'src/routes/probabilitizer/',
   'src/routes/lichess-eval-diffs/',

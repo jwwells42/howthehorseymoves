@@ -1,5 +1,4 @@
 import { writable, derived, get } from 'svelte/store';
-import { noteChange } from '$lib/state/storage';
 
 export interface PuzzleProgress {
   completed: boolean;
@@ -41,7 +40,7 @@ export function initProgress() {
   });
 }
 
-/** Read progress again from localStorage, e.g. after another tab or sync wrote it. */
+/** Read progress again from localStorage, e.g. after another tab wrote it. */
 export function reloadProgress() {
   state.set({ puzzles: readStored(), loaded: true });
 }
@@ -63,7 +62,6 @@ export function completePuzzle(puzzleId: string, stars: number, moves: number) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(puzzles));
   } catch {}
   state.set({ puzzles, loaded: true });
-  noteChange();
 }
 
 export function isPuzzleUnlocked(puzzleId: string, allPuzzleIds: string[]): boolean {

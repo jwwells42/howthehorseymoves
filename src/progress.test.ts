@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { mergeSnapshots, mergeValue, coerceSnapshot, type Snapshot } from '$lib/sync/merge';
 import { parseOpeningPgn, extractLines } from '$lib/openings';
 import {
   afterMove,
@@ -15,12 +14,9 @@ import {
   type MoveState,
 } from '$lib/openings/progress';
 
-vi.mock('$env/dynamic/private', () => ({ env: { SESSION_SECRET: 'test-secret', TEACHER_LICHESS_IDS: ' CoachJ , second ' } }));
-
 /*
-  Saved progress: nothing a student earned is ever lost, whether the save
-  comes from a tab left open since yesterday, another Chromebook (through
-  Lichess login), or both at once.
+  Saved progress: nothing a student earned is ever lost, even when the save
+  comes from a tab left open since yesterday.
 */
 
 /** A localStorage that lives in memory, shared like the real one by every "tab". */
@@ -67,68 +63,6 @@ describe('a tab left open', () => {
     expect(localStorage.getItem('coord-best-stars')).toBe('3');
     expect(saveBest('coord-best-stars', 3)).toBe(3);
     expect(saveBest('match-moves-best-stars', 2)).toBe(2);
-  });
-});
-
-describe('merging two copies of progress', () => {
-  const a: Snapshot = {
-    'horsey-progress': JSON.stringify({
-      'rook-1': { completed: true, bestStars: 2, bestMoves: 5 },
-      'rook-2': { completed: true, bestStars: 3, bestMoves: 3 },
-    }),
-    'coord-best-stars': '2',
-    'bot-beaten-random': '3',
-    'opening-e4-moves': JSON.stringify({ m1: [1, 100], m2: [2, 100] }),
-  };
-  const b: Snapshot = {
-    'horsey-progress': JSON.stringify({
-      'rook-1': { completed: true, bestStars: 3, bestMoves: 7 },
-      'bishop-1': { completed: true, bestStars: 1, bestMoves: 9 },
-    }),
-    'coord-best-stars': '3',
-    'blindfold-color-best': '14',
-    'opening-e4-moves': JSON.stringify({ m1: [2, 200], m2: [0, 50], m3: [1, 10] }),
-  };
-
-  it('keeps everything either copy had, at its best', () => {
-    const m = mergeSnapshots(a, b);
-    expect(JSON.parse(m['horsey-progress'])).toEqual({
-      'bishop-1': { completed: true, bestStars: 1, bestMoves: 9 },
-      'rook-1': { completed: true, bestStars: 3, bestMoves: 5 },
-      'rook-2': { completed: true, bestStars: 3, bestMoves: 3 },
-    });
-    expect(m['coord-best-stars']).toBe('3');
-    expect(m['bot-beaten-random']).toBe('3');
-    expect(m['blindfold-color-best']).toBe('14');
-    // An opening move: the later save wins, even when it went backwards (start over)
-    expect(JSON.parse(m['opening-e4-moves'])).toEqual({ m1: [2, 200], m2: [2, 100], m3: [1, 10] });
-    const later = mergeValue('opening-e4-moves', JSON.stringify({ m1: [0, 300] }), m['opening-e4-moves']);
-    expect(JSON.parse(later!).m1).toEqual([0, 300]);
-  });
-
-  it('gives the same answer in either order, and again when repeated', () => {
-    const ab = mergeSnapshots(a, b);
-    expect(mergeSnapshots(b, a)).toEqual(ab);
-    expect(mergeSnapshots(ab, a)).toEqual(ab);
-    expect(mergeSnapshots(ab, ab)).toEqual(ab);
-  });
-
-  it('keeps settings on the device and drops junk', () => {
-    const m = coerceSnapshot({
-      'opening-auto-next': 'true',
-      'horsey-muted': 'true',
-      'opening-e4-order': 'flow',
-      'how-to-win-check-mistakes': '4',
-      'coord-best': 12,
-      'opening-e4-moves': JSON.stringify({ ok: [1, 5], box: [7, 5], bad: [100, 5], half: [1.5, 5], worse: 'x' }),
-      'pawn-endings-lesson-best-stars': '2',
-    });
-    expect(m).toEqual({
-      'opening-e4-moves': JSON.stringify({ box: [7, 5], ok: [1, 5] }),
-      'pawn-endings-lesson-best-stars': '2',
-    });
-    expect(coerceSnapshot('nonsense')).toEqual({});
-    expect(coerceSnapshot([1, 2])).toEqual({});
   });
 });
 
@@ -229,29 +163,5 @@ describe('opening review', () => {
     // Nf3 and Ba4 due: the Bb5 line up to Ba4 covers Nf3 too
     const two = saved(fresh.map(([k, s, t]) => [k, s, [mine(0)[1].key, mine(0)[3].key].includes(k) ? t - DAY : t]));
     expect(sans(buildPass(lines, 'w', 'review', 3, two, noon))).toEqual(['e4 e5 Nf3 Nc6 Bb5 a6 Ba4']);
-  });
-});
-
-describe('the login cookie', () => {
-  it('reads back what it issued, and nothing forged or expired', async () => {
-    const { issueSession, readSession } = await import('$lib/server/session');
-    const token = issueSession('some.user', 1000);
-    expect(readSession(token, 2000)).toBe('some.user');
-    expect(readSession(token, 1000 + 366 * 24 * 3600 * 1000)).toBeNull();
-    expect(readSession(token.slice(0, -2) + (token.endsWith('xx') ? 'yy' : 'xx'), 2000)).toBeNull();
-    const [id, expiry, sig] = token.split('.');
-    expect(readSession(`${Buffer.from('admin').toString('base64url')}.${expiry}.${sig}`, 2000)).toBeNull();
-    expect(readSession(`${id}.${Number(expiry) + 1}.${sig}`, 2000)).toBeNull();
-    expect(readSession(undefined)).toBeNull();
-    expect(readSession('garbage')).toBeNull();
-  });
-
-  it('only the ids in TEACHER_LICHESS_IDS are the teacher', async () => {
-    const { isTeacher } = await import('$lib/server/access');
-    expect(isTeacher('coachj')).toBe(true);
-    expect(isTeacher('Second')).toBe(true);
-    expect(isTeacher('student1')).toBe(false);
-    expect(isTeacher('')).toBe(false);
-    expect(isTeacher(null)).toBe(false);
   });
 });

@@ -1,8 +1,6 @@
 # Ideas for after the current work
 
-Parking lot, started 2026-11-21. Nothing here is built. Do it after the games
-library, the stored mistake check and Studies (see the plan in CLAUDE.md's
-Engine section).
+Parking lot, started 2026-11-21. Nothing here is built.
 
 # Analysis on the smartboard
 
@@ -50,10 +48,8 @@ Notes for building it:
 - An explorer panel in the sidebar under Stockfish (the board must not move):
   each move with its number of games and a white/draw/black bar; tap a move to
   play it.
-- **The login.** The site's own Lichess login (`server/lichess.ts`) uses the
-  token once, to learn the username, then revokes it, so it can't be reused
-  for the explorer. Either use the Probabilitizer's login in the browser, or
-  keep the token on purpose. Decide that with the teacher.
+- **The login.** The explorer needs a Lichess sign-in; the Probabilitizer's
+  (`src/lib/probabilitizer/auth.ts`, in the browser only) could be shared.
 - **Check the school network first:** chessdb.cn is blocked there. See whether
   `explorer.lichess.ovh` gets through before building anything.
 
@@ -69,17 +65,8 @@ Square.
 
 **Already there:** every timed Vision trainer saves its best score and best
 stars on the device (`{key}-best`, `{key}-best-stars`, e.g.
-`blindfold-color-best`, through `saveBest` in `state/storage.ts`). With a
-Lichess login they sync to the database, keeping the higher number
-(`ruleFor()` in `sync/merge.ts`), so a student's record follows them to any
-Chromebook.
+`blindfold-color-best`, through `saveBest` in `state/storage.ts`).
 
 **Not there yet, and feasible:**
 - **A history:** each round's score and date, not just the best, so progress
-  over weeks can be seen. Needs a new kind of saved entry and a merge rule in
-  `sync/merge.ts` that keeps every round from both copies. Small: one round is
-  about 20 bytes.
-- **Records the teacher can see:** a teacher-only page listing each logged-in
-  student's bests per trainer (a class leaderboard), read from
-  `horsey_users.progress`. Only students who log in would show.
-- Ask the teacher which of the two is meant (or both).
+  over weeks can be seen, on the device. Small: one round is about 20 bytes.

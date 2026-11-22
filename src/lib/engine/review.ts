@@ -1,8 +1,8 @@
 /**
  * A whole game checked by Stockfish, as Lichess does it: every position of
  * the main line searched to the same budget, and each move judged by how much
- * it dropped the mover's winning chances. Pure, so the server can count the
- * marks from what the browser sends, and src/library.test.ts can test it.
+ * it dropped the mover's winning chances. Pure, so src/engine.test.ts can
+ * test it.
  */
 
 import type { PieceColor } from '$lib/logic/types';
@@ -14,7 +14,7 @@ import { winChance } from './uci';
 export type Mark = '?!' | '?' | '??';
 export const MARKS: Mark[] = ['?!', '?', '??'];
 
-/** What's saved in horsey_library.analysis */
+/** A whole game's check */
 export interface GameAnalysis {
   /** Stockfish nodes searched per position */
   nodes: number;
@@ -111,26 +111,4 @@ export function countMarks(marks: (Mark | null)[], first: PieceColor = 'w'): Mar
 export function whiteChance(score: Score, toMove: PieceColor): number {
   if ('mate' in score && score.mate === 0) return toMove === 'w' ? -1 : 1;
   return winChance(score);
-}
-
-function isScore(x: unknown): x is Score {
-  if (!x || typeof x !== 'object') return false;
-  const keys = Object.keys(x);
-  if (keys.length !== 1) return false;
-  const n = (x as Record<string, unknown>)[keys[0]];
-  return (keys[0] === 'cp' || keys[0] === 'mate') && Number.isInteger(n) && Math.abs(n as number) <= 100_000;
-}
-
-/**
- * An analysis sent to the server, checked: one eval and one best move per
- * position of a game of `plies` moves. Anything else is null.
- */
-export function readAnalysis(x: unknown, plies: number): GameAnalysis | null {
-  if (!x || typeof x !== 'object') return null;
-  const { nodes, evals, best } = x as Record<string, unknown>;
-  if (!Number.isInteger(nodes) || (nodes as number) < 1 || (nodes as number) > 1e9) return null;
-  if (!Array.isArray(evals) || evals.length !== plies + 1 || !evals.every(isScore)) return null;
-  if (!Array.isArray(best) || best.length !== plies + 1) return null;
-  if (!best.every((m) => m === null || (typeof m === 'string' && /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(m)))) return null;
-  return { nodes: nodes as number, evals: evals as Score[], best: best as (string | null)[] };
 }

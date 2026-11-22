@@ -19,11 +19,10 @@ Built for classroom use — no chat, no ads, no memberships. A teacher introduce
 - **Openings** — the teacher's own repertoires (1.e4 and 1.d4 Mainline Starter, Slav, c6 Qb6 vs London, Scholar's Mate), learned move by move with arrow hints: Flow to watch, Learn (breadth or depth first), and Review on a spaced schedule, with an optional blindfold mode where moves are typed
 - **Model games** — 12 games (Fool's Mate to the Game of the Century) with a move-by-move viewer, annotations, variations, and a test mode to reproduce games from memory
 - **Analysis board** (`/analysis`) — play moves or paste a PGN, with Stockfish 19 running in the browser (no outside service, so it works on networks that block engine APIs)
-- **Games library** (`/library`) — for the teacher only: the students' league games, imported from PGN, filterable by player, side, result, event, dates and opening moves, each opening with Stockfish
 - **Star ratings** — 1-3 stars based on move efficiency, shown as mastery badges when all puzzles in a set are completed
 - **Sequential puzzles** — within a set, solve a puzzle to open the next one
 - **Sound effects** — move, correct, wrong, and star sounds with a mute toggle
-- **Accounts are optional** — progress saves to the browser (localStorage). Logging in with Lichess keeps a copy in the site's database, so it follows a student to any device
+- **No accounts** — progress saves to the browser (localStorage)
 - **Breathwork** (`/breathwork`) — a standalone, non-chess extra: a guided breathing trainer (resonance breathing + the cyclic physiological sigh) for performance-coaching students. Not linked from the chess nav
 - **The Probabilitizer** (`/probabilitizer`) — a standalone opening-odds explorer: play or paste a line and see the cumulative chance of the whole line arising from the start (split by which side you play), using the Lichess opening explorer. Requires a one-click "Login with Lichess" (Lichess's explorer now needs authentication). Not linked from the chess nav. Based on [Opening-Explorer-Plus](https://github.com/EikaMikiku/Opening-Explorer-Plus) by EikaMikiku
 
@@ -38,8 +37,6 @@ npm test         # design rules, every puzzle loads, progress is never lost, and
 ```
 
 Requires Node.js 22.12 or newer (Vercel runs Node 24).
-
-Everything works without a database. The Lichess login and the games library need a Postgres database ([Neon](https://neon.tech)'s free plan is plenty): set `DATABASE_URL`, `SESSION_SECRET` and `APP_ORIGIN` (and `TEACHER_LICHESS_IDS`, the Lichess ids allowed into the games library), then run `scripts/schema.sql` once, in Neon's SQL editor or with `node --env-file=.env scripts/apply-schema.mjs`. Without them the site shows no login.
 
 ## Adding content
 
@@ -91,7 +88,7 @@ The order students meet things in is `src/lib/curriculum.ts`, read top to bottom
 - Scoped CSS (no Tailwind); every colour and size is a token in `src/app.css`, checked by the tests for contrast and colour blindness
 - SVG chess board with drag-and-drop
 - Stockfish 19 (the lite single-threaded WebAssembly build) in a Web Worker, served by the site itself
-- Runs in the browser. The only server code is the optional Lichess login, which keeps a copy of progress, and the teacher's games library, both in Neon Postgres
+- Runs in the browser: no server code, no database
 - Deployed on Vercel (free tier)
 
 ## Contributing
