@@ -20,3 +20,21 @@ create table if not exists horsey_users (
   updated_at timestamptz not null default now(),      -- last progress write
   seen_at    timestamptz not null default now()       -- last sign-in
 );
+
+-- The games library (/library): the students' games, which only the teacher
+-- (TEACHER_LICHESS_IDS) can see. One row per game. `summary` is what the list
+-- and its filters need (src/lib/library/summary.ts), small enough to send all
+-- of it at once; `body` is the game's PGN, sent only when the game is opened.
+-- `key` is a hash of the players, date, time, event and moves, so importing
+-- the same export again adds only the games that are new.
+
+create table if not exists horsey_library (
+  id         text        primary key,                 -- random, in the URL
+  key        text        not null unique,             -- same game = same key
+  summary    jsonb       not null,
+  body       text        not null,                    -- the game's PGN
+  analysis   jsonb,                                   -- the mistake check, once it has run
+  version    integer     not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
