@@ -71,3 +71,51 @@ export async function mergeProgress(id: string, incoming: Snapshot): Promise<Sna
   }
   throw new Error('busy');
 }
+
+/**
+ * Everything the server holds about one student, for "download my data".
+ * Null when there is no row.
+ */
+export async function exportUser(id: string): Promise<{
+  username: string;
+  created_at: string;
+  updated_at: string;
+  seen_at: string;
+  progress: Snapshot;
+} | null> {
+  const rows = (await sql()`
+    select username, created_at, updated_at, seen_at, progress from horsey_users where id = ${id}
+  `) as { username: string; created_at: string; updated_at: string; seen_at: string; progress: unknown }[];
+  if (rows.length === 0) return null;
+  return { ...rows[0], progress: coerceSnapshot(rows[0].progress) };
+}
+
+/**
+ * Deletes everything the server holds about one student (their row; nothing
+ * else refers to it). What is saved in their browser stays there.
+ */
+export async function deleteUser(id: string): Promise<void> {
+  await sql()`delete from horsey_users where id = ${id}`;
+}
+
+export interface AccountRow {
+  id: string;
+  username: string;
+  created_at: string;
+  /** Last login (a login lasts a year, so this can be old for an active student) */
+  seen_at: string;
+  /** Last time progress was saved */
+  updated_at: string;
+  /** Size of the saved progress, in bytes */
+  bytes: number;
+}
+
+/** Every account, most recently used first: for the teacher's accounts page. */
+export async function listUsers(): Promise<AccountRow[]> {
+  const rows = (await sql()`
+    select id, username, created_at, seen_at, updated_at, octet_length(progress::text) as bytes
+      from horsey_users
+     order by greatest(seen_at, updated_at) desc
+  `) as (Omit<AccountRow, 'bytes'> & { bytes: string | number })[];
+  return rows.map((r) => ({ ...r, bytes: Number(r.bytes) }));
+}

@@ -218,3 +218,26 @@ export async function logOut(): Promise<void> {
   onServer = {};
   setStatus({ username: null, state: 'off' });
 }
+
+/** Everything the server holds about the logged-in student, as a file. */
+export const MY_DATA_HREF = '/api/me/data';
+
+/**
+ * Deletes the server's copy of the logged-in student's progress and logs
+ * out. Nothing waiting is sent first: it would only be deleted. What is saved
+ * in this browser stays. True if it was deleted.
+ */
+export async function deleteMyData(): Promise<boolean> {
+  if (timer) clearTimeout(timer);
+  timer = null;
+  await queue;
+  try {
+    const res = await fetch('/api/me', { method: 'DELETE' });
+    if (!res.ok) return false;
+  } catch {
+    return false;
+  }
+  onServer = {};
+  setStatus({ username: null, state: 'off' });
+  return true;
+}

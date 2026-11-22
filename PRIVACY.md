@@ -12,13 +12,13 @@ commit (see CLAUDE.md).
 
 ## Open items, most urgent first
 
-1. **The About page is out of date.** It still says "No accounts or login
-   required", "No server-side data storage", "No cookies", "No external API
-   calls", "No student data is collected or transmitted to any server", and
-   that COPPA "does not apply" because nothing is collected. Since the Lichess
-   login went live (2026-11-21) none of that is true for a student who logs in.
-   The About page is the teacher's own words: the teacher rewrites it from
-   "What the site holds" below.
+1. **Review the privacy page and the About page** (the teacher's to-do,
+   `words-to-write.md` section 3). On 2026-11-21, at the teacher's request,
+   Claude wrote `/privacy` from this file and corrected the About page's
+   privacy statements that stopped being true when the Lichess login went live
+   ("No accounts", "No server-side data storage", "No external API calls", COPPA
+   "does not apply"). Until the teacher has reviewed them they are Claude's
+   words, so the words test skips `/privacy` (`NOT_CHECKED`).
 2. **Ask the district before student logins and the games library are used
    with a class.** The U.S. Department of Education's advice to a teacher who
    wants to use an online tool with student information is to "first check with
@@ -27,37 +27,45 @@ commit (see CLAUDE.md).
    usually sign a standard student data privacy agreement with a tool's
    provider (the AR-NDPA, see "District agreement" below). Ask whether the
    district wants one for this site; that may be the "privacy policy issue"
-   that ruled out qchess.net.
+   that ruled out qchess.net. The privacy page says students under 13 log in
+   only with the school's consent: get that consent before they do.
 3. **Students' Lichess accounts.** Lichess's terms (as quoted on its forum, not
    checked on the terms page itself) need account holders to be 16 or over;
    under 16, only with kid mode permanently on, or with a parent's or
    guardian's supervision and consent. Students logging in here need Lichess
    accounts first, so the school and parents are involved either way.
-4. **No way to delete a student's server data yet, except by hand.** The
-   Arkansas student privacy act requires deletion "within a reasonable time
-   frame" when the school or district asks. Today: a student's progress row can
-   only be deleted in the Neon SQL editor, and library games with 🗑 on
-   `/library`. Build a teacher-only "delete this student" before student
-   logins are used widely.
-5. **No written retention rule.** Nothing is deleted automatically: a student's
-   progress row stays until deleted, and so do library games. Decide how long
-   each is kept (for example, until a student leaves the program) and write it
-   here. The amended COPPA rule asks for a written retention policy, in the
+4. **No written retention rule.** Nothing is deleted automatically: a student's
+   account stays until it's deleted, and so do library games. Decide how long
+   each is kept (for example, accounts not used for a year, or every summer),
+   then the privacy page says so and it can be automated. Until then `/accounts`
+   shows each account's last login and last save, so old ones can be deleted by
+   hand. The amended COPPA rule asks for a written retention policy, in the
    privacy notice, if COPPA applies.
+5. **A contact a parent can use.** The privacy page points to the site's
+   GitHub page only. Add an email address or a school contact.
 6. **Before linking students' logins to their names in games** (planned: the
    players page, "My games"), get the district's OK: that link turns made-up
    league names into identified students, and over-the-board scoresheets may
    carry real names. The teacher decided (2026-11-21) that students see their
-   opponents' names as recorded.
+   opponents' names as recorded. When it's built, deleting a student must also
+   delete their links (decide what happens to their games).
 7. **Where the data is stored.** Note the Neon project's region (shown in the
    Neon console) and Vercel's region here; districts often ask.
+
+**Done:**
+- 2026-11-21: deleting a student's data on request, which Arkansas's student
+  privacy act requires "within a reasonable time frame". A logged-in student
+  has **Delete my data** (two taps) and **Download my data** in the account
+  menu; the teacher has `/accounts`, with 🗑 then ✓ for each account. The
+  account menu, logged in or out, links to `/privacy`, so the notice sits
+  where a login starts.
 
 ## What the site holds
 
 | What | Where | Who can see it | Kept until |
 |---|---|---|---|
 | Progress (puzzles, stars, best scores, opening moves) and settings | The student's browser (localStorage) | That browser | The browser's data is cleared |
-| **With a Lichess login:** Lichess id and username, a copy of the progress above, when the account was created, last updated, last seen | Neon Postgres, `horsey_users` | The student (their own); the teacher through the Neon console | Deleted by hand (open item 4) |
+| **With a Lichess login:** Lichess id and username, a copy of the progress above, when the account was created, last saved, last logged in | Neon Postgres, `horsey_users` | The student (their own; **Download my data** gives all of it); the teacher on `/accounts` (username, dates, size) and in the Neon console | Until the student uses **Delete my data**, or the teacher deletes it on `/accounts` (open item 4: no automatic deletion yet) |
 | `horsey-session` cookie: the Lichess id, signed so it can't be forged | The student's browser | Only the site's server reads it | 1 year, or logging out |
 | `horsey-oauth` cookie, during a login only | The student's browser | The site's server | 10 minutes |
 | **Games library:** students' games from Rookly exports: the players' Rookly names (made up by Rookly), event, date, time, moves, result, how it ended | Neon Postgres, `horsey_library` | **Only the teacher** (the Lichess ids in `TEACHER_LICHESS_IDS`); the server refuses everyone else | Until the teacher deletes it (🗑 on `/library`) |
@@ -129,7 +137,7 @@ are made up).
   gathered that way may not be used for anything commercial.
 - The amended rule also asks for a **written data retention policy**, included
   in the online privacy notice, and a **written information security program**.
-  Open items 1, 5 and this file cover the beginnings of both.
+  This file, the privacy page and open item 4 are the beginnings of both.
 
 ### Arkansas: Student Online Personal Information Protection Act (Ark. Code § 6-18-109)
 
@@ -149,11 +157,11 @@ are made up).
     provider under a contract that limits its use.
 - An operator must keep "reasonable security measures", and delete a student's
   information "within a reasonable time frame" when the school or district
-  asks (open item 4).
+  asks (done: see "Done" above).
 - The text read (FindLaw, "Current as of March 28, 2024") has no penalty
   section of its own.
-- **Here:** no ads, no selling, nothing disclosed; the only gap is deletion on
-  request.
+- **Here:** no ads, no selling, nothing disclosed, and deletion on request
+  (Delete my data, `/accounts`) since 2026-11-21.
 
 ### Arkansas: Children and Teens' Online Privacy Protection Act (Act 952 of 2025, Ark. Code § 4-88-1501 and after)
 

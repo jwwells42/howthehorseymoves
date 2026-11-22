@@ -219,6 +219,39 @@ The moments, and what the bot's picture does at each:
 
 ---
 
+## 3. To do: review the privacy page and the About page
+
+Files: `src/routes/privacy/+page.svelte` (the page at `/privacy`) and the two
+privacy sections of `src/routes/about/+page.svelte` ("Privacy & Student
+Safety", "For Administrators").
+
+Claude wrote these on 2026-11-21 at your request, from the research in
+`PRIVACY.md`, because the About page still said "no accounts" and "no
+server-side data storage" after the Lichess login went live. They are not your
+words yet, so `npm test` skips the privacy page until you've been through it.
+
+Check, and change anything you like:
+
+- [ ] Every statement is true, and reads the way you'd say it to a parent or
+      an administrator
+- [ ] Your name or your school's, if you want either on it (it says "the
+      teacher" now)
+- [ ] A contact a parent can use: it only points to the GitHub page now. An
+      email address or a school contact?
+- [ ] "it will be deleted promptly": a number of days instead?
+- [ ] How long accounts and games are kept (it says "until it is deleted"
+      now). For example: accounts not used for a year, or every summer. Tell
+      Claude and it can be automated
+- [ ] The district's answers (see `PRIVACY.md`, open items 2 and 3) before
+      students log in with a class; the page says students under 13 log in
+      only with the school's consent
+
+When you're done, tell Claude: it adds the page's sentences to
+`src/words.txt` as your words and takes the page off the words test's skip
+list.
+
+---
+
 ## 2. Optional: how-to-play lines for the Vision trainers
 
 Files: `src/lib/components/blindfold/`, one per trainer.

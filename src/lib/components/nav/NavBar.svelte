@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { soundMuted, toggleMuted } from '$lib/state/sound';
-  import { syncStatus, loginHref, logOut } from '$lib/sync/client';
+  import { syncStatus, loginHref, logOut, deleteMyData, MY_DATA_HREF } from '$lib/sync/client';
 
   let path = $derived(page.url.pathname);
   let muted = $derived($soundMuted);
@@ -17,9 +17,25 @@
   });
 
   let accountMenu = $state<HTMLDetailsElement | null>(null);
-  async function handleLogOut() {
+  // Deleting takes two taps, like Start over: the first arms it
+  let deleteArmed = $state(false);
+  let deleteFailed = $state(false);
+
+  function closeMenu() {
     if (accountMenu) accountMenu.open = false;
+    deleteArmed = false;
+    deleteFailed = false;
+  }
+
+  async function handleLogOut() {
+    closeMenu();
     await logOut();
+  }
+
+  async function handleDelete() {
+    deleteArmed = false;
+    if (await deleteMyData()) closeMenu();
+    else deleteFailed = true;
   }
 
   const SECTIONS = [
@@ -94,15 +110,35 @@
             {#if sync.state === 'error'}<span class="bad" role="img" aria-label="Not saved">&#10007;</span>{/if}
           </summary>
           <div class="account-menu">
+            <a class="menu-item" href={MY_DATA_HREF} download onclick={closeMenu}>Download my data</a>
+            {#if deleteArmed}
+              <span class="menu-row">
+                <button class="menu-item danger" onclick={handleDelete}>&#10003; Delete my data</button>
+                <button class="menu-item" onclick={() => (deleteArmed = false)} aria-label="Cancel">&#10007;</button>
+              </span>
+            {:else}
+              <button class="menu-item" onclick={() => (deleteArmed = true)}>
+                Delete my data
+                {#if deleteFailed}<span class="bad" role="img" aria-label="Not deleted">&#10007;</span>{/if}
+              </button>
+            {/if}
+            <a class="menu-item" href="/privacy" onclick={closeMenu}>Privacy</a>
             <button class="menu-item" onclick={handleLogOut}>Log out</button>
           </div>
         </details>
       {:else}
-        <a class="account-btn" href={loginHref(back)} data-sveltekit-reload>
-          {@render person(false)}
-          <span class="account-name">Lichess login</span>
-          {#if loginFailed}<span class="bad" role="img" aria-label="Login failed">&#10007;</span>{/if}
-        </a>
+        <!-- The privacy page sits beside the login, where a login starts -->
+        <details class="account" bind:this={accountMenu}>
+          <summary class="account-btn">
+            {@render person(false)}
+            <span class="account-name">Lichess login</span>
+            {#if loginFailed}<span class="bad" role="img" aria-label="Login failed">&#10007;</span>{/if}
+          </summary>
+          <div class="account-menu">
+            <a class="menu-item" href={loginHref(back)} data-sveltekit-reload>Log in</a>
+            <a class="menu-item" href="/privacy" onclick={closeMenu}>Privacy</a>
+          </div>
+        </details>
       {/if}
     {/if}
     <button
@@ -219,13 +255,24 @@
     position: absolute;
     right: 0;
     top: calc(100% + 0.25rem);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     padding: 0.25rem;
     border: 1px solid var(--line);
     border-radius: 0.5rem;
     background: var(--surface);
     box-shadow: var(--shadow);
   }
+  .menu-row {
+    display: flex;
+    gap: 0.25rem;
+  }
   .menu-item {
+    display: block;
+    text-align: left;
+    text-decoration: none;
     padding: 0.5rem 0.75rem;
     border: none;
     border-radius: 0.375rem;
@@ -237,6 +284,13 @@
   }
   .menu-item:hover {
     background: var(--surface-raised);
+  }
+  /* After :hover, so the armed delete stays coral under the pointer */
+  .menu-item.danger,
+  .menu-item.danger:hover {
+    background: var(--wrong);
+    color: var(--on-answer);
+    font-weight: var(--weight-strong);
   }
   .mute-btn {
     flex-shrink: 0;
