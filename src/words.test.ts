@@ -1,6 +1,8 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, it, expect } from 'vitest';
+import { GAMES } from '$lib/games';
+import { OPENINGS } from '$lib/openings';
 
 /*
   Every sentence on the site is one the teacher wrote or approved. Anything
@@ -102,12 +104,20 @@ function isSentence(s: string): boolean {
   return words.length >= 4 || (words.length >= 2 && /[.!?]$/.test(s));
 }
 
-const found = files.flatMap((path) =>
-  strings(path)
-    .map((s) => decode(s).replace(/\s+/g, ' ').trim())
-    .filter(isSentence)
-    .map((text) => ({ path: relative('.', path), text }))
+/** The comments the games and openings show, as loaded: a .pgn file's included, which the file scan doesn't read. */
+const shownComments = [
+  ...GAMES.map((g) => ({ path: `/games/${g.id}`, pgn: g.pgn })),
+  ...OPENINGS.map((o) => ({ path: `/openings/${o.id}`, pgn: o.pgn })),
+].flatMap(({ path, pgn }) =>
+  [...pgn.matchAll(/\{([^{}]*)\}/g)].map(([, c]) => ({ path, text: c.replace(/\[%[^\]]*\]/g, '') }))
 );
+
+const found = [
+  ...files.flatMap((path) => strings(path).map((text) => ({ path: relative('.', path), text }))),
+  ...shownComments,
+]
+  .map(({ path, text }) => ({ path, text: decode(text).replace(/\s+/g, ' ').trim() }))
+  .filter(({ text }) => isSentence(text));
 
 const approved = new Set(
   readFileSync(WORDS, 'utf8')

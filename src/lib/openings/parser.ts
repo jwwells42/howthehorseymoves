@@ -29,11 +29,19 @@ export interface OpeningTree {
 
 export type OpeningLine = OpeningMove[];
 
+/** The side the student plays: one colour, or both (a game to memorize). */
+export type Side = PieceColor | "both";
+
+/** A move the student plays, rather than one that's played for them. */
+export function plays(side: Side, move: { colorPlayed: PieceColor }): boolean {
+  return side === "both" || move.colorPlayed === side;
+}
+
 export interface Opening {
   id: string;
   name: string;
   description?: string; // a study's chapters and line count, built from its PGN
-  color: PieceColor;
+  color: Side; // "both": a game to memorize, every move the student's
   pgn: string;
   group?: string; // openings sharing a group get their own section on /openings
   defaultOrder?: "depth" | "breadth"; // Learn's order until the student picks one (default "depth": one line at a time)

@@ -107,6 +107,23 @@ describe('opening passes', () => {
     expect(p[4].key).not.toBe(q[4].key);
     expect(NEW).toBe(0);
   });
+
+  it('a game played from both sides: every move is the student\'s, and a visit is whole moves', () => {
+    const game = extractLines(parseOpeningPgn('1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7'));
+    expect(sans(buildPass(game, 'both', 'breadth', 2, {}))).toEqual(['e4 e5 Nf3 Nc6']);
+    const firstFour = progressOf(game[0].slice(0, 4).map((m) => [m.key, SEEN]));
+    expect(sans(buildPass(game, 'both', 'breadth', 2, firstFour))).toEqual(['e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6']);
+    // Black's moves count too: a game isn't known until they are
+    const whiteKnown = progressOf(game[0].filter((m) => m.colorPlayed === 'w').map((m) => [m.key, KNOWN]));
+    expect(buildPass(game, 'both', 'depth', 3, whiteKnown)).toHaveLength(1);
+    expect(sans(buildPass(game, 'both', 'breadth', 1, whiteKnown))).toEqual(['e4 e5 Nf3 Nc6']);
+  });
+
+  it('a test goes through every line, start to end, whatever is learned', () => {
+    const allKnown = progressOf([...mine(0), ...mine(1)].map((m) => [m.key, KNOWN]));
+    expect(sans(buildPass(lines, 'w', 'test', 3, allKnown))).toEqual(sans(lines));
+    expect(sans(buildPass(lines, 'both', 'test', 3, {}))).toEqual(sans(lines));
+  });
 });
 
 describe('opening review', () => {

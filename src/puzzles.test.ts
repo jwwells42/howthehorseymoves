@@ -6,7 +6,8 @@ import { parsePuzzleMoves } from '$lib/puzzles/parse-moves';
 import { parseFen, createBoardState, type PieceColor } from '$lib/logic/types';
 import { isInCheck } from '$lib/logic/attacks';
 import { OPENINGS, parseOpeningPgn, extractLines } from '$lib/openings';
-import { readTypedMove } from '$lib/logic/pgn';
+import { readTypedMove, parseGamePgn, extractMainLine } from '$lib/logic/pgn';
+import { GAMES, gameOpening } from '$lib/games';
 
 /*
   Catches puzzle data that would break a page. A puzzle whose moves can't be
@@ -56,6 +57,33 @@ describe('openings', () => {
       }
     }
     expect(broken).toEqual([]);
+  });
+});
+
+describe('games', () => {
+  // A match's file is re-exported from Lichess and overwritten, and a game
+  // typed in by hand can have a wrong move; either would break its page
+  it('every game loads, side lines and all, and its moves are one line to memorize', () => {
+    const broken: string[] = [];
+    for (const game of GAMES) {
+      const where = `/games/${game.id}`;
+      try {
+        const played = extractMainLine(parseGamePgn(game.pgn)).moves.length;
+        const lines = extractLines(parseOpeningPgn(gameOpening(game).pgn));
+        if (played === 0) broken.push(`${where}: no moves`);
+        else if (lines.length !== 1 || lines[0].length !== played) {
+          broken.push(`${where}: ${lines.length} lines to memorize, ${lines[0]?.length} of ${played} moves`);
+        }
+      } catch (e) {
+        broken.push(`${where}: ${(e as Error).message}`);
+      }
+    }
+    expect(broken).toEqual([]);
+  });
+
+  it('every game has its own address', () => {
+    const ids = GAMES.map((g) => g.id);
+    expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
   });
 });
 

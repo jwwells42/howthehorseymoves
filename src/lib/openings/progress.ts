@@ -1,5 +1,4 @@
-import type { PieceColor } from "../logic/types";
-import type { Opening, OpeningLine, OpeningMove } from "./parser";
+import { type Opening, type OpeningLine, type OpeningMove, type Side, plays } from "./parser";
 
 /**
  * What a student has learned of an opening, one entry per move of theirs.
@@ -101,11 +100,11 @@ export function afterMove(progress: MoveProgress, key: string, helped: boolean, 
 }
 
 /** Every move the student plays in these lines, each once. */
-export function playerMoves(lines: OpeningLine[], color: PieceColor): OpeningMove[] {
+export function playerMoves(lines: OpeningLine[], side: Side): OpeningMove[] {
   const seen = new Map<string, OpeningMove>();
   for (const line of lines) {
     for (const move of line) {
-      if (move.colorPlayed === color && !seen.has(move.key)) seen.set(move.key, move);
+      if (plays(side, move) && !seen.has(move.key)) seen.set(move.key, move);
     }
   }
   return [...seen.values()];
@@ -131,7 +130,7 @@ export function tally(moves: OpeningMove[], progress: MoveProgress, now: number)
   return { known, seen, due, total: moves.length };
 }
 
-export type PassKind = "breadth" | "depth" | "review";
+export type PassKind = "breadth" | "depth" | "review" | "test";
 
 /**
  * The lines one pass goes through.
@@ -144,16 +143,22 @@ export type PassKind = "breadth" | "depth" | "review";
  *
  * Review: every line with a move due, up to its last one. With nothing due,
  * everything learned so far, so it can be gone over before a tournament.
+ *
+ * Test: every line, start to end.
+ *
+ * Playing both sides (a game), `perVisit` counts whole moves, White's and
+ * Black's: 3 is six moves played.
  */
 export function buildPass(
   lines: OpeningLine[],
-  color: PieceColor,
+  side: Side,
   kind: PassKind,
   perVisit: number,
   progress: MoveProgress,
   now = Math.floor(Date.now() / 1000),
 ): OpeningLine[] {
-  const mine = (m: OpeningMove) => m.colorPlayed === color;
+  const mine = (m: OpeningMove) => plays(side, m);
+  if (kind === "test") return lines;
   if (kind === "review") {
     const due = upToLast(lines, (m) => mine(m) && isDue(progress, m.key, now));
     if (due.length > 0) return due;
@@ -161,13 +166,14 @@ export function buildPass(
     return learned.length > 0 ? learned : lines;
   }
   if (kind === "breadth") {
+    const newPerVisit = side === "both" ? perVisit * 2 : perVisit;
     const visits: OpeningLine[] = [];
     const taken = new Set<string>();
     for (const line of lines) {
       let fresh = 0;
       let end = line.length;
       for (let i = 0; i < line.length; i++) {
-        if (mine(line[i]) && stateOf(progress, line[i].key) === NEW && ++fresh === perVisit) {
+        if (mine(line[i]) && stateOf(progress, line[i].key) === NEW && ++fresh === newPerVisit) {
           end = i + 1;
           break;
         }
@@ -224,7 +230,7 @@ export function migrateOldProgress(opening: Opening, lines: OpeningLine[]): void
     for (const line of lines) {
       let mineSoFar = 0;
       for (const move of line) {
-        if (move.colorPlayed !== opening.color) continue;
+        if (!plays(opening.color, move)) continue;
         mineSoFar++;
         if (complete) states[move.key] = KNOWN;
         else if (mineSoFar <= depth && states[move.key] === undefined) states[move.key] = SEEN;

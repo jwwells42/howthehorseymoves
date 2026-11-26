@@ -8,13 +8,15 @@
   import Button from '$lib/components/ui/Button.svelte';
   import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
   import FinishActions from '$lib/components/curriculum/FinishActions.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import { MARK } from '$lib/board-marks';
-  import type { SquareId, BoardState } from '$lib/logic/types';
+  import type { SquareId, BoardState, PieceColor } from '$lib/logic/types';
   import { getLegalMoves } from '$lib/logic/attacks';
   import { type Arrow, readTypedMove } from '$lib/logic/pgn';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import { playSound } from '$lib/state/sound';
-  import { type Opening, type OpeningLine, findBranchPoint } from '$lib/openings';
+  import { type Opening, type OpeningLine, findBranchPoint, plays } from '$lib/openings';
+  import { testStars } from './study-order';
   import { type MoveProgress, type MoveState, type PassKind, NEW, afterMove, buildPass, stateOf } from '$lib/openings/progress';
 
   /**
@@ -26,6 +28,10 @@
    *
    * Blindfold: no board, only the moves written out, and the student types
    * each move. A new move is written out where its arrow would be.
+   *
+   * A game (`opening.color` "both") is played from both sides: every move is
+   * the student's. Test plays every line from memory, new moves too: an
+   * arrow only after a mistake, and the mistakes give the stars.
    */
 
   interface Props {
@@ -41,17 +47,20 @@
     blindfold: boolean;
     /** Back to the lobby. Left out on the path, where there's no lobby. */
     onExit?: () => void;
+    /** A test is over: its stars */
+    onTestDone?: (stars: number) => void;
   }
 
-  let { opening, startBoard, lines, order, perVisit, progress, onStates, autoNext, blindfold, onExit }: Props = $props();
+  let { opening, startBoard, lines, order, perVisit, progress, onStates, autoNext, blindfold, onExit, onTestDone }: Props = $props();
 
-  let playerColor = $derived(opening.color);
-  let flipped = $derived(playerColor === 'b');
+  let side = $derived(opening.color);
+  let flipped = $derived(side === 'b');
+  let testing = $derived(order === 'test');
 
   // The visits this pass makes, worked out when it starts so that what is
   // learned along the way doesn't change the lines mid-pass
   function newPass() {
-    return buildPass(lines, playerColor, order, perVisit, progress);
+    return buildPass(lines, side, order, perVisit, progress);
   }
   let pass = $state.raw<OpeningLine[]>(newPass());
 
@@ -71,18 +80,23 @@
   // Blindfold: the move being typed, and what was wrong with the last one
   let typed = $state('');
   let typedError = $state<string | null>(null);
+  // Moves got wrong this pass, each counted once
+  let mistakes = $state(0);
+  let stars = $derived(testStars(mistakes));
 
   let currentLine = $derived(pass[lineIdx]);
   let linesDone = $derived(lineIdx + (lineComplete || passDone ? 1 : 0));
   let browsing = $derived(moveIdx < maxReachedIdx);
   let atFrontier = $derived(moveIdx >= maxReachedIdx);
-  let isPlayerTurn = $derived(moveIdx < currentLine.length && currentLine[moveIdx].colorPlayed === playerColor);
+  let isPlayerTurn = $derived(moveIdx < currentLine.length && plays(side, currentLine[moveIdx]));
   let atEnd = $derived(moveIdx >= currentLine.length);
+  // Whose move it is: the student's, when it's their turn
+  let toMove = $derived<PieceColor>(currentLine[moveIdx]?.colorPlayed ?? 'w');
 
-  // A move of the student's not played yet: it gets an arrow
+  // A move of the student's not played yet: it gets an arrow (not in a test)
   function isNew(i: number) {
     const move = currentLine[i];
-    return move !== undefined && move.colorPlayed === playerColor && stateOf(progress, move.key) === NEW;
+    return !testing && move !== undefined && plays(side, move) && stateOf(progress, move.key) === NEW;
   }
 
   let showArrow = $derived(!atEnd && isPlayerTurn && !waiting && !browsing && (isNew(moveIdx) || showHint));
@@ -110,15 +124,15 @@
   let validMoves = $derived.by(() => {
     if (!selectedSquare || waiting || atEnd || !isPlayerTurn || browsing) return [];
     const p = board.pieces.get(selectedSquare);
-    if (!p || p.color !== playerColor) return [];
-    return getLegalMoves(selectedSquare, board, playerColor);
+    if (!p || p.color !== toMove) return [];
+    return getLegalMoves(selectedSquare, board, toMove);
   });
 
   let dragMoves = $derived.by(() => {
     if (!dragFrom || waiting || atEnd || !isPlayerTurn || browsing) return [];
     const p = board.pieces.get(dragFrom);
-    if (!p || p.color !== playerColor) return [];
-    return getLegalMoves(dragFrom, board, playerColor);
+    if (!p || p.color !== toMove) return [];
+    return getLegalMoves(dragFrom, board, toMove);
   });
 
   // The move list shows what has been played, and the moves coming up while
@@ -126,7 +140,7 @@
   // memory stays "…" until it's played.
   let revealedTo = $derived.by(() => {
     let i = maxReachedIdx;
-    while (i < currentLine.length && (currentLine[i].colorPlayed !== playerColor || isNew(i))) i++;
+    while (i < currentLine.length && (!plays(side, currentLine[i]) || isNew(i))) i++;
     return i;
   });
 
@@ -166,12 +180,16 @@
 
   function advanceLine() {
     if (lineIdx + 1 < pass.length) goToLine(lineIdx + 1);
-    else passDone = true;
+    else {
+      passDone = true;
+      if (testing) onTestDone?.(stars);
+    }
   }
 
   function keepGoing() {
     pass = newPass();
     passDone = false;
+    mistakes = 0;
     resetLine(0, 0, startBoard);
     maybeAutoPlayOpponent();
   }
@@ -208,7 +226,7 @@
 
   function maybeAutoPlayOpponent() {
     const line = pass[lineIdx];
-    if (moveIdx < line.length && line[moveIdx].colorPlayed !== playerColor) {
+    if (moveIdx < line.length && !plays(side, line[moveIdx])) {
       const at = moveIdx;
       setTimeout(() => autoPlayOpponent(at, line), 400);
     }
@@ -240,10 +258,11 @@
       if (nextIdx >= currentLine.length) {
         lineComplete = true;
         playSound('correct');
-      } else if (currentLine[nextIdx].colorPlayed !== playerColor) {
+      } else if (!plays(side, currentLine[nextIdx])) {
         autoPlayOpponent(nextIdx, currentLine);
       }
     } else {
+      if (!showHint) mistakes++;
       wrongMoveSquare = to;
       showHint = true;
       selectedSquare = null;
@@ -263,7 +282,7 @@
 
     if (!selectedSquare) {
       const p = board.pieces.get(sq);
-      if (p && p.color === playerColor) selectedSquare = sq;
+      if (p && p.color === toMove) selectedSquare = sq;
       return;
     }
 
@@ -273,12 +292,12 @@
     }
 
     const target = board.pieces.get(sq);
-    if (target && target.color === playerColor) {
+    if (target && target.color === toMove) {
       selectedSquare = sq;
       return;
     }
 
-    const moves = getLegalMoves(selectedSquare, board, playerColor);
+    const moves = getLegalMoves(selectedSquare, board, toMove);
     if (!moves.includes(sq)) {
       selectedSquare = null;
       return;
@@ -295,8 +314,8 @@
     }
     if (!isPlayerTurn) return;
     const p = board.pieces.get(from);
-    if (!p || p.color !== playerColor) return;
-    const moves = getLegalMoves(from, board, playerColor);
+    if (!p || p.color !== toMove) return;
+    const moves = getLegalMoves(from, board, toMove);
     if (!moves.includes(to)) return;
     executePlayerMove(from, to);
   }
@@ -310,7 +329,7 @@
     const text = typed.trim();
     typed = '';
     if (atEnd || !isPlayerTurn || !text) return;
-    const move = readTypedMove(text, board, playerColor);
+    const move = readTypedMove(text, board, toMove);
     const expected = currentLine[moveIdx];
     typedError = move && move.from === expected.from && move.to === expected.to ? null : `✗ ${text}`;
     if (move) executePlayerMove(move.from, move.to);
@@ -381,22 +400,27 @@
   {#snippet headerArea()}
     <div class="drill-header">
       <h2 class="drill-title">{opening.name}</h2>
-      <div class="line-nav">
-        <button
-          class="nav-btn"
-          onclick={() => goToLine(lineIdx - 1)}
-          disabled={lineIdx === 0 || waiting}
-          aria-label="Previous line"
-        >&lsaquo;</button>
-        <span>Line {lineIdx + 1} of {pass.length}</span>
-        <button
-          class="nav-btn"
-          onclick={() => goToLine(lineIdx + 1)}
-          disabled={lineIdx >= pass.length - 1 || waiting}
-          aria-label="Next line"
-        >&rsaquo;</button>
-      </div>
-      <ProgressBar value={linesDone} max={pass.length} label="Lines done" />
+      {#if side === 'both'}
+        <!-- A game: how far through it -->
+        <ProgressBar value={maxReachedIdx} max={currentLine.length} label="Moves played" />
+      {:else}
+        <div class="line-nav">
+          <button
+            class="nav-btn"
+            onclick={() => goToLine(lineIdx - 1)}
+            disabled={lineIdx === 0 || waiting}
+            aria-label="Previous line"
+          >&lsaquo;</button>
+          <span>Line {lineIdx + 1} of {pass.length}</span>
+          <button
+            class="nav-btn"
+            onclick={() => goToLine(lineIdx + 1)}
+            disabled={lineIdx >= pass.length - 1 || waiting}
+            aria-label="Next line"
+          >&rsaquo;</button>
+        </div>
+        <ProgressBar value={linesDone} max={pass.length} label="Lines done" />
+      {/if}
     </div>
   {/snippet}
 
@@ -432,14 +456,20 @@
         {opponentSlide}
         {arrows}
         {flipped}
-        playableColors={[playerColor]}
+        playableColors={[toMove]}
       />
     {/if}
     {#if passDone}
       <BoardOverlay>
         <div class="done-check" aria-hidden="true">&#10003;</div>
+        {#if testing}
+          <StarRating {stars} size="lg" />
+          {#if mistakes > 0}
+            <p class="mistakes">{mistakes} mistake{mistakes === 1 ? '' : 's'}</p>
+          {/if}
+        {/if}
         <!-- On the path: Continue, with Keep going under it -->
-        <FinishActions bind:this={finish} label="Keep going" onclick={keepGoing} size="normal" />
+        <FinishActions bind:this={finish} label={testing ? 'Again' : 'Keep going'} onclick={keepGoing} size="normal" />
         {#if onExit}
           <Button onclick={onExit}>Back to setup</Button>
         {/if}
@@ -569,6 +599,12 @@
     color: var(--correct-text);
     font-weight: var(--weight-strong);
     font-size: var(--size-large);
+  }
+
+  /* Over the dimmed board, where --ink-muted would be too faint */
+  .mistakes {
+    color: var(--ink);
+    font-size: var(--size-body);
   }
 
   .muted {

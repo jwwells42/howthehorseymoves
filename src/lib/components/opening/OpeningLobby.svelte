@@ -1,6 +1,7 @@
 <script lang="ts">
   import Button from '$lib/components/ui/Button.svelte';
   import Choice from '$lib/components/ui/Choice.svelte';
+  import StarRating from '$lib/components/ui/StarRating.svelte';
   import {
     type Opening,
     type OpeningLine,
@@ -8,6 +9,7 @@
     extractLines,
     findBranchPoint,
     lineId,
+    plays,
   } from '$lib/openings';
   import { type MoveProgress, type Tally, KNOWN, NEW, playerMoves, stateOf, tally } from '$lib/openings/progress';
   import type { StudyMode, StudyOrder } from './study-order';
@@ -17,6 +19,9 @@
    * The screen an opening opens on: a button for each way to study, the
    * chapters to study with how much of each is learned, and the settings,
    * which are set once and remembered, folded away underneath.
+   *
+   * A game to memorize is one line: it has Test too, one bar for the whole
+   * game with its best test's stars, and no lines to pick.
    */
 
   interface Props {
@@ -32,6 +37,8 @@
     onStart: (mode: StudyMode) => void;
     onExplore: () => void;
     onStartOver: () => void;
+    /** A game: the best stars from a test */
+    testBest?: number;
   }
 
   let {
@@ -47,7 +54,10 @@
     onStart,
     onExplore,
     onStartOver,
+    testBest = 0,
   }: Props = $props();
+
+  let isGame = $derived(opening.color === 'both');
 
   // Read once each time the lobby opens: what's due doesn't change while it's open
   const now = Math.floor(Date.now() / 1000);
@@ -143,7 +153,7 @@
   // How far along each line is: every move known, some learned, or none yet
   let lineStates = $derived(
     lines.map((line) => {
-      const states = line.filter((m) => m.colorPlayed === opening.color).map((m) => stateOf(progress, m.key));
+      const states = line.filter((m) => plays(opening.color, m)).map((m) => stateOf(progress, m.key));
       if (states.every((s) => s >= KNOWN)) return 'known';
       return states.some((s) => s !== NEW) ? 'some' : 'none';
     }),
@@ -192,41 +202,52 @@
   <h2>{opening.name}</h2>
 
   <!-- Each way to study starts straight away -->
-  <div class="modes">
-    <Button variant="primary" size="large" onclick={() => onStart('flow')} disabled={!canStart}>Flow</Button>
+  <div class={['modes', isGame && 'four']}>
+    <Button variant="primary" size="large" onclick={() => onStart('watch')} disabled={!canStart}>Watch</Button>
     <Button variant="primary" size="large" onclick={() => onStart('learn')} disabled={!canStart}>Learn</Button>
     <Button variant="primary" size="large" onclick={() => onStart('review')} disabled={!canReview}>
       Review
       {#if counts.due > 0}<span class="due">{counts.due}</span>{/if}
     </Button>
+    {#if isGame}
+      <Button variant="primary" size="large" onclick={() => onStart('test')} disabled={!canStart}>Test</Button>
+    {/if}
   </div>
 
   <div class="chapters">
-    {#each lineGroups as group, g}
-      {#if group.name}
-        {@const picked = group.indices.filter((i) => !deselected.has(i)).length}
-        <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
-        <label class={['chapter', picked === 0 && 'left-out']}>
-          <input
-            type="checkbox"
-            checked={picked === group.indices.length}
-            bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
-            onchange={() => toggleChapter(group.indices)}
-          />
-          <span class="chapter-name">{group.name}</span>
-          {@render learnedBar(groupCounts[g], group.name)}
-        </label>
-      {:else}
-        <!-- No chapters: a row for each line, ticked or not like a chapter -->
-        {#each group.indices as li (li)}
-          <label class={['chapter', 'line-row', deselected.has(li) && 'left-out']}>
-            <input type="checkbox" checked={!deselected.has(li)} onchange={() => toggleLine(li)} />
-            <span class="chapter-name">{linePreviews[li]}</span>
-            {@render learnedBar(lineCounts[li], linePreviews[li])}
+    {#if isGame}
+      <!-- The whole game: how much is learned, and the best test -->
+      <div class="chapter game-row">
+        {@render learnedBar(counts, opening.name)}
+        <StarRating stars={testBest} size="sm" />
+      </div>
+    {:else}
+      {#each lineGroups as group, g}
+        {#if group.name}
+          {@const picked = group.indices.filter((i) => !deselected.has(i)).length}
+          <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
+          <label class={['chapter', picked === 0 && 'left-out']}>
+            <input
+              type="checkbox"
+              checked={picked === group.indices.length}
+              bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
+              onchange={() => toggleChapter(group.indices)}
+            />
+            <span class="chapter-name">{group.name}</span>
+            {@render learnedBar(groupCounts[g], group.name)}
           </label>
-        {/each}
-      {/if}
-    {/each}
+        {:else}
+          <!-- No chapters: a row for each line, ticked or not like a chapter -->
+          {#each group.indices as li (li)}
+            <label class={['chapter', 'line-row', deselected.has(li) && 'left-out']}>
+              <input type="checkbox" checked={!deselected.has(li)} onchange={() => toggleLine(li)} />
+              <span class="chapter-name">{linePreviews[li]}</span>
+              {@render learnedBar(lineCounts[li], linePreviews[li])}
+            </label>
+          {/each}
+        {/if}
+      {/each}
+    {/if}
     <div class="explore">
       <Button onclick={onExplore}>Explore</Button>
     </div>
@@ -251,45 +272,47 @@
         <input type="checkbox" bind:checked={blindfold} />
         Blindfold
       </label>
-      <Choice label="Flow" options={SPEED_OPTIONS} bind:value={speed} />
+      <Choice label="Watch" options={SPEED_OPTIONS} bind:value={speed} />
 
-      <details class="lines">
-        <summary>Lines: {linesSummary}</summary>
-        <div class="setup-controls">
-          <Button onclick={selectAll}>All</Button>
-          <Button onclick={selectNone}>None</Button>
-        </div>
-        <div class="line-list">
-          {#each lineGroups as group}
-            {#if group.name}
-              {@const picked = group.indices.filter((i) => !deselected.has(i)).length}
-              <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
-              <label class="line-chapter">
-                <input
-                  type="checkbox"
-                  checked={picked === group.indices.length}
-                  bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
-                  onchange={() => toggleChapter(group.indices)}
-                />
-                {group.name}
-                <span class="chapter-count">{group.indices.length} line{group.indices.length === 1 ? '' : 's'}</span>
-              </label>
-            {/if}
-            {#each group.indices as li, k (li)}
-              <label class="line-item">
-                <input
-                  type="checkbox"
-                  checked={!deselected.has(li)}
-                  onchange={() => toggleLine(li)}
-                />
-                <span class={['line-dot', lineStates[li]]} aria-hidden="true"></span>
-                <span class="line-num">{k + 1}.</span>
-                <span class="line-preview">{linePreviews[li]}</span>
-              </label>
+      {#if !isGame}
+        <details class="lines">
+          <summary>Lines: {linesSummary}</summary>
+          <div class="setup-controls">
+            <Button onclick={selectAll}>All</Button>
+            <Button onclick={selectNone}>None</Button>
+          </div>
+          <div class="line-list">
+            {#each lineGroups as group}
+              {#if group.name}
+                {@const picked = group.indices.filter((i) => !deselected.has(i)).length}
+                <!-- Ticks or clears the whole chapter; half-ticked when some of it is picked -->
+                <label class="line-chapter">
+                  <input
+                    type="checkbox"
+                    checked={picked === group.indices.length}
+                    bind:indeterminate={() => picked > 0 && picked < group.indices.length, () => {}}
+                    onchange={() => toggleChapter(group.indices)}
+                  />
+                  {group.name}
+                  <span class="chapter-count">{group.indices.length} line{group.indices.length === 1 ? '' : 's'}</span>
+                </label>
+              {/if}
+              {#each group.indices as li, k (li)}
+                <label class="line-item">
+                  <input
+                    type="checkbox"
+                    checked={!deselected.has(li)}
+                    onchange={() => toggleLine(li)}
+                  />
+                  <span class={['line-dot', lineStates[li]]} aria-hidden="true"></span>
+                  <span class="line-num">{k + 1}.</span>
+                  <span class="line-preview">{linePreviews[li]}</span>
+                </label>
+              {/each}
             {/each}
-          {/each}
-        </div>
-      </details>
+          </div>
+        </details>
+      {/if}
 
       <div class="start-over">
         {#if confirmingStartOver}
@@ -339,6 +362,11 @@
     gap: 0.75rem;
     width: 100%;
     max-width: 32rem;
+  }
+
+  /* Four (a game): two by two, so none is left alone on a row */
+  .modes.four {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .due {

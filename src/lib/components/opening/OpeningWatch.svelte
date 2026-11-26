@@ -16,7 +16,7 @@
   import { SPEED_OPTIONS } from './study-order';
 
   /**
-   * Flow: the lines play themselves, one after another, to watch (after
+   * Watch: the lines play themselves, one after another (after
    * qchess's Repertoire Flow). At the end of a line it holds a moment, then
    * steps back to where the next line leaves this one and plays on from
    * there. ◀ ▶ and the move list step by hand, which pauses it.
@@ -220,8 +220,8 @@
 
 <BoardLayout>
   {#snippet headerArea()}
-    <div class="flow-header">
-      <h2 class="flow-title">{opening.name}</h2>
+    <div class="watch-header">
+      <h2 class="watch-title">{opening.name}</h2>
       <div class="line-nav">
         <button class="nav-btn" onclick={() => goToLine(lineIdx - 1)} disabled={lineIdx === 0} aria-label="Previous line">&lsaquo;</button>
         <span>Line {lineIdx + 1} of {lines.length}</span>
@@ -286,14 +286,14 @@
       </div>
     </div>
 
-    <div class="flow-footer">
+    <div class="watch-footer">
       <Button onclick={onExit}>&larr; Setup</Button>
     </div>
   {/snippet}
 </BoardLayout>
 
 <style>
-  .flow-header {
+  .watch-header {
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
@@ -301,7 +301,7 @@
     text-align: center;
   }
 
-  .flow-title {
+  .watch-title {
     font-size: var(--size-secondary);
     font-weight: var(--weight-strong);
   }
@@ -410,7 +410,7 @@
     font-weight: var(--weight-strong);
   }
 
-  .flow-footer {
+  .watch-footer {
     display: flex;
     justify-content: flex-end;
     width: 100%;

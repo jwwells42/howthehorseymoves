@@ -1,11 +1,19 @@
 /**
  * The ways to study an opening, and their settings.
  *
- * - flow: every line plays itself, one after another, to watch
+ * - watch: every line plays itself, one after another
  * - learn: new moves, in one of two orders (below)
  * - review: the moves due for review
+ * - test: a game played from memory, start to end (games only)
  */
-export type StudyMode = "flow" | "learn" | "review";
+export type StudyMode = "watch" | "learn" | "review" | "test";
+
+/** Test: the stars for a game played with this many mistakes. */
+export function testStars(mistakes: number): number {
+  if (mistakes === 0) return 3;
+  if (mistakes <= 2) return 2;
+  return 1;
+}
 
 /**
  * Learn's order, the student's preference:
@@ -18,7 +26,7 @@ export type StudyOrder = "breadth" | "depth";
 export const PER_VISIT_OPTIONS = [1, 2, 3, 4, 5, 6].map((n) => ({ value: n, label: String(n) }));
 export const DEFAULT_PER_VISIT = 3;
 
-/** Flow: milliseconds per move. */
+/** Watch: milliseconds per move. */
 export const SPEED_OPTIONS = [
   { value: 3000, label: "3 s" },
   { value: 2000, label: "2 s" },
@@ -30,7 +38,7 @@ export const DEFAULT_SPEED = 1000;
 /** Settings that are the same for every opening, remembered on this device. */
 export const PREFS = {
   perVisit: "opening-per-visit",
-  speed: "opening-flow-speed",
+  speed: "opening-flow-speed", // Watch was once called Flow; the key stays so saved speeds are kept
   autoNext: "opening-auto-next",
   blindfold: "opening-blindfold",
 };

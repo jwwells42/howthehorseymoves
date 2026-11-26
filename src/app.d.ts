@@ -7,7 +7,7 @@ declare global {
 		// interface PageData {}
 		interface PageState {
 			/** The opening trainer's mode; none = its lobby (see OpeningTrainer) */
-			openingPhase?: 'flow' | 'learn' | 'review' | 'explore';
+			openingPhase?: 'watch' | 'learn' | 'review' | 'test' | 'explore';
 		}
 		// interface Platform {}
 	}

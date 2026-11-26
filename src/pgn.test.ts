@@ -1,12 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { splitPgnGames, readHeaders, parseArrows, parseGamePgn } from '$lib/logic/pgn';
+import { splitPgnGames, readHeaders, parseArrows, parseGamePgn, mainLineOnly, withoutLichessAnalysis } from '$lib/logic/pgn';
 import { splitPgnChapters } from '$lib/openings';
+import { pgnGames } from '$lib/games';
 
 /*
   Reading PGN files made elsewhere: a game database's export (clock tags on
   every move, Windows line endings, a forfeit with no moves) splits into its
-  games, and a Lichess study's chapters keep their names.
+  games, and a Lichess study's chapters keep their names. A match's file
+  gives its finished games, without the words Lichess writes into it.
 */
 
 const EXPORT = [
@@ -72,6 +74,37 @@ describe('PGN files from elsewhere', () => {
     }
     expect(comments.every((c) => c === undefined)).toBe(true);
     expect(tree.children[0].children[0].children[0].eval).toEqual({ cp: 10 });
+  });
+
+  it('takes out side lines, but not brackets in a comment', () => {
+    expect(mainLineOnly('1. e4 (1. d4 d5 (1... Nf6 { a (b) })) e5 { see (2. Bc4) } 2. Nf3')).toBe(
+      '1. e4  e5 { see (2. Bc4) } 2. Nf3'
+    );
+  });
+
+  it("drops the sentences Lichess writes, and keeps its marks, evals and a teacher's comment", () => {
+    const pgn = '27. Qc2?? { [%eval -7.75] } { Blunder. Qe3 was best. } (27. Qe3 g4) 27... Bxa4 { 0-1 White resigns. } { Nice [%cal Ga4d1] }';
+    const clean = withoutLichessAnalysis(pgn);
+    expect(clean).toBe('27. Qc2?? { [%eval -7.75] } {  } (27. Qe3 g4) 27... Bxa4 {  } { Nice [%cal Ga4d1] }');
+    expect(withoutLichessAnalysis('1. e4 { Mistake. d4 was best. [%eval 0.1] }')).toBe('1. e4 { [%eval 0.1] }');
+    expect(withoutLichessAnalysis('{ 1/2-1/2 The game is a draw. }')).toBe('{  }');
+  });
+
+  it('a match file gives its finished games only, named first name first, with ids by round', () => {
+    const games = pgnGames('club', EXPORT);
+    // The forfeit has no moves and the last game is still on (*): both left out
+    expect(games.map((g) => g.id)).toEqual(['club-1']);
+    expect(games[0]).toMatchObject({ white: 'KnightRider', black: 'Pawn "Storm"', result: '1-0', collection: 'Club 1' });
+
+    const wc1972 = pgnGames('wc1972', readFileSync('src/lib/games/pgn/wc-1972.pgn', 'utf8'));
+    expect(wc1972).toHaveLength(20);
+    expect(wc1972.map((g) => g.id)).not.toContain('wc1972-2');
+    expect(wc1972[0]).toMatchObject({ id: 'wc1972-1', white: 'Boris V. Spassky', black: 'Robert James Fischer', year: 1972 });
+    expect(wc1972.every((g) => !/was best|resigns/.test(g.pgn))).toBe(true);
+
+    const wc2026 = pgnGames('wc2026', readFileSync('src/lib/games/pgn/wc-2026.pgn', 'utf8'));
+    expect(wc2026.length).toBeGreaterThan(0);
+    expect(wc2026.every((g) => g.result !== '*')).toBe(true);
   });
 
   it('a study keeps its chapter names, in order, without the move-less intro', () => {

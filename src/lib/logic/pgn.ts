@@ -411,6 +411,49 @@ export function splitPgnGames(text: string): PgnGame[] {
     .map((pgn) => ({ headers: readHeaders(pgn), pgn }));
 }
 
+/** A PGN with its (variations) taken out, so only the moves played are left. Comments stay. */
+export function mainLineOnly(pgn: string): string {
+  let out = "";
+  let depth = 0;
+  let inComment = false;
+  for (const ch of pgn) {
+    if (inComment) {
+      if (ch === "}") inComment = false;
+    } else if (ch === "{") {
+      inComment = true;
+    } else if (ch === "(") {
+      depth++;
+      continue;
+    } else if (ch === ")") {
+      if (depth > 0) depth--;
+      continue;
+    }
+    if (depth === 0) out += ch;
+  }
+  return out;
+}
+
+// What Lichess writes into a PGN by itself: its computer analysis
+// ("Mistake. Nf3 was best.") and how the game ended ("0-1 White resigns.").
+const LICHESS_WORDS = [
+  /(?:Inaccuracy|Mistake|Blunder|Checkmate is now unavoidable|Lost forced checkmate sequence)\.\s+\S+\s+was best\./g,
+  /^\s*(?:1-0|0-1|1\/2-1\/2)\s+[^[]*$/,
+];
+
+/**
+ * A Lichess export without the sentences Lichess writes itself. Its move
+ * marks (?! ? ??), [%eval]/[%cal]/[%csl] and its side lines (the move that
+ * was best) are kept; only the words go, as the site shows only the
+ * teacher's words.
+ */
+export function withoutLichessAnalysis(pgn: string): string {
+  return pgn.replace(/\{([^}]*)\}/g, (whole, body: string) => {
+    let text = body;
+    for (const words of LICHESS_WORDS) text = text.replace(words, "");
+    return text === body ? whole : `{ ${text.trim()} }`;
+  });
+}
+
 // === Tree-based PGN parsing (supports variations) ===
 
 export interface GameNode {

@@ -1,6 +1,11 @@
 import type { ModelGame } from "./types";
+import { type Opening } from "../openings/parser";
+import { splitPgnGames, mainLineOnly, withoutLichessAnalysis } from "../logic/pgn";
+import wc1972Pgn from "./pgn/wc-1972.pgn?raw";
+import wc2026Pgn from "./pgn/wc-2026.pgn?raw";
 
-export const GAMES: ModelGame[] = [
+/** The games typed in here by hand: the path's model games. */
+const MODEL_GAMES: ModelGame[] = [
   {
     id: "greco-smothered",
     white: "NN",
@@ -111,6 +116,64 @@ export const GAMES: ModelGame[] = [
   },
 ];
 
+// === Games from PGN files ===
+// A Lichess study or broadcast export is kept as-is in pgn/. To update one,
+// re-export it and overwrite its file. A game still being played (result *)
+// or with no moves (a forfeit) is left out until it has both.
+
+/** "Spassky, Boris V." → "Boris V. Spassky" */
+function personName(name = "?"): string {
+  const [last, first] = name.split(",").map((part) => part.trim());
+  return first ? `${first} ${last}` : last;
+}
+
+/** Every finished game in a PGN file; ids are the prefix and the round, so they stay the same across re-exports. */
+export function pgnGames(prefix: string, text: string): ModelGame[] {
+  return splitPgnGames(text).flatMap(({ headers, pgn }, i) => {
+    const result = headers.Result ?? "*";
+    const movetext = pgn.replace(/^\s*\[\w+ ".*$/gm, "").replace(/\{[^}]*\}/g, "");
+    if (result === "*" || !/[a-zA-Z]/.test(movetext)) return [];
+    const round = headers.Round?.split(".")[0] || String(i + 1);
+    return [{
+      id: `${prefix}-${round}`,
+      white: personName(headers.White),
+      black: personName(headers.Black),
+      event: headers.Site ?? headers.Event ?? "",
+      year: parseInt(headers.Date ?? "", 10) || 0,
+      result,
+      pgn: withoutLichessAnalysis(pgn),
+      collection: headers.StudyName ?? headers.BroadcastName ?? headers.Event,
+      round,
+    }];
+  });
+}
+
+export const GAMES: ModelGame[] = [
+  ...MODEL_GAMES,
+  ...pgnGames("wc1972", wc1972Pgn),
+  ...pgnGames("wc2026", wc2026Pgn),
+];
+
 export function getGame(id: string): ModelGame | undefined {
   return GAMES.find(g => g.id === id);
+}
+
+/**
+ * A game to memorize, for the opening trainer: both sides are the
+ * student's, and only the moves played (side lines are for the viewer).
+ * Its progress is saved as `opening-game-{id}-moves`.
+ */
+export function gameOpening(game: ModelGame): Opening {
+  return {
+    id: `game-${game.id}`,
+    name: `${game.white} vs ${game.black}`,
+    color: "both",
+    pgn: mainLineOnly(game.pgn),
+    defaultOrder: "breadth",
+  };
+}
+
+/** Where a game's best Test is saved */
+export function testStarsKey(game: ModelGame): string {
+  return `game-${game.id}-best-stars`;
 }

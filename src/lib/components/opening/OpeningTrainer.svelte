@@ -4,10 +4,10 @@
   /**
    * The link above the board: in a mode, back to the lobby (as the browser's
    * Back does, since each mode is a step in its history); in the lobby, to
-   * the list of openings.
+   * the list (of openings, or of games).
    */
-  export function backLink() {
-    if (!page.state.openingPhase) return { href: '/openings', label: 'Back to openings' };
+  export function backLink(list = { href: '/openings', label: 'Back to openings' }) {
+    if (!page.state.openingPhase) return list;
     return {
       href: page.url.pathname + page.url.search,
       label: 'Back to setup',
@@ -20,7 +20,7 @@
 </script>
 
 <script lang="ts">
-  import { onMount, untrack } from 'svelte';
+  import { onMount, untrack, type Snippet } from 'svelte';
   import { pushState } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
@@ -28,7 +28,7 @@
   import Button from '$lib/components/ui/Button.svelte';
   import OpeningLobby from './OpeningLobby.svelte';
   import OpeningDrill from './OpeningDrill.svelte';
-  import OpeningFlow from './OpeningFlow.svelte';
+  import OpeningWatch from './OpeningWatch.svelte';
   import type { BoardState } from '$lib/logic/types';
   import type { Arrow } from '$lib/logic/pgn';
   import { type Opening, parseOpeningPgn, extractLines, lineId } from '$lib/openings';
@@ -55,9 +55,10 @@
   } from './study-order';
 
   /**
-   * An opening: the lobby, then one of flow (watch every line), learn (new
-   * moves, breadth or depth), review (the moves due), or explore (the whole
-   * tree).
+   * An opening: the lobby, then one of watch (every line plays itself),
+   * learn (new moves, breadth or depth), review (the moves due), or explore
+   * (the whole tree). A game to memorize (`color` "both") also has test (the
+   * whole game from memory), and its page gives its own explore.
    *
    * Opened from the path (`path`), there's no lobby: it goes straight into
    * learn, every line, with none of the lobby's settings, and ends with
@@ -70,9 +71,14 @@
     opening: Opening;
     /** Opened from the path: no lobby, no settings */
     path?: boolean;
+    /** Explore, in place of the PGN explorer (a game's viewer) */
+    explore?: Snippet;
+    /** A game: the best stars from a test, and what to do with a new test's */
+    testBest?: number;
+    onTestDone?: (stars: number) => void;
   }
 
-  let { opening, path = false }: Props = $props();
+  let { opening, path = false, explore, testBest = 0, onTestDone }: Props = $props();
 
   let flipped = $derived(opening.color === 'b');
 
@@ -234,7 +240,10 @@
     onStart={open}
     onExplore={() => open('explore')}
     onStartOver={startOver}
+    {testBest}
   />
+{:else if phase === 'explore' && explore}
+  {@render explore()}
 {:else if phase === 'explore'}
   <BoardLayout>
     {#snippet boardArea()}
@@ -255,20 +264,21 @@
     {/snippet}
     {#snippet sidebarArea()}{/snippet}
   </BoardLayout>
-{:else if phase === 'flow'}
-  <OpeningFlow {opening} {startBoard} lines={activeLines} bind:speed {blindfold} onExit={backToLobby} />
+{:else if phase === 'watch'}
+  <OpeningWatch {opening} {startBoard} lines={activeLines} bind:speed {blindfold} onExit={backToLobby} />
 {:else}
   <OpeningDrill
     {opening}
     {startBoard}
     lines={activeLines}
-    order={phase === 'review' ? 'review' : order}
+    order={phase === 'review' || phase === 'test' ? phase : order}
     {perVisit}
     {progress}
     onStates={setStates}
     {autoNext}
     {blindfold}
     onExit={path ? undefined : backToLobby}
+    {onTestDone}
   />
 {/if}
 
