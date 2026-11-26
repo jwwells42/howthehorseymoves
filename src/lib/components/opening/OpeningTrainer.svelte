@@ -24,14 +24,11 @@
   import { pushState } from '$app/navigation';
   import Board from '$lib/components/board/Board.svelte';
   import BoardLayout from '$lib/components/board/BoardLayout.svelte';
-  import PgnExplorer from '$lib/components/game/PgnExplorer.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
   import OpeningLobby from './OpeningLobby.svelte';
   import OpeningDrill from './OpeningDrill.svelte';
   import OpeningWatch from './OpeningWatch.svelte';
-  import type { BoardState } from '$lib/logic/types';
-  import type { Arrow } from '$lib/logic/pgn';
-  import { type Opening, parseOpeningPgn, extractLines, lineId } from '$lib/openings';
+  import OpeningTree from './OpeningTree.svelte';
+  import { type Opening, parseOpeningPgn, repertoireLines, lineId } from '$lib/openings';
   import {
     type MoveProgress,
     type MoveState,
@@ -57,7 +54,8 @@
   /**
    * An opening: the lobby, then one of watch (every line plays itself),
    * learn (new moves, breadth or depth), review (the moves due), or explore
-   * (the whole tree). A game to memorize (`color` "both") also has test (the
+   * (the whole tree beside the board). A line stops where it transposes into
+   * another (see repertoire.ts). A game to memorize (`color` "both") also has test (the
    * whole game from memory), and its page gives its own explore.
    *
    * Opened from the path (`path`), there's no lobby: it goes straight into
@@ -84,7 +82,7 @@
 
   let parsed = $derived.by(() => {
     const tree = parseOpeningPgn(opening.pgn);
-    return { tree, lines: extractLines(tree) };
+    return { tree, lines: repertoireLines(tree) };
   });
   let startBoard = $derived(parsed.tree.startBoard);
   let lines = $derived(parsed.lines);
@@ -213,17 +211,6 @@
   $effect(() => {
     if (phase === 'lobby') untrack(reloadProgress);
   });
-
-  // === Explore ===
-
-  let exploreBoardOverride = $state<BoardState | null>(null);
-  let exploreBoard = $derived(exploreBoardOverride ?? startBoard);
-  let exploreArrows = $state<Arrow[] | undefined>(undefined);
-
-  function onExploreBoardChange(b: BoardState, a?: Arrow[]) {
-    exploreBoardOverride = b;
-    exploreArrows = a;
-  }
 </script>
 
 {#if phase === 'lobby'}
@@ -245,18 +232,8 @@
 {:else if phase === 'explore' && explore}
   {@render explore()}
 {:else if phase === 'explore'}
-  <BoardLayout>
-    {#snippet boardArea()}
-      <Board board={exploreBoard} readOnly arrows={exploreArrows} {flipped} />
-    {/snippet}
-
-    {#snippet sidebarArea()}
-      <PgnExplorer pgn={opening.pgn} {flipped} noBoard onBoardChange={onExploreBoardChange} />
-      <div class="explore-footer">
-        <Button onclick={backToLobby}>&larr; Setup</Button>
-      </div>
-    {/snippet}
-  </BoardLayout>
+  <!-- Every line, picked or not -->
+  <OpeningTree {opening} {startBoard} {lines} {progress} onExit={backToLobby} />
 {:else if path && !progressLoaded}
   <BoardLayout>
     {#snippet boardArea()}
@@ -281,12 +258,3 @@
     {onTestDone}
   />
 {/if}
-
-<style>
-  .explore-footer {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-    flex-shrink: 0;
-  }
-</style>

@@ -2,15 +2,7 @@
   import Button from '$lib/components/ui/Button.svelte';
   import Choice from '$lib/components/ui/Choice.svelte';
   import StarRating from '$lib/components/ui/StarRating.svelte';
-  import {
-    type Opening,
-    type OpeningLine,
-    parseOpeningPgn,
-    extractLines,
-    findBranchPoint,
-    lineId,
-    plays,
-  } from '$lib/openings';
+  import { type Opening, type OpeningLine, findBranchPoint, plays } from '$lib/openings';
   import { type MoveProgress, type Tally, KNOWN, NEW, playerMoves, stateOf, tally } from '$lib/openings/progress';
   import type { StudyMode, StudyOrder } from './study-order';
   import { PER_VISIT_OPTIONS, SPEED_OPTIONS } from './study-order';
@@ -115,16 +107,9 @@
     const all = lines.map((_, i) => i);
     const chapters = opening.chapters ?? [];
     if (chapters.length === 0) return [{ name: '', indices: all }];
-    // Every line of the joined tree is a whole line of the chapter it came from
-    const chapterOf = new Map<string, number>();
-    chapters.forEach((ch, c) => {
-      for (const line of extractLines(parseOpeningPgn(ch.pgn))) {
-        const key = lineId(line);
-        if (!chapterOf.has(key)) chapterOf.set(key, c);
-      }
-    });
+    // A line is in the chapter its last move was written in
     const groups = chapters.map((ch) => ({ name: ch.name, indices: [] as number[] }));
-    for (const i of all) groups[chapterOf.get(lineId(lines[i])) ?? 0].indices.push(i);
+    for (const i of all) groups[Math.min(lines[i].at(-1)?.chapter ?? 0, groups.length - 1)].indices.push(i);
     return groups.filter((g) => g.indices.length > 0);
   });
 
@@ -144,7 +129,8 @@
     for (const { indices } of lineGroups) {
       indices.forEach((li, k) => {
         const from = k > 0 ? findBranchPoint(lines[indices[k - 1]], lines[li]) : 0;
-        previews[li] = formatLinePreview(lines[li], from);
+        // ⇄: it stops where it transposes into another line
+        previews[li] = formatLinePreview(lines[li], from) + (lines[li].at(-1)?.joins ? ' ⇄' : '');
       });
     }
     return previews;

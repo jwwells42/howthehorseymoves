@@ -20,6 +20,10 @@ export interface OpeningMove {
   comment?: string;
   arrows?: Arrow[];
   children: OpeningMove[];
+  /** Which game of a multi-game PGN it was written in (a study's chapter), from 0 */
+  chapter?: number;
+  /** The last move of a line that stops where it transposes: the move order it joins (see repertoire.ts) */
+  joins?: OpeningLine;
 }
 
 export interface OpeningTree {
@@ -81,20 +85,29 @@ function fnv1a(text: string, seed: number): string {
   return h.toString(36);
 }
 
-// A move is known by the position it's played in, so two lines that reach the
-// same position by different move orders share what was learned there. The
-// en passant square counts only when a pawn can take there: 1.e4 e5 2.Nf3 Nc6
-// and 1.Nf3 Nc6 2.e4 e5 are the same position.
-export function moveKey(board: BoardState, color: PieceColor, from: SquareId, to: SquareId, promotion?: PieceKind): string {
+// A position, with `color` to move. The en passant square counts only when a
+// pawn can take there: 1.e4 e5 2.Nf3 Nc6 and 1.Nf3 Nc6 2.e4 e5 are the same
+// position.
+export function positionKey(board: BoardState, color: PieceColor): string {
   const ep = board.enPassantSquare;
   const takerRank = color === "w" ? "5" : "4";
   const canTake = ep !== undefined && [-1, 1].some((df) => {
     const p = board.pieces.get(`${String.fromCharCode(ep.charCodeAt(0) + df)}${takerRank}` as SquareId);
     return p?.piece === "P" && p.color === color;
   });
-  const position = boardToKey(canTake ? board : { ...board, enPassantSquare: undefined }, color);
-  const text = `${position} ${from}${to}${promotion ?? ""}`;
+  return boardToKey(canTake ? board : { ...board, enPassantSquare: undefined }, color);
+}
+
+// A move is known by the position it's played in, so two lines that reach the
+// same position by different move orders share what was learned there.
+export function moveKey(board: BoardState, color: PieceColor, from: SquareId, to: SquareId, promotion?: PieceKind): string {
+  const text = `${positionKey(board, color)} ${from}${to}${promotion ?? ""}`;
   return fnv1a(text, 2166136261) + fnv1a(text, 3735928559);
+}
+
+/** The position after a move, with the other side to move */
+export function positionAfter(move: OpeningMove): string {
+  return positionKey(move.boardAfter, move.colorPlayed === "w" ? "b" : "w");
 }
 
 // === Tokenizer ===
@@ -189,10 +202,12 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
   let state: ParseState = { parentNode: null, board: startBoard, color: "w" };
   let lastMoveParent: ParseState = { ...state };
   const stack: { savedState: ParseState; savedLMP: ParseState }[] = [];
+  let chapter = 0;
 
   for (let ti = 0; ti < tokens.length; ti++) {
     const token = tokens[ti];
     if (token === "|") {
+      chapter++;
       state = { parentNode: null, board: startBoard, color: "w" };
       lastMoveParent = { ...state };
       stack.length = 0;
@@ -232,6 +247,7 @@ export function parseOpeningPgn(pgn: string): OpeningTree {
         boardAfter: newBoard,
         colorPlayed: state.color,
         children: [],
+        chapter,
       };
 
       if (state.parentNode === null) {
@@ -294,6 +310,24 @@ export function splitPgnChapters(pgn: string): PgnChapter[] {
 /** A line's moves as text: how a line is known across a re-export of its PGN. */
 export function lineId(line: OpeningLine): string {
   return line.map((m) => m.san).join(" ");
+}
+
+/**
+ * Moves written out with their numbers, from ply `from` up to `to`:
+ * "3.Nc3 Nf6 4.Nf3", or "3…a6 4.Ba4" when the first is Black's. Lines start
+ * from the starting position, so White's Nth move is ply 2N-2.
+ */
+export function formatMoves(line: OpeningLine, from = 0, to = line.length): string {
+  const parts: string[] = [];
+  for (let i = from; i < to; i++) parts.push(movePrefix(i, i === from) + line[i].san + (line[i].nag ?? ""));
+  return parts.join(" ");
+}
+
+/** A move's number as it's written before it: "3." for White, "3…" for Black's first, else nothing */
+export function movePrefix(ply: number, first: boolean): string {
+  const n = Math.floor(ply / 2) + 1;
+  if (ply % 2 === 0) return `${n}.`;
+  return first ? `${n}…` : "";
 }
 
 export function findBranchPoint(line1: OpeningLine, line2: OpeningLine): number {

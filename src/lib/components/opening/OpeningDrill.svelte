@@ -15,7 +15,7 @@
   import { type Arrow, readTypedMove } from '$lib/logic/pgn';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import { playSound } from '$lib/state/sound';
-  import { type Opening, type OpeningLine, findBranchPoint, plays } from '$lib/openings';
+  import { type Opening, type OpeningLine, findBranchPoint, joinText, plays } from '$lib/openings';
   import { testStars } from './study-order';
   import { type MoveProgress, type MoveState, type PassKind, NEW, afterMove, buildPass, stateOf } from '$lib/openings/progress';
 
@@ -90,6 +90,8 @@
   let atFrontier = $derived(moveIdx >= maxReachedIdx);
   let isPlayerTurn = $derived(moveIdx < currentLine.length && plays(side, currentLine[moveIdx]));
   let atEnd = $derived(moveIdx >= currentLine.length);
+  // A line that stops where it transposes: the move order it joins
+  let joins = $derived(joinText(currentLine));
   // Whose move it is: the student's, when it's their turn
   let toMove = $derived<PieceColor>(currentLine[moveIdx]?.colorPlayed ?? 'w');
 
@@ -489,6 +491,9 @@
         <span class="muted">…</span>
       {/if}
     </div>
+    {#if joins && lineComplete}
+      <p class="joins">{joins}</p>
+    {/if}
 
     {#if currentComment}
       <div class="comment-area">
@@ -592,6 +597,14 @@
     gap: 0.75rem;
     font-size: var(--size-secondary);
     min-height: 2.75rem;
+    flex-shrink: 0;
+  }
+
+  .joins {
+    margin: 0;
+    text-align: center;
+    font-size: var(--size-secondary);
+    color: var(--ink);
     flex-shrink: 0;
   }
 

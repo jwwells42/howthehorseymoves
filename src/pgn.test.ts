@@ -1,14 +1,26 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import { splitPgnGames, readHeaders, parseArrows, parseGamePgn, mainLineOnly, withoutLichessAnalysis } from '$lib/logic/pgn';
-import { splitPgnChapters } from '$lib/openings';
-import { pgnGames } from '$lib/games';
+import {
+  OPENINGS,
+  branchRows,
+  extractLines,
+  joinText,
+  lineId,
+  parseOpeningPgn,
+  repertoireLines,
+  splitPgnChapters,
+  type OpeningLine,
+} from '$lib/openings';
+import { playerMoves } from '$lib/openings/progress';
+import { GAMES, gameOpening, pgnGames } from '$lib/games';
 
 /*
   Reading PGN files made elsewhere: a game database's export (clock tags on
   every move, Windows line endings, a forfeit with no moves) splits into its
   games, and a Lichess study's chapters keep their names. A match's file
-  gives its finished games, without the words Lichess writes into it.
+  gives its finished games, without the words Lichess writes into it. A
+  repertoire's line stops where it transposes into another.
 */
 
 const EXPORT = [
@@ -116,5 +128,104 @@ describe('PGN files from elsewhere', () => {
       expect(named.length).toBeGreaterThan(1);
       expect(splitPgnChapters(pgn).map((c) => c.name)).toEqual(named);
     }
+  });
+});
+
+const moves = (line: OpeningLine) => lineId(line);
+const linesOf = (pgn: string) => repertoireLines(parseOpeningPgn(pgn));
+
+describe('a repertoire: lines that transpose', () => {
+  it('a line that reaches another line\'s position by other moves stops there, and says which', () => {
+    const lines = linesOf('1.d4 c6 2.Bf4 (2.Nf3 Nf6 3.Bf4 Qb6 4.e3) 2...Qb6 3.Nf3 Nf6 4.e3');
+    expect(lines.map(moves)).toEqual(['d4 c6 Bf4 Qb6 Nf3 Nf6 e3', 'd4 c6 Nf3 Nf6 Bf4 Qb6']);
+    expect(lines[0].at(-1)?.joins).toBeUndefined();
+    expect(moves(lines[1].at(-1)?.joins ?? [])).toBe('d4 c6 Bf4 Qb6 Nf3 Nf6');
+    expect(joinText(lines[1])).toBe('⇄ 2.Bf4 Qb6 3.Nf3 Nf6');
+  });
+
+  it('a different move written past the join goes onto the first move order', () => {
+    const lines = linesOf('1.d4 c6 2.Bf4 (2.Nf3 Nf6 3.Bf4 Qb6 4.Nbd2) 2...Qb6 3.Nf3 Nf6 4.e3');
+    expect(lines.map(moves)).toEqual([
+      'd4 c6 Bf4 Qb6 Nf3 Nf6 e3',
+      'd4 c6 Nf3 Nf6 Bf4 Qb6',
+      'd4 c6 Bf4 Qb6 Nf3 Nf6 Nbd2',
+    ]);
+  });
+
+  it('the line written first is the one kept, whichever is the main line', () => {
+    const lines = linesOf('1.d4 c6 2.Nf3 (2.Bf4 Qb6 3.Nf3 Nf6 4.e3) 2...Nf6 3.Bf4 Qb6 4.e3');
+    expect(lines.map(moves)).toEqual(['d4 c6 Nf3 Nf6 Bf4 Qb6 e3', 'd4 c6 Bf4 Qb6 Nf3 Nf6']);
+    expect(joinText(lines[1])).toBe('⇄ 2.Nf3 Nf6 3.Bf4 Qb6');
+  });
+
+  it('the same moves in two chapters are not a transposition, and each move knows its chapter', () => {
+    const pgn = '[Event "A"]\n\n1.e4 e5 2.Nf3 *\n\n[Event "B"]\n\n1.e4 e5 2.Bc4 *';
+    const lines = linesOf(pgn);
+    expect(lines.map(moves)).toEqual(['e4 e5 Nf3', 'e4 e5 Bc4']);
+    expect(lines.some((l) => l.at(-1)?.joins)).toBe(false);
+    expect(lines.map((l) => l.map((m) => m.chapter))).toEqual([[0, 0, 0], [1, 1, 1]]);
+  });
+
+  it('a position coming back in the same line (a repetition) does not stop it', () => {
+    expect(linesOf('1.Nf3 Nf6 2.Ng1 Ng8 3.Nf3 Nf6 4.e4').map(moves)).toEqual(['Nf3 Nf6 Ng1 Ng8 Nf3 Nf6 e4']);
+  });
+
+  it("finds the teacher's two transpositions: one in the London, one in the Slav", () => {
+    const joins = (id: string) =>
+      linesOf(OPENINGS.find((o) => o.id === id)!.pgn).flatMap((l) => (l.at(-1)?.joins ? [joinText(l)] : []));
+    expect(joins('c6-qb6-vs-london')).toEqual(['⇄ 2.Bf4 Qb6 3.Nf3 Nf6']);
+    expect(joins('slav-defense')).toEqual(['⇄ 3.Nc3 Nf6 4.Nf3']);
+    for (const id of ['e4', 'd4', 'scholars-mate']) expect(joins(id)).toEqual([]);
+  });
+
+  it('every opening keeps the same moves to learn, so saved progress counts the same', () => {
+    for (const opening of OPENINGS) {
+      const tree = parseOpeningPgn(opening.pgn);
+      const keys = (lines: OpeningLine[]) => playerMoves(lines, opening.color).map((m) => m.key).sort();
+      expect(keys(repertoireLines(tree)), opening.id).toEqual(keys(extractLines(tree)));
+    }
+  });
+
+  it('every line of a study is in the chapter it was written in', () => {
+    for (const opening of OPENINGS.filter((o) => o.chapters)) {
+      const lines = repertoireLines(parseOpeningPgn(opening.pgn));
+      opening.chapters!.forEach((chapter, c) => {
+        const own = extractLines(parseOpeningPgn(chapter.pgn)).map(moves);
+        const placed = lines.filter((l) => l.at(-1)?.chapter === c).map(moves);
+        expect(placed, `${opening.id}: ${chapter.name}`).toEqual(own);
+      });
+    }
+  });
+
+  it('a game to memorize is one line, as written', () => {
+    for (const game of GAMES) {
+      const tree = parseOpeningPgn(gameOpening(game).pgn);
+      expect(repertoireLines(tree).map(moves), game.id).toEqual(extractLines(tree).map(moves));
+    }
+  });
+
+  it("the tree: each chapter's 1.e4 is one move, and a row runs to the next branch point", () => {
+    const opening = OPENINGS.find((o) => o.id === 'e4')!;
+    const tree = branchRows(repertoireLines(parseOpeningPgn(opening.pgn)));
+    expect(tree.roots.map((n) => n.move.san)).toEqual(['e4']);
+    expect(tree.rows.map((r) => r.nodes.map((n) => n.move.san).join(' '))).toEqual(['e4']);
+    expect(tree.rows[0].rows.map((r) => r.nodes.map((n) => n.move.san).join(' '))).toEqual([
+      'e5 Nf3',
+      'c5 Nf3',
+      'c6 d4 d5 e5',
+      'e6 d4 d5 Nc3',
+      'd6 d4 Nf6 Nc3 g6 Be3 Bg7 h3 O-O Qd2 c6 a4 Nbd7 Nf3 e5 dxe5 dxe5 Qd6 Qa5 b4 Qd8',
+      'd5 exd5 Qxd5 Nc3 Qa5 d4 Nf6 Nf3',
+    ]);
+  });
+
+  it("the tree: a row that transposes ends there, with the move order it joins", () => {
+    const tree = branchRows(linesOf('1.d4 c6 2.Bf4 (2.Nf3 Nf6 3.Bf4 Qb6 4.e3) 2...Qb6 3.Nf3 Nf6 4.e3'));
+    const [trunk] = tree.rows;
+    expect(trunk.nodes.map((n) => n.move.san)).toEqual(['d4', 'c6']);
+    const [main, transposed] = trunk.rows;
+    expect(main.joins).toBeUndefined();
+    expect(transposed.nodes.map((n) => n.move.san)).toEqual(['Nf3', 'Nf6', 'Bf4', 'Qb6']);
+    expect(moves(transposed.joins ?? [])).toBe('d4 c6 Bf4 Qb6 Nf3 Nf6');
   });
 });

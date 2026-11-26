@@ -12,7 +12,7 @@
   import type { BoardState } from '$lib/logic/types';
   import type { SlideAnimation } from '$lib/state/use-puzzle.svelte';
   import { playSound } from '$lib/state/sound';
-  import { type Opening, type OpeningLine, findBranchPoint } from '$lib/openings';
+  import { type Opening, type OpeningLine, findBranchPoint, joinText } from '$lib/openings';
   import { SPEED_OPTIONS } from './study-order';
 
   /**
@@ -53,6 +53,8 @@
   let comment = $derived(lastMove?.comment);
   let arrows = $derived(lastMove?.arrows);
   let highlights = $derived(lastMove ? highlight([lastMove.from, lastMove.to], MARK.note) : []);
+  // A line that stops where it transposes: the move order it joins
+  let joins = $derived(joinText(line));
 
   // Held at the end of a line: longer when the moves are slower
   let endPause = $derived(Math.max(1500, 2 * speed));
@@ -260,6 +262,10 @@
 
     <Choice label="Speed" hideLabel options={SPEED_OPTIONS} bind:value={speed} />
 
+    {#if joins && moveIdx >= line.length}
+      <p class="joins">{joins}</p>
+    {/if}
+
     {#if comment}
       <div class="comment-area">
         <p class="comment-text">{comment}</p>
@@ -334,6 +340,14 @@
   .nav-btn:disabled {
     opacity: 0.3;
     cursor: default;
+  }
+
+  .joins {
+    margin: 0;
+    text-align: center;
+    font-size: var(--size-secondary);
+    color: var(--ink);
+    flex-shrink: 0;
   }
 
   .done-check {

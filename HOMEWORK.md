@@ -50,6 +50,13 @@ Add to `src/lib/games/index.ts` with correct PGN:
 (Any of these can also go in a Lichess study file, as above; a broken PGN
 now fails `npm test` before it's pushed.)
 
+## Openings
+
+- **A line can stop where it transposes.** When a line of a study reaches a
+  position another line already has by other moves, the trainer stops it
+  there and shows ⇄ with the other move order. Moves written past that point
+  are learned in the other line (they're the same moves in the same position).
+
 ## Positions
 
 ### Endings Still Without a Set
@@ -199,33 +206,6 @@ pages of board-vision exercises), the bitbase-backed endgame trainers, the
 
 Parking lot, started 2026-11-21. Nothing here is built.
 
-## A repertoire tree, with transpositions (the teacher, 2026-11-26)
-
-**Wanted:** the teacher finds ChessTempo's opening trainer better than the
-line-by-line way (Chessable's), which this site follows: it handles
-transpositions much better, and shows the repertoire as a tree where you can
-see the branches.
-
-**Today:**
-- Progress is saved by position + move (`moveKey()` in
-  `src/lib/openings/parser.ts`), so the same move reached by another move
-  order already shares what was learned.
-- But a repertoire is still the PGN's tree, drilled one root-to-leaf line at
-  a time (`extractLines`). Two branches that transpose into the same position
-  are separate in it, and each is played through in full. The lobby shows
-  chapters and lines, not a tree, and Explore shows the PGN's variations as
-  written.
-
-Notes for building it:
-- Merge the tree by position (`boardToKey`) into a graph, so a transposition
-  is one node with two ways in.
-- Drill by position rather than by line: each position where it's your move
-  is one thing to remember.
-- Show the repertoire as a tree you can open and fold, with a transposition
-  marked as a link to where the line continues.
-- **Ask the teacher first:** go through ChessTempo's trainer together and
-  note what they like, before designing.
-
 # Analysis on the smartboard
 
 The teacher now analyses on a touchscreen smartboard, and would one day like
@@ -305,3 +285,9 @@ stars on the device (`{key}-best`, `{key}-best-stars`, e.g.
   match (20 games; game 2 was a forfeit) and the finished 2026 games are in.
   Every game's PGN is now tested, and so are the comments in `.pgn` files.
 - **Flow is now Watch** (2026-11-26), for openings and games.
+- **A repertoire tree, with transpositions** (2026-11-26): Explore shows the
+  repertoire as a tree beside the board, a row for each stretch between
+  branches, with a dot for how much is learned. A line that transposes into
+  another stops there with ⇄ and the move order it joins, in the tree and in
+  Learn, Review and Watch. In your repertoires that's the London's
+  2.Nf3 Nf6 3.Bf4 Qb6 and the Slav's 3.Nf3 Nf6 4.Nc3.
