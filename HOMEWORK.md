@@ -198,6 +198,14 @@ pages of board-vision exercises), the bitbase-backed endgame trainers, the
 - **`scripts/filter-lichess.py` knows six themes** (fork, skewer,
   capturingDefender, discoveredAttack, pin, pawnEndgame). Each new set above
   needs its theme added to `CATEGORIES` there.
+- **Marks that still come and go on `/openings` and `/games`.** "Review N"
+  (and the ✓ on `/openings`) appear on the right of a card when there's
+  something due or learned. That can rewrap a long description and change
+  the card's height, which the stars no longer do (2026-11-27). Keep their
+  room the same way?
+- **The endgame win card wasn't checked in a browser** (2026-11-27): its
+  "Best:" line is now always there, with stars. The type check passes, but
+  no one has played Queen vs King or Philidor to a win since.
 - **The eval-diffs report's page is a 1 MB script** (its data), and the
   build warns about it. Only that page loads it. Leave it, or load the data
   when the page opens.
@@ -291,3 +299,11 @@ stars on the device (`{key}-best`, `{key}-best-stars`, e.g.
   another stops there with ⇄ and the move order it joins, in the tree and in
   Learn, Review and Watch. In your repertoires that's the London's
   2.Nf3 Nf6 3.Bf4 Qb6 and the Slav's 3.Nf3 Nf6 4.Nc3.
+- **Stars are always there** (2026-11-27): every star a student can earn is
+  drawn from the start, grey until it's earned, so nothing moves when it is:
+  the cards on the path and on `/tactics`, `/checkmates`, `/practice`,
+  `/endings`, `/vision`, `/board` and `/games`, puzzle lists, Place the
+  Pieces' stages, and trainers' start screens ("Best: 0 ☆☆☆") and result
+  screens. Every card on the path is now one size, room for a name on two
+  lines included. The endgame trainers on `/endings` (Queen vs King, Rook
+  Ladder…) show their stars from the path, which they didn't before.
