@@ -339,11 +339,9 @@
               <span class="stage-num">{idx + 1}.</span>
               <img src={s.icon} alt={s.label} class="stage-icon" />
               <span class="stage-name">{s.label}</span>
-              {#if stars > 0}
-                <span class="stage-stars">
-                  <StarRating {stars} size="sm" />
-                </span>
-              {/if}
+              <span class="stage-stars">
+                <StarRating {stars} size="sm" />
+              </span>
             </a>
           {/each}
         </div>

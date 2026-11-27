@@ -133,18 +133,14 @@
     {#if phase === 'idle'}
       <div class="center-panel">
         <h2 class="title">Blindfold Puzzle Solving</h2>
-        {#if bestStars > 0}
-          <StarRating stars={bestStars} size="sm" />
-        {/if}
+        <StarRating stars={bestStars} size="sm" />
         <Button variant="primary" size="large" onclick={startGame}>Start</Button>
       </div>
     {:else}
       <div class="center-panel">
         <h2 class="title">Complete!</h2>
         <p class="final-score">{correct}/{total} correct</p>
-        {#if doneStars >= 1}
-          <StarRating stars={doneStars} size="lg" />
-        {/if}
+        <StarRating stars={doneStars} size="lg" />
         <FinishActions label="Play Again" onclick={() => { phase = 'idle'; }} />
       </div>
     {/if}

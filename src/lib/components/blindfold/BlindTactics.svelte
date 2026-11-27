@@ -185,9 +185,7 @@
         options={[0, 1, 2].map((n) => ({ value: n, label: String(n) }))}
         bind:value={delayMoves}
       />
-      {#if bestStars > 0}
-        <StarRating stars={bestStars} size="sm" />
-      {/if}
+      <StarRating stars={bestStars} size="sm" />
       {#if finished}
         <FinishActions label="Play Again" onclick={startGame} />
       {:else}

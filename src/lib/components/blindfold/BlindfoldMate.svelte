@@ -284,9 +284,7 @@
     {#if phase === 'idle'}
       <div class="idle-screen">
         <h2 class="title">{info.name}</h2>
-        {#if bestStars > 0}
-          <StarRating stars={bestStars} size="sm" />
-        {/if}
+        <StarRating stars={bestStars} size="sm" />
 
         <label class="toggle-label">
           <input type="checkbox" bind:checked={hideHistory} />

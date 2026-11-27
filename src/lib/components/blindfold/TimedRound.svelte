@@ -55,9 +55,7 @@
           {round.score} completed
         {/if}
       </p>
-      {#if round.stars > 0}
-        <StarRating stars={round.stars} size="lg" />
-      {/if}
+      <StarRating stars={round.stars} size="lg" />
       <BestScore score={round.best} />
       <FinishActions label="Play Again" onclick={round.start} />
       {@render results?.()}

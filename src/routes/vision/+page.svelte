@@ -98,8 +98,9 @@
           title={trainer.name}
         >
           {#snippet aside()}
-            {#if (stars[trainer.key] ?? 0) > 0}
-              <StarRating stars={stars[trainer.key]} size="sm" />
+            <!-- Grey until earned; a trainer without stars has none -->
+            {#if trainer.storageKey}
+              <StarRating stars={stars[trainer.key] ?? 0} size="sm" />
             {/if}
           {/snippet}
         </LinkCard>

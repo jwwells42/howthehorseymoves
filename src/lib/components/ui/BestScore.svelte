@@ -1,24 +1,23 @@
 <script lang="ts">
   import StarRating from './StarRating.svelte';
 
-  /** A student's best result on a trainer. Shows nothing until they have one. */
+  /** A student's best result on a trainer: 0 and grey stars until they have one, so nothing moves when they do. */
 
   interface Props {
     score: number;
+    /** Leave out for no stars (a result screen, which shows the round's own above it) */
     stars?: number;
   }
 
-  let { score, stars = 0 }: Props = $props();
+  let { score, stars }: Props = $props();
 </script>
 
-{#if score > 0}
-  <p class="best">
-    Best: {score}
-    {#if stars > 0}
-      <StarRating {stars} size="sm" />
-    {/if}
-  </p>
-{/if}
+<p class="best">
+  Best: {score}
+  {#if stars !== undefined}
+    <StarRating {stars} size="sm" />
+  {/if}
+</p>
 
 <style>
   .best {

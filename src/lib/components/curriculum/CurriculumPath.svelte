@@ -122,11 +122,15 @@
     height: 2.5rem;
     flex-shrink: 0;
   }
+  /* Room for a name on two lines and the stars under it, so every card is
+     the same size whatever its name (the name and stars are body size) */
   .card-text {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 0.125rem;
     min-width: 0;
+    min-height: calc(3lh + 0.125rem);
   }
 
   .card-stars.no-stars {

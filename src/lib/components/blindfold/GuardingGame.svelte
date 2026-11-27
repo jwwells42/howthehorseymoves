@@ -231,14 +231,10 @@
 {#if phase === 'idle'}
   <div class="idle-screen">
     <h2 class="title">Who's Guarding Whom?</h2>
-    {#if best > 0}
-      <div class="best-line">
-        Best streak: {best}
-        {#if bestStars > 0}
-          <StarRating stars={bestStars} size="sm" />
-        {/if}
-      </div>
-    {/if}
+    <div class="best-line">
+      Best streak: {best}
+      <StarRating stars={bestStars} size="sm" />
+    </div>
     <Button variant="primary" size="large" onclick={startGame}>Start</Button>
   </div>
 
@@ -255,12 +251,8 @@
     {#snippet sidebarArea()}
       <div class="done-screen">
         <p class="peak-streak">Best streak: {peakStreak}</p>
-        {#if doneStars > 0}
-          <StarRating stars={doneStars} size="lg" />
-        {/if}
-        {#if best > 0}
-          <p class="best-text">All-time best: {best}</p>
-        {/if}
+        <StarRating stars={doneStars} size="lg" />
+        <p class="best-text">All-time best: {best}</p>
 
         <div class="board-label">Actual positions</div>
 
@@ -289,9 +281,7 @@
     {#snippet headerArea()}
       <div class="streak-bar">
         <span class="streak-label">Streak: <span class="streak-val">{streak}</span></span>
-        {#if best > 0}
-          <span class="streak-label">Best: {best}</span>
-        {/if}
+        <span class="streak-label">Best: {best}</span>
       </div>
     {/snippet}
 

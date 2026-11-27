@@ -299,18 +299,14 @@
       <div class="center-col">
         <h2>What Changed?</h2>
         <Choice label="Pieces" options={[4, 6, 8].map((n) => ({ value: n, label: String(n) }))} bind:value={level} />
-        {#if bestStars > 0}
-          <StarRating stars={bestStars} size="sm" />
-        {/if}
+        <StarRating stars={bestStars} size="sm" />
         <Button variant="primary" size="large" onclick={startGame}>Start</Button>
       </div>
     {:else if phase === 'done'}
       <div class="center-col">
         <h2>Complete!</h2>
         <p class="big-score">{correct}/{total} correct</p>
-        {#if stars > 0}
-          <StarRating {stars} size="lg" />
-        {/if}
+        <StarRating {stars} size="lg" />
         <FinishActions label="Play Again" onclick={goIdle} />
       </div>
     {/if}

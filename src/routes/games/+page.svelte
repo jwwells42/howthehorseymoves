@@ -47,12 +47,9 @@
       {#if dueCounts.has(game.id)}
         <span class="due">Review {dueCounts.get(game.id)}</span>
       {/if}
-      {#if bestStars.has(game.id)}
-        <StarRating stars={bestStars.get(game.id) ?? 0} size="sm" />
-      {/if}
-      {#if knownIds.has(game.id)}
-        <span class="done" role="img" aria-label="Learned">&#10003;</span>
-      {/if}
+      <StarRating stars={bestStars.get(game.id) ?? 0} size="sm" />
+      <!-- Its room is kept until it's learned, so the stars don't move -->
+      <span class={['done', !knownIds.has(game.id) && 'not-yet']} role="img" aria-label="Learned">&#10003;</span>
       <span class="result">{game.result}</span>
     {/snippet}
   </LinkCard>
@@ -81,6 +78,10 @@
   .done {
     color: var(--correct-text);
     font-size: var(--size-large);
+  }
+
+  .done.not-yet {
+    visibility: hidden;
   }
 
   .due {

@@ -42,9 +42,7 @@
       {@const stars = pawnEndingStars[ending.storageKey] ?? 0}
       <LinkCard href={ending.href} icon={ending.icon} title={ending.name}>
         {#snippet aside()}
-          {#if stars > 0}
-            <StarRating {stars} size="sm" />
-          {/if}
+          <StarRating {stars} size="sm" />
         {/snippet}
       </LinkCard>
     {/each}

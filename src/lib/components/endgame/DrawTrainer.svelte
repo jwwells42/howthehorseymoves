@@ -544,9 +544,7 @@
             {mistakes} mistake{mistakes > 1 ? 's' : ''}
           {/if}
         </p>
-        {#if bestStars > 0 && bestStars > stars}
-          <p class="best-text">Best: {bestStars} stars</p>
-        {/if}
+        <p class="best-text">Best: <StarRating stars={bestStars} size="sm" /></p>
         <div class="result-buttons">
           {#if onNext}
             <Button variant="primary" size="large" onclick={onNext}>

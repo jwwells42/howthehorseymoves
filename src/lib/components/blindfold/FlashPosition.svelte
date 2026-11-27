@@ -177,18 +177,14 @@
           options={LEVELS.map((l, i) => ({ value: i, label: l.label }))}
           bind:value={levelIdx}
         />
-        {#if bestStars > 0}
-          <StarRating stars={bestStars} size="sm" />
-        {/if}
+        <StarRating stars={bestStars} size="sm" />
         <Button variant="primary" size="large" onclick={startGame}>Start</Button>
       </div>
     {:else}
       <div class="center-col">
         <h2>Complete!</h2>
         <p class="big-score">{totalCorrect}/{totalPieces} pieces correct</p>
-        {#if overallStars > 0}
-          <StarRating stars={overallStars} size="lg" />
-        {/if}
+        <StarRating stars={overallStars} size="lg" />
         <FinishActions label="Play Again" onclick={goIdle} />
       </div>
     {/if}

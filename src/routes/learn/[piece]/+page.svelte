@@ -132,10 +132,9 @@
   let puzzleIds = $derived(puzzleSet?.puzzles.map((p) => p.id) ?? []);
 </script>
 
+<!-- Grey until earned, so nothing moves when they are -->
 {#snippet stars(count: number)}
-  {#if count > 0}
-    <StarRating stars={count} size="sm" />
-  {/if}
+  <StarRating stars={count} size="sm" />
 {/snippet}
 
 {#if endgame}

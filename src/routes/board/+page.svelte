@@ -24,7 +24,7 @@
       title="Name the Square"
     >
       {#snippet aside()}
-        {#if coordStars > 0}<StarRating stars={coordStars} size="sm" />{/if}
+        <StarRating stars={coordStars} size="sm" />
       {/snippet}
     </LinkCard>
 
