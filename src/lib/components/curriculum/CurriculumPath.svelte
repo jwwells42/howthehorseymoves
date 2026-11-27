@@ -37,9 +37,12 @@
             <img src={stop.icon} alt="" class="card-icon" />
             <div class="card-text">
               <h3>{stop.name}</h3>
-              {#if stars > 0}
+              <!-- The stars are always there, grey until they're earned, so a
+                   card is the same size before and after. A stop without
+                   stars keeps the room, so every card is the same size. -->
+              <span class={['card-stars', isNone && 'no-stars']}>
                 <StarRating {stars} size="sm" />
-              {/if}
+              </span>
             </div>
           </a>
         {/each}
@@ -124,6 +127,10 @@
     flex-direction: column;
     gap: 0.125rem;
     min-width: 0;
+  }
+
+  .card-stars.no-stars {
+    visibility: hidden;
   }
 
   /* A finished stop: a tick in the top-left corner */
